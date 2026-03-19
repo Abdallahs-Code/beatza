@@ -50,4 +50,7 @@ class AppColors {
   static const Color white54 = Colors.white54;
   static const Color white60 = Colors.white60;
   static const Color white70 = Colors.white70;
+
+  static const Color googleBackGround = Color(0xFF484848);
+  static const Color blueHyperlink = Color(0xFF699FFF);
 }

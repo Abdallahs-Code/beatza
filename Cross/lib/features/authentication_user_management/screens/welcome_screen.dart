@@ -1,3 +1,4 @@
+import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:flutter/material.dart';
 // import '../authentication_user_management_routes.dart';
 
@@ -60,6 +61,7 @@ class WelcomeScreen extends StatelessWidget {
                         //   context,
                         //   AuthenticationRoutes.login,
                         // );
+                        Navigator.pushReplacementNamed(context, AuthenticationRoutes.login);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -91,6 +93,7 @@ class WelcomeScreen extends StatelessWidget {
                         //   context,
                         //   AuthenticationRoutes.login,
                         // );
+                        Navigator.pushReplacementNamed(context, AuthenticationRoutes.login);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color.fromRGBO(187, 210, 254, 1),

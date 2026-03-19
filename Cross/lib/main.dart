@@ -6,14 +6,16 @@ import 'package:cross_team5/features/authentication_user_management/authenticati
 void main() async {
   await dotenv.load(fileName: '.env');
   AuthApiService authApiService = AuthApiService();
-  User user = User(
-    "abdelrahmankamal2004@gmail.com",
-    "Hot69@Sharmoota",
-    "Abdelrahman Kamal",
-    "2004-05-04",
-    "Male"
-  );
-  await authApiService.login(user: user);
+  // User user = User(
+  //   "abdelrahmankamal2004@gmail.com",
+  //   "Hot69@Sharmoota",
+  //   "Abdelrahman Kamal",
+  //   "2004-05-04",
+  //   "Male"
+  // );
+  // await authApiService.login(user: user);
+  await authApiService.logout();
+
   runApp(const MyApp());
 }
 

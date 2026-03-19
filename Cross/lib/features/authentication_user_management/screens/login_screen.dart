@@ -1,0 +1,145 @@
+import "package:cross_team5/core/services/api_services.dart";
+import "package:cross_team5/features/authentication_user_management/authentication_user_management.dart";
+import "package:flutter/material.dart";
+import "package:flutter/gestures.dart";
+import "package:url_launcher/url_launcher.dart";
+import "../../../core/theme/app_colors.dart";
+import "../widgets/login_widgets.dart";
+import "../../../core/strings/app_strings.dart";
+
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final emailController = TextEditingController();
+    return Scaffold(
+      backgroundColor:  AppColors.chineseBlack,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),  
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// BACK BUTTON
+              IconButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, AuthenticationRoutes.welcome);
+                },
+                alignment: Alignment.centerLeft,
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              ),
+
+              const SizedBox(height: 40),
+
+              /// TITLE
+              const Text(
+                AppStrings.signInOrCreateAccount,
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// SUBTITLE WITH HYPERLINKS
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 14, 
+                    color: Colors.white70,
+                    height: 1.4,
+                  ),
+                  children: [
+                    const TextSpan(
+                      text:
+                          'By clicking on any of the "Continue" buttons below, you agree to SoundCloud\'s ',
+                    ),
+
+                    TextSpan(
+                      text: 'Terms of Use',
+                      style: const TextStyle(
+                        color: AppColors.blueHyperlink,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          await launchUrl(Uri.parse('${ApiServices().baseUrl}/legal'));
+                        },
+                    ),
+
+                    const TextSpan(text: ' and acknowledge our '),
+
+                    TextSpan(
+                      text: 'Privacy Policy.',
+                      style: const TextStyle(
+                        color: AppColors.blueHyperlink,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          await launchUrl(Uri.parse('${ApiServices().baseUrl}/privacy-policy'));
+                        },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              /// GOOGLE LOGIN BUTTON
+              LoginButton(
+                text: AppStrings.continueWithGoogle,
+                icon: Icons.g_mobiledata, 
+                color: AppColors.googleBackGround, 
+                onPressed: () { }
+              ),
+
+              const SizedBox(height: 10),
+
+              /// Text
+              const Text(
+                AppStrings.orWithEmail,
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                ),
+              ),
+              TextInputField(
+                hintText: AppStrings.emailOrProfileUrlHint,
+                controller: emailController,
+              ),
+
+              const SizedBox(height: 20),
+
+              /// CONTINUE BUTTON
+              LoginButton(
+                text: AppStrings.continueButtonText,
+                color: AppColors.silver, 
+                onPressed: () { }
+              ),
+
+              /// NEED HELP?
+              RichText(
+                text: TextSpan(
+                  text: AppStrings.needHelp,
+                  style: TextStyle(
+                    color: AppColors.blueHyperlink,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                  ..onTap = () async {
+                    await launchUrl(Uri.parse('${ApiServices().baseUrl}/need-help'));
+                  }
+                )
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
