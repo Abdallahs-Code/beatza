@@ -7,6 +7,7 @@ import '../authentication_user_management_routes.dart';
 import "../widgets/login_widgets.dart";
 import "../../../core/theme/app_colors.dart";
 import "../../../core/theme/app_text.dart";
+import 'dart:io' show Platform;
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -93,6 +94,8 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
 
+              
+
               const SizedBox(height: 10),
 
               /// GOOGLE LOGIN BUTTON
@@ -102,6 +105,18 @@ class LoginScreen extends StatelessWidget {
                 color: AppColors.googleBackGround,
                 onPressed: () {},
               ),
+
+              if (Platform.isWindows) ...[
+                const SizedBox(height: 5),
+
+                /// QR CODE LOGIN BUTTON
+                LoginButton(
+                  text: AppText.continueWithQrCode,
+                  icon: Icons.qr_code,
+                  color: AppColors.orangeQrCode,
+                  onPressed: () {},
+                ),
+              ],
 
               const SizedBox(height: 10),
 

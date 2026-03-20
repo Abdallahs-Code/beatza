@@ -145,4 +145,6 @@ class AppText {
   static const String importButton = "Import";
 
   static const String nowPlaying = "Now Playing...";
+
+  static const String continueWithQrCode = "Continue with QR code";
 }
