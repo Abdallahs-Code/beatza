@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../home/home_routes.dart';
 import '../../../core/theme/app_colors.dart';
-import '../authentication_user_management_routes.dart';
+import '../../../core/theme/app_text.dart';
 
 class LibraryHeader extends StatelessWidget {
   const LibraryHeader({super.key});
@@ -13,7 +15,7 @@ class LibraryHeader extends StatelessWidget {
         children: [
           const Spacer(),
           const Text(
-            "Library",
+            AppText.libraryTitle,
             style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 24,
@@ -25,16 +27,12 @@ class LibraryHeader extends StatelessWidget {
           const SizedBox(width: 10),
           GestureDetector(
             onTap: () {
-              Navigator.pushNamed(
-                context, 
-                AuthenticationRoutes.home,
-              );
+              Navigator.pushNamed(context, HomeRoutes.home);
             },
-            child: 
-              const CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.tileDark,
-              ),
+            child: const CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.tileDark,
+            ),
           ),
         ],
       ),
@@ -56,10 +54,7 @@ class LibraryMenuItem extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: AppColors.whiteSmoke,
-                fontSize: 18,
-              ),
+              style: const TextStyle(color: AppColors.whiteSmoke, fontSize: 18),
             ),
           ),
           const Icon(Icons.chevron_right, color: AppColors.white60),
@@ -97,10 +92,7 @@ class SectionHeader extends StatelessWidget {
           ),
           Text(
             actionText,
-            style: const TextStyle(
-              color: AppColors.white60,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.white60, fontSize: 14),
           ),
         ],
       ),
@@ -126,17 +118,9 @@ class AlbumPlaceholder extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Container(
-            height: 14,
-            width: 90,
-            color: AppColors.tileDark2,
-          ),
+          Container(height: 14, width: 90, color: AppColors.tileDark2),
           const SizedBox(height: 6),
-          Container(
-            height: 12,
-            width: 60,
-            color: AppColors.tileDark3,
-          ),
+          Container(height: 12, width: 60, color: AppColors.tileDark3),
         ],
       ),
     );
@@ -165,7 +149,11 @@ class TrackPlaceholder extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 14, width: double.infinity, color: AppColors.tileDark2),
+              Container(
+                height: 14,
+                width: double.infinity,
+                color: AppColors.tileDark2,
+              ),
               const SizedBox(height: 6),
               Container(height: 12, width: 120, color: AppColors.tileDark3),
               const SizedBox(height: 6),
@@ -205,7 +193,7 @@ class ImportCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Transfer your faves",
+                    AppText.transferFaves,
                     style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontWeight: FontWeight.bold,
@@ -213,7 +201,7 @@ class ImportCard extends StatelessWidget {
                   ),
                   SizedBox(height: 6),
                   Text(
-                    "Import from Spotify, Apple Music and more.",
+                    AppText.importDesc,
                     style: TextStyle(color: AppColors.white60),
                   ),
                 ],
@@ -227,7 +215,7 @@ class ImportCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
-                "Import",
+                AppText.importButton,
                 style: TextStyle(color: Colors.black),
               ),
             ),
@@ -260,34 +248,12 @@ class MiniPlayer extends StatelessWidget {
 
           const Expanded(
             child: Text(
-              "Now Playing...",
+              AppText.nowPlaying,
               style: TextStyle(color: AppColors.whiteSmoke),
             ),
           ),
 
           Icon(Icons.favorite_border, color: AppColors.whiteSmoke),
-        ],
-      ),
-    );
-  }
-}
-
-class BottomNavBar extends StatelessWidget {
-  const BottomNavBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.pureBlack,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Icon(Icons.home_outlined, color: AppColors.white60),
-          Icon(Icons.dynamic_feed_outlined, color: AppColors.white60),
-          Icon(Icons.search, color: AppColors.white60),
-          Icon(Icons.library_music, color: AppColors.whiteSmoke),
-          Icon(Icons.graphic_eq, color: AppColors.white60),
         ],
       ),
     );

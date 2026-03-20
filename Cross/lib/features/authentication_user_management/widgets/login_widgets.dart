@@ -9,25 +9,24 @@ class LoginButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const LoginButton({
-    super.key, required this.text, 
-    this.icon, 
-    required this.color, 
-    required this.onPressed
-    });
+    super.key,
+    required this.text,
+    this.icon,
+    required this.color,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only( bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: _getButtonColor(color),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
           elevation: 0,
         ),
         child: Row(
@@ -39,10 +38,7 @@ class LoginButton extends StatelessWidget {
             ],
             Text(
               text,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -51,12 +47,9 @@ class LoginButton extends StatelessWidget {
   }
 
   Color _getButtonColor(Color backgroundColor) {
-    if (backgroundColor == AppColors.googleBackGround) 
-    {
+    if (backgroundColor == AppColors.googleBackGround) {
       return AppColors.whiteSmoke;
-    } 
-    else 
-    {
+    } else {
       return AppColors.pureBlack;
     }
   }
@@ -67,7 +60,9 @@ class TextInputField extends StatelessWidget {
   final TextEditingController controller;
 
   const TextInputField({
-    super.key, required this.hintText, required this.controller
+    super.key,
+    required this.hintText,
+    required this.controller,
   });
 
   @override
@@ -84,7 +79,10 @@ class TextInputField extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
           borderSide: BorderSide(color: Colors.grey[500]!),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
       ),
     );
   }

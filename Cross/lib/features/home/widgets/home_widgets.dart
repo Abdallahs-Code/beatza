@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_colors.dart';
-import '../authentication_user_management_routes.dart';
+import '../../../core/theme/app_text.dart';
 
 class TopHeader extends StatelessWidget {
   const TopHeader({super.key});
@@ -25,7 +26,7 @@ class TopHeader extends StatelessWidget {
         children: [
           Spacer(),
           Text(
-            'Home',
+            AppText.homeTitle,
             style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 24,
@@ -56,11 +57,7 @@ class HeaderIcon extends StatelessWidget {
         shape: BoxShape.circle,
         color: AppColors.whiteSmoke.withValues(alpha: 0.04),
       ),
-      child: Icon(
-        icon,
-        color: AppColors.whiteSmoke,
-        size: 21,
-      ),
+      child: Icon(icon, color: AppColors.whiteSmoke, size: 21),
     );
   }
 }
@@ -75,10 +72,7 @@ class YourLikesCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [
-            AppColors.borderDark,
-            AppColors.likesGradientEnd,
-          ],
+          colors: [AppColors.borderDark, AppColors.likesGradientEnd],
           begin: Alignment.bottomLeft,
           end: Alignment.topRight,
         ),
@@ -91,10 +85,7 @@ class YourLikesCard extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppColors.papaya,
-                  width: 2,
-                ),
+                border: Border.all(color: AppColors.papaya, width: 2),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
@@ -106,7 +97,7 @@ class YourLikesCard extends StatelessWidget {
             const SizedBox(width: 14),
             const Expanded(
               child: Text(
-                'Your likes',
+                AppText.yourLikes,
                 style: TextStyle(
                   color: AppColors.whiteSmoke,
                   fontSize: 19,
@@ -138,11 +129,7 @@ class MiniTrackCard extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const MiniTrackCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-  });
+  const MiniTrackCard({super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -159,21 +146,13 @@ class MiniTrackCard extends StatelessWidget {
             height: double.infinity,
             decoration: const BoxDecoration(
               color: AppColors.tileDark3,
-              borderRadius: BorderRadius.horizontal(
-                left: Radius.circular(14),
-              ),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
             ),
-            child: const Icon(
-              Icons.music_note,
-              color: AppColors.white54,
-            ),
+            child: const Icon(Icons.music_note, color: AppColors.white54),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -211,11 +190,7 @@ class WideTrackCard extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const WideTrackCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-  });
+  const WideTrackCard({super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -232,21 +207,13 @@ class WideTrackCard extends StatelessWidget {
             height: double.infinity,
             decoration: const BoxDecoration(
               color: AppColors.tileDark3,
-              borderRadius: BorderRadius.horizontal(
-                left: Radius.circular(14),
-              ),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
             ),
-            child: const Icon(
-              Icons.album_outlined,
-              color: AppColors.white54,
-            ),
+            child: const Icon(Icons.album_outlined, color: AppColors.white54),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -308,7 +275,7 @@ class SectionHeader extends StatelessWidget {
           ),
           if (showSeeAll)
             const Text(
-              'See All',
+              AppText.seeAll,
               style: TextStyle(
                 color: AppColors.white70,
                 fontSize: 14,
@@ -325,19 +292,13 @@ class PosterItemData {
   final String title;
   final String subtitle;
 
-  const PosterItemData({
-    required this.title,
-    required this.subtitle,
-  });
+  const PosterItemData({required this.title, required this.subtitle});
 }
 
 class HorizontalPosterSection extends StatelessWidget {
   final List<PosterItemData> items;
 
-  const HorizontalPosterSection({
-    super.key,
-    required this.items,
-  });
+  const HorizontalPosterSection({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -350,10 +311,7 @@ class HorizontalPosterSection extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           final item = items[index];
-          return PosterCard(
-            title: item.title,
-            subtitle: item.subtitle,
-          );
+          return PosterCard(title: item.title, subtitle: item.subtitle);
         },
       ),
     );
@@ -364,11 +322,7 @@ class PosterCard extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const PosterCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-  });
+  const PosterCard({super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -435,9 +389,7 @@ class HorizontalMixSection extends StatelessWidget {
         itemCount: labels.length,
         separatorBuilder: (context, index) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
-          return MixCard(
-            mixLabel: labels[index],
-          );
+          return MixCard(mixLabel: labels[index]);
         },
       ),
     );
@@ -447,10 +399,7 @@ class HorizontalMixSection extends StatelessWidget {
 class MixCard extends StatelessWidget {
   final String mixLabel;
 
-  const MixCard({
-    super.key,
-    required this.mixLabel,
-  });
+  const MixCard({super.key, required this.mixLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -502,7 +451,7 @@ class MixCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            'Mix playlist placeholder',
+            AppText.mixPlaceholder,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -513,13 +462,10 @@ class MixCard extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           const Text(
-            'Generated from similar songs',
+            AppText.mixGenerated,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.white54,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ],
       ),
@@ -532,12 +478,7 @@ class GenreChipsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final genres = [
-      'Rock, Metal, Punk',
-      'Pop',
-      'Soul',
-      'SoundCloud...',
-    ];
+    final genres = AppText.genres;
 
     return SizedBox(
       height: 44,
@@ -592,16 +533,16 @@ class TrendingTracksCard extends StatelessWidget {
       child: const Column(
         children: [
           TrendingTrackRow(
-            title: 'Track placeholder one',
-            subtitle: 'Artist name',
+            title: AppText.trendingTrack1,
+            subtitle: AppText.artistName,
           ),
           TrendingTrackRow(
-            title: 'Track placeholder two',
-            subtitle: 'Another artist',
+            title: AppText.trendingTrack2,
+            subtitle: AppText.anotherArtist,
           ),
           TrendingTrackRow(
-            title: 'Track placeholder three',
-            subtitle: 'Featuring artist',
+            title: AppText.trendingTrack3,
+            subtitle: AppText.featuringArtist,
           ),
         ],
       ),
@@ -629,11 +570,7 @@ class TrendingTrackRow extends StatelessWidget {
           color: AppColors.tileDark2,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(
-          Icons.music_note,
-          color: AppColors.white54,
-          size: 20,
-        ),
+        child: const Icon(Icons.music_note, color: AppColors.white54, size: 20),
       ),
       title: Text(
         title,
@@ -645,15 +582,9 @@ class TrendingTrackRow extends StatelessWidget {
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          color: AppColors.white54,
-          fontSize: 13,
-        ),
+        style: const TextStyle(color: AppColors.white54, fontSize: 13),
       ),
-      trailing: const Icon(
-        Icons.more_horiz,
-        color: AppColors.white70,
-      ),
+      trailing: const Icon(Icons.more_horiz, color: AppColors.white70),
     );
   }
 }
@@ -678,10 +609,7 @@ class EditorialCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         gradient: LinearGradient(
-          colors: [
-            accentColor.withValues(alpha: 0.28),
-            AppColors.surfaceDark,
-          ],
+          colors: [accentColor.withValues(alpha: 0.28), AppColors.surfaceDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -791,11 +719,7 @@ class StationCard extends StatelessWidget {
             child: Stack(
               children: [
                 const Center(
-                  child: Icon(
-                    Icons.radio,
-                    color: AppColors.white54,
-                    size: 42,
-                  ),
+                  child: Icon(Icons.radio, color: AppColors.white54, size: 42),
                 ),
                 Positioned(
                   left: 10,
@@ -827,7 +751,7 @@ class StationCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            'Station placeholder',
+            AppText.stationPlaceholder,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -838,13 +762,10 @@ class StationCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Based on artist / playlist / genre',
+            AppText.stationDesc,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.white54,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ],
       ),
@@ -866,10 +787,10 @@ class HorizontalBuzzingSection extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(width: 16),
         itemBuilder: (context, index) => BuzzingCard(
           title: index == 0
-              ? 'Buzzing Pop'
+              ? AppText.buzzingPop
               : index == 1
-                  ? 'Buzzing Mexico'
-                  : 'Buzzing R&B',
+              ? AppText.buzzingMexico
+              : AppText.buzzingRnB,
         ),
       ),
     );
@@ -879,10 +800,7 @@ class HorizontalBuzzingSection extends StatelessWidget {
 class BuzzingCard extends StatelessWidget {
   final String title;
 
-  const BuzzingCard({
-    super.key,
-    required this.title,
-  });
+  const BuzzingCard({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -919,7 +837,7 @@ class BuzzingCard extends StatelessWidget {
                   left: 12,
                   top: 12,
                   child: Text(
-                    'BUZZING',
+                    AppText.buzzing,
                     style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontSize: 28,
@@ -959,100 +877,8 @@ class BuzzingCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'New!',
-            style: TextStyle(
-              color: AppColors.white54,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class BottomNavBar extends StatelessWidget {
-  const BottomNavBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 84,
-      decoration: const BoxDecoration(
-        color: AppColors.chineseBlack,
-        border: Border(
-          top: BorderSide(color: AppColors.white10),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          NavItem(
-            icon: Icons.home_filled,
-            label: 'Home',
-            active: true,
-          ),
-          NavItem(
-            icon: Icons.feed_outlined,
-            label: 'Feed',
-          ),
-          NavItem(
-            icon: Icons.search,
-            label: 'Search',
-          ),
-          NavItem(
-            icon: Icons.library_books_outlined,
-            label: 'Library',
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                AuthenticationRoutes.library,
-              );
-            },
-          ),
-          NavItem(
-            icon: Icons.graphic_eq,
-            label: 'Upgrade',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  final VoidCallback? onTap;
-
-  const NavItem({
-    super.key,
-    required this.icon,
-    required this.label,
-    this.active = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = active ? AppColors.whiteSmoke : AppColors.white54;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 26),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 13,
-              fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-            ),
+            AppText.newLabel,
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ],
       ),

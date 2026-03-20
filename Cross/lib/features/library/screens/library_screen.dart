@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+
 import '../widgets/library_widgets.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/common_widgets.dart';
+import '../../../core/theme/app_text.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -21,20 +24,20 @@ class LibraryScreen extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   /// MENU
-                  const LibraryMenuItem(title: "Your likes"),
-                  const LibraryMenuItem(title: "Playlists"),
-                  const LibraryMenuItem(title: "Albums"),
-                  const LibraryMenuItem(title: "Following"),
-                  const LibraryMenuItem(title: "Stations"),
-                  const LibraryMenuItem(title: "Your insights"),
-                  const LibraryMenuItem(title: "Your uploads"),
+                  const LibraryMenuItem(title: AppText.yourLikes),
+                  const LibraryMenuItem(title: AppText.playlists),
+                  const LibraryMenuItem(title: AppText.albums),
+                  const LibraryMenuItem(title: AppText.following),
+                  const LibraryMenuItem(title: AppText.stations),
+                  const LibraryMenuItem(title: AppText.yourInsights),
+                  const LibraryMenuItem(title: AppText.yourUploads),
 
                   const SizedBox(height: 20),
 
                   /// RECENTLY PLAYED
                   const SectionHeader(
-                    title: "Recently played",
-                    actionText: "See all",
+                    title: AppText.recentlyPlayed,
+                    actionText: AppText.seeAll,
                   ),
                   const SizedBox(height: 14),
 
@@ -54,8 +57,8 @@ class LibraryScreen extends StatelessWidget {
 
                   /// LISTENING HISTORY
                   const SectionHeader(
-                    title: "Listening history",
-                    actionText: "See all",
+                    title: AppText.listeningHistory,
+                    actionText: AppText.seeAll,
                   ),
                   const SizedBox(height: 14),
 
@@ -91,7 +94,7 @@ class LibraryScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   MiniPlayer(),
-                  BottomNavBar(),
+                  CommonBottomNavBar(currentItem: AppNavItem.library),
                 ],
               ),
             ),

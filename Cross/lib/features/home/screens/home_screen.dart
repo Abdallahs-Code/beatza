@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+
 import '../widgets/home_widgets.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/common_widgets.dart';
+import '../../../core/theme/app_text.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,7 +12,9 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
-      bottomNavigationBar: const BottomNavBar(),
+      bottomNavigationBar: const CommonBottomNavBar(
+        currentItem: AppNavItem.home,
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -37,15 +42,15 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: MiniTrackCard(
-                              title: 'Track title',
-                              subtitle: 'Artist name',
+                              title: AppText.trackTitle,
+                              subtitle: AppText.artistName,
                             ),
                           ),
                           SizedBox(width: 10),
                           Expanded(
                             child: MiniTrackCard(
-                              title: 'Another track',
-                              subtitle: 'Another artist',
+                              title: AppText.anotherTrack,
+                              subtitle: AppText.anotherArtist,
                             ),
                           ),
                         ],
@@ -57,48 +62,44 @@ class HomeScreen extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: WideTrackCard(
-                        title: 'Long track title placeholder',
-                        subtitle: 'Artist / Playlist / Publisher',
+                        title: AppText.longTrackTitle,
+                        subtitle: AppText.trackSubtitle,
                       ),
                     ),
 
                     SizedBox(height: 28),
 
                     SectionHeader(
-                      title: 'More of what you like',
+                      title: AppText.moreOfWhatYouLike,
                       showSeeAll: true,
                     ),
                     SizedBox(height: 14),
                     HorizontalPosterSection(
                       items: [
                         PosterItemData(
-                          title: 'Playlist placeholder',
-                          subtitle: 'Artist one, Artist two',
+                          title: AppText.playlistPlaceholder,
+                          subtitle: "Artist one, Artist two",
                         ),
                         PosterItemData(
-                          title: 'User mix placeholder',
-                          subtitle: 'Generated from backend',
+                          title: AppText.userMixPlaceholder,
+                          subtitle: AppText.generatedBackend,
                         ),
                         PosterItemData(
-                          title: 'Playlist placeholder',
-                          subtitle: 'Another recommendation',
+                          title: AppText.playlistPlaceholder,
+                          subtitle: AppText.anotherRecommendation,
                         ),
                       ],
                     ),
 
                     SizedBox(height: 26),
 
-                    SectionHeader(
-                      title: 'Mixed for Abdelrahman Poda',
-                    ),
+                    SectionHeader(title: AppText.mixedForUser),
                     SizedBox(height: 14),
                     HorizontalMixSection(),
 
                     SizedBox(height: 26),
 
-                    SectionHeader(
-                      title: 'Trending by genre',
-                    ),
+                    SectionHeader(title: AppText.trendingByGenre),
                     SizedBox(height: 14),
                     GenreChipsSection(),
 
@@ -110,32 +111,28 @@ class HomeScreen extends StatelessWidget {
 
                     SizedBox(height: 26),
 
-                    SectionHeader(
-                      title: 'Albums for you',
-                    ),
+                    SectionHeader(title: AppText.albumsForYou),
                     SizedBox(height: 14),
                     HorizontalPosterSection(
                       items: [
                         PosterItemData(
-                          title: 'Album placeholder',
-                          subtitle: 'Singer name',
+                          title: AppText.albumPlaceholder,
+                          subtitle: AppText.singerName,
                         ),
                         PosterItemData(
-                          title: 'Slow - Arabic',
-                          subtitle: 'Artist placeholder',
+                          title: AppText.slowArabic,
+                          subtitle: AppText.artistName,
                         ),
                         PosterItemData(
-                          title: 'Arabic love songs',
-                          subtitle: 'Another artist',
+                          title: AppText.arabicLoveSongs,
+                          subtitle: AppText.anotherArtist,
                         ),
                       ],
                     ),
 
                     SizedBox(height: 26),
 
-                    SectionHeader(
-                      title: 'Made for you',
-                    ),
+                    SectionHeader(title: AppText.madeForYou),
                     SizedBox(height: 14),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -144,18 +141,16 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: EditorialCard(
-                              label: 'DAILY DROPS',
-                              description:
-                                  'New releases based on your taste. Updated every day',
+                              label: AppText.dailyDrops,
+                              description: AppText.dailyDropsDesc,
                               accentColor: AppColors.dailyDropsBlue,
                             ),
                           ),
                           SizedBox(width: 14),
                           Expanded(
                             child: EditorialCard(
-                              label: 'WEEKLY WAVE',
-                              description:
-                                  'The best of SoundCloud just for you. Updated every Monday',
+                              label: AppText.weeklyWave,
+                              description: AppText.weeklyWaveDesc,
                               accentColor: AppColors.papaya,
                             ),
                           ),
@@ -165,17 +160,13 @@ class HomeScreen extends StatelessWidget {
 
                     SizedBox(height: 26),
 
-                    SectionHeader(
-                      title: 'Discover with Stations',
-                    ),
+                    SectionHeader(title: AppText.discoverStations),
                     SizedBox(height: 14),
                     HorizontalStationSection(),
 
                     SizedBox(height: 26),
 
-                    SectionHeader(
-                      title: 'Artists to watch out for',
-                    ),
+                    SectionHeader(title: AppText.artistsToWatch),
                     SizedBox(height: 14),
                     HorizontalBuzzingSection(),
 
