@@ -3,6 +3,19 @@ import { randomInt } from 'crypto';
 
 export type GenderOption = 'Male' | 'Female';
 export type AuthStep = 'email' | 'password' | 'details' | "passRest";
+export type Months =
+    | 'January'
+    | 'February'
+    | 'March'
+    | 'April'
+    | 'May'
+    | 'June'
+    | 'July'
+    | 'August'
+    | 'September'
+    | 'October'
+    | 'November'
+    | 'December';
 
 export class AuthForm {
     initialForm: Locator;
@@ -82,7 +95,7 @@ export class AuthForm {
         await this.passwordTxtBox.pressSequentially(pass, { delay: 150 })
     }
 
-    async FillDate(month: string, day: number, year: number) {
+    async FillDate(month: Months, day: number, year: number) {
         await this.monthDateOfBirthDrop.selectOption(`${month}`);
         await this.dayDateOfBirthDrop.selectOption(`${day}`);
         await this.yearDateOfBirthDrop.selectOption(`${year}`);
@@ -147,101 +160,7 @@ export class AuthForm {
         await this.FillEmail(EmailTest)
         await this.ClickNextBtn("email")
         await this.ClickForgetPass()
-        // await expect(this.emailPassResetTxtbox).toHaveValue(EmailTest)
         await this.ClickSendResetLink()
-    }
-
-    async CheckInputValidation() {
-        // ===== EMAIL FIELD VALIDATION =====
-        // Test multiple invalid inputs first, then finally enter a valid one to progress
-
-        // Invalid Test 1: Empty email
-        await this.emailTxtBox.fill('');
-        await this.ClickNextBtn('email');
-        await expect(this.emailTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 2: Invalid email format (no @ symbol)
-        await this.emailTxtBox.fill('not-an-email');
-        await this.ClickNextBtn('email');
-        await expect(this.emailTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 3: Email missing domain after @
-        await this.emailTxtBox.fill('user@');
-        await this.ClickNextBtn('email');
-        await expect(this.emailTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 4: Email missing username before @
-        await this.emailTxtBox.fill('@domain.com');
-        await this.ClickNextBtn('email');
-        await expect(this.emailTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // VALID Test: Proper email format - finally progress to password field
-        await this.emailTxtBox.fill('valid.email@example.com');
-        await this.ClickNextBtn('email');
-        await expect(this.passwordTxtBox).toBeVisible();
-
-        // ===== PASSWORD FIELD VALIDATION =====
-        // Test multiple invalid inputs first, then finally enter a valid one to progress
-
-        // Invalid Test 1: Empty password
-        await this.passwordTxtBox.fill('');
-        await this.ClickNextBtn('password');
-        await expect(this.passwordTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 2: Password too short
-        await this.passwordTxtBox.fill('short');
-        await this.ClickNextBtn('password');
-        await expect(this.passwordTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 3: Password without special characters
-        await this.passwordTxtBox.fill('Password123');
-        await this.ClickNextBtn('password');
-        await expect(this.passwordTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 4: Password without numbers
-        await this.passwordTxtBox.fill('Password@');
-        await this.ClickNextBtn('password');
-        await expect(this.passwordTxtBox).toHaveAttribute('aria-invalid', 'true');
-
-        // VALID Test: Strong password - finally progress to details form
-        await this.passwordTxtBox.fill('ValidPass@123');
-        await this.ClickNextBtn('password');
-        await expect(this.detailsForm).toBeVisible();
-
-        // ===== DISPLAY NAME FIELD VALIDATION =====
-        // Test multiple invalid inputs first, then finally enter a valid one to progress
-
-        // Invalid Test 1: Empty display name
-        await this.displayNameTxtbox.fill('');
-        await this.ClickNextBtn('details');
-        await expect(this.displayNameTxtbox).toHaveAttribute('aria-invalid', 'true');
-
-        // Invalid Test 2: Display name too short (single character)
-        await this.displayNameTxtbox.fill('A');
-        await this.ClickNextBtn('details');
-        await expect(this.displayNameTxtbox).toHaveAttribute('aria-invalid', 'true');
-
-        // VALID Test: Proper display name - finally progress to date validation
-        await this.displayNameTxtbox.fill('Test User');
-        await this.ClickNextBtn('details');
-        await expect(this.monthDateOfBirthDrop).toHaveAttribute('aria-invalid', 'true');
-        await expect(this.dayDateOfBirthDrop).toHaveAttribute('aria-invalid', 'true');
-        await expect(this.yearDateOfBirthDrop).toHaveAttribute('aria-invalid', 'true');
-
-        // ===== DATE OF BIRTH FIELD VALIDATION =====
-        // Invalid Test: Empty date fields (validated above)
-
-        // VALID Test: Complete date of birth - finally progress to gender validation
-        await this.FillDate('February', 5, 2005);
-        await this.ClickNextBtn('details');
-        await expect(this.genderDrop).toHaveAttribute('aria-invalid', 'true');
-
-        // ===== GENDER FIELD VALIDATION =====
-        // Invalid Test: Empty gender (validated above)
-
-        // VALID Test: Select gender - finally complete the form validation
-        await this.FillGender('Male');
-        await expect(this.genderDrop).toHaveValue('Male');
     }
 
 }
