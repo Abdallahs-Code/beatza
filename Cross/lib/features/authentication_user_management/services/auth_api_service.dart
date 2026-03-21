@@ -31,11 +31,26 @@ class AuthApiService {
     return regex.hasMatch(email);
   }
 
-  Future<void> _clearTokens() async {
-    await _storage.delete(key: "access_token");
-    await _storage.delete(key: "refresh_token");
-    await _storage.delete(key: "token_time");
-  }
+ Future<void> _clearTokens() async {
+  // 1. Read the values first
+  final accessToken = await _storage.read(key: 'access_token');
+  final refreshToken = await _storage.read(key: 'refresh_token');
+  final tokenTime = await _storage.read(key: 'token_time');
+  final userId = await _storage.read(key: 'user_id');
+
+  // 2. Print the values
+  print("Clearing stored values:");
+  print("Access Token: $accessToken");
+  print("Refresh Token: $refreshToken");
+  print("Token Time: $tokenTime");
+  print("User ID: $userId");
+
+  // 3. Delete the values
+  await _storage.delete(key: 'access_token');
+  await _storage.delete(key: 'refresh_token');
+  await _storage.delete(key: 'token_time');
+  await _storage.delete(key: 'user_id');
+}
 
   Future<void> saveTokens({
     required String accessToken,
@@ -48,6 +63,8 @@ class AuthApiService {
       value: DateTime.now().toIso8601String(),
     );
   }
+
+  
 
   Future<String?> getAccessToken() async {
     return _storage.read(key: "access_token");
@@ -72,14 +89,26 @@ class AuthApiService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        final accessToken = data["data"]?["accessToken"];
-        final refreshToken = data["data"]?["refreshToken"];
+        final accessToken = data['data']?['accessToken'];
+        final refreshToken = data['data']?['refreshToken'];
+        final userId = data['data']?['user']?['id']?.toString();
+
 
         if (accessToken != null && refreshToken != null) {
           await saveTokens(
             accessToken: accessToken,
             refreshToken: refreshToken,
           );
+            if (userId != null && userId.trim().isNotEmpty) {
+            await _storage.write(key: 'user_id', value: userId);
+              print("Clearing stored values:");
+              print("Access Token: $accessToken");
+              print("Refresh Token: $refreshToken");
+              print("User ID: $userId");
+
+            }
+
+
           return (200, data["message"] ?? "Login successful");
         } else {
           return (
@@ -176,12 +205,16 @@ class AuthApiService {
       if (response.statusCode == 200) {
         final newAccessToken = data["data"]?["accessToken"];
         final newRefreshToken = data["data"]?["refreshToken"];
+        final userId = data['data']?['user']?['id']?.toString();
 
         if (newAccessToken != null && newRefreshToken != null) {
           await saveTokens(
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
           );
+            if (userId != null && userId.trim().isNotEmpty) {
+            await _storage.write(key: 'user_id', value: userId);
+            }
           return (200, "Token refreshed successfully");
         } else {
           return (
@@ -194,6 +227,31 @@ class AuthApiService {
       return (response.statusCode, data["message"] ?? "Token refresh failed");
     } catch (err) {
       return (500, "Network error: $err");
+    }
+  }
+    Future<String?> getStoredAccessToken() async {
+    return await _storage.read(key: 'access_token');
+  }
+
+  Future<String?> getStoredUserId() async {
+    return await _storage.read(key: 'user_id');
+  }
+
+  Future<String> getQrCodeToken() async {
+    try {
+      final response = await _client.get(
+        Uri.parse("$_servicePath/cross/desktop"),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data["pendingToken"]?["qrCode"] ?? "";
+      } else {
+        throw Exception("Failed to get QR code token: ${response.statusCode}");
+      }
+    } catch (err) {
+      throw Exception("Network error: $err");
     }
   }
 }

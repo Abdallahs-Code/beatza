@@ -4,9 +4,45 @@ import '../widgets/library_widgets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/common_widgets.dart';
 import '../../../core/theme/app_text.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
+import '../../authentication_user_management/services/auth_api_service.dart';
+
+
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
+
+   Future<void> _openProfile(BuildContext context) async {
+  final authApiService = AuthApiService();
+
+  try {
+    final token = await authApiService.getStoredAccessToken();
+    final userId = await authApiService.getStoredUserId();
+
+    final safeToken = (token == null || token.trim().isEmpty) ? 'mock_token' : token;
+    final safeUserId = (userId == null || userId.trim().isEmpty)
+        ? 'mock_user_id'
+        : userId;
+
+    if (!context.mounted) return;
+
+    Navigator.pushNamed(
+      context,
+      UserProfileSocialIdentityRoutes.userProfileRoute,
+      arguments: {
+        'userId': safeUserId,
+        'token': safeToken,
+        'currentUserId': safeUserId,
+      },
+    );
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open profile: $e')),
+      );
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -86,16 +122,30 @@ class LibraryScreen extends StatelessWidget {
             ),
 
             /// BOTTOM
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  MiniPlayer(),
-                  CommonBottomNavBar(currentItem: AppNavItem.library),
-                ],
+            Positioned(
+              top: 8,
+              right: 12,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _openProfile(context),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.10),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

@@ -31,6 +31,7 @@ class WelcomeScreen extends StatelessWidget {
           accessToken: accessToken,
           refreshToken: refreshToken,
         );
+        authApiService.refreshToken();
         if (!context.mounted) return;
         Navigator.pushReplacementNamed(context, HomeRoutes.home);
       } else {
