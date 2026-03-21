@@ -196,4 +196,22 @@ class AuthApiService {
       return (500, "Network error: $err");
     }
   }
+
+  Future<String> getQrCodeToken() async {
+    try {
+      final response = await _client.get(
+        Uri.parse("$_servicePath/cross/desktop"),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data["pendingToken"]?["qrCode"] ?? "";
+      } else {
+        throw Exception("Failed to get QR code token: ${response.statusCode}");
+      }
+    } catch (err) {
+      throw Exception("Network error: $err");
+    }
+  }
 }

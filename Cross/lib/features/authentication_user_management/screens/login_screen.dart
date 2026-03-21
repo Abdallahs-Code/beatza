@@ -1,3 +1,4 @@
+import "package:cross_team5/features/authentication_user_management/services/auth_api_service.dart";
 import "package:flutter/material.dart";
 import "package:flutter/gestures.dart";
 import "package:url_launcher/url_launcher.dart";
@@ -10,7 +11,88 @@ import "../../../core/theme/app_text.dart";
 import 'dart:io' show Platform;
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key});  
+
+  Future<void> _showQrDialog(BuildContext context) async {
+    showDialog( // loading state
+      context: context,
+      barrierDismissible: false, 
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: AppColors.orangeQrCode),
+      ),
+    );
+
+    try {
+      final authController = AuthApiService();
+      String qrData = await authController.getQrCodeToken();
+
+      // Close the loading dialog
+      if (context.mounted) Navigator.pop(context);
+
+      // Show the actual QR Dialog
+      if (context.mounted) {
+        _buildQrDialog(context, qrData);
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context); // Close loader
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load QR Code: $e"),
+            backgroundColor: AppColors.anger,
+          ),
+        );
+      }
+    }
+  }
+
+  void _buildQrDialog(BuildContext context, String initialQrData) {
+    String currentQrData = initialQrData;
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return QrCodeLoginDialog(
+              qrData: currentQrData, 
+              isLoading: isLoading,
+              onRefresh: () async {
+                setDialogState(() {
+                  isLoading = true;
+                });
+
+                try {
+                  final authController = AuthApiService();
+                  // Fetch new token
+                  final newToken = await authController.getQrCodeToken();
+                  
+                  // Update state with new token AND stop loading
+                  setDialogState(() {
+                    currentQrData = newToken; 
+                    isLoading = false;
+                  });
+                } catch (e) {
+                  setDialogState(() {
+                    isLoading = false;
+                  });
+                  if (dialogContext.mounted) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      SnackBar(content: Text("Refresh failed: $e")),
+                    );
+                  }
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final emailController = TextEditingController();
@@ -94,8 +176,6 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
 
-              
-
               const SizedBox(height: 10),
 
               /// GOOGLE LOGIN BUTTON
@@ -114,7 +194,9 @@ class LoginScreen extends StatelessWidget {
                   text: AppText.continueWithQrCode,
                   icon: Icons.qr_code,
                   color: AppColors.orangeQrCode,
-                  onPressed: () {},
+                  onPressed: () {
+                    _showQrDialog(context);
+                  },
                 ),
               ],
 

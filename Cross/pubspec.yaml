@@ -43,6 +43,7 @@ dependencies:
   url_launcher: 6.3.2
   webview_flutter: ^4.13.0
   flutter_web_auth_2: ^5.0.1
+  qr_flutter: 4.1.0
 
 dev_dependencies:
   flutter_test:
