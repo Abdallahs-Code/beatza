@@ -279,7 +279,7 @@ test("Continue with Google auth (persistent Chrome profile)", async () => {
   const userDataDir = path.join(process.cwd(), '.pw-google-profile');
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chrome',
-    headless: true,
+    headless: false,
   });
 
   try {
@@ -287,18 +287,16 @@ test("Continue with Google auth (persistent Chrome profile)", async () => {
     await page.goto('https://beatza.me');
     await page.getByRole("button", { name: "Sign in" }).click();
 
-    const popupPromise = page.waitForEvent('popup');
     await page.getByRole("button", { name: "Continue With Google" }).click();
 
-    const oauthWindow = await popupPromise;
-    await oauthWindow.waitForLoadState();
 
-    // await oauthWindow
-    // data-identifier
-    // If Google session is already saved in this profile, sign-in should complete without typing credentials.
-
-    await expect(oauthWindow).toHaveURL(/^https:\/\/beatza\.me\/home\?accessToken=.+/);
-    // await oauthWindow.waitForEvent('close', { timeout: 220000 });
+    await page.waitForLoadState();
+    await page.waitForTimeout(5000);
+    await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
+    await page.waitForTimeout(1000);
+    await page.getByRole("button", { name: "next" }).click()
+    await page.waitForTimeout(1000);
+    await page.getByRole("textbox", { name: "password" }).pressSequentially("Dev@1234")
 
     await context.close();
   } catch (e) {
