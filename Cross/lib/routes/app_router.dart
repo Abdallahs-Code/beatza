@@ -5,7 +5,7 @@ import '../features/authentication_user_management/authentication_user_managemen
 import '../features/home/home_routes.dart';
 import '../features/library/library_routes.dart';
 import '../features/user_profile_social_identity/user_profile_social_identity.dart';
-
+import '../features/followers_social_graph/followers_social_graph.dart';
 
 class AppRouter {
   static Map<String, WidgetBuilder> routes = {
@@ -15,5 +15,6 @@ class AppRouter {
     ...HomeRoutes.routes,
     ...LibraryRoutes.routes,
     ...UserProfileSocialIdentityRoutes.routes,
+    ...FollowersSocialGraphRoutes.routes,
   };
 }
