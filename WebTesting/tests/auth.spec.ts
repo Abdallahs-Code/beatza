@@ -146,7 +146,7 @@ test.describe("authentication (Sad Path)", () => {
       { desc: 'Empty password', input: '' },
       { desc: 'Too short', input: 'short' },
       { desc: 'No special characters', input: 'Password123' },
-      { desc: 'No numbers', input: 'Password@' }
+      { desc: 'No numbers', input: 'Password@' },
       { desc: 'No uppercase', input: 'password@1' }
     ];
 
