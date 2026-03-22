@@ -5,6 +5,7 @@ import '../models/profile_link_model.dart';
 import '../models/user_profile_model.dart';
 import '../services/user_profile_service.dart';
 import 'edit_profile_screen.dart';
+import '../../followers_social_graph/followers_social_graph.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -241,7 +242,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  void _showShareSheet(UserProfileModel profile) {
+  void _showShareSheet(UserProfileModel profile, {required bool isOwner}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF0B0B0B),
@@ -410,16 +411,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                 ],
-                const Divider(color: Colors.white12, height: 20),
+              const Divider(color: Colors.white12, height: 20),
+              if (isOwner)
                 ListTile(
                   dense: true,
                   leading: const Icon(
-                    Icons.info_outline,
+                    Icons.block,
                     color: Colors.white70,
                     size: 20,
                   ),
                   title: const Text(
-                    'View info',
+                    'Blocked users',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 17,
@@ -427,9 +429,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    _showInfoSheet(profile);
+                    Navigator.pushNamed(
+                      context,
+                      FollowersSocialGraphRoutes.blockedUsers,
+                    );
                   },
                 ),
+              ListTile(
+                dense: true,
+                leading: const Icon(
+                  Icons.info_outline,
+                  color: Colors.white70,
+                  size: 20,
+                ),
+                title: const Text(
+                  'View info',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showInfoSheet(profile);
+                },
+              ),
               ],
             ),
           ),
@@ -514,7 +538,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _loadProfile();
               });
             },
-            onMorePressed: () => _showShareSheet(profile),
+            onMorePressed: () => _showShareSheet(profile, isOwner: isOwner),
             showArtistSections: _isArtistRole(profile.role),
           );
         },
@@ -767,43 +791,54 @@ class _SoundCloudProfileView extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            debugPrint('Followers tapped for userId: ${profile.userId}');
-                          },
-                          child: Text(
-                            '${profile.followersCount} Followers',
-                            style: const TextStyle(
-                              color: Color(0xFFB3B3B3),
-                              fontSize: 13,
+                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  FollowersSocialGraphRoutes.followers,
+                                  arguments: {'userId': profile.userId},    
+                                );
+                              },
+                              child: Text(
+                                '${profile.followersCount} Followers',
+                                style: const TextStyle(
+                                  color: Color(0xFFB3B3B3),
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        const Text(
-                          ' • ',
-                          style: TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 13,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            debugPrint('Following tapped for userId: ${profile.userId}');
-                          },
-                          child: Text(
-                            '${profile.followingsCount} Following',
-                            style: const TextStyle(
-                              color: Color(0xFFB3B3B3),
-                              fontSize: 13,
+                            const Text(
+                              ' • ',
+                              style: TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
+                           GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                FollowersSocialGraphRoutes.followers,
+                                arguments: {
+                                  'userId': profile.userId,
+                                  'tabIndex': 1,
+                                },
+                              );
+                            },
+                            child: Text(
+                              '${profile.followingsCount} Following',
+                                style: const TextStyle(
+                                  color: Color(0xFFB3B3B3),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
                       child: Text(
@@ -1814,41 +1849,55 @@ class _PrivateProfileView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                      children: [
-                        GestureDetector(
+                        Row(
+                        children: [
+                          GestureDetector(
                           onTap: () {
-                            debugPrint('Followers tapped for userId: ${profile.userId}');
+                            Navigator.pushNamed(
+                              context,
+                              FollowersSocialGraphRoutes.followers,
+                              arguments: {
+                                'userId': profile.userId,
+                                'tabIndex': 0,
+                              },
+                            );
                           },
-                          child: Text(
-                            '${profile.followersCount} Followers',
-                            style: const TextStyle(
+                            child: Text(
+                              '${profile.followersCount} Followers',
+                              style: const TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            ' • ',
+                            style: TextStyle(
                               color: Color(0xFFB3B3B3),
                               fontSize: 14,
                             ),
                           ),
-                        ),
-                        const Text(
-                          ' • ',
-                          style: TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 14,
-                          ),
-                        ),
-                        GestureDetector(
+                          GestureDetector(
                           onTap: () {
-                            debugPrint('Following tapped for userId: ${profile.userId}');
+                            Navigator.pushNamed(
+                              context,
+                              FollowersSocialGraphRoutes.followers,
+                              arguments: {
+                                'userId': profile.userId,
+                                'tabIndex': 0,
+                              },
+                            );
                           },
-                          child: Text(
-                            '${profile.followingsCount} Following',
-                            style: const TextStyle(
-                              color: Color(0xFFB3B3B3),
-                              fontSize: 14,
+                            child: Text(
+                              '${profile.followingsCount} Following',
+                              style: const TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,

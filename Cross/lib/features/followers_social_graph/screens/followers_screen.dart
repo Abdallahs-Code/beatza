@@ -8,9 +8,13 @@ import '../widgets/user_tile.dart';
 class FollowersScreen extends StatefulWidget 
 {
   final String userId;
+  final int initialTabIndex;
 
-  const FollowersScreen({super.key, required this.userId});
-
+  const FollowersScreen({
+    super.key,
+    required this.userId,
+    this.initialTabIndex = 0, // default = Followers
+  });
   @override
   State<FollowersScreen> createState() => _FollowersScreenState();
 }
@@ -35,7 +39,11 @@ class _FollowersScreenState extends State<FollowersScreen>
   void initState() 
   {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+  length: 3,
+  vsync: this,
+  initialIndex: widget.initialTabIndex,
+);
     _loadAll();
   }
 
@@ -57,9 +65,14 @@ class _FollowersScreenState extends State<FollowersScreen>
       _errorMessage = null;
     });
 
-    final followersResult = await _socialApiService.getFollowers(userId: widget.userId);
-    final followingResult = await _socialApiService.getFollowing(userId: widget.userId);
-    final suggestedResult = await _socialApiService.getSuggestedUsers();
+   final followersResult = await _socialApiService.getFollowers(userId: widget.userId);
+print('FOLLOWERS: ${followersResult.$1} | ${followersResult.$2}');
+
+final followingResult = await _socialApiService.getFollowing(userId: widget.userId);
+print('FOLLOWING: ${followingResult.$1} | ${followingResult.$2}');
+
+final suggestedResult = await _socialApiService.getSuggestedUsers();
+print('SUGGESTED: ${suggestedResult.$1} | ${suggestedResult.$2}');
 
     setState(() 
     {
