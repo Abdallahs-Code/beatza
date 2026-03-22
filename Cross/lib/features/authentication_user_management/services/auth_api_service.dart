@@ -214,4 +214,78 @@ class AuthApiService {
       throw Exception("Network error: $err");
     }
   }
+
+  Future<bool> approveQrCode(String qrData) async {
+    final accessToken = await _storage.read(key: "access_token");
+    try 
+    {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/cross/mobile"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $accessToken",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({"qrCode": qrData}),
+      );
+
+      if (response.statusCode == 200)
+      {
+        return true;
+      }
+      return false;
+    }
+    catch(e)
+    {
+      print('Approve Qr code Func: $e');
+      return false;
+    }
+    
+  }
+
+  Future<Map<String, dynamic>> checkQrStatus(String qrData) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$_servicePath/cross/desktop/poll'),
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+        body: jsonEncode({'qrCode': qrData}),
+      ).timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(response.body);
+      
+      switch (response.statusCode) {
+        case 200:
+          if (data.containsKey('data')) {
+            return {
+              'status': 'success',
+              'message': data['message'] ?? 'Authenticated successfully',
+              'data': data['data'],
+            };
+          } else {
+            return {
+              'status': 'waiting',
+              'message': data['message'] ?? 'QR code not scanned, waiting for approval.',
+            };
+          }
+        
+        case 400:
+          throw Exception(data['message'] ?? 'Bad request');
+        
+        case 401:
+          throw Exception(data['message'] ?? 'Session expired');
+        
+        case 500:
+          throw Exception(data['message'] ?? 'Internal server error');
+        
+        default:
+          throw Exception('Failed to check QR status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('checkQrStatus error: $e');
+      rethrow;
+    }
+  }
 }

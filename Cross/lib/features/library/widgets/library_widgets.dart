@@ -1,6 +1,8 @@
+import 'package:cross_team5/features/library/library.dart';
 import 'package:flutter/material.dart';
 
 import '../../home/home_routes.dart';
+import '../library_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text.dart';
 
@@ -23,6 +25,10 @@ class LibraryHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          QrCodeScanButton(
+
+          ),
+          const SizedBox(width: 10),
           Icon(Icons.settings_outlined, color: AppColors.whiteSmoke),
           const SizedBox(width: 10),
           GestureDetector(
@@ -256,6 +262,24 @@ class MiniPlayer extends StatelessWidget {
           Icon(Icons.favorite_border, color: AppColors.whiteSmoke),
         ],
       ),
+    );
+  }
+}
+
+class QrCodeScanButton extends StatelessWidget {
+  const QrCodeScanButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.pushReplacementNamed(context, LibraryRoutes.qrScanner);
+      },
+      style: ElevatedButton.styleFrom(
+        shape: const CircleBorder(), 
+        padding: const EdgeInsets.all(10),
+      ),
+      child: const Icon(Icons.qr_code_scanner),
     );
   }
 }
