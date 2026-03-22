@@ -1,7 +1,10 @@
+// Dart imports
 import 'package:flutter/material.dart';
-import '../models/profile_link_model.dart';
-import '../models/user_profile_model.dart';
-import '../services/user_profile_service.dart';
+
+// Package imports
+import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
+import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
+import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfileModel currentProfile;
@@ -63,26 +66,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     'Australia',
   ];
 
-bool _saving = false;
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
 
-    _displayNameController =
-        TextEditingController(text: widget.currentProfile.displayName);
+    _displayNameController = TextEditingController(
+      text: widget.currentProfile.displayName,
+    );
     _cityController = TextEditingController(text: widget.currentProfile.city);
-    _countryController =
-        TextEditingController(text: widget.currentProfile.country);
+    _countryController = TextEditingController(
+      text: widget.currentProfile.country,
+    );
     _bioController = TextEditingController(text: widget.currentProfile.bio);
-    _avatarController =
-        TextEditingController(text: widget.currentProfile.profileImgLink);
-    _bannerController =
-        TextEditingController(text: widget.currentProfile.bannerImgLink);
+    _avatarController = TextEditingController(
+      text: widget.currentProfile.profileImgLink,
+    );
+    _bannerController = TextEditingController(
+      text: widget.currentProfile.bannerImgLink,
+    );
 
     _editableLinks = [...widget.currentProfile.links];
     _selectedGenres = [...widget.currentProfile.favoriteGenres];
-
   }
 
   Future<void> _editField({
@@ -155,63 +161,64 @@ bool _saving = false;
   }
 
   Future<void> _pickCountry() async {
-  final result = await showModalBottomSheet<String>(
-    context: context,
-    backgroundColor: const Color(0xFF111111),
-    isScrollControlled: true,
-    builder: (context) {
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            const Text(
-              'Select country',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF111111),
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              const Text(
+                'Select country',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 420,
-              child: ListView.builder(
-                itemCount: _countryOptions.length,
-                itemBuilder: (context, index) {
-                  final country = _countryOptions[index];
-                  final isSelected = _countryController.text.trim() == country;
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 420,
+                child: ListView.builder(
+                  itemCount: _countryOptions.length,
+                  itemBuilder: (context, index) {
+                    final country = _countryOptions[index];
+                    final isSelected =
+                        _countryController.text.trim() == country;
 
-                  return ListTile(
-                    onTap: () => Navigator.pop(context, country),
-                    title: Text(
-                      country,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w400,
+                    return ListTile(
+                      onTap: () => Navigator.pop(context, country),
+                      title: Text(
+                        country,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white70,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                        ),
                       ),
-                    ),
-                    trailing: isSelected
-                        ? const Icon(Icons.check, color: Colors.white)
-                        : null,
-                  );
-                },
+                      trailing: isSelected
+                          ? const Icon(Icons.check, color: Colors.white)
+                          : null,
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
+            ],
+          ),
+        );
+      },
+    );
 
-  if (result != null) {
-    setState(() {
-      _countryController.text = result;
-    });
+    if (result != null) {
+      setState(() {
+        _countryController.text = result;
+      });
+    }
   }
-}
-
 
   Future<void> _editLink({ProfileLinkModel? existing, int? index}) async {
     final nameController = TextEditingController(text: existing?.title ?? '');
@@ -314,7 +321,7 @@ bool _saving = false;
     setState(() => _saving = true);
 
     try {
-        final updated = widget.currentProfile.copyWith(
+      final updated = widget.currentProfile.copyWith(
         displayName: _displayNameController.text.trim(),
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
@@ -349,7 +356,8 @@ bool _saving = false;
     }
   }
 
-  int _countOf(TextEditingController controller) => controller.text.trim().length;
+  int _countOf(TextEditingController controller) =>
+      controller.text.trim().length;
 
   @override
   void dispose() {
@@ -406,10 +414,7 @@ bool _saving = false;
                           )
                         : const Text(
                             'Save',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
                   ),
                 ],
@@ -437,9 +442,11 @@ bool _saving = false;
                               color: const Color(0xFF090909),
                               image: _bannerController.text.trim().isNotEmpty
                                   ? DecorationImage(
-                                      image: NetworkImage(_bannerController.text),
+                                      image: NetworkImage(
+                                        _bannerController.text,
+                                      ),
                                       fit: BoxFit.cover,
-                                      onError: (_, __) {},
+                                      onError: (_, _) {},
                                     )
                                   : null,
                               borderRadius: const BorderRadius.vertical(
@@ -468,11 +475,14 @@ bool _saving = false;
                                   backgroundColor: const Color(0xFF1A1A1A),
                                   backgroundImage:
                                       _avatarController.text.trim().isNotEmpty
-                                          ? NetworkImage(_avatarController.text)
-                                          : null,
+                                      ? NetworkImage(_avatarController.text)
+                                      : null,
                                   child: _avatarController.text.trim().isEmpty
-                                      ? const Icon(Icons.person,
-                                          color: Colors.white38, size: 32)
+                                      ? const Icon(
+                                          Icons.person,
+                                          color: Colors.white38,
+                                          size: 32,
+                                        )
                                       : null,
                                 ),
                                 Positioned(
@@ -552,8 +562,10 @@ bool _saving = false;
                               ? 'Link'
                               : entry.value.title,
                           value: entry.value.link,
-                          onTap: () =>
-                              _editLink(existing: entry.value, index: entry.key),
+                          onTap: () => _editLink(
+                            existing: entry.value,
+                            index: entry.key,
+                          ),
                           onDelete: () {
                             setState(() {
                               _editableLinks.removeAt(entry.key);
@@ -587,10 +599,7 @@ class _EditSection extends StatelessWidget {
   final String title;
   final Widget child;
 
-  const _EditSection({
-    required this.title,
-    required this.child,
-  });
+  const _EditSection({required this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -644,10 +653,7 @@ class _LinkedProfileRow extends StatelessWidget {
     return ListTile(
       dense: true,
       onTap: onTap,
-      title: Text(
-        label,
-        style: const TextStyle(color: Colors.white),
-      ),
+      title: Text(label, style: const TextStyle(color: Colors.white)),
       subtitle: Text(
         shownValue,
         maxLines: 1,
@@ -661,8 +667,10 @@ class _LinkedProfileRow extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline,
-                      color: Colors.redAccent),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
                 ),
                 const Icon(Icons.chevron_right, color: Colors.white54),
               ],
@@ -688,10 +696,11 @@ class _EditRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPlaceholder = value == 'Where are you based?' ||
-    value == 'Select your country' ||
-    value == 'Select role' ||
-    value == 'Tell the world a bit about yourself';
+    final isPlaceholder =
+        value == 'Where are you based?' ||
+        value == 'Select your country' ||
+        value == 'Select role' ||
+        value == 'Tell the world a bit about yourself';
 
     return InkWell(
       onTap: onTap,
@@ -752,10 +761,7 @@ class _CameraBadge extends StatelessWidget {
   final VoidCallback onTap;
   final bool small;
 
-  const _CameraBadge({
-    required this.onTap,
-    this.small = false,
-  });
+  const _CameraBadge({required this.onTap, this.small = false});
 
   @override
   Widget build(BuildContext context) {
@@ -766,7 +772,7 @@ class _CameraBadge extends StatelessWidget {
         width: small ? 24 : 28,
         height: small ? 24 : 28,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.65),
+          color: Colors.black.withValues(alpha: 0.65),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white24),
         ),

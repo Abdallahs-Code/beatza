@@ -23,17 +23,14 @@ class ProfileLinkModel {
   }
 
   Map<String, dynamic> toJson() {
-  final map = <String, dynamic>{
-    'name': title,
-    'link': normalizedUrl,
-  };
+    final map = <String, dynamic>{'name': title, 'link': normalizedUrl};
 
-  if (linkId.trim().isNotEmpty) {
-    map['linkId'] = linkId.trim();
+    if (linkId.trim().isNotEmpty) {
+      map['linkId'] = linkId.trim();
+    }
+
+    return map;
   }
-
-  return map;
-}
 
   ProfileLinkModel copyWith({
     String? linkId,
@@ -70,7 +67,10 @@ class ProfileLinkModel {
 
     if (normalized.contains('instagram')) return 'instagram';
     if (normalized == 'x' || normalized.contains('twitter')) return 'twitter';
-    if (normalized.contains('website') || normalized.contains('site')) return 'website';
+    if (normalized.contains('website') || normalized.contains('site')) {
+      return 'website';
+    }
+
     if (normalized.contains('facebook')) return 'facebook';
     if (normalized.contains('youtube')) return 'youtube';
     if (normalized.contains('tiktok')) return 'tiktok';

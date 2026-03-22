@@ -1,6 +1,8 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_text.dart';
+// Package imports
+import 'package:cross_team5/core/theme/app_text.dart';
 
 class WelcomeBackground extends StatelessWidget {
   const WelcomeBackground({super.key});

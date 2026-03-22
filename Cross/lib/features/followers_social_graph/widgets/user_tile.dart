@@ -1,10 +1,10 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import '../models/follower.dart';
+// Package imports
+import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 
-
-class UserTile extends StatelessWidget 
-{
+class UserTile extends StatelessWidget {
   final Follower follower;
   final VoidCallback? onFollowTap;
   final VoidCallback? onBlockTap;
@@ -21,13 +21,10 @@ class UserTile extends StatelessWidget
   });
 
   @override
-  Widget build(BuildContext context) 
-  {
-    return ListTile
-    (
+  Widget build(BuildContext context) {
+    return ListTile(
       // ── Avatar ──────────────────────────────────
-      leading: CircleAvatar
-      (
+      leading: CircleAvatar(
         radius: 24,
         backgroundImage: follower.profileImgLink != null
             ? NetworkImage(follower.profileImgLink!)
@@ -50,17 +47,13 @@ class UserTile extends StatelessWidget
       subtitle: Text('${follower.trackCount} tracks'),
 
       // ── Follow button + block menu ───────────────
-      trailing: Row
-      (
+      trailing: Row(
         mainAxisSize: MainAxisSize.min,
-        children: 
-        [
+        children: [
           if (onFollowTap != null)
-            OutlinedButton
-            (
+            OutlinedButton(
               onPressed: onFollowTap,
-              style: OutlinedButton.styleFrom
-              (
+              style: OutlinedButton.styleFrom(
                 backgroundColor: follower.isFollowing
                     ? Colors.grey.shade200
                     : Colors.orange,
@@ -68,24 +61,27 @@ class UserTile extends StatelessWidget
                     ? Colors.black
                     : Colors.white,
                 side: BorderSide.none,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
               ),
               child: Text(follower.isFollowing ? 'Following' : 'Follow'),
             ),
 
           if (showBlockOption)
-            PopupMenuButton<String>
-            (
+            PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
-              onSelected: (value) 
-              {
-                if (value == 'block'   && onBlockTap   != null) onBlockTap!();
+              onSelected: (value) {
+                if (value == 'block' && onBlockTap != null) onBlockTap!();
                 if (value == 'unblock' && onUnblockTap != null) onUnblockTap!();
               },
-              itemBuilder: (context) => 
-              [
-                const PopupMenuItem(value: 'block',   child: Text('Block user')),
-                const PopupMenuItem(value: 'unblock', child: Text('Unblock user')),
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'block', child: Text('Block user')),
+                const PopupMenuItem(
+                  value: 'unblock',
+                  child: Text('Unblock user'),
+                ),
               ],
             ),
         ],

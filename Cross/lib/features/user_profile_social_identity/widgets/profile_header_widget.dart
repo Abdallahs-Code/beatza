@@ -1,13 +1,13 @@
+// Dart imports
 import 'package:flutter/material.dart';
-import '../models/user_profile_model.dart';
+
+// Package imports
+import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
   final UserProfileModel userProfile;
 
-  const ProfileHeaderWidget({
-    super.key,
-    required this.userProfile,
-  });
+  const ProfileHeaderWidget({super.key, required this.userProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                 ? DecorationImage(
                     image: NetworkImage(userProfile.bannerImgLink),
                     fit: BoxFit.cover,
-                    onError: (_, __) {},
+                    onError: (_, _) {},
                   )
                 : null,
           ),
@@ -34,8 +34,8 @@ class ProfileHeaderWidget extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.08),
-                  Colors.black.withOpacity(0.65),
+                  Colors.black.withValues(alpha: 0.08),
+                  Colors.black.withValues(alpha: 0.65),
                 ],
               ),
             ),
@@ -57,13 +57,10 @@ class ProfileHeaderWidget extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF0A0A0A),
-                  width: 5,
-                ),
+                border: Border.all(color: const Color(0xFF0A0A0A), width: 5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -80,7 +77,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                         ? Image.network(
                             userProfile.profileImgLink,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) {
+                            errorBuilder: (_, _, _) {
                               return const _AvatarFallback();
                             },
                             loadingBuilder: (context, child, progress) {
@@ -89,7 +86,9 @@ class ProfileHeaderWidget extends StatelessWidget {
                                 child: SizedBox(
                                   width: 22,
                                   height: 22,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               );
                             },
@@ -113,11 +112,7 @@ class _AvatarFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF1E1E1E),
-      child: const Icon(
-        Icons.person,
-        size: 52,
-        color: Color(0xFF71717A),
-      ),
+      child: const Icon(Icons.person, size: 52, color: Color(0xFF71717A)),
     );
   }
 }

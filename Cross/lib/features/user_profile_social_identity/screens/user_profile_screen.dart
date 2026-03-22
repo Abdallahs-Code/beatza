@@ -1,11 +1,14 @@
+// Dart imports
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/profile_link_model.dart';
-import '../models/user_profile_model.dart';
-import '../services/user_profile_service.dart';
-import 'edit_profile_screen.dart';
-import '../../followers_social_graph/followers_social_graph.dart';
+
+// Package imports
+import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
+import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
+import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
+import 'package:cross_team5/features/user_profile_social_identity/screens/edit_profile_screen.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -38,14 +41,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<_ProfileViewState> _fetchProfileViewState() async {
-    final profile = await _apiService.getUserProfile(widget.userId, widget.token);
+    final profile = await _apiService.getUserProfile(
+      widget.userId,
+      widget.token,
+    );
     final currentUserId = widget.currentUserId?.trim() ?? '';
     final isOwner = currentUserId.isNotEmpty && currentUserId == profile.userId;
 
-    return _ProfileViewState(
-      profile: profile,
-      isOwner: isOwner,
-    );
+    return _ProfileViewState(profile: profile, isOwner: isOwner);
   }
 
   Future<void> _openUrl(String rawUrl) async {
@@ -54,8 +57,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     final normalized =
         trimmed.startsWith('http://') || trimmed.startsWith('https://')
-            ? trimmed
-            : 'https://$trimmed';
+        ? trimmed
+        : 'https://$trimmed';
 
     final uri = Uri.tryParse(normalized);
     if (uri == null) return;
@@ -155,10 +158,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 6),
                 Text(
                   profile.resolvedLocation,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -172,10 +172,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 6),
                 Text(
                   profile.role,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -260,14 +257,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               await _copyProfileLink(profile);
             },
           ),
-          const _SheetAction(
-            label: 'Message',
-            icon: Icons.send_outlined,
-          ),
-          const _SheetAction(
-            label: 'QR code',
-            icon: Icons.qr_code_2,
-          ),
+          const _SheetAction(label: 'Message', icon: Icons.send_outlined),
+          const _SheetAction(label: 'QR code', icon: Icons.qr_code_2),
           const _SheetAction(
             label: 'SMS',
             icon: Icons.chat_bubble,
@@ -289,19 +280,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             bgColor: Color(0xFFFFFC00),
             iconColor: Colors.black,
           ),
-          const _SheetAction(
-            label: 'X',
-            icon: Icons.close,
-          ),
+          const _SheetAction(label: 'X', icon: Icons.close),
           const _SheetAction(
             label: 'Messenger',
             icon: Icons.message,
             bgColor: Color(0xFF8B5CF6),
           ),
-          const _SheetAction(
-            label: 'More',
-            icon: Icons.more_horiz,
-          ),
+          const _SheetAction(label: 'More', icon: Icons.more_horiz),
         ];
 
         final linkedProfiles = profile.visibleLinks;
@@ -329,7 +314,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ? NetworkImage(profile.profileImgLink)
                       : null,
                   child: profile.profileImgLink.trim().isEmpty
-                      ? const Icon(Icons.person, color: Colors.white38, size: 38)
+                      ? const Icon(
+                          Icons.person,
+                          color: Colors.white38,
+                          size: 38,
+                        )
                       : null,
                 ),
                 const SizedBox(height: 14),
@@ -356,7 +345,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     scrollDirection: Axis.horizontal,
                     itemCount: actions.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    separatorBuilder: (_, _) => const SizedBox(width: 14),
                     itemBuilder: (context, index) {
                       final item = actions[index];
                       return _ShareActionItem(action: item);
@@ -411,49 +400,43 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                 ],
-              const Divider(color: Colors.white12, height: 20),
-              if (isOwner)
+                const Divider(color: Colors.white12, height: 20),
+                if (isOwner)
+                  ListTile(
+                    dense: true,
+                    leading: const Icon(
+                      Icons.block,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    title: const Text(
+                      'Blocked users',
+                      style: TextStyle(color: Colors.white, fontSize: 17),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(
+                        context,
+                        FollowersSocialGraphRoutes.blockedUsers,
+                      );
+                    },
+                  ),
                 ListTile(
                   dense: true,
                   leading: const Icon(
-                    Icons.block,
+                    Icons.info_outline,
                     color: Colors.white70,
                     size: 20,
                   ),
                   title: const Text(
-                    'Blocked users',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                    ),
+                    'View info',
+                    style: TextStyle(color: Colors.white, fontSize: 17),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(
-                      context,
-                      FollowersSocialGraphRoutes.blockedUsers,
-                    );
+                    _showInfoSheet(profile);
                   },
                 ),
-              ListTile(
-                dense: true,
-                leading: const Icon(
-                  Icons.info_outline,
-                  color: Colors.white70,
-                  size: 20,
-                ),
-                title: const Text(
-                  'View info',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showInfoSheet(profile);
-                },
-              ),
               ],
             ),
           ),
@@ -640,10 +623,8 @@ class _SoundCloudProfileView extends StatelessWidget {
     final updated = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => EditProfileScreen(
-          currentProfile: profile,
-          token: token,
-        ),
+        builder: (_) =>
+            EditProfileScreen(currentProfile: profile, token: token),
       ),
     );
 
@@ -683,14 +664,12 @@ class _SoundCloudProfileView extends StatelessWidget {
                             ? Image.network(
                                 profile.bannerImgLink,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (_, _, _) =>
                                     const SizedBox.shrink(),
                               )
                             : _AutoBannerFromAvatar(profile.profileImgLink),
                       ),
-                      Container(
-                        color: Colors.black.withOpacity(0.18),
-                      ),
+                      Container(color: Colors.black.withValues(alpha: 0.18)),
                       Positioned(
                         top: topPadding + 10,
                         left: 16,
@@ -756,7 +735,8 @@ class _SoundCloudProfileView extends StatelessWidget {
                         child: CircleAvatar(
                           radius: 48,
                           backgroundColor: const Color(0xFF1C1C1C),
-                          backgroundImage: profile.profileImgLink.trim().isNotEmpty
+                          backgroundImage:
+                              profile.profileImgLink.trim().isNotEmpty
                               ? NetworkImage(profile.profileImgLink)
                               : null,
                           child: profile.profileImgLink.trim().isEmpty
@@ -792,32 +772,32 @@ class _SoundCloudProfileView extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  FollowersSocialGraphRoutes.followers,
-                                  arguments: {'userId': profile.userId},    
-                                );
-                              },
-                              child: Text(
-                                '${profile.followersCount} Followers',
-                                style: const TextStyle(
-                                  color: Color(0xFFB3B3B3),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            const Text(
-                              ' • ',
-                              style: TextStyle(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                FollowersSocialGraphRoutes.followers,
+                                arguments: {'userId': profile.userId},
+                              );
+                            },
+                            child: Text(
+                              '${profile.followersCount} Followers',
+                              style: const TextStyle(
                                 color: Color(0xFFB3B3B3),
                                 fontSize: 13,
                               ),
                             ),
-                           GestureDetector(
+                          ),
+                          const Text(
+                            ' • ',
+                            style: TextStyle(
+                              color: Color(0xFFB3B3B3),
+                              fontSize: 13,
+                            ),
+                          ),
+                          GestureDetector(
                             onTap: () {
                               Navigator.pushNamed(
                                 context,
@@ -830,15 +810,15 @@ class _SoundCloudProfileView extends StatelessWidget {
                             },
                             child: Text(
                               '${profile.followingsCount} Following',
-                                style: const TextStyle(
-                                  color: Color(0xFFB3B3B3),
-                                  fontSize: 13,
-                                ),
+                              style: const TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 13,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
                       child: Text(
@@ -910,7 +890,8 @@ class _SoundCloudProfileView extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (profile.favoriteGenres.isNotEmpty) const SizedBox(height: 12),
+                    if (profile.favoriteGenres.isNotEmpty)
+                      const SizedBox(height: 12),
                     if (profile.favoriteGenres.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -997,12 +978,14 @@ class _SoundCloudProfileView extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           scrollDirection: Axis.horizontal,
                           itemCount: completionCards.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 14),
+                          separatorBuilder: (_, _) => const SizedBox(width: 14),
                           itemBuilder: (context, index) {
                             final card = completionCards[index];
                             return _CompleteProfileCard(
                               data: card,
-                              onPressed: isOwner ? () => _openEditProfile(context) : null,
+                              onPressed: isOwner
+                                  ? () => _openEditProfile(context)
+                                  : null,
                             );
                           },
                         ),
@@ -1191,10 +1174,7 @@ class _CompleteProfileCard extends StatelessWidget {
   final _ProfileCompletionCardData data;
   final VoidCallback? onPressed;
 
-  const _CompleteProfileCard({
-    required this.data,
-    required this.onPressed,
-  });
+  const _CompleteProfileCard({required this.data, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -1225,10 +1205,7 @@ class _CompleteProfileCard extends StatelessWidget {
                       size: 22,
                     ),
                   )
-                : const SizedBox(
-                    width: 34,
-                    height: 34,
-                  ),
+                : const SizedBox(width: 34, height: 34),
           ),
           const SizedBox(height: 12),
           Container(
@@ -1238,11 +1215,7 @@ class _CompleteProfileCard extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 1.5),
             ),
-            child: Icon(
-              data.icon,
-              color: Colors.white,
-              size: 34,
-            ),
+            child: Icon(data.icon, color: Colors.white, size: 34),
           ),
           const SizedBox(height: 18),
           Text(
@@ -1299,10 +1272,7 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final String actionText;
 
-  const _SectionHeader({
-    required this.title,
-    required this.actionText,
-  });
+  const _SectionHeader({required this.title, required this.actionText});
 
   @override
   Widget build(BuildContext context) {
@@ -1342,18 +1312,11 @@ class _SpotlightCard extends StatelessWidget {
       aspectRatio: 1,
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.white38,
-            width: 1.2,
-          ),
+          border: Border.all(color: Colors.white38, width: 1.2),
           borderRadius: BorderRadius.circular(14),
         ),
         child: const Center(
-          child: Icon(
-            Icons.lock_outline,
-            color: Colors.white54,
-            size: 28,
-          ),
+          child: Icon(Icons.lock_outline, color: Colors.white54, size: 28),
         ),
       ),
     );
@@ -1406,10 +1369,7 @@ class _PlaylistCard extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: const TextStyle(
-            color: Color(0xFFB3B3B3),
-            fontSize: 13,
-          ),
+          style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
         ),
       ],
     );
@@ -1448,18 +1408,12 @@ class _UserMusicRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: Color(0xFFB3B3B3),
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
               ),
               const SizedBox(height: 2),
               Text(
                 '♥ $meta',
-                style: const TextStyle(
-                  color: Color(0xFFB3B3B3),
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
               ),
             ],
           ),
@@ -1504,18 +1458,12 @@ class _TrackRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: Color(0xFFB3B3B3),
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
               ),
               const SizedBox(height: 2),
               Text(
                 looksLikeAlbum ? meta : '▶ $meta',
-                style: const TextStyle(
-                  color: Color(0xFFB3B3B3),
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
               ),
             ],
           ),
@@ -1540,7 +1488,7 @@ class _SquareImage extends StatelessWidget {
       child: Image.network(
         imageUrl,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
+        errorBuilder: (_, _, _) =>
             const Icon(Icons.music_note, color: Colors.white24),
       ),
     );
@@ -1551,10 +1499,7 @@ class _RoundIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _RoundIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _RoundIconButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1584,7 +1529,9 @@ class _SmallAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 10,
       backgroundColor: const Color(0xFF1C1C1C),
-      backgroundImage: imageUrl.trim().isNotEmpty ? NetworkImage(imageUrl) : null,
+      backgroundImage: imageUrl.trim().isNotEmpty
+          ? NetworkImage(imageUrl)
+          : null,
     );
   }
 }
@@ -1604,14 +1551,12 @@ class _AutoBannerFromAvatar extends StatelessWidget {
           Image.network(
             imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox(),
+            errorBuilder: (_, _, _) => const SizedBox(),
           ),
 
         // Blur effect
         if (imageUrl.trim().isNotEmpty)
-          Container(
-            color: Colors.black.withOpacity(0.4),
-          ),
+          Container(color: Colors.black.withValues(alpha: 0.4)),
 
         // Gradient overlay (dark bottom fade like SoundCloud)
         Container(
@@ -1619,11 +1564,7 @@ class _AutoBannerFromAvatar extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black54,
-                Colors.black,
-              ],
+              colors: [Colors.transparent, Colors.black54, Colors.black],
             ),
           ),
         ),
@@ -1676,10 +1617,7 @@ class _MiniPlayerReplica extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     'Amelie Lens',
-                    style: TextStyle(
-                      color: Color(0xFFB3B3B3),
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
                   ),
                 ],
               ),
@@ -1745,10 +1683,7 @@ class _BottomTabItem extends StatelessWidget {
       children: [
         Icon(icon, size: 22, color: color),
         const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(color: color, fontSize: 11),
-        ),
+        Text(label, style: TextStyle(color: color, fontSize: 11)),
       ],
     );
   }
@@ -1757,9 +1692,7 @@ class _BottomTabItem extends StatelessWidget {
 class _PrivateProfileView extends StatelessWidget {
   final UserProfileModel profile;
 
-  const _PrivateProfileView({
-    required this.profile,
-  });
+  const _PrivateProfileView({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -1781,14 +1714,13 @@ class _PrivateProfileView extends StatelessWidget {
                         ? Image.network(
                             profile.bannerImgLink,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const SizedBox.shrink(),
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
                           )
                         : null,
                   ),
                   Container(
                     height: 260,
-                    color: Colors.black.withOpacity(0.18),
+                    color: Colors.black.withValues(alpha: 0.18),
                   ),
                   Positioned(
                     top: topPadding + 10,
@@ -1820,7 +1752,8 @@ class _PrivateProfileView extends StatelessWidget {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: const Color(0xFF1C1C1C),
-                        backgroundImage: profile.profileImgLink.trim().isNotEmpty
+                        backgroundImage:
+                            profile.profileImgLink.trim().isNotEmpty
                             ? NetworkImage(profile.profileImgLink)
                             : null,
                         child: profile.profileImgLink.trim().isEmpty
@@ -1849,19 +1782,19 @@ class _PrivateProfileView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                        Row(
+                      Row(
                         children: [
                           GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              FollowersSocialGraphRoutes.followers,
-                              arguments: {
-                                'userId': profile.userId,
-                                'tabIndex': 0,
-                              },
-                            );
-                          },
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                FollowersSocialGraphRoutes.followers,
+                                arguments: {
+                                  'userId': profile.userId,
+                                  'tabIndex': 0,
+                                },
+                              );
+                            },
                             child: Text(
                               '${profile.followersCount} Followers',
                               style: const TextStyle(
@@ -1878,16 +1811,16 @@ class _PrivateProfileView extends StatelessWidget {
                             ),
                           ),
                           GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              FollowersSocialGraphRoutes.followers,
-                              arguments: {
-                                'userId': profile.userId,
-                                'tabIndex': 0,
-                              },
-                            );
-                          },
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                FollowersSocialGraphRoutes.followers,
+                                arguments: {
+                                  'userId': profile.userId,
+                                  'tabIndex': 0,
+                                },
+                              );
+                            },
                             child: Text(
                               '${profile.followingsCount} Following',
                               style: const TextStyle(
@@ -1976,37 +1909,34 @@ class _PrivateProfileView extends StatelessWidget {
   }
 }
 
-class _PrivateTabIcon extends StatelessWidget {
-  final IconData icon;
-  final bool active;
+// class _PrivateTabIcon extends StatelessWidget {
+//   final IconData icon;
+//   final bool active;
 
-  const _PrivateTabIcon({
-    required this.icon,
-    this.active = false,
-  });
+//   const _PrivateTabIcon({required this.icon, this.active = false});
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: active ? Colors.white : const Color(0xFF6F6F6F),
-          size: 30,
-        ),
-        const SizedBox(height: 10),
-        Container(
-          width: 56,
-          height: 3,
-          decoration: BoxDecoration(
-            color: active ? Colors.white70 : Colors.transparent,
-            borderRadius: BorderRadius.circular(99),
-          ),
-        ),
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       children: [
+//         Icon(
+//           icon,
+//           color: active ? Colors.white : const Color(0xFF6F6F6F),
+//           size: 30,
+//         ),
+//         const SizedBox(height: 10),
+//         Container(
+//           width: 56,
+//           height: 3,
+//           decoration: BoxDecoration(
+//             color: active ? Colors.white70 : Colors.transparent,
+//             borderRadius: BorderRadius.circular(99),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 class _ShareActionItem extends StatelessWidget {
   final _SheetAction action;
@@ -2028,10 +1958,7 @@ class _ShareActionItem extends StatelessWidget {
             Container(
               width: 52,
               height: 52,
-              decoration: BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
               child: Icon(action.icon, color: iconColor, size: 24),
             ),
             const SizedBox(height: 8),
@@ -2039,10 +1966,7 @@ class _ShareActionItem extends StatelessWidget {
               action.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ],
         ),
@@ -2071,8 +1995,5 @@ class _ProfileViewState {
   final UserProfileModel profile;
   final bool isOwner;
 
-  const _ProfileViewState({
-    required this.profile,
-    required this.isOwner,
-  });
+  const _ProfileViewState({required this.profile, required this.isOwner});
 }

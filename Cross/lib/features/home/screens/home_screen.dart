@@ -1,9 +1,11 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import '../widgets/home_widgets.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/common_widgets.dart';
-import '../../../core/theme/app_text.dart';
+// Package imports
+import 'package:cross_team5/features/home/widgets/home_widgets.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/core/widgets/common_widgets.dart';
+import 'package:cross_team5/core/theme/app_text.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

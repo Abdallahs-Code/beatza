@@ -1,7 +1,9 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import 'screens/welcome_screen.dart';
-import 'screens/login_screen.dart';
+// Package imports
+import 'package:cross_team5/features/authentication_user_management/screens/welcome_screen.dart';
+import 'package:cross_team5/features/authentication_user_management/screens/login_screen.dart';
 
 class AuthenticationRoutes {
   static const String welcome = "/welcome";

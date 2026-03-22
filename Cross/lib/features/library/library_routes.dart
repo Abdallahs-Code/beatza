@@ -1,6 +1,8 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import 'screens/library_screen.dart';
+// Package imports
+import 'package:cross_team5/features/library/screens/library_screen.dart';
 
 class LibraryRoutes {
   static const String library = "/library";

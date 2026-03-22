@@ -1,12 +1,13 @@
-import "dart:async";
-import "dart:convert";
+// Dart imports
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-import "package:http/http.dart" as http;
-
-import "../../../core/services/api_services.dart";
-import "../../../core/services/logger_service.dart";
-import "../models/profile_link_model.dart";
-import "../models/user_profile_model.dart";
+// Package imports
+import 'package:cross_team5/core/services/api_services.dart';
+import 'package:cross_team5/core/services/logger_service.dart';
+import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
+import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 
 class ApiException implements Exception {
   final int statusCode;
@@ -36,12 +37,13 @@ class UserProfileService {
         displayName: "Abdelrahman Kamal",
         firstName: "Abdelrahman",
         lastName: "Kamal",
-        profileUrl: "https://example.com/profiles/$userId", //         
+        profileUrl: "https://example.com/profiles/$userId", //
         profileImgLink:
             " https://res.cloudinary.com/dexluedse/image/upload/v1744719629/mobile-app/lwvswk21xn3wpgoufqxi.jpg",
         bannerImgLink:
             "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=1200&auto=format&fit=crop",
-        bio: "Creating vibes and building apps. Testing profile UI without backend.",
+        bio:
+            "Creating vibes and building apps. Testing profile UI without backend.",
         city: "Cairo",
         country: "Egypt",
         links: const [
@@ -68,16 +70,11 @@ class UserProfileService {
         supportLink: "https://example.com/support",
         role: "Artist",
         isPaid: true,
-        favoriteGenres: const [
-          "Electronic",
-          "Hip-Hop",
-          "Phonk",
-          "Lo-fi",
-        ],
+        favoriteGenres: const ["Electronic", "Hip-Hop", "Phonk", "Lo-fi"],
         followersCount: 14500,
         followingsCount: 320,
         trackCount: 45,
-        isPrivate:true
+        isPrivate: true,
       );
     }
 
@@ -247,7 +244,10 @@ class UserProfileService {
             : "Failed to load privacy settings",
       );
     } on TimeoutException {
-      throw ApiException(408, "Connection timed out while loading privacy settings");
+      throw ApiException(
+        408,
+        "Connection timed out while loading privacy settings",
+      );
     } on FormatException {
       throw ApiException(500, "Invalid JSON response from privacy API");
     } catch (err) {
@@ -313,7 +313,10 @@ class UserProfileService {
             : "Failed to update privacy settings",
       );
     } on TimeoutException {
-      throw ApiException(408, "Connection timed out while updating privacy settings");
+      throw ApiException(
+        408,
+        "Connection timed out while updating privacy settings",
+      );
     } on FormatException {
       throw ApiException(500, "Invalid JSON response from privacy update API");
     } catch (err) {

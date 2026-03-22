@@ -57,24 +57,33 @@ class UserProfileModel {
       bio: (json['bio'] ?? '').toString(),
       city: (json['city'] ?? '').toString(),
       country: (json['country'] ?? '').toString(),
-      links: (json['links'] as List?)
-              ?.map((e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)))
+      links:
+          (json['links'] as List?)
+              ?.map(
+                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+              )
               .toList() ??
           const [],
-      bannerLinks: (json['bannerLinks'] as List?)
-              ?.map((e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)))
+      bannerLinks:
+          (json['bannerLinks'] as List?)
+              ?.map(
+                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+              )
               .toList() ??
           const [],
       supportLink: (json['supportLink'] ?? '').toString(),
       role: _normalizeRole((json['role'] ?? '').toString()),
       isPaid: json['isPaid'] == true,
-      favoriteGenres: (json['favoriteGenres'] as List?)
+      favoriteGenres:
+          (json['favoriteGenres'] as List?)
               ?.map((e) => e.toString().trim())
               .where((e) => e.isNotEmpty)
               .toList() ??
           const [],
       followersCount: _readInt(json['followersCount']),
-      followingsCount: _readInt(json['followingsCount'] ?? json['followedCount']),
+      followingsCount: _readInt(
+        json['followingsCount'] ?? json['followedCount'],
+      ),
       trackCount: _readInt(json['trackCount']),
       isPrivate: json['isPrivate'] == true,
     );
@@ -198,15 +207,19 @@ class UserProfileModel {
 
   String get resolvedDisplayName {
     if (displayName.trim().isNotEmpty) return displayName.trim();
-    final fullName = [firstName.trim(), lastName.trim()]
-        .where((e) => e.isNotEmpty)
-        .join(' ');
+    final fullName = [
+      firstName.trim(),
+      lastName.trim(),
+    ].where((e) => e.isNotEmpty).join(' ');
     if (fullName.isNotEmpty) return fullName;
     return 'Unknown User';
   }
 
   String get resolvedLocation {
-    final parts = [city.trim(), country.trim()].where((e) => e.isNotEmpty).toList();
+    final parts = [
+      city.trim(),
+      country.trim(),
+    ].where((e) => e.isNotEmpty).toList();
     return parts.isEmpty ? 'Location not added yet' : parts.join(', ');
   }
 
@@ -236,7 +249,8 @@ class UserProfileModel {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return null;
 
-    final normalized = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    final normalized =
+        trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 

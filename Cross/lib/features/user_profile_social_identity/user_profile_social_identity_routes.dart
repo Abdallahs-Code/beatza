@@ -1,5 +1,8 @@
+// Dart imports
 import 'package:flutter/material.dart';
-import 'screens/user_profile_screen.dart';
+
+// Package imports
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class UserProfileSocialIdentityRoutes {
   static const String userProfileRoute = '/user_profile';
