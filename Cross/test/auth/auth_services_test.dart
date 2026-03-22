@@ -1,14 +1,15 @@
-import "dart:convert";
+// Dart imports
+import 'dart:convert';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import "package:flutter_test/flutter_test.dart";
-import "package:mocktail/mocktail.dart";
-import "package:http/http.dart" as http;
-import "package:flutter_secure_storage/flutter_secure_storage.dart";
-
-import "package:cross_team5/features/authentication_user_management/services/auth_api_service.dart";
-import "package:cross_team5/features/authentication_user_management/models/user.dart"
+// Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/authentication_user_management/models/user.dart'
     as user_model;
-import "package:cross_team5/core/services/api_services.dart";
+import 'package:cross_team5/core/services/api_services.dart';
 
 class MockHttpClient extends Mock implements http.Client {}
 

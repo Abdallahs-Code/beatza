@@ -1,14 +1,16 @@
-import "package:cross_team5/features/authentication_user_management/services/auth_api_service.dart";
-import "package:flutter/material.dart";
-import "package:flutter/gestures.dart";
-import "package:url_launcher/url_launcher.dart";
-
-import "package:cross_team5/core/services/api_services.dart";
-import '../authentication_user_management_routes.dart';
-import "../widgets/login_widgets.dart";
-import "../../../core/theme/app_colors.dart";
-import "../../../core/theme/app_text.dart";
+// Dart imports
+import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
+
+// Package imports
+import 'package:cross_team5/core/services/api_services.dart';
+import "package:cross_team5/features/authentication_user_management/services/auth_api_service.dart";
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/core/theme/app_text.dart';
+import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
+import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});  

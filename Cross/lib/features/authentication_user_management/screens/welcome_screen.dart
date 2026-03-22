@@ -1,9 +1,11 @@
-import "package:flutter/material.dart";
-import "package:flutter_web_auth_2/flutter_web_auth_2.dart";
+// Dart imports
+import 'package:flutter/material.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
-import "../services/auth_api_service.dart";
-import "../widgets/welcome_widgets.dart";
-import "../../home/home_routes.dart";
+// Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/authentication_user_management/widgets/welcome_widgets.dart';
+import 'package:cross_team5/features/home/home_routes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -31,6 +33,7 @@ class WelcomeScreen extends StatelessWidget {
           accessToken: accessToken,
           refreshToken: refreshToken,
         );
+        authApiService.refreshToken();
         if (!context.mounted) return;
         Navigator.pushReplacementNamed(context, HomeRoutes.home);
       } else {

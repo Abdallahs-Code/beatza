@@ -1,7 +1,10 @@
+// Dart imports
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
+// Package imports
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/core/theme/app_text.dart';
 
 class LoginButton extends StatelessWidget {
   final String text;

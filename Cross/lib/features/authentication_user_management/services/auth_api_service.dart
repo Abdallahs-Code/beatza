@@ -1,10 +1,12 @@
+// Dart imports
 import "dart:convert";
-
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 import "package:http/http.dart" as http;
 
-import "../../../core/services/api_services.dart";
-import "../models/user.dart" as user_model;
+// Package imports
+import "package:cross_team5/core/services/api_services.dart";
+import "package:cross_team5/features/authentication_user_management/models/user.dart"
+    as user_model;
 
 class AuthApiService {
   final ApiServices _apiServices;
@@ -32,9 +34,10 @@ class AuthApiService {
   }
 
   Future<void> _clearTokens() async {
-    await _storage.delete(key: "access_token");
-    await _storage.delete(key: "refresh_token");
-    await _storage.delete(key: "token_time");
+    await _storage.delete(key: 'access_token');
+    await _storage.delete(key: 'refresh_token');
+    await _storage.delete(key: 'token_time');
+    await _storage.delete(key: 'user_id');
   }
 
   Future<void> saveTokens({
@@ -72,14 +75,19 @@ class AuthApiService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        final accessToken = data["data"]?["accessToken"];
-        final refreshToken = data["data"]?["refreshToken"];
+        final accessToken = data['data']?['accessToken'];
+        final refreshToken = data['data']?['refreshToken'];
+        final userId = data['data']?['user']?['id']?.toString();
 
         if (accessToken != null && refreshToken != null) {
           await saveTokens(
             accessToken: accessToken,
             refreshToken: refreshToken,
           );
+          if (userId != null && userId.trim().isNotEmpty) {
+            await _storage.write(key: 'user_id', value: userId);
+          }
+
           return (200, data["message"] ?? "Login successful");
         } else {
           return (
@@ -176,12 +184,16 @@ class AuthApiService {
       if (response.statusCode == 200) {
         final newAccessToken = data["data"]?["accessToken"];
         final newRefreshToken = data["data"]?["refreshToken"];
+        final userId = data['data']?['user']?['id']?.toString();
 
         if (newAccessToken != null && newRefreshToken != null) {
           await saveTokens(
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
           );
+          if (userId != null && userId.trim().isNotEmpty) {
+            await _storage.write(key: 'user_id', value: userId);
+          }
           return (200, "Token refreshed successfully");
         } else {
           return (
@@ -195,6 +207,14 @@ class AuthApiService {
     } catch (err) {
       return (500, "Network error: $err");
     }
+  }
+
+  Future<String?> getStoredAccessToken() async {
+    return await _storage.read(key: 'access_token');
+  }
+
+  Future<String?> getStoredUserId() async {
+    return await _storage.read(key: 'user_id');
   }
 
   Future<String> getQrCodeToken() async {

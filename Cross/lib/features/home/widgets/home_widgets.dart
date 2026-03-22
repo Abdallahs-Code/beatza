@@ -1,7 +1,9 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text.dart';
+// Package imports
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/core/theme/app_text.dart';
 
 class TopHeader extends StatelessWidget {
   const TopHeader({super.key});

@@ -1,9 +1,11 @@
+// Dart imports
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../authentication_user_management/services/auth_api_service.dart';
-import '../../authentication_user_management/authentication_user_management_routes.dart';
-import '../../home/home_routes.dart';
+// Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
+import 'package:cross_team5/features/home/home_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

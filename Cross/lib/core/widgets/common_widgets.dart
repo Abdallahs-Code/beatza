@@ -1,8 +1,10 @@
+// Dart imports
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
-import '../../features/home/home_routes.dart';
-import '../../features/library/library_routes.dart';
+// Package imports
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:cross_team5/features/library/library_routes.dart';
 
 enum AppNavItem { home, feed, search, library, upgrade }
 
