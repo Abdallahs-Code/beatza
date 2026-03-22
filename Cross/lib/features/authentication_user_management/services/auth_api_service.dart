@@ -5,6 +5,7 @@ import "package:http/http.dart" as http;
 
 // Package imports
 import "package:cross_team5/core/services/api_services.dart";
+import "package:cross_team5/core/services/logger_service.dart";
 import "package:cross_team5/features/authentication_user_management/models/user.dart"
     as user_model;
 
@@ -257,7 +258,7 @@ class AuthApiService {
     }
     catch(e)
     {
-      print('Approve Qr code Func: $e');
+      LoggerService.logger.i('Approve Qr code Func: $e');
       return false;
     }
     
@@ -304,7 +305,7 @@ class AuthApiService {
           throw Exception('Failed to check QR status: ${response.statusCode}');
       }
     } catch (e) {
-      print('checkQrStatus error: $e');
+      LoggerService.logger.i('checkQrStatus error: $e');
       rethrow;
     }
   }

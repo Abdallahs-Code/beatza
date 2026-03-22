@@ -1,6 +1,10 @@
+// Dart imports
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../authentication_user_management/services/auth_api_service.dart';
+
+// Package imports
+import 'package:cross_team5/core/services/logger_service.dart';
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
@@ -73,7 +77,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         await controller.start(); // Resume camera for retry
       }
     } catch (e) {
-      print('Scan error: $e');
+      LoggerService.logger.i('Scan error: $e');
       await controller.start(); // Resume camera
     }
   }

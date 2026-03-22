@@ -1,5 +1,8 @@
+// Dart imports
 import 'dart:async';
-import '../services/auth_api_service.dart';
+
+// Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class QrPollingService {
   final AuthApiService _authApi;
@@ -35,7 +38,8 @@ class QrPollingService {
         // Call the auth service to check status
         final response = await _authApi.checkQrStatus(qrData);
         final status = response['status'] as String;
-        final message = response['message'] as String;
+        // To be completed upon API changes
+        // final message = response['message'] as String;
         
         // Notify UI of status change
         onStatusUpdate?.call(status);
