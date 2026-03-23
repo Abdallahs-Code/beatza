@@ -123,7 +123,6 @@ class AuthApiService {
       );
 
       final data = jsonDecode(response.body);
-
       LoggerService.logger.i(
       "signup statusCode: ${response.statusCode}, body: ${response.body}",
     );
