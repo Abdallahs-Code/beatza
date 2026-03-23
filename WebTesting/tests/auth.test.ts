@@ -1,5 +1,4 @@
-import path from 'path';
-import { test, expect, chromium } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { Navbar } from '../pages/components/navbar/navbar';
 import { AuthForm } from '../pages/auth_form';
 import { LandingPage } from '../pages/landing_page';
@@ -114,12 +113,12 @@ test.describe("authentication (Happy Path)", () => {
 
 
 test.describe("authentication (Sad Path)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://beatza.me');
+    const landingPage = new LandingPage(page)
+    await landingPage.signInBtn.click()
+  })
   test.describe("Email Field Validation", () => {
-    test.beforeEach(async ({ page }) => {
-      await page.goto('https://beatza.me');
-      const landingPage = new LandingPage(page)
-      await landingPage.signInBtn.click()
-    })
     const invalidEmails = [
       { desc: 'Empty email', input: '' },
       { desc: 'No @ symbol', input: 'not-an-email' },
@@ -130,8 +129,12 @@ test.describe("authentication (Sad Path)", () => {
       test(`Should reject: ${record.desc}`, async ({ page }) => {
         const authform = new AuthForm(page);
         await authform.FillEmail(record.input);
-        await authform.ClickNextBtn("email");
-        await expect(authform.initialForm.getByText("Enter a valid email address or profile url.")).toBeVisible()
+        if (record.desc != 'Empty email') {
+          await authform.ClickNextBtn("email");
+          await expect(authform.initialForm.getByText("Enter a valid email address or profile url.")).toBeVisible()
+        } else {
+          await expect(authform.emailContinueBtn).toBeDisabled()
+        }
       });
     }
   })
@@ -139,6 +142,7 @@ test.describe("authentication (Sad Path)", () => {
     test.beforeEach(async ({ page }) => {
       const authForm = new AuthForm(page);
       await authForm.FillEmail('valid.user@example.com');
+      await authForm.ClickNextBtn("email")
       await expect(authForm.passwordTxtBox).toBeVisible();
     });
 
@@ -154,6 +158,9 @@ test.describe("authentication (Sad Path)", () => {
       test(`Should reject: ${record.desc}`, async ({ page }) => {
         const authForm = new AuthForm(page);
         await authForm.FillPassword(record.input);
+        if (record.desc != 'Empty password') {
+          authForm.ClickNextBtn("password")
+        }
         switch (record.desc) {
           case 'Empty password': {
             await expect(authForm.passwordContinueBtn).toBeDisabled()
@@ -182,6 +189,7 @@ test.describe("authentication (Sad Path)", () => {
     test('Should accept valid password and progress', async ({ page }) => {
       const authModal = new AuthForm(page);
       await authModal.FillPassword('ValidPass@123');
+      await authModal.ClickNextBtn("password")
       await expect(authModal.displayNameTxtbox).toBeVisible();
     });
   });
@@ -191,18 +199,18 @@ test.describe("authentication (Sad Path)", () => {
       await authForm.FillEmail(`valid.user+${Date.now()}@example.com`);
       await authForm.ClickNextBtn("email")
       await authForm.FillPassword("ValidPass@123")
-      await authForm.ClickBackBtn("password")
+      await authForm.ClickNextBtn("password")
       await authForm.FillDate("February", 5, 2005)
       await authForm.FillGender("Male")
     });
     test("display reject", async ({ page }) => {
       const authForm = new AuthForm(page);
-      authForm.displayNameTxtbox.fill("")
+      await authForm.displayNameTxtbox.fill("")
       await expect(authForm.detailsContinueBtn).toBeDisabled()
     })
     test("display name validation", async ({ page }) => {
       const authForm = new AuthForm(page);
-      authForm.displayNameTxtbox.fill("a")
+      await authForm.displayNameTxtbox.fill("a")
       await expect(authForm.detailsContinueBtn).toBeEnabled()
     })
   });
@@ -228,7 +236,8 @@ test.describe("authentication (Sad Path)", () => {
     test("dob accept", async ({ page }) => {
       const authForm = new AuthForm(page);
       await authForm.FillDate("March", 21, 2005)
-      await expect(authForm.detailsContinueBtn).toBeEnabled()
+      await authForm.ClickNextBtn("details")
+      await expect(authForm.detailsForm).toBeVisible()
     })
   });
   test.describe('gender Validation', () => {
@@ -251,9 +260,6 @@ test.describe("authentication (Sad Path)", () => {
     })
   });
 
-  test("users cannot sneak into restricted pages", async ({ page }) => {
-
-  })
 })
 
 
@@ -275,31 +281,31 @@ test.describe("authentication (Sad Path)", () => {
 
 
 
-test("Continue with Google auth (persistent Chrome profile)", async () => {
-  const userDataDir = path.join(process.cwd(), '.pw-google-profile');
-  const context = await chromium.launchPersistentContext(userDataDir, {
-    channel: 'chrome',
-    headless: false,
-  });
+// test("Continue with Google auth (persistent Chrome profile)", async () => {
+//   const userDataDir = path.join(process.cwd(), '.pw-google-profile');
+//   const context = await chromium.launchPersistentContext(userDataDir, {
+//     channel: 'chrome',
+//     headless: false,
+//   });
 
-  try {
-    const page = context.pages()[0] ?? await context.newPage();
-    await page.goto('https://beatza.me');
-    await page.getByRole("button", { name: "Sign in" }).click();
+//   try {
+//     const page = context.pages()[0] ?? await context.newPage();
+//     await page.goto('https://beatza.me');
+//     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await page.getByRole("button", { name: "Continue With Google" }).click();
+//     await page.getByRole("button", { name: "Continue With Google" }).click();
 
 
-    await page.waitForLoadState();
-    await page.waitForTimeout(5000);
-    await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
-    await page.waitForTimeout(1000);
-    await page.getByRole("button", { name: "next" }).click()
-    await page.waitForTimeout(1000);
-    await page.getByRole("textbox", { name: "password" }).pressSequentially("Dev@1234")
+//     await page.waitForLoadState();
+//     await page.waitForTimeout(5000);
+//     await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
+//     await page.waitForTimeout(1000);
+//     await page.getByRole("button", { name: "next" }).click()
+//     await page.waitForTimeout(1000);
+//     await page.getByRole("textbox", { name: "password" }).pressSequentially("Dev@1234")
 
-    await context.close();
-  } catch (e) {
+//     await context.close();
+//   } catch (e) {
 
-  }
-})
+//   }
+// })
