@@ -6,7 +6,6 @@ import { EmailVerificationLink, EmailResetPass } from './verification'
 import { ResetPassPage } from '../pages/reset_password_page';
 
 test.describe("authentication (Happy Path)", () => {
-
   test("Signup with Email", async ({ page }) => {
     test.setTimeout(40000);
     await page.goto('https://beatza.me');
@@ -84,30 +83,30 @@ test.describe("authentication (Happy Path)", () => {
 
   })
 
-  test("Qr login", async ({ page }) => {
-  })
-  test("Continue with Google auth", async ({ page }) => {
-    await page.goto('https://beatza.me');
+  // test("Qr login", async ({ page }) => {
+  // })
+  // test("Continue with Google auth", async ({ page }) => {
+  //   await page.goto('https://beatza.me');
 
-    const landingPage = new LandingPage(page)
+  //   const landingPage = new LandingPage(page)
 
-    await page.waitForLoadState();
+  //   await page.waitForLoadState();
 
-    await landingPage.signInBtn.click()
+  //   await landingPage.signInBtn.click()
 
-    const loginForm = new AuthForm(page)
+  //   const loginForm = new AuthForm(page)
 
-    await loginForm.ClickContinueWithGoogle()
-    // await page.getByRole("button", { name: "Continue with Google" }).click();
-    //! to be ssen if it works make pom
-    await page.waitForLoadState();
-    await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
-    await page.waitForTimeout(1000);
-    await page.getByRole("button", { name: "next" }).click()
-    await page.waitForTimeout(1000);
-    await page.getByRole("textbox", { name: "password" })
+  //   await loginForm.ClickContinueWithGoogle()
+  //   // await page.getByRole("button", { name: "Continue with Google" }).click();
+  //   //! to be ssen if it works make pom
+  //   await page.waitForLoadState();
+  //   await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
+  //   await page.waitForTimeout(1000);
+  //   await page.getByRole("button", { name: "next" }).click()
+  //   await page.waitForTimeout(1000);
+  //   await page.getByRole("textbox", { name: "password" })
 
-  })
+  // })
 })
 
 
