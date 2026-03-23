@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (isLoggedIn) {
       Navigator.pushReplacementNamed(context, HomeRoutes.home);
     } else {
-      Navigator.pushReplacementNamed(context, AuthenticationRoutes.welcome);
+      Navigator.pushReplacementNamed(context, AuthenticationRoutes.login);
     }
   }
 

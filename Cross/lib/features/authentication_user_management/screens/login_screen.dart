@@ -11,6 +11,7 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
+import 'package:cross_team5/features/authentication_user_management/screens/email_entry_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});  
@@ -210,9 +211,21 @@ class LoginScreen extends StatelessWidget {
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 14, color: Colors.white70),
               ),
-              TextInputField(
-                hintText: AppText.emailOrProfileUrlHint,
-                controller: emailController,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EmailEntryScreen(),
+                    ),
+                  );
+                },
+                child: AbsorbPointer(
+                  child: TextInputField(
+                    hintText: AppText.emailOrProfileUrlHint,
+                    controller: emailController,
+                  ),
+                ),
               ),
 
               const SizedBox(height: 20),

@@ -123,6 +123,10 @@ class AuthApiService {
       );
 
       final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+      "signup statusCode: ${response.statusCode}, body: ${response.body}",
+    );
       return (
         response.statusCode,
         data["message"] ?? "Signup request processed",
@@ -307,6 +311,125 @@ class AuthApiService {
     } catch (e) {
       LoggerService.logger.i('checkQrStatus error: $e');
       rethrow;
+    }
+  }
+
+    Future<bool> checkUserExists({required String email}) async {
+    if (!_isValidEmail(email)) {
+      LoggerService.logger.i("checkUserExists: Invalid email format");
+      throw Exception("Invalid email format");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/find-email"),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({
+          "email": email.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "checkUserExists statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        return data["data"]?["exists"] == true;
+      }
+
+      throw Exception(data["message"] ?? "Failed to check email");
+    } catch (err) {
+      LoggerService.logger.i("checkUserExists error: $err");
+      throw Exception("Network error: $err");
+    }
+  }
+
+  Future<(int, dynamic)> forgotPassword({required String email}) async {
+    if (!_isValidEmail(email)) {
+      LoggerService.logger.i("forgotPassword: Invalid email format");
+      return (400, "Invalid email format");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/forgot-password"),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({
+          "email": email.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "forgotPassword statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        return (
+          200,
+          data["message"] ?? "Password reset email sent successfully",
+        );
+      }
+
+      return (
+        response.statusCode,
+        data["message"] ?? "Failed to send password reset email",
+      );
+    } catch (err) {
+      LoggerService.logger.i("forgotPassword error: $err");
+      return (500, "Network error: $err");
+    }
+  }
+
+  Future<(int, dynamic)> resendVerificationEmail({
+    required String email,
+  }) async {
+    if (!_isValidEmail(email)) {
+      LoggerService.logger.i("resendVerificationEmail: Invalid email format");
+      return (400, "Invalid email format");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/resend-verification-email"),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({
+          "email": email.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "resendVerificationEmail statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        return (
+          200,
+          data["message"] ?? "Email existence check completed successfully",
+        );
+      }
+
+      return (
+        response.statusCode,
+        data["message"] ?? "Failed to resend verification email",
+      );
+    } catch (err) {
+      LoggerService.logger.i("resendVerificationEmail error: $err");
+      return (500, "Network error: $err");
     }
   }
 }
