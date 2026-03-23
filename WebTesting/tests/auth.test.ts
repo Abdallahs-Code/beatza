@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { Navbar } from '../pages/components/navbar/navbar';
-import { AuthForm } from '../pages/auth_form';
+import { AuthForm } from '../pages/components/auth_form/auth_form';
 import { LandingPage } from '../pages/landing_page';
 import { EmailVerificationLink, EmailResetPass } from './verification'
 import { ResetPassPage } from '../pages/reset_password_page';
