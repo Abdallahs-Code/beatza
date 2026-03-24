@@ -199,15 +199,28 @@ void main() {
       // Assert bottom sheet is opened
       expect(find.byKey(const Key('test_edit_field_sheet')), findsOneWidget);
 
-      // Enter Banner URL 
+      // Banner URL input
       final input = find.byKey(const Key('test_edit_field_input'));
       expect(input, findsOneWidget);
+
+      // Done button 
+      final doneBtn = find.byKey(const Key('test_edit_field_done_btn'));
+      expect(doneBtn, findsOneWidget);
+
+      // Invalid URL
+      await tester.enterText(input, 'not-a-url');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_field_sheet')), findsOneWidget);
+
+      // Valid URL
       await tester.enterText(input, testUrl);
       await tester.pumpAndSettle();
 
-      // Tap Done 
-      final doneBtn = find.byKey(const Key('test_edit_field_done_btn'));
-      expect(doneBtn, findsOneWidget);
       await tester.tap(doneBtn);
       await tester.pumpAndSettle();
 
@@ -256,15 +269,28 @@ void main() {
       // Assert bottom sheet is opened
       expect(find.byKey(const Key('test_edit_field_sheet')), findsOneWidget);
 
-      // Enter avatar URL
+      // Avatar URL input
       final input = find.byKey(const Key('test_edit_field_input'));
       expect(input, findsOneWidget);
+
+      // Done button
+      final doneBtn = find.byKey(const Key('test_edit_field_done_btn'));
+      expect(doneBtn, findsOneWidget);
+
+      // Invalid URL
+      await tester.enterText(input, 'not-a-url');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_field_sheet')), findsOneWidget);
+
+      // Valid URL
       await tester.enterText(input, testUrl);
       await tester.pumpAndSettle();
 
-      // Tap Done
-      final doneBtn = find.byKey(const Key('test_edit_field_done_btn'));
-      expect(doneBtn, findsOneWidget);
       await tester.tap(doneBtn);
       await tester.pumpAndSettle();
 
@@ -312,16 +338,27 @@ void main() {
       // Assert bottom sheet is opened
       expect(find.byKey(const Key('test_edit_field_sheet')), findsOneWidget);
 
-      // Type the new name into the text field
+      // Name input
       final input = find.byKey(const Key('test_edit_field_input'));
       expect(input, findsOneWidget);
 
-      await tester.enterText(input, testName);
-      await tester.pumpAndSettle();
-
-      // Tap Done
+      // Done button
       final doneBtn = find.byKey(const Key('test_edit_field_done_btn'));
       expect(doneBtn, findsOneWidget);
+
+      // Empty name
+      await tester.enterText(input, '');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_field_sheet')), findsOneWidget);
+
+      // Valid name
+      await tester.enterText(input, testName);
+      await tester.pumpAndSettle();
 
       await tester.tap(doneBtn);
       await tester.pumpAndSettle();
@@ -531,23 +568,55 @@ void main() {
       // Assert bottom sheet is opened
       expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
 
-      // Type the new link name into the name field
+      // Link name input
       final nameInput = find.byKey(const Key('test_edit_link_name_input'));
       expect(nameInput, findsOneWidget);
 
-      await tester.enterText(nameInput, testName);
-      await tester.pumpAndSettle();
-
-      // Type the new link URL into the URL field
+      // Link URL input
       final urlInput = find.byKey(const Key('test_edit_link_url_input'));
       expect(urlInput, findsOneWidget);
 
+      // Done button
+      final doneBtn = find.byKey(const Key('test_edit_link_done_btn'));
+      expect(doneBtn, findsOneWidget);
+
+      // Empty name
+      await tester.enterText(nameInput, '');
       await tester.enterText(urlInput, testUrl);
       await tester.pumpAndSettle();
 
-      // Tap Done
-      final doneBtn = find.byKey(const Key('test_edit_link_done_btn'));
-      expect(doneBtn, findsOneWidget);
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
+
+      // Empty URL
+      await tester.enterText(nameInput, testName);
+      await tester.enterText(urlInput, '');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
+      
+      // Invalid URL
+      await tester.enterText(nameInput, testName);
+      await tester.enterText(urlInput, 'not-a-url');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
+
+      // Valid name and URL
+      await tester.enterText(nameInput, testName);
+      await tester.enterText(urlInput, testUrl);
+      await tester.pumpAndSettle();
 
       await tester.tap(doneBtn);
       await tester.pumpAndSettle();
@@ -586,7 +655,7 @@ void main() {
       expect(find.text(testUrl), findsOneWidget);
     });
 
-    testWidgets('Editing a link reflects the updated link in the list', (tester) async {
+    testWidgets('Editing a link reflects the updated link in the list and on the profile share sheet', (tester) async {
       app.main();
       // Already tested {
         await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -611,23 +680,55 @@ void main() {
       // Assert bottom sheet is opened
       expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
 
-      // Clear and re-enter name
+      // Link name input
       final nameInput = find.byKey(const Key('test_edit_link_name_input'));
       expect(nameInput, findsOneWidget);
 
-      await tester.enterText(nameInput, updatedName);
-      await tester.pumpAndSettle();
-
-      // Clear and re-enter URL
+      // Link URL input
       final urlInput = find.byKey(const Key('test_edit_link_url_input'));
       expect(urlInput, findsOneWidget);
 
+      // Done button
+      final doneBtn = find.byKey(const Key('test_edit_link_done_btn'));
+      expect(doneBtn, findsOneWidget);
+      
+      // Empty name
+      await tester.enterText(nameInput, '');
       await tester.enterText(urlInput, updatedUrl);
       await tester.pumpAndSettle();
 
-      // Tap Done
-      final doneBtn = find.byKey(const Key('test_edit_link_done_btn'));
-      expect(doneBtn, findsOneWidget);
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
+      
+      // Empty URL
+      await tester.enterText(nameInput, updatedName);
+      await tester.enterText(urlInput, '');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
+      
+      // Invalid URL
+      await tester.enterText(nameInput, updatedName);
+      await tester.enterText(urlInput, 'not-a-url');
+      await tester.pumpAndSettle();
+
+      await tester.tap(doneBtn);
+      await tester.pumpAndSettle();
+
+      // Assert bottom sheet is still open
+      expect(find.byKey(const Key('test_edit_link_sheet')), findsOneWidget);
+
+      // Valid name and URL
+      await tester.enterText(nameInput, updatedName);
+      await tester.enterText(urlInput, updatedUrl);
+      await tester.pumpAndSettle();
 
       await tester.tap(doneBtn);
       await tester.pumpAndSettle();
