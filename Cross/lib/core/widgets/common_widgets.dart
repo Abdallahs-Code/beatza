@@ -47,6 +47,7 @@ class CommonBottomNavBar extends StatelessWidget {
             onTap: () {},
           ),
           _NavItem(
+            key: const Key('test_home_to_library_nav'),
             icon: Icons.library_books_outlined,
             label: 'Library',
             active: currentItem == AppNavItem.library,
@@ -75,6 +76,7 @@ class _NavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _NavItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.active,

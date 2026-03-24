@@ -106,6 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (context) {
         final bottom = MediaQuery.of(context).viewInsets.bottom;
         return Padding(
+          key: const Key('test_edit_field_sheet'),
           padding: EdgeInsets.fromLTRB(20, 20, 20, bottom + 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -120,6 +121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 16),
               TextField(
+                key: const Key('test_edit_field_input'),
                 controller: temp,
                 maxLines: maxLines,
                 autofocus: true,
@@ -139,6 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  key: const Key('test_edit_field_done_btn'),
                   onPressed: () => Navigator.pop(context, temp.text.trim()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -167,6 +170,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
+          key: const Key('test_edit_country_sheet'),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -231,6 +235,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (context) {
         final bottom = MediaQuery.of(context).viewInsets.bottom;
         return Padding(
+          key: const Key('test_edit_link_sheet'),
           padding: EdgeInsets.fromLTRB(20, 20, 20, bottom + 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -245,6 +250,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 16),
               TextField(
+                key: const Key('test_edit_link_name_input'),
                 controller: nameController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -260,6 +266,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 12),
               TextField(
+                key: const Key('test_edit_link_url_input'),
                 controller: linkController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -277,6 +284,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  key: const Key('test_edit_link_done_btn'),
                   onPressed: () {
                     final name = nameController.text.trim();
                     final link = linkController.text.trim();
@@ -386,6 +394,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Row(
                 children: [
                   TextButton(
+                    key: const Key('test_edit_profile_cancel_btn'),
                     onPressed: _saving ? null : () => Navigator.pop(context),
                     child: const Text(
                       'Cancel',
@@ -405,6 +414,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   TextButton(
+                    key: const Key('test_edit_profile_save_btn'),
                     onPressed: _saving ? null : _save,
                     child: _saving
                         ? const SizedBox(
@@ -437,6 +447,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         clipBehavior: Clip.none,
                         children: [
                           Container(
+                            key: const Key('test_edit_banner_image'),
                             height: 104,
                             decoration: BoxDecoration(
                               color: const Color(0xFF090909),
@@ -458,6 +469,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             right: 14,
                             top: 34,
                             child: _CameraBadge(
+                              key: const Key('test_edit_banner_btn'),
                               onTap: () => _editField(
                                 title: 'Banner URL',
                                 controller: _bannerController,
@@ -471,6 +483,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             child: Stack(
                               children: [
                                 CircleAvatar(
+                                  key: const Key('test_edit_avatar_image'),
                                   radius: 34,
                                   backgroundColor: const Color(0xFF1A1A1A),
                                   backgroundImage:
@@ -489,6 +502,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   left: 18,
                                   top: 18,
                                   child: _CameraBadge(
+                                    key: const Key('test_edit_avatar_btn'),
                                     small: true,
                                     onTap: () => _editField(
                                       title: 'Avatar URL',
@@ -504,6 +518,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       const SizedBox(height: 44),
                       _EditRow(
+                        key: const Key('test_edit_displayname_row'), 
+                        valueKey: const Key('test_edit_displayname_value'),
                         label: 'Display name',
                         value: _displayNameController.text.isEmpty
                             ? 'Display name'
@@ -516,6 +532,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       _EditRow(
+                        key: const Key('test_edit_city_row'),
+                        valueKey: const Key('test_edit_city_value'),
                         label: 'City',
                         value: _cityController.text.isEmpty
                             ? 'Where are you based?'
@@ -528,6 +546,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       _EditRow(
+                        key: const Key('test_edit_country_row'),
+                        valueKey: const Key('test_edit_country_value'),
                         label: 'Country',
                         value: _countryController.text.isEmpty
                             ? 'Select your country'
@@ -536,6 +556,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onTap: _pickCountry,
                       ),
                       _EditRow(
+                        key: const Key('test_edit_bio_row'),
+                        valueKey: const Key('test_edit_bio_value'),
                         label: 'Bio',
                         value: _bioController.text.isEmpty
                             ? 'Tell the world a bit about yourself'
@@ -558,6 +580,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       ..._editableLinks.asMap().entries.map(
                         (entry) => _LinkedProfileRow(
+                          key: Key('test_edit_link_row_${entry.key}'),
+                          labelKey: Key('test_edit_link_label_${entry.key}'),
+                          valueKey: Key('test_edit_link_value_${entry.key}'),
+                          index: entry.key,
                           label: entry.value.title.trim().isEmpty
                               ? 'Link'
                               : entry.value.title,
@@ -574,6 +600,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       ListTile(
+                        key: const Key('test_edit_add_link_btn'),
                         dense: true,
                         onTap: () => _editLink(),
                         leading: const Icon(Icons.add, color: Colors.white),
@@ -638,12 +665,19 @@ class _LinkedProfileRow extends StatelessWidget {
   final String value;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
+  final Key? labelKey; 
+  final Key? valueKey;
+  final int index;
 
   const _LinkedProfileRow({
+    super.key,
     required this.label,
     required this.value,
     required this.onTap,
+    required this.index,
     this.onDelete,
+    this.labelKey,
+    this.valueKey,
   });
 
   @override
@@ -653,9 +687,10 @@ class _LinkedProfileRow extends StatelessWidget {
     return ListTile(
       dense: true,
       onTap: onTap,
-      title: Text(label, style: const TextStyle(color: Colors.white)),
+      title: Text(label, key: labelKey, style: const TextStyle(color: Colors.white)),
       subtitle: Text(
         shownValue,
+        key: valueKey,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(color: Color(0xFF9A9A9A)),
@@ -666,6 +701,7 @@ class _LinkedProfileRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  key: Key('test_edit_link_delete_btn_$index'),
                   onPressed: onDelete,
                   icon: const Icon(
                     Icons.delete_outline,
@@ -685,13 +721,16 @@ class _EditRow extends StatelessWidget {
   final String? trailing;
   final bool chevron;
   final VoidCallback onTap;
+  final Key? valueKey;
 
   const _EditRow({
+    super.key,
     required this.label,
     required this.value,
     required this.onTap,
     this.trailing,
     this.chevron = false,
+    this.valueKey,
   });
 
   @override
@@ -723,6 +762,7 @@ class _EditRow extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     value,
+                    key: valueKey,
                     style: TextStyle(
                       color: isPlaceholder
                           ? const Color(0xFFCACACA)
@@ -761,7 +801,11 @@ class _CameraBadge extends StatelessWidget {
   final VoidCallback onTap;
   final bool small;
 
-  const _CameraBadge({required this.onTap, this.small = false});
+  const _CameraBadge({
+    super.key,  
+    required this.onTap, 
+    this.small = false
+  });
 
   @override
   Widget build(BuildContext context) {

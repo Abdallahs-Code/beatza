@@ -133,6 +133,7 @@ class LibraryScreen extends StatelessWidget {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
+                  key: const Key('test_library_to_profile_btn'),
                   onTap: () => _openProfile(context),
                   borderRadius: BorderRadius.circular(999),
                   child: Container(

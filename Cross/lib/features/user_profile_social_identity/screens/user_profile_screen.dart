@@ -294,6 +294,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         return SafeArea(
           top: false,
           child: Padding(
+            key: const Key('test_profile_share_sheet'),
             padding: const EdgeInsets.only(top: 8, bottom: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -663,6 +664,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                         child: profile.bannerImgLink.trim().isNotEmpty
                             ? Image.network(
                                 profile.bannerImgLink,
+                                key: const Key('test_profile_banner_image'),
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, _, _) =>
                                     const SizedBox.shrink(),
@@ -674,6 +676,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                         top: topPadding + 10,
                         left: 16,
                         child: _RoundIconButton(
+                          key: const Key('test_profile_back_btn'),
                           icon: Icons.arrow_back_ios_new,
                           onTap: () => Navigator.maybePop(context),
                         ),
@@ -682,6 +685,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                         top: topPadding + 10,
                         right: 16,
                         child: _RoundIconButton(
+                          key: const Key('test_profile_more_btn'),
                           icon: Icons.more_horiz,
                           onTap: onMorePressed,
                         ),
@@ -733,6 +737,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: CircleAvatar(
+                          key: const Key('test_profile_avatar_image'),
                           radius: 48,
                           backgroundColor: const Color(0xFF1C1C1C),
                           backgroundImage:
@@ -753,6 +758,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
                       child: Text(
                         profile.resolvedDisplayName,
+                        key: const Key('test_profile_display_name'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 19,
@@ -764,6 +770,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
                       child: Text(
                         profile.resolvedLocation,
+                        key: const Key('test_profile_location'),
                         style: const TextStyle(
                           color: Color(0xFFB3B3B3),
                           fontSize: 14,
@@ -835,6 +842,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                       child: Row(
                         children: [
                           IconButton(
+                            key: const Key('test_profile_edit_btn'),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             onPressed: isOwner
@@ -883,6 +891,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Text(
                           profile.bio.trim(),
+                          key: const Key('test_profile_bio'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
@@ -1499,7 +1508,11 @@ class _RoundIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _RoundIconButton({required this.icon, required this.onTap});
+  const _RoundIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap
+  });
 
   @override
   Widget build(BuildContext context) {

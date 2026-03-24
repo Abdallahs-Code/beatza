@@ -32,6 +32,19 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# ATL headers and libs
+if(MSVC)
+  file(GLOB MSVC_TOOL_DIRS 
+    "C:/Program Files/Microsoft Visual Studio/2022/*/VC/Tools/MSVC/*")
+  foreach(DIR ${MSVC_TOOL_DIRS})
+    if(EXISTS "${DIR}/atlmfc/include")
+      include_directories("${DIR}/atlmfc/include")
+      link_directories("${DIR}/atlmfc/lib/x64")
+      break()
+    endif()
+  endforeach()
+endif()
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
