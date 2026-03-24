@@ -449,7 +449,7 @@ void main() {
       await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
       await tester.pumpAndSettle();
 
-      const testCountry = 'Qatar';
+      const testCountry = 'Egypt';
 
       // Tap the Country row
       final countryRow = find.byKey(const Key('test_edit_country_row'));
