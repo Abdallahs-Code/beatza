@@ -44,15 +44,15 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => UserInfoScreen(
-          email: widget.email,
-          password: password,
-        ),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => UserInfoScreen(
+    //       email: widget.email,
+    //       password: password,
+    //     ),
+    //   ),
+    // );
   }
 
   @override

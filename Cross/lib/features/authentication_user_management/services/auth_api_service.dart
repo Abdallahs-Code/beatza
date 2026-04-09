@@ -314,7 +314,7 @@ class AuthApiService {
     }
   }
 
-  Future<bool> checkUserExists({required String email}) async {
+    Future<bool> checkUserExists({required String email}) async {
     if (!_isValidEmail(email)) {
       LoggerService.logger.i("checkUserExists: Invalid email format");
       throw Exception("Invalid email format");
