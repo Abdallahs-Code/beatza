@@ -65,7 +65,6 @@ export async function EmailVerificationLink(testEmail: string) {
             .replace(/=3D/g, '=')
             .replace(/=\r?\n/g, '');
 
-        console.log('Verification email subject:', message.envelope?.subject ?? '(no subject)');
         return verificationLink;
 
     } finally {
@@ -199,7 +198,6 @@ export async function EmailResetPass(testEmail: string): Promise<string> {
             .replace(/=3D/g, '=')
             .replace(/=\r?\n/g, '');
 
-        console.log('Reset password email subject:', message.envelope?.subject ?? '(no subject)');
         return resetLink;
 
     } finally {

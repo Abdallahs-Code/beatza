@@ -1,4 +1,3 @@
-import path from 'path';
 import { test, expect, chromium } from '@playwright/test';
 import { Navbar } from '../pages/components/navbar/navbar';
 import { AuthForm } from '../pages/components/auth_form/auth_form';
@@ -46,6 +45,7 @@ test.describe("authentication (Happy Path)", () => {
 
     const signUpForm = new AuthForm(page)
     const testEmail = `beatzatesting+loggedin@gmail.com`;
+    console.log(testEmail)
     await signUpForm.Login(testEmail, "Beatza@123")
 
     await expect(page).toHaveURL(/\/home/);
@@ -85,30 +85,7 @@ test.describe("authentication (Happy Path)", () => {
 
   })
 
-  // test("Qr login", async ({ page }) => {
-  // })
-  // test("Continue with Google auth", async ({ page }) => {
-  //   await page.goto('https://beatza.me');
 
-  //   const landingPage = new LandingPage(page)
-
-  //   await page.waitForLoadState();
-
-  //   await landingPage.signInBtn.click()
-
-  //   const loginForm = new AuthForm(page)
-
-  //   await loginForm.ClickContinueWithGoogle()
-  //   // await page.getByRole("button", { name: "Continue with Google" }).click();
-  //   //! to be ssen if it works make pom
-  //   await page.waitForLoadState();
-  //   await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
-  //   await page.waitForTimeout(1000);
-  //   await page.getByRole("button", { name: "next" }).click()
-  //   await page.waitForTimeout(1000);
-  //   await page.getByRole("textbox", { name: "password" })
-
-  // })
 })
 
 
@@ -282,31 +259,31 @@ test.describe("authentication (Sad Path)", () => {
 
 
 
-test("Continue with Google auth (persistent Chrome profile)", async () => {
-  const userDataDir = path.join(process.cwd(), '.pw-google-profile');
-  const context = await chromium.launchPersistentContext(userDataDir, {
-    channel: 'chrome',
-    headless: false,
-  });
+// test("Continue with Google auth (persistent Chrome profile)", async () => {
+//   const userDataDir = path.join(process.cwd(), '.pw-google-profile');
+//   const context = await chromium.launchPersistentContext(userDataDir, {
+//     channel: 'chrome',
+//     headless: false,
+//   });
 
-  try {
-    const page = context.pages()[0] ?? await context.newPage();
-    await page.goto('https://beatza.me');
-    await page.getByRole("button", { name: "Sign in" }).click();
+//   try {
+//     const page = context.pages()[0] ?? await context.newPage();
+//     await page.goto('https://beatza.me');
+//     await page.getByRole("button", { name: "Sign in" }).click();
 
-    await page.getByRole("button", { name: "Continue With Google" }).click();
+//     await page.getByRole("button", { name: "Continue With Google" }).click();
 
 
-    await page.waitForLoadState();
-    await page.waitForTimeout(5000);
-    await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
-    await page.waitForTimeout(1000);
-    await page.getByRole("button", { name: "next" }).click()
-    await page.waitForTimeout(1000);
-    await page.getByRole("textbox", { name: "password" }).pressSequentially("Dev@1234")
+//     await page.waitForLoadState();
+//     await page.waitForTimeout(5000);
+//     await page.getByRole("textbox", { name: "email" }).pressSequentially('aliniazi.dev@gmail.com', { delay: 150 })
+//     await page.waitForTimeout(1000);
+//     await page.getByRole("button", { name: "next" }).click()
+//     await page.waitForTimeout(1000);
+//     await page.getByRole("textbox", { name: "password" }).pressSequentially("Dev@1234")
 
-    await context.close();
-  } catch (e) {
+//     await context.close();
+//   } catch (e) {
 
-  }
-})
+//   }
+// })
