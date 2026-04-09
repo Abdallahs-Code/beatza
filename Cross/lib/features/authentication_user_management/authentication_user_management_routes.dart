@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:cross_team5/features/authentication_user_management/screens/welcome_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/login_screen.dart';
-import 'package:cross_team5/features/authentication_user_management/screens/user_info_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/verify_code_screen.dart';
 
 class AuthenticationRoutes {
@@ -14,7 +13,6 @@ class AuthenticationRoutes {
   static Map<String, WidgetBuilder> routes = {
     welcome: (context) => const WelcomeScreen(),
     login: (context) => const LoginScreen(),
-    userInfo: (context) => const UserInfoScreen(),
     verifyCode: (context) => const VerifyCodeScreen(pendingToken: ""),
   };
 }

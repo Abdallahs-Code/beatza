@@ -1,30 +1,125 @@
 // Dart imports
-import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'dart:io' show Platform;
+import 'dart:ui';
+import 'package:cross_team5/core/services/logger_service.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Package imports
 import 'package:cross_team5/core/services/api_services.dart';
-import "package:cross_team5/features/authentication_user_management/services/auth_api_service.dart";
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
-import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/email_entry_screen.dart';
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/user_info_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/verify_code_screen.dart';
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});  
+  const LoginScreen({super.key});
+
+  String? _readQueryParam(Uri uri, String key) {
+    final value = uri.queryParameters[key]?.trim();
+    if (value == null || value.isEmpty) return null;
+    return value;
+  }
+
+  Future<void> _handleGoogleLogin(BuildContext context) async {
+    final authApiService = AuthApiService();
+    final authUrl =
+        "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
+
+    try {
+      final result = await FlutterWebAuth2.authenticate(
+        url: authUrl,
+        callbackUrlScheme: "beatza",
+        options: const FlutterWebAuth2Options(useWebview: true),
+      );
+
+      final uri = Uri.parse(result);
+
+      final accessToken = _readQueryParam(uri, "accessToken");
+      final refreshToken = _readQueryParam(uri, "refreshToken");
+      final pendingToken = _readQueryParam(uri, "pendingToken");
+      final incompleteToken = _readQueryParam(uri, "incompleteToken");
+      final displayName = _readQueryParam(uri, "displayName");
+
+      LoggerService.logger.i("result: $result");
+
+      // Case 3: returning Google user
+      if (accessToken != null && refreshToken != null) {
+        LoggerService.logger.i("Case 3: Returning Google user logged in successfully");
+        await authApiService.saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        );
+
+        await authApiService.refreshToken();
+
+        if (!context.mounted) return;
+        Navigator.pushReplacementNamed(context, HomeRoutes.home);
+        return;
+      }
+
+      // Case 2: existing user, first Google login
+      if (pendingToken != null) {
+        if (!context.mounted) return;
+        LoggerService.logger.i("Case 2: Existing user, first Google login");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VerifyCodeScreen(
+              pendingToken: pendingToken,
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Case 1: new Google user
+      if (incompleteToken != null) {
+        if (!context.mounted) return;
+        LoggerService.logger.i("Case 1: New Google user");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => UserInfoScreen(
+              incompleteToken: incompleteToken,
+              initialDisplayName: displayName ?? "",
+              isGoogleFlow: true,
+            ),
+          ),
+        );
+        return;
+      }
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Google sign-in returned no usable data"),
+          backgroundColor: AppColors.anger,
+        ),
+      );
+    } catch (e) {
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Google sign-in failed: $e"),
+          backgroundColor: AppColors.anger,
+        ),
+      );
+    }
+  }
 
   Future<void> _showQrDialog(BuildContext context) async {
-    showDialog( // loading state
+    showDialog(
       context: context,
-      barrierDismissible: false, 
+      barrierDismissible: false,
       builder: (_) => const Center(
         child: CircularProgressIndicator(color: AppColors.orangeQrCode),
       ),
@@ -32,18 +127,16 @@ class LoginScreen extends StatelessWidget {
 
     try {
       final authController = AuthApiService();
-      String qrData = await authController.getQrCodeToken();
+      final String qrData = await authController.getQrCodeToken();
 
-      // Close the loading dialog
       if (context.mounted) Navigator.pop(context);
 
-      // Show the actual QR Dialog
       if (context.mounted) {
         _buildQrDialog(context, qrData);
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(context); // Close loader
-      
+      if (context.mounted) Navigator.pop(context);
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -66,7 +159,7 @@ class LoginScreen extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return QrCodeLoginDialog(
-              qrData: currentQrData, 
+              qrData: currentQrData,
               isLoading: isLoading,
               onRefresh: () async {
                 setDialogState(() {
@@ -75,18 +168,17 @@ class LoginScreen extends StatelessWidget {
 
                 try {
                   final authController = AuthApiService();
-                  // Fetch new token
                   final newToken = await authController.getQrCodeToken();
-                  
-                  // Update state with new token AND stop loading
+
                   setDialogState(() {
-                    currentQrData = newToken; 
+                    currentQrData = newToken;
                     isLoading = false;
                   });
                 } catch (e) {
                   setDialogState(() {
                     isLoading = false;
                   });
+
                   if (dialogContext.mounted) {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
                       SnackBar(content: Text("Refresh failed: $e")),
@@ -104,6 +196,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final emailController = TextEditingController();
+
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
@@ -148,7 +241,6 @@ class LoginScreen extends StatelessWidget {
                   ),
                   children: [
                     const TextSpan(text: AppText.termsAgreementStart),
-
                     TextSpan(
                       text: AppText.termsOfUse,
                       style: const TextStyle(
@@ -162,9 +254,7 @@ class LoginScreen extends StatelessWidget {
                           );
                         },
                     ),
-
                     const TextSpan(text: AppText.andAcknowledge),
-
                     TextSpan(
                       text: AppText.privacyPolicy,
                       style: const TextStyle(
@@ -295,12 +385,13 @@ class LoginScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              /// Text
+              /// TEXT
               const Text(
                 AppText.orWithEmail,
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 14, color: Colors.white70),
               ),
+
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -331,7 +422,7 @@ class LoginScreen extends StatelessWidget {
               RichText(
                 text: TextSpan(
                   text: AppText.needHelp,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.blueHyperlink,
                     fontSize: 14,
                     decoration: TextDecoration.underline,

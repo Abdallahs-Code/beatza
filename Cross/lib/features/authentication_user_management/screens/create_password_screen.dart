@@ -32,28 +32,29 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
     super.dispose();
   }
 
-  void _handleContinue() {
-    final String password = _passwordController.text.trim();
+void _handleContinue() {
+  final String password = _passwordController.text.trim();
 
-    if (password.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Password must be at least 8 characters"),
-        ),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => UserInfoScreen(
-          email: widget.email,
-          password: password,
-        ),
+  if (password.length < 8) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Password must be at least 8 characters"),
       ),
     );
+    return;
   }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => UserInfoScreen(
+        email: widget.email,
+        password: password,
+        isGoogleFlow: false,
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {

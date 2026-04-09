@@ -76,12 +76,6 @@ if (userExists) {
           backgroundColor: AppColors.anger,
         ),
       );
-    } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 

@@ -446,7 +446,7 @@ class AuthApiService {
 
   try {
     final response = await _client.post(
-      Uri.parse("$_servicePath/google/verify-code"),
+      Uri.parse("$_servicePath/google/verify-code?client=Android"),
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "Android",
@@ -464,9 +464,9 @@ class AuthApiService {
     );
 
     if (response.statusCode == 200) {
-      final userData = data["data"]?["user"];
-      final accessToken = userData?["accessToken"];
-      final refreshTokenValue = userData?["refreshToken"];
+      final responseData = data["data"];
+      final accessToken = responseData?["accessToken"];
+      final refreshTokenValue = responseData?["refreshToken"];
 
       if (accessToken != null && refreshTokenValue != null) {
         await saveTokens(
@@ -475,7 +475,6 @@ class AuthApiService {
         );
 
         await refreshToken();
-        return (200, userData ?? "Authenticated successfully");
       }
 
       return (200, data["message"] ?? "Authenticated successfully");
@@ -510,7 +509,7 @@ Future<(int, dynamic)> completeGoogleSignup({
 
   try {
     final response = await _client.post(
-      Uri.parse("$_servicePath/google/complete"),
+      Uri.parse("$_servicePath/google/complete?client=Android"),
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "Android",
@@ -528,10 +527,10 @@ Future<(int, dynamic)> completeGoogleSignup({
       "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
     );
 
-    if (response.statusCode == 201) {
-      final userData = data["data"]?["user"];
-      final accessToken = userData?["accessToken"];
-      final refreshTokenValue = userData?["refreshToken"];
+    if (response.statusCode == 200) {
+      final responseData = data["data"];
+      final accessToken = responseData?["accessToken"];
+      final refreshTokenValue = responseData?["refreshToken"];
 
       if (accessToken != null && refreshTokenValue != null) {
         await saveTokens(
@@ -540,10 +539,10 @@ Future<(int, dynamic)> completeGoogleSignup({
         );
 
         await refreshToken();
-        return (201, userData ?? "Authenticated successfully");
+        return (200, responseData ?? "Authenticated successfully");
       }
 
-      return (201, data["message"] ?? "Authenticated successfully");
+      return (200, data["message"] ?? "Authenticated successfully");
     }
 
     return (
@@ -555,41 +554,4 @@ Future<(int, dynamic)> completeGoogleSignup({
     return (500, "Network error: $err");
   }
 }
-
-  Future<void> initiateGoogle() async{
-    // url: _servicePath + /google
-
-    // GET Method
-
-    // Redirects the user to Google's consent screen to authenticate.
-    // This endpoint is browser-only — do not call it from Postman or a REST client.
-    // Google will redirect back to /api/auth/v1/google/callback upon completion.
-
-    // No Parameters
-
-    // code 302 Redirect to Google consent screen
-    // code 500 Internal Server Error
-  }
-
-  Future<void> callbackGoogle() async{
-    // url: _servicePath + /google/callback
-
-    // GET Method
-
-
-
-  }
-
-  Future<void> verifyGoogle() async{
-    // url: _servicePath + /google/verify-code
-    // POST Method
-
-  }
-
-  Future<void> completeGoogle() async{
-    // url: _servicePath + /google/complete
-    // POST Method
-
-  }
-
 }
