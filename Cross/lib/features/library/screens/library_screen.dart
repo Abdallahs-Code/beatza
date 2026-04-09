@@ -1,6 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart' hide YourUploadsScreen;
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';

@@ -1,11 +1,9 @@
 // Dart imports
 import 'package:flutter/material.dart';
-
-// Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
-
-import '../../audio_upload_track_management/audio_upload_track_management_routes.dart';
+import '../../audio_upload_track_management/screens/upload_track_screen.dart';
+import '../../audio_upload_track_management/services/audio_upload_service.dart';
 
 class TopHeader extends StatelessWidget {
   const TopHeader({super.key});
@@ -27,8 +25,19 @@ class TopHeader extends StatelessWidget {
           const Spacer(),
           HeaderIcon(
             Icons.cloud_upload_outlined,
-            onTap: () {
-              Navigator.pushNamed(context, AudioUploadRoutes.uploadTrack);
+            onTap: () async {
+              final AudioUploadService audioService = AudioUploadService();
+              final file = await audioService.pickAudioFile();
+              if (file != null) {
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UploadTrackScreen(),
+                    settings: RouteSettings(arguments: file),
+                  ),
+                );
+              }
             },
           ),
 
@@ -38,8 +47,7 @@ class TopHeader extends StatelessWidget {
       ),
     );
   }
-}
-class HeaderIcon extends StatelessWidget {
+}class HeaderIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 

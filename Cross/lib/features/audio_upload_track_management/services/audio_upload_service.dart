@@ -5,10 +5,9 @@ import 'package:flutter/foundation.dart';
 import '../models/track_model.dart';
 
 class AudioUploadService {
-  static ValueNotifier<List<TrackModel>> globalMockTracksNotifier = ValueNotifier([]);
-
+  static ValueNotifier<List<TrackModel>> globalMockTracksNotifier = ValueNotifier<List<TrackModel>>([]);
   Future<PlatformFile?> pickAudioFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['mp3', 'wav', 'flac', 'aac'],
     );

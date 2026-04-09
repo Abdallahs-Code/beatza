@@ -1,14 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:cross_team5/features/audio_upload_track_management/screens/your_uploads_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../services/audio_upload_service.dart';
+import '../widgets/pro_disabled_switch_widget.dart';
+import '../widgets/pro_radio_tile_widget.dart';
+import '../widgets/smart_player_widget.dart';
+import 'artist_pro_screens.dart';
+import '../models/track_model.dart';
+
 class DashedRectPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
   final double gap;
+
   DashedRectPainter({this.color = Colors.white, this.strokeWidth = 1.0, this.gap = 5.0});
 
   @override
@@ -37,11 +45,112 @@ class UploadTrackScreen extends StatefulWidget {
 }
 
 class _UploadTrackScreenState extends State<UploadTrackScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(_updateProgress);
+    _descriptionController.addListener(_updateProgress);
+  }
+
+  void _showProModal() {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: const Color(0xFF141414),
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        builder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 24.0, right: 24.0, top: 16.0,
+              bottom: MediaQuery.of(context).padding.bottom + 24.0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Row(
+                  children: [
+                    Icon(Icons.flash_on, color: Color(0xFFD47AFA), size: 20),
+                    SizedBox(width: 8),
+                    Text('AMPLIFY', style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text('Reach more listeners.', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800, height: 1.1)),
+                const SizedBox(height: 16),
+                const Text('With Artist Pro, you can get your tracks analyzed and recommended to the right listeners without limits.',
+                    style: TextStyle(color: Colors.white70, fontSize: 16, height: 1.4)),
+                const SizedBox(height: 32),
+                RichText(
+                  text: TextSpan(
+                      style: const TextStyle(color: Colors.white54, fontSize: 14),
+                      children: [
+                        const TextSpan(text: 'EGP 164.99/month. Cancel anytime. '),
+                        WidgetSpan(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProRestrictionsScreen()));
+                            },
+                            child: const Text('Restrictions apply.', style: TextStyle(color: Colors.blueAccent, fontSize: 14)),
+                          ),
+                        ),
+                      ]
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity, height: 52,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white24, width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    onPressed: () {},
+                    child: const Text('Subscribe now', style: TextStyle(color: Colors.white38, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Maybe later', style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+    );
+  }
+
+  void _updateProgress() {
+    setState(() {});
+  }
+
+  int get _uploadStepsCompleted {
+    int count = 0;
+    if (_selectedFile != null) count++;
+    if (_coverImage != null) count++;
+    if (_titleController.text.trim().isNotEmpty) count++;
+    if (_descriptionController.text.trim().isNotEmpty) count++;
+    return count;
+  }
+
   final TextEditingController _artistInputController = TextEditingController();
   List<String> _artists = ['BELAL ELSEDDIK', 'SHREK'];
   final AudioUploadService _audioService = AudioUploadService();
   int _currentTabIndex = 0;
   bool _isSaving = false;
+  bool _isInit = false;
 
   PlatformFile? _selectedFile;
   String? _selectedFileName;
@@ -50,11 +159,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   bool _uploadComplete = false;
   StreamSubscription<int>? _uploadSubscription;
   PlatformFile? _coverImage;
+  bool _isPlayerVisible = false;
+
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _genreController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _captionController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
+
   String _privacy = 'unlisted';
   bool _scheduleRelease = false;
   DateTime _scheduleDate = DateTime.now().add(const Duration(days: 1));
@@ -73,13 +185,50 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   bool _enableAppPlayback = true;
   String _availability = 'worldwide';
   String _licensing = 'all_rights';
+
   String _formatDate(DateTime date) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInit) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is PlatformFile) {
+        _processFile(args);
+      }
+      _isInit = true;
+    }
+  }
+
+  void _processFile(PlatformFile file) {
+    setState(() {
+      _selectedFile = file;
+      _selectedFileName = file.name;
+      _titleController.text = file.name.replaceAll(RegExp(r'\.(mp3|wav|flac|aac)$', caseSensitive: false), '');
+      _isUploading = true;
+      _uploadComplete = false;
+      _uploadProgress = 0;
+      _isPlayerVisible = true;
+    });
+
+    _uploadSubscription?.cancel();
+    _uploadSubscription = _audioService.mockUploadStream().listen((progress) {
+      if (mounted) setState(() => _uploadProgress = progress);
+    }, onDone: () {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          _uploadComplete = true;
+        });
+      }
+    });
+  }
+
   void _pickCoverImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.image,
     );
     if (result != null && result.files.isNotEmpty) {
@@ -92,23 +241,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   void _pickAndUploadFile() async {
     final file = await _audioService.pickAudioFile();
     if (file != null) {
-      setState(() {
-        _selectedFile = file;
-        _selectedFileName = file.name;
-        _titleController.text = file.name.replaceAll(RegExp(r'\.(mp3|wav|flac|aac)$', caseSensitive: false), '');
-        _isUploading = true;
-        _uploadComplete = false;
-        _uploadProgress = 0;
-      });
-
-      _uploadSubscription = _audioService.mockUploadStream().listen((progress) {
-        setState(() => _uploadProgress = progress);
-      }, onDone: () {
-        setState(() {
-          _isUploading = false;
-          _uploadComplete = true;
-        });
-      });
+      _processFile(file);
     }
   }
 
@@ -121,6 +254,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       _uploadComplete = false;
       _uploadProgress = 0;
       _titleController.clear();
+      _isPlayerVisible = false;
     });
   }
 
@@ -195,13 +329,63 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     setState(() => _isSaving = false);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Track saved successfully!'), backgroundColor: Colors.green));
-      Navigator.pop(context);
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+      final trackTitle = _titleController.text;
+
+      navigator.pop();
+
+      messenger.showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF2A2A2A),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+          elevation: 10,
+          duration: const Duration(seconds: 5),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Color(0xFFFF5500), size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Upload Successful', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text('Saved $trackTitle', style: const TextStyle(color: Colors.white, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  messenger.hideCurrentSnackBar();
+                  navigator.push(MaterialPageRoute(builder: (context) => const YourUploadsScreen()));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFFF5500),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(color: const Color(0xFFFF5500).withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 2))
+                      ]
+                  ),
+                  child: const Text('SEE TRACK', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_updateProgress);
+    _descriptionController.removeListener(_updateProgress);
     _uploadSubscription?.cancel();
     _titleController.dispose();
     _genreController.dispose();
@@ -232,36 +416,69 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(color: Color(0xFF2A1B38), shape: BoxShape.circle),
-                child: const Text('4/4', style: TextStyle(color: Color(0xFFD47AFA), fontSize: 10, fontWeight: FontWeight.bold)),
+                child: Text('$_uploadStepsCompleted/4', style: const TextStyle(color: Color(0xFFD47AFA), fontSize: 10, fontWeight: FontWeight.bold)),
               ),
             ),
           )
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          _buildTabBar(),
-          const SizedBox(height: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  if (_currentTabIndex != 0) _buildProBanner(),
-                  if (_currentTabIndex != 0) const SizedBox(height: 20),
+          Column(
+            children: [
+              _buildTabBar(),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 100),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      if (_currentTabIndex != 0) _buildProBanner(),
+                      if (_currentTabIndex != 0) const SizedBox(height: 20),
 
-                  if (_currentTabIndex == 0) _buildTrackInfoTab(context),
-                  if (_currentTabIndex == 1) _buildAdvancedTab(context),
-                  if (_currentTabIndex == 2) _buildPermissionsTab(),
+                      if (_currentTabIndex == 0) _buildTrackInfoTab(context),
+                      if (_currentTabIndex == 1) _buildAdvancedTab(context),
+                      if (_currentTabIndex == 2) _buildPermissionsTab(),
 
-                  const SizedBox(height: 24),
-                  _buildSaveButton(),
-                  const SizedBox(height: 40),
-                ],
+                      const SizedBox(height: 24),
+                      _buildSaveButton(),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          if (_selectedFile != null && _selectedFile!.path != null && _isPlayerVisible)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16,
+              child: SafeArea(
+                child: SmartWaveformPlayer(
+                  track: TrackModel(
+                    id: _selectedFile!.path!,
+                    title: _titleController.text.trim().isNotEmpty
+                        ? _titleController.text
+                        : (_selectedFileName ?? 'Preview Track'),
+                    audioUrl: _selectedFile!.path!,
+                    coverImagePath: _coverImage?.path,
+                    genre: 'Unknown',
+                    descriptiveTags: const [],
+                    releaseDate: DateTime.now(),
+                    fileFormat: _selectedFile!.extension ?? 'mp3',
+                    waveformPeaks: const [],
+                  ),
+                  onClose: () {
+                    setState(() {
+                      _isPlayerVisible = false;
+                    });
+                  },
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -301,23 +518,27 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 
   Widget _buildProBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(color: Color(0xFF8A2BE2), shape: BoxShape.circle),
-            child: const Icon(Icons.flash_on, color: Colors.white, size: 16),
-          ),
-          const SizedBox(width: 12),
-          const Text('Amplify your track with ', style: TextStyle(color: Colors.white, fontSize: 14)),
-          const Text('Artist Pro', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-        ],
+    return GestureDetector(
+      onTap: _showProModal,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(10)),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: const Color(0xFF8A2BE2).withOpacity(0.2), shape: BoxShape.circle),
+              child: const Icon(Icons.flash_on, color: Colors.white38, size: 16),
+            ),
+            const SizedBox(width: 12),
+            const Text('Amplify your track with ', style: TextStyle(color: Colors.white38, fontSize: 14)),
+            const Text('Artist Pro', style: TextStyle(color: Colors.white38, fontSize: 14, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
+
   Widget _buildTrackInfoTab(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +546,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Picker Section
             GestureDetector(
               onTap: _pickCoverImage,
               child: _coverImage != null
@@ -470,10 +690,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             if (_artists.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'Please enter at least one Artist',
-                  style: TextStyle(color: Color(0xFFE57373), fontSize: 12),
-                ),
+                child: Text('Please enter at least one Artist', style: TextStyle(color: Color(0xFFE57373), fontSize: 12)),
               ),
 
             const Divider(color: Colors.white24, height: 24),
@@ -494,25 +711,26 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _buildCustomRadioRight('Unlisted (Private)', 'Anyone with private link can access', 'unlisted', _privacy, (val) => setState(() => _privacy = val)),
 
         const SizedBox(height: 16),
+
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
           child: Row(
             children: [
-              const Icon(Icons.access_time_filled, color: Colors.tealAccent, size: 20),
+              const Icon(Icons.access_time_filled, color: Colors.white38, size: 20),
               const SizedBox(width: 8),
-              const Text('Schedule your release with ', style: TextStyle(color: Colors.white, fontSize: 14)),
-              const Text('Artist Pro', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+              const Text('Schedule your release with ', style: TextStyle(color: Colors.white38, fontSize: 14)),
+              const Text('Artist Pro', style: TextStyle(color: Colors.white38, fontSize: 14, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        const Text('Schedule', style: TextStyle(color: Colors.white70, fontSize: 12)),
+        const Text('Schedule', style: TextStyle(color: Colors.white38, fontSize: 12)),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(child: Text('Set date and time to make your\ntrack public.', style: TextStyle(color: Colors.white54, fontSize: 12))),
-            CupertinoSwitch(value: _scheduleRelease, onChanged: (v) => setState(() => _scheduleRelease = v), activeColor: Colors.green),
+            const Expanded(child: Text('Set date and time to make your\ntrack public (Artist Pro).', style: TextStyle(color: Colors.white38, fontSize: 12))),
+            ProDisabledSwitch(onTap: _showProModal),
           ],
         ),
         const SizedBox(height: 8),
@@ -522,19 +740,20 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Row(
           children: [
             GestureDetector(
-              onTap: _scheduleRelease ? () => _selectDate(context, _scheduleDate, (picked) => setState(() => _scheduleDate = picked)) : null,
-              child: Text(_formatDate(_scheduleDate), style: TextStyle(color: _scheduleRelease ? Colors.white : Colors.white38, fontSize: 16, fontWeight: FontWeight.bold)),
+              onTap: null,
+              child: Text(_formatDate(_scheduleDate), style: const TextStyle(color: Colors.white38, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: 16),
             GestureDetector(
-              onTap: _scheduleRelease ? () => _selectTime(context) : null,
-              child: Text(_scheduleTime.format(context), style: TextStyle(color: _scheduleRelease ? Colors.white : Colors.white38, fontSize: 16, fontWeight: FontWeight.bold)),
+              onTap: null,
+              child: Text(_scheduleTime.format(context), style: const TextStyle(color: Colors.white38, fontSize: 16, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
       ],
     );
   }
+
   Widget _buildAdvancedTab(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,6 +799,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       ],
     );
   }
+
   Widget _buildPermissionsTab() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,9 +825,21 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        _buildSwitchTile('Allow people to comment on your track', '', false, (v) {}, disabled: true),
-        _buildSwitchTile('Show track comments to public', '', false, (v) {}, disabled: true),
-        _buildSwitchTile('Show track insights to public', '', false, (v) {}, disabled: true),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _showProModal,
+          child: AbsorbPointer(child: _buildSwitchTile('Allow people to comment on your track', '', false, (v) {}, disabled: true)),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _showProModal,
+          child: AbsorbPointer(child: _buildSwitchTile('Show track comments to public', '', false, (v) {}, disabled: true)),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _showProModal,
+          child: AbsorbPointer(child: _buildSwitchTile('Show track insights to public', '', false, (v) {}, disabled: true)),
+        ),
 
         const SizedBox(height: 16),
         Row(
@@ -622,9 +854,13 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        _buildCustomRadioRight('Worldwide', '', 'worldwide', _availability, (val) => setState(() => _availability = val)),
-        _buildCustomRadioRight('Exclusive regions', '', 'exclusive', _availability, (val) => setState(() => _availability = val)),
-        _buildCustomRadioRight('Blocked regions', '', 'blocked', _availability, (val) => setState(() => _availability = val)),
+        Column(
+          children: [
+            ProRadioTile(title: "Worldwide", selected: _availability == 'worldwide', onTap: () => setState(() => _availability = 'worldwide')),
+            ProRadioTile(title: "Exclusive regions", selected: false, onTap: _showProModal),
+            ProRadioTile(title: "Blocked regions", selected: false, onTap: _showProModal),
+          ],
+        ),
 
         const SizedBox(height: 16),
         const Text('Licensing', style: TextStyle(color: Colors.white54, fontSize: 12)),
@@ -634,17 +870,18 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       ],
     );
   }
+
   Widget _buildInputField(String label, {TextEditingController? controller, String? hint, Function(String)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 12)),
         TextField(
-          controller: controller, onChanged: onChanged, style: const TextStyle(color: Colors.white, fontSize: 16),
+          controller: controller, onChanged: onChanged, style: const TextStyle(color: Colors.white38, fontSize: 16),
           decoration: InputDecoration(
             hintText: hint, hintStyle: const TextStyle(color: Colors.white38, fontSize: 16),
             enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
             contentPadding: const EdgeInsets.symmetric(vertical: 8), isDense: true,
           ),
         ),
@@ -734,28 +971,42 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       ),
     );
   }
-
   Widget _buildSaveButton() {
+    bool isReady = _selectedFile != null && _uploadComplete;
+    bool canSave = !_isSaving && isReady;
     return Column(
       children: [
         SizedBox(
-          width: double.infinity, height: 48,
+          width: double.infinity,
+          height: 48,
           child: ElevatedButton(
-            onPressed: (_isSaving || _selectedFile == null || !_uploadComplete) ? null : _saveTrack,
+            onPressed: canSave ? _saveTrack : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white, disabledBackgroundColor: Colors.white38, foregroundColor: Colors.black,
+              backgroundColor: isReady ? Colors.white : Colors.white10,
+              disabledBackgroundColor: _isSaving ? Colors.white : Colors.white10,
+              elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             ),
             child: _isSaving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                : const Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                : Text('Save', style: TextStyle(
+                color: isReady ? Colors.black : Colors.white38,
+                fontSize: 16,
+                fontWeight: FontWeight.bold
+            )),
           ),
         ),
         const SizedBox(height: 16),
-        const Text('By uploading, you confirm that your sounds\ncomply with our Terms of Use and you don\'t\ninfringe anyone else\'s rights.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.4)),
+        const Text(
+            'Confirm your sounds comply with our Terms.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white38, fontSize: 11)),
         const SizedBox(height: 8),
-        const Text('TERMS OF USE', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+        GestureDetector(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ArtistTermsScreen())),
+          child: const Text('TERMS OF USE',
+              style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+        ),
       ],
     );
-  }
-}
+  }}
