@@ -19,6 +19,7 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -333,16 +334,16 @@ class LoginScreen extends StatelessWidget {
                     // Case 1: new Google user
                     if (incompleteToken != null && incompleteToken.isNotEmpty) {
                       if (context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => UserInfoScreen(
-                              incompleteToken: incompleteToken,
-                              initialDisplayName: displayName ?? "",
-                              isGoogleFlow: true,
-                            ),
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (_) => UserInfoScreen(
+                        //       incompleteToken: incompleteToken,
+                        //       initialDisplayName: displayName ?? "",
+                        //       isGoogleFlow: true,
+                        //     ),
+                        //   ),
+                        // );
                       }
                       return;
                     }
