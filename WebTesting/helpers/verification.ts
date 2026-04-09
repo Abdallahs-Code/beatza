@@ -1,14 +1,15 @@
 import { ImapFlow } from 'imapflow';
-const client = new ImapFlow({
-    host: 'imap.gmail.com',
-    port: 993,
-    secure: true,
-    auth: {
-        user: 'beatzatesting@gmail.com',
-        pass: 'yzrb inut jspe gbdd' // Store this in your .env file!
-    }
-});
+
 export async function EmailVerificationLink(testEmail: string) {
+    const client = new ImapFlow({
+        host: 'imap.gmail.com',
+        port: 993,
+        secure: true,
+        auth: {
+            user: 'beatzatesting@gmail.com',
+            pass: 'yzrb inut jspe gbdd' // Store this in your .env file!
+        }
+    });
     await client.connect();
     const lock = await client.getMailboxLock('INBOX');
     let verificationLink: string | null = null;
@@ -43,7 +44,7 @@ export async function EmailVerificationLink(testEmail: string) {
             }
         }
 
-        // Fallback for encoded emails where href/text may be split by soft line breaks.
+        // Fallback for emails where href/text may be split by soft line breaks.
         if (!verificationLink) {
             const normalizedBody = emailBody
                 .replace(/=\r?\n/g, '')
@@ -74,6 +75,15 @@ export async function EmailVerificationLink(testEmail: string) {
 }
 
 export async function EmailVerificationOtp(testEmail: string): Promise<string> {
+    const client = new ImapFlow({
+        host: 'imap.gmail.com',
+        port: 993,
+        secure: true,
+        auth: {
+            user: 'beatzatesting@gmail.com',
+            pass: 'yzrb inut jspe gbdd' // Store this in your .env file!
+        }
+    });
     await client.connect();
     const lock = await client.getMailboxLock('INBOX');
 
@@ -125,6 +135,15 @@ export async function EmailVerificationOtp(testEmail: string): Promise<string> {
 }
 
 export async function EmailResetPass(testEmail: string): Promise<string> {
+    const client = new ImapFlow({
+        host: 'imap.gmail.com',
+        port: 993,
+        secure: true,
+        auth: {
+            user: 'beatzatesting@gmail.com',
+            pass: 'yzrb inut jspe gbdd' // Store this in your .env file!
+        }
+    });
     await client.connect();
     const lock = await client.getMailboxLock('INBOX');
     let resetLink: string | null = null;
@@ -143,7 +162,6 @@ export async function EmailResetPass(testEmail: string): Promise<string> {
         const emailBody = message.source.toString();
         const requiredText = 'Reset Password';
 
-        // Match anchor tags and pick the one with the required visible text.
         const anchorRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis;
         let anchorMatch: RegExpExecArray | null;
 
@@ -160,7 +178,7 @@ export async function EmailResetPass(testEmail: string): Promise<string> {
             }
         }
 
-        // Fallback for encoded emails where href/text may be split by soft line breaks.
+        // Fallback for emails where href/text may be split by soft line breaks.
         if (!resetLink) {
             const normalizedBody = emailBody
                 .replace(/=\r?\n/g, '')
