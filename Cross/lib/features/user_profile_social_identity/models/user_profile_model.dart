@@ -51,34 +51,34 @@ class UserProfileModel {
       displayName: (json['displayName'] ?? '').toString(),
       firstName: (json['firstName'] ?? '').toString(),
       lastName: (json['lastName'] ?? '').toString(),
-      profileUrl: (json['profileLink'] ?? json['profileUrl'] ?? '').toString(),
+      profileUrl: (json['profileLink'] ?? '').toString(),
       profileImgLink: (json['profileImgLink'] ?? '').toString(),
       bannerImgLink: (json['bannerImgLink'] ?? '').toString(),
       bio: (json['bio'] ?? '').toString(),
       city: (json['city'] ?? '').toString(),
       country: (json['country'] ?? '').toString(),
       links:
-          (json['links'] as List?)
-              ?.map(
-                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
-              )
-              .toList() ??
+      (json['links'] as List?)
+          ?.map(
+            (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+      )
+          .toList() ??
           const [],
       bannerLinks:
-          (json['bannerLinks'] as List?)
-              ?.map(
-                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
-              )
-              .toList() ??
+      (json['bannerLinks'] as List?)
+          ?.map(
+            (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+      )
+          .toList() ??
           const [],
       supportLink: (json['supportLink'] ?? '').toString(),
       role: _normalizeRole((json['role'] ?? '').toString()),
       isPaid: json['isPaid'] == true,
       favoriteGenres:
-          (json['favoriteGenres'] as List?)
-              ?.map((e) => e.toString().trim())
-              .where((e) => e.isNotEmpty)
-              .toList() ??
+      (json['favoriteGenres'] as List?)
+          ?.map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList() ??
           const [],
       followersCount: _readInt(json['followersCount']),
       followingsCount: _readInt(
@@ -95,7 +95,7 @@ class UserProfileModel {
       'displayName': displayName,
       'firstName': firstName,
       'lastName': lastName,
-      'profileUrl': profileUrl,
+      'profileLink': profileUrl,
       'profileImgLink': profileImgLink,
       'bannerImgLink': bannerImgLink,
       'bio': bio,
@@ -115,43 +115,35 @@ class UserProfileModel {
   }
 
   Map<String, dynamic> toUpdatePayload() {
-    final Map<String, dynamic> payload = {
-      'displayName': displayName.trim(),
-      'bio': bio.trim(),
-      'city': city.trim(),
-      'country': country.trim(),
-      'links': links
-          .where((e) => e.link.trim().isNotEmpty)
-          .map((e) => e.toJson())
-          .toList(),
-      'bannerLinks': bannerLinks
-          .where((e) => e.link.trim().isNotEmpty)
-          .map((e) => e.toJson())
-          .toList(),
-      'favoriteGenres': favoriteGenres,
-      'role': role,
-    };
+    final Map<String, dynamic> payload = {};
 
-    if (firstName.trim().isNotEmpty) {
-      payload['firstName'] = firstName.trim();
-    }
-    if (lastName.trim().isNotEmpty) {
-      payload['lastName'] = lastName.trim();
-    }
-    if (profileUrl.trim().isNotEmpty) {
-      payload['profileUrl'] = profileUrl.trim();
-    }
+    if (displayName.trim().isNotEmpty)
+      payload['displayName'] = displayName.trim();
+    if (firstName.trim().isNotEmpty) payload['firstName'] = firstName.trim();
+    if (lastName.trim().isNotEmpty) payload['lastName'] = lastName.trim();
+    if (profileUrl.trim().isNotEmpty)
+      payload['profileLink'] = profileUrl.trim();
+    if (bio.trim().isNotEmpty) payload['bio'] = bio.trim();
+    if (city.trim().isNotEmpty) payload['city'] = city.trim();
+    if (country.trim().isNotEmpty) payload['country'] = country.trim();
 
-    final normalizedProfileImage = _normalizeUrl(profileImgLink);
-    final normalizedBannerImage = _normalizeUrl(bannerImgLink);
+    if (favoriteGenres.isNotEmpty) payload['favoriteGenres'] = favoriteGenres;
+
+    payload['isPrivate'] = isPrivate;
+
+    final validLinks = links
+        .where((e) => e.link.trim().isNotEmpty)
+        .map((e) => e.toJson())
+        .toList();
+    payload['links'] = validLinks;
+
+    final validBannerLinks = bannerLinks
+        .where((e) => e.link.trim().isNotEmpty)
+        .map((e) => e.toJson())
+        .toList();
+    if (validBannerLinks.isNotEmpty) payload['bannerLinks'] = validBannerLinks;
+
     final normalizedSupportLink = _normalizeUrl(supportLink);
-
-    if (normalizedProfileImage != null) {
-      payload['profileImgLink'] = normalizedProfileImage;
-    }
-    if (normalizedBannerImage != null) {
-      payload['bannerImgLink'] = normalizedBannerImage;
-    }
     if (normalizedSupportLink != null) {
       payload['supportLink'] = normalizedSupportLink;
     }
@@ -250,7 +242,7 @@ class UserProfileModel {
     if (trimmed.isEmpty) return null;
 
     final normalized =
-        trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 

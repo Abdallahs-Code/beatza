@@ -1,14 +1,17 @@
 // Dart imports
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// Package imports
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/screens/edit_profile_screen.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import '../../audio_upload_track_management/models/track_model.dart';
+import '../../audio_upload_track_management/services/audio_upload_service.dart';
+import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -30,10 +33,224 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final UserProfileService _apiService = UserProfileService();
   late Future<_ProfileViewState> _profileFuture;
 
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  TrackModel? _currentlyPlayingTrack;
+  bool _isPlaying = false;
+  final Set<String> _likedTrackIds = {};
+
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  void _playTrack(TrackModel track) async {
+    if (_currentlyPlayingTrack?.id == track.id) {
+      _togglePlayPause();
+      return;
+    }
+
+    setState(() {
+      _currentlyPlayingTrack = track;
+    });
+
+    if (track.audioUrl.isNotEmpty) {
+      await _audioPlayer.play(DeviceFileSource(track.audioUrl));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Audio file not found!'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  void _togglePlayPause() async {
+    if (_isPlaying) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer.resume();
+    }
+  }
+
+  void _closePlayer() async {
+    await _audioPlayer.stop();
+    setState(() {
+      _currentlyPlayingTrack = null;
+      _isPlaying = false;
+    });
+  }
+
+  void _toggleLike(String trackId) {
+    setState(() {
+      if (_likedTrackIds.contains(trackId)) {
+        _likedTrackIds.remove(trackId);
+      } else {
+        _likedTrackIds.add(trackId);
+      }
+    });
+  }
+  void _showTrackOptions(TrackModel track) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF141414),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(color: Colors.grey[800], borderRadius: BorderRadius.circular(4)),
+                    child: track.coverImagePath != null && track.coverImagePath!.isNotEmpty
+                        ? ClipRRect(borderRadius: BorderRadius.circular(4), child: Image.file(File(track.coverImagePath!), fit: BoxFit.cover))
+                        : const Icon(Icons.music_note, color: Colors.white54),
+                  ),
+                  title: Text(track.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(track.genre.isEmpty ? 'Unknown Genre' : track.genre, style: const TextStyle(color: Colors.white54)),
+                ),
+                const Divider(color: Colors.white10),
+                ListTile(
+                  leading: const Icon(Icons.bar_chart, color: Colors.white),
+                  title: const Text('Insights', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const YourInsightsScreen()));
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined, color: Colors.white),
+                  title: const Text('Edit Track', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditDialog(track);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  title: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteTrack(track);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditDialog(TrackModel track) {
+    TextEditingController titleCtrl = TextEditingController(text: track.title);
+    TextEditingController genreCtrl = TextEditingController(text: track.genre);
+
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1C1C1C),
+            title: const Text('Edit Track', style: TextStyle(color: Colors.white)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: genreCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Genre',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF5500)),
+                onPressed: () {
+                  _updateTrackData(track.id, titleCtrl.text, genreCtrl.text);
+                  Navigator.pop(context);
+                },
+                child: const Text('Save', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+  void _updateTrackData(String id, String newTitle, String newGenre) {
+    final currentList = List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+    final index = currentList.indexWhere((t) => t.id == id);
+
+    if (index != -1) {
+      final oldTrack = currentList[index];
+      final updatedTrack = TrackModel(
+        id: oldTrack.id, title: newTitle, genre: newGenre, descriptiveTags: oldTrack.descriptiveTags,
+        releaseDate: oldTrack.releaseDate, fileFormat: oldTrack.fileFormat, processingState: oldTrack.processingState,
+        visibility: oldTrack.visibility, audioUrl: oldTrack.audioUrl, waveformPeaks: oldTrack.waveformPeaks,
+        description: oldTrack.description, caption: oldTrack.caption, recordLabel: oldTrack.recordLabel,
+        publisher: oldTrack.publisher, isrc: oldTrack.isrc, containsExplicitContent: oldTrack.containsExplicitContent,
+        pLine: oldTrack.pLine, enableDirectDownloads: oldTrack.enableDirectDownloads, offlineListening: oldTrack.offlineListening,
+        includeInRssFeed: oldTrack.includeInRssFeed, displayEmbedCode: oldTrack.displayEmbedCode, enableAppPlayback: oldTrack.enableAppPlayback,
+        availability: oldTrack.availability, licensing: oldTrack.licensing, coverImagePath: oldTrack.coverImagePath,
+      );
+
+      currentList[index] = updatedTrack;
+      AudioUploadService.globalMockTracksNotifier.value = currentList;
+
+      if (_currentlyPlayingTrack?.id == id) {
+        setState(() => _currentlyPlayingTrack = updatedTrack);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Track updated!'), backgroundColor: Colors.green));
+    }
+  }
+
+  void _deleteTrack(TrackModel track) {
+    final currentList = List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+    currentList.removeWhere((t) => t.id == track.id);
+    AudioUploadService.globalMockTracksNotifier.value = currentList;
+
+    if (_currentlyPlayingTrack?.id == track.id) {
+      _closePlayer();
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Track deleted successfully'), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)),
+    );
   }
 
   void _loadProfile() {
@@ -56,7 +273,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (trimmed.isEmpty) return;
 
     final normalized =
-        trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 
@@ -126,107 +343,49 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ? NetworkImage(profile.profileImgLink)
                           : null,
                       child: profile.profileImgLink.trim().isEmpty
-                          ? const Icon(
-                              Icons.person,
-                              color: Colors.white38,
-                              size: 22,
-                            )
+                          ? const Icon(Icons.person, color: Colors.white38, size: 22)
                           : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         profile.resolvedDisplayName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'Location',
-                  style: TextStyle(
-                    color: Color(0xFF9A9A9A),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                const Text('Location', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
-                Text(
-                  profile.resolvedLocation,
-                  style: const TextStyle(color: Colors.white, fontSize: 15),
-                ),
+                Text(profile.resolvedLocation, style: const TextStyle(color: Colors.white, fontSize: 15)),
                 const SizedBox(height: 16),
-                const Text(
-                  'Role',
-                  style: TextStyle(
-                    color: Color(0xFF9A9A9A),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                const Text('Role', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
-                Text(
-                  profile.role,
-                  style: const TextStyle(color: Colors.white, fontSize: 15),
-                ),
+                Text(profile.role, style: const TextStyle(color: Colors.white, fontSize: 15)),
                 const SizedBox(height: 16),
-                const Text(
-                  'Bio',
-                  style: TextStyle(
-                    color: Color(0xFF9A9A9A),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                const Text('Bio', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 Text(
-                  profile.bio.trim().isEmpty
-                      ? 'No bio added yet.'
-                      : profile.bio.trim(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
+                  profile.bio.trim().isEmpty ? 'No bio added yet.' : profile.bio.trim(),
+                  style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
                 ),
                 if (profile.favoriteGenres.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  const Text(
-                    'Favorite genres',
-                    style: TextStyle(
-                      color: Color(0xFF9A9A9A),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  const Text('Favorite genres', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: profile.favoriteGenres.map((genre) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: const Color(0xFF171717),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: Colors.white12),
                         ),
-                        child: Text(
-                          genre,
-                          style: const TextStyle(
-                            color: Color(0xFFCCCCCC),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        child: Text(genre, style: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 11.5, fontWeight: FontWeight.w500)),
                       );
                     }).toList(),
                   ),
@@ -259,33 +418,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
           const _SheetAction(label: 'Message', icon: Icons.send_outlined),
           const _SheetAction(label: 'QR code', icon: Icons.qr_code_2),
-          const _SheetAction(
-            label: 'SMS',
-            icon: Icons.chat_bubble,
-            bgColor: Color(0xFF32D74B),
-          ),
-          const _SheetAction(
-            label: 'WhatsApp',
-            icon: Icons.phone,
-            bgColor: Color(0xFF25D366),
-          ),
-          const _SheetAction(
-            label: 'Stories',
-            icon: Icons.camera_alt_outlined,
-            bgColor: Color(0xFFE1306C),
-          ),
-          const _SheetAction(
-            label: 'Snapchat',
-            icon: Icons.circle,
-            bgColor: Color(0xFFFFFC00),
-            iconColor: Colors.black,
-          ),
+          const _SheetAction(label: 'SMS', icon: Icons.chat_bubble, bgColor: Color(0xFF32D74B)),
+          const _SheetAction(label: 'WhatsApp', icon: Icons.phone, bgColor: Color(0xFF25D366)),
+          const _SheetAction(label: 'Stories', icon: Icons.camera_alt_outlined, bgColor: Color(0xFFE1306C)),
+          const _SheetAction(label: 'Snapchat', icon: Icons.circle, bgColor: Color(0xFFFFFC00), iconColor: Colors.black),
           const _SheetAction(label: 'X', icon: Icons.close),
-          const _SheetAction(
-            label: 'Messenger',
-            icon: Icons.message,
-            bgColor: Color(0xFF8B5CF6),
-          ),
+          const _SheetAction(label: 'Messenger', icon: Icons.message, bgColor: Color(0xFF8B5CF6)),
           const _SheetAction(label: 'More', icon: Icons.more_horiz),
         ];
 
@@ -314,29 +452,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ? NetworkImage(profile.profileImgLink)
                       : null,
                   child: profile.profileImgLink.trim().isEmpty
-                      ? const Icon(
-                          Icons.person,
-                          color: Colors.white38,
-                          size: 38,
-                        )
+                      ? const Icon(Icons.person, color: Colors.white38, size: 38)
                       : null,
                 ),
                 const SizedBox(height: 14),
                 Text(
                   profile.resolvedDisplayName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${profile.followersCount} followers',
-                  style: const TextStyle(
-                    color: Color(0xFFB3B3B3),
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 14),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -362,17 +489,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         SizedBox(width: 10),
                         Text(
                           'Linked profiles',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
                   ),
                   ...linkedProfiles.map(
-                    (link) => ListTile(
+                        (link) => ListTile(
                       onTap: () async {
                         Navigator.pop(context);
                         await _openUrl(link.normalizedUrl);
@@ -404,34 +527,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 if (isOwner)
                   ListTile(
                     dense: true,
-                    leading: const Icon(
-                      Icons.block,
-                      color: Colors.white70,
-                      size: 20,
-                    ),
-                    title: const Text(
-                      'Blocked users',
-                      style: TextStyle(color: Colors.white, fontSize: 17),
-                    ),
+                    leading: const Icon(Icons.block, color: Colors.white70, size: 20),
+                    title: const Text('Blocked users', style: TextStyle(color: Colors.white, fontSize: 17)),
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(
-                        context,
-                        FollowersSocialGraphRoutes.blockedUsers,
-                      );
+                      Navigator.pushNamed(context, FollowersSocialGraphRoutes.blockedUsers);
                     },
                   ),
                 ListTile(
                   dense: true,
-                  leading: const Icon(
-                    Icons.info_outline,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  title: const Text(
-                    'View info',
-                    style: TextStyle(color: Colors.white, fontSize: 17),
-                  ),
+                  leading: const Icon(Icons.info_outline, color: Colors.white70, size: 20),
+                  title: const Text('View info', style: TextStyle(color: Colors.white, fontSize: 17)),
                   onTap: () {
                     Navigator.pop(context);
                     _showInfoSheet(profile);
@@ -449,27 +555,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final platform = link.platform.toLowerCase();
     final title = link.title.toLowerCase();
 
-    if (platform.contains('instagram') || title.contains('instagram')) {
-      return Icons.camera_alt_outlined;
-    }
-    if (platform.contains('twitter') ||
-        platform == 'x' ||
-        title.contains('twitter') ||
-        title == 'x') {
-      return Icons.close;
-    }
-    if (platform.contains('website') || title.contains('website')) {
-      return Icons.language;
-    }
-    if (platform.contains('facebook') || title.contains('facebook')) {
-      return Icons.facebook;
-    }
-    if (platform.contains('youtube') || title.contains('youtube')) {
-      return Icons.play_arrow;
-    }
-    if (platform.contains('tiktok') || title.contains('tiktok')) {
-      return Icons.music_note;
-    }
+    if (platform.contains('instagram') || title.contains('instagram')) return Icons.camera_alt_outlined;
+    if (platform.contains('twitter') || platform == 'x' || title.contains('twitter') || title == 'x') return Icons.close;
+    if (platform.contains('website') || title.contains('website')) return Icons.language;
+    if (platform.contains('facebook') || title.contains('facebook')) return Icons.facebook;
+    if (platform.contains('youtube') || title.contains('youtube')) return Icons.play_arrow;
+    if (platform.contains('tiktok') || title.contains('tiktok')) return Icons.music_note;
 
     return Icons.link;
   }
@@ -486,9 +577,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            );
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
 
           if (snapshot.hasError) {
@@ -512,19 +601,102 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             return _PrivateProfileView(profile: profile);
           }
 
-          return _SoundCloudProfileView(
-            profile: profile,
-            isOwner: isOwner,
-            token: widget.token,
-            onEdited: () {
-              setState(() {
-                _loadProfile();
-              });
-            },
-            onMorePressed: () => _showShareSheet(profile, isOwner: isOwner),
-            showArtistSections: _isArtistRole(profile.role),
+          return Stack(
+            children: [
+              _SoundCloudProfileView(
+                profile: profile,
+                isOwner: isOwner,
+                token: widget.token,
+                onEdited: () {
+                  setState(() {
+                    _loadProfile();
+                  });
+                },
+                onMorePressed: () => _showShareSheet(profile, isOwner: isOwner),
+                showArtistSections: _isArtistRole(profile.role),
+                onTrackTap: _playTrack,
+                onTrackOptionsTap: _showTrackOptions,
+                currentlyPlayingTrackId: _currentlyPlayingTrack?.id,
+              ),
+
+              if (_currentlyPlayingTrack != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 56,
+                  child: _buildRealMiniPlayer(_currentlyPlayingTrack!),
+                ),
+
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _BottomNavReplica(),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildRealMiniPlayer(TrackModel track) {
+    bool isLiked = _likedTrackIds.contains(track.id);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      height: 62,
+      decoration: BoxDecoration(
+          color: const Color(0xFF2A2A2A),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white24),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 5)),
+          ]
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _togglePlayPause,
+            child: Container(
+              width: 42, height: 42,
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  track.title,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 2),
+                const Text('You', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? const Color(0xFFFF5500) : Colors.white70),
+            onPressed: () => _toggleLike(track.id),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            iconSize: 22,
+          ),
+          const SizedBox(width: 14),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+            onPressed: _closePlayer,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 14),
+        ],
       ),
     );
   }
@@ -538,6 +710,10 @@ class _SoundCloudProfileView extends StatelessWidget {
   final VoidCallback onMorePressed;
   final bool showArtistSections;
 
+  final Function(TrackModel) onTrackTap;
+  final Function(TrackModel) onTrackOptionsTap;
+  final String? currentlyPlayingTrackId;
+
   const _SoundCloudProfileView({
     required this.profile,
     required this.isOwner,
@@ -545,6 +721,9 @@ class _SoundCloudProfileView extends StatelessWidget {
     required this.onEdited,
     required this.onMorePressed,
     required this.showArtistSections,
+    required this.onTrackTap,
+    required this.onTrackOptionsTap,
+    this.currentlyPlayingTrackId,
   });
 
   bool get _hasProfilePhoto => profile.profileImgLink.trim().isNotEmpty;
@@ -638,516 +817,520 @@ class _SoundCloudProfileView extends StatelessWidget {
     final topPadding = MediaQuery.of(context).padding.top;
     final completionCards = _buildCompletionCards();
 
-    return Stack(
-      children: [
-        CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: Colors.black,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              expandedHeight: 190,
-              automaticallyImplyLeading: false,
-              flexibleSpace: LayoutBuilder(
-                builder: (context, constraints) {
-                  final collapsed =
-                      constraints.maxHeight <= kToolbarHeight + topPadding + 24;
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          pinned: true,
+          backgroundColor: Colors.black,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          expandedHeight: 190,
+          automaticallyImplyLeading: false,
+          flexibleSpace: LayoutBuilder(
+            builder: (context, constraints) {
+              final collapsed =
+                  constraints.maxHeight <= kToolbarHeight + topPadding + 24;
 
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Container(
-                        color: const Color(0xFF121212),
-                        child: profile.bannerImgLink.trim().isNotEmpty
-                            ? Image.network(
-                                profile.bannerImgLink,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    const SizedBox.shrink(),
-                              )
-                            : _AutoBannerFromAvatar(profile.profileImgLink),
-                      ),
-                      Container(color: Colors.black.withValues(alpha: 0.18)),
-                      Positioned(
-                        top: topPadding + 10,
-                        left: 16,
-                        child: _RoundIconButton(
-                          icon: Icons.arrow_back_ios_new,
-                          onTap: () => Navigator.maybePop(context),
-                        ),
-                      ),
-                      Positioned(
-                        top: topPadding + 10,
-                        right: 16,
-                        child: _RoundIconButton(
-                          icon: Icons.more_horiz,
-                          onTap: onMorePressed,
-                        ),
-                      ),
-                      if (collapsed)
-                        Positioned(
-                          left: 60,
-                          right: 60,
-                          top: topPadding + 12,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _SmallAvatar(profile.profileImgLink),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  profile.resolvedDisplayName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Transform.translate(
-                offset: const Offset(0, -4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Container(
-                        width: 104,
-                        height: 104,
-                        decoration: const BoxDecoration(
-                          color: Colors.black,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: CircleAvatar(
-                          radius: 48,
-                          backgroundColor: const Color(0xFF1C1C1C),
-                          backgroundImage:
-                              profile.profileImgLink.trim().isNotEmpty
-                              ? NetworkImage(profile.profileImgLink)
-                              : null,
-                          child: profile.profileImgLink.trim().isEmpty
-                              ? const Icon(
-                                  Icons.person,
-                                  color: Colors.white38,
-                                  size: 42,
-                                )
-                              : null,
-                        ),
-                      ),
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    color: const Color(0xFF121212),
+                    child: profile.bannerImgLink.trim().isNotEmpty
+                        ? Image.network(
+                      profile.bannerImgLink,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                      const SizedBox.shrink(),
+                    )
+                        : _AutoBannerFromAvatar(profile.profileImgLink),
+                  ),
+                  Container(color: Colors.black.withValues(alpha: 0.18)),
+                  Positioned(
+                    top: topPadding + 10,
+                    left: 16,
+                    child: _RoundIconButton(
+                      icon: Icons.arrow_back_ios_new,
+                      onTap: () => Navigator.maybePop(context),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                      child: Text(
-                        profile.resolvedDisplayName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                  ),
+                  Positioned(
+                    top: topPadding + 10,
+                    right: 16,
+                    child: _RoundIconButton(
+                      icon: Icons.more_horiz,
+                      onTap: onMorePressed,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                      child: Text(
-                        profile.resolvedLocation,
-                        style: const TextStyle(
-                          color: Color(0xFFB3B3B3),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+                  ),
+                  if (collapsed)
+                    Positioned(
+                      left: 60,
+                      right: 60,
+                      top: topPadding + 12,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                FollowersSocialGraphRoutes.followers,
-                                arguments: {'userId': profile.userId},
-                              );
-                            },
+                          _SmallAvatar(profile.profileImgLink),
+                          const SizedBox(width: 8),
+                          Flexible(
                             child: Text(
-                              '${profile.followersCount} Followers',
+                              profile.resolvedDisplayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Color(0xFFB3B3B3),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                          const Text(
-                            ' • ',
-                            style: TextStyle(
-                              color: Color(0xFFB3B3B3),
-                              fontSize: 13,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                FollowersSocialGraphRoutes.followers,
-                                arguments: {
-                                  'userId': profile.userId,
-                                  'tabIndex': 1,
-                                },
-                              );
-                            },
-                            child: Text(
-                              '${profile.followingsCount} Following',
-                              style: const TextStyle(
-                                color: Color(0xFFB3B3B3),
-                                fontSize: 13,
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                      child: Text(
-                        profile.role,
-                        style: const TextStyle(
+                ],
+              );
+            },
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Container(
+                    width: 104,
+                    height: 104,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: CircleAvatar(
+                      radius: 48,
+                      backgroundColor: const Color(0xFF1C1C1C),
+                      backgroundImage:
+                      profile.profileImgLink.trim().isNotEmpty
+                          ? NetworkImage(profile.profileImgLink)
+                          : null,
+                      child: profile.profileImgLink.trim().isEmpty
+                          ? const Icon(
+                        Icons.person,
+                        color: Colors.white38,
+                        size: 42,
+                      )
+                          : null,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                  child: Text(
+                    profile.resolvedDisplayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                  child: Text(
+                    profile.resolvedLocation,
+                    style: const TextStyle(
+                      color: Color(0xFFB3B3B3),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            FollowersSocialGraphRoutes.followers,
+                            arguments: {'userId': profile.userId},
+                          );
+                        },
+                        child: Text(
+                          '${profile.followersCount} Followers',
+                          style: const TextStyle(
+                            color: Color(0xFFB3B3B3),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        ' • ',
+                        style: TextStyle(
                           color: Color(0xFFB3B3B3),
                           fontSize: 13,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: isOwner
-                                ? () => _openEditProfile(context)
-                                : null,
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: Colors.white70,
-                              size: 22,
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.shuffle,
-                              color: Colors.white70,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 24),
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.black,
-                                size: 34,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (profile.bio.trim().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            FollowersSocialGraphRoutes.followers,
+                            arguments: {
+                              'userId': profile.userId,
+                              'tabIndex': 1,
+                            },
+                          );
+                        },
                         child: Text(
-                          profile.bio.trim(),
+                          '${profile.followingsCount} Following',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    if (profile.favoriteGenres.isNotEmpty)
-                      const SizedBox(height: 12),
-                    if (profile.favoriteGenres.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: profile.favoriteGenres.map((genre) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF171717),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.white12),
-                              ),
-                              child: Text(
-                                genre,
-                                style: const TextStyle(
-                                  color: Color(0xFFCCCCCC),
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    if (_shouldShowCompleteProfile) ...[
-                      const SizedBox(height: 28),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'Complete your profile',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.keyboard_arrow_up,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '$_completedStepsCount OF 5 ',
-                                style: const TextStyle(
-                                  color: Color(0xFFFF6A00),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const TextSpan(
-                                text: 'COMPLETE',
-                                style: TextStyle(
-                                  color: Color(0xFFD0D0D0),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      SizedBox(
-                        height: 350,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: completionCards.length,
-                          separatorBuilder: (_, _) => const SizedBox(width: 14),
-                          itemBuilder: (context, index) {
-                            final card = completionCards[index];
-                            return _CompleteProfileCard(
-                              data: card,
-                              onPressed: isOwner
-                                  ? () => _openEditProfile(context)
-                                  : null,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                    if (showArtistSections) ...[
-                      const SizedBox(height: 28),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14),
-                        child: Text(
-                          'Spotlight',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14),
-                        child: Text(
-                          'Pin your gems to your profile',
-                          style: TextStyle(
                             color: Color(0xFFB3B3B3),
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14),
-                        child: Row(
-                          children: [
-                            Expanded(child: _SpotlightCard()),
-                            SizedBox(width: 14),
-                            Expanded(child: _SpotlightCard()),
-                            SizedBox(width: 14),
-                            Expanded(child: _SpotlightCard()),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14),
-                        child: Text(
-                          'All tracks',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14),
-                        child: _TrackRow(
-                          imageUrl:
-                              'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=300&auto=format&fit=crop',
-                          title: 'Mango.mp3',
-                          subtitle: 'Abdelrahman Kamal',
-                          meta: '3:47',
                         ),
                       ),
                     ],
-                    const SizedBox(height: 28),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'Playlists',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                  child: Text(
+                    profile.role,
+                    style: const TextStyle(
+                      color: Color(0xFFB3B3B3),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: isOwner
+                            ? () => _openEditProfile(context)
+                            : null,
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          color: Colors.white70,
+                          size: 22,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _PlaylistCard(
-                              title: 'Untitled playlist',
-                              subtitle: 'darus 123',
-                              imageUrl: '',
-                            ),
-                          ),
-                          SizedBox(width: 14),
-                          Expanded(
-                            child: _PlaylistCard(
-                              title: 'Songs',
-                              subtitle: 'darus 123',
-                              imageUrl:
-                                  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-                            ),
-                          ),
-                        ],
+                      const Spacer(),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.shuffle,
+                          color: Colors.white70,
+                          size: 22,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 28),
-                    _SectionHeader(title: 'Reposts', actionText: 'See all'),
-                    const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Column(
-                        children: [
-                          _UserMusicRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
-                            title: 'husd',
-                            subtitle: 'Daniel',
-                            meta: '0 • 9 tracks',
+                      const SizedBox(width: 24),
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: const Icon(
+                            Icons.play_arrow,
+                            color: Colors.black,
+                            size: 34,
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 26),
-                    _SectionHeader(title: 'Likes', actionText: 'See all'),
-                    const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Column(
-                        children: [
-                          _TrackRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
-                            title: 'Best Afro House 2025',
-                            subtitle: 'Raven Musik',
-                            meta: 'Album · 2025',
-                          ),
-                          SizedBox(height: 16),
-                          _TrackRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
-                            title: 'ورده .. ف يوم و ليله',
-                            subtitle: 'Yousra Yousry',
-                            meta: '766.9K · 51:09',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 130),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                if (profile.bio.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      profile.bio.trim(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                if (profile.favoriteGenres.isNotEmpty)
+                  const SizedBox(height: 12),
+                if (profile.favoriteGenres.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: profile.favoriteGenres.map((genre) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF171717),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          child: Text(
+                            genre,
+                            style: const TextStyle(
+                              color: Color(0xFFCCCCCC),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                if (_shouldShowCompleteProfile) ...[
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Complete your profile',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.keyboard_arrow_up,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '$_completedStepsCount OF 5 ',
+                            style: const TextStyle(
+                              color: Color(0xFFFF6A00),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const TextSpan(
+                            text: 'COMPLETE',
+                            style: TextStyle(
+                              color: Color(0xFFD0D0D0),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 350,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: completionCards.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 14),
+                      itemBuilder: (context, index) {
+                        final card = completionCards[index];
+                        return _CompleteProfileCard(
+                          data: card,
+                          onPressed: isOwner
+                              ? () => _openEditProfile(context)
+                              : null,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+                if (showArtistSections) ...[
+                  const SizedBox(height: 28),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      'Spotlight',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      'Pin your gems to your profile',
+                      style: TextStyle(
+                        color: Color(0xFFB3B3B3),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        Expanded(child: _SpotlightCard()),
+                        SizedBox(width: 14),
+                        Expanded(child: _SpotlightCard()),
+                        SizedBox(width: 14),
+                        Expanded(child: _SpotlightCard()),
+                      ],
+                    ),
+                  ),
+                ],
+
+                ValueListenableBuilder<List<TrackModel>>(
+                  valueListenable: AudioUploadService.globalMockTracksNotifier,
+                  builder: (context, tracks, child) {
+                    if (tracks.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 28),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 14),
+                          child: Text(
+                            'Tracks',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        ...tracks.map((track) {
+                          bool isPlaying = currentlyPlayingTrackId == track.id;
+                          return InkWell(
+                            onTap: () => onTrackTap(track),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              child: _LocalTrackRow(
+                                track: track,
+                                artistName: profile.resolvedDisplayName,
+                                isPlaying: isPlaying,
+                                onMoreTap: () => onTrackOptionsTap(track),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 28),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Text(
+                    'Playlists',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _PlaylistCard(
+                          title: 'Untitled playlist',
+                          subtitle: 'darus 123',
+                          imageUrl: '',
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: _PlaylistCard(
+                          title: 'Songs',
+                          subtitle: 'darus 123',
+                          imageUrl:
+                          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                _SectionHeader(title: 'Reposts', actionText: 'See all'),
+                const SizedBox(height: 10),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Column(
+                    children: [
+                      _UserMusicRow(
+                        imageUrl:
+                        'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
+                        title: 'husd',
+                        subtitle: 'Daniel',
+                        meta: '0 • 9 tracks',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 26),
+                _SectionHeader(title: 'Likes', actionText: 'See all'),
+                const SizedBox(height: 10),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Column(
+                    children: [
+                      _TrackRow(
+                        imageUrl:
+                        'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
+                        title: 'Best Afro House 2025',
+                        subtitle: 'Raven Musik',
+                        meta: 'Album · 2025',
+                      ),
+                      SizedBox(height: 16),
+                      _TrackRow(
+                        imageUrl:
+                        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
+                        title: 'ورده .. ف يوم و ليله',
+                        subtitle: 'Yousra Yousry',
+                        meta: '766.9K · 51:09',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 130),
+              ],
             ),
-          ],
-        ),
-        const Positioned(
-          left: 0,
-          right: 0,
-          bottom: 56,
-          child: _MiniPlayerReplica(),
-        ),
-        const Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: _BottomNavReplica(),
+          ),
         ),
       ],
     );
@@ -1193,18 +1376,18 @@ class _CompleteProfileCard extends StatelessWidget {
             alignment: Alignment.topRight,
             child: data.isComplete
                 ? Container(
-                    width: 34,
-                    height: 34,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF49D17D),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      color: Colors.black,
-                      size: 22,
-                    ),
-                  )
+              width: 34,
+              height: 34,
+              decoration: const BoxDecoration(
+                color: Color(0xFF49D17D),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check,
+                color: Colors.black,
+                size: 22,
+              ),
+            )
                 : const SizedBox(width: 34, height: 34),
           ),
           const SizedBox(height: 12),
@@ -1347,13 +1530,13 @@ class _PlaylistCard extends StatelessWidget {
           ),
           child: imageUrl.isEmpty
               ? const Center(
-                  child: Icon(Icons.cloud, color: Colors.white24, size: 42),
-                )
+            child: Icon(Icons.cloud, color: Colors.white24, size: 42),
+          )
               : Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
+            imageUrl,
+            fit: BoxFit.cover,
+            width: double.infinity,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -1489,8 +1672,54 @@ class _SquareImage extends StatelessWidget {
         imageUrl,
         fit: BoxFit.cover,
         errorBuilder: (_, _, _) =>
-            const Icon(Icons.music_note, color: Colors.white24),
+        const Icon(Icons.music_note, color: Colors.white24),
       ),
+    );
+  }
+}
+
+class _LocalTrackRow extends StatelessWidget {
+  final TrackModel track;
+  final String artistName;
+  final bool isPlaying;
+  final VoidCallback onMoreTap;
+
+  const _LocalTrackRow({
+    required this.track,
+    required this.artistName,
+    required this.onMoreTap,
+    this.isPlaying = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 58, height: 58,
+          color: const Color(0xFF1D1D1D),
+          child: track.coverImagePath != null && track.coverImagePath!.isNotEmpty
+              ? Image.file(File(track.coverImagePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.music_note, color: Colors.white24))
+              : const Icon(Icons.music_note, color: Colors.white24),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: isPlaying ? const Color(0xFFFF5500) : Colors.white, fontSize: 14, fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal)),
+              const SizedBox(height: 2),
+              Text(artistName, style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+              const SizedBox(height: 2),
+              const Text('▶ 0', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.more_horiz, color: Colors.white54),
+          onPressed: onMoreTap,
+        ),
+      ],
     );
   }
 }
@@ -1546,7 +1775,6 @@ class _AutoBannerFromAvatar extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Blurred background image
         if (imageUrl.trim().isNotEmpty)
           Image.network(
             imageUrl,
@@ -1554,11 +1782,9 @@ class _AutoBannerFromAvatar extends StatelessWidget {
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
 
-        // Blur effect
         if (imageUrl.trim().isNotEmpty)
           Container(color: Colors.black.withValues(alpha: 0.4)),
 
-        // Gradient overlay (dark bottom fade like SoundCloud)
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -1569,70 +1795,6 @@ class _AutoBannerFromAvatar extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MiniPlayerReplica extends StatelessWidget {
-  const _MiniPlayerReplica();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Container(
-        height: 62,
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.white24),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 8),
-            Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.play_arrow, color: Colors.black),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Amelie Lens - Falling Into Aci...',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Amelie Lens',
-                    style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.picture_in_picture_alt_outlined,
-              color: Colors.white70,
-              size: 20,
-            ),
-            const SizedBox(width: 14),
-            const Icon(Icons.favorite_border, color: Colors.white70, size: 22),
-            const SizedBox(width: 14),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -1712,10 +1874,10 @@ class _PrivateProfileView extends StatelessWidget {
                     color: const Color(0xFF111111),
                     child: profile.bannerImgLink.trim().isNotEmpty
                         ? Image.network(
-                            profile.bannerImgLink,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                          )
+                      profile.bannerImgLink,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    )
                         : null,
                   ),
                   Container(
@@ -1753,15 +1915,15 @@ class _PrivateProfileView extends StatelessWidget {
                         radius: 60,
                         backgroundColor: const Color(0xFF1C1C1C),
                         backgroundImage:
-                            profile.profileImgLink.trim().isNotEmpty
+                        profile.profileImgLink.trim().isNotEmpty
                             ? NetworkImage(profile.profileImgLink)
                             : null,
                         child: profile.profileImgLink.trim().isEmpty
                             ? const Icon(
-                                Icons.person,
-                                color: Colors.white38,
-                                size: 44,
-                              )
+                          Icons.person,
+                          color: Colors.white38,
+                          size: 44,
+                        )
                             : null,
                       ),
                       const SizedBox(height: 18),
@@ -1895,12 +2057,6 @@ class _PrivateProfileView extends StatelessWidget {
         const Positioned(
           left: 0,
           right: 0,
-          bottom: 56,
-          child: _MiniPlayerReplica(),
-        ),
-        const Positioned(
-          left: 0,
-          right: 0,
           bottom: 0,
           child: _BottomNavReplica(),
         ),
@@ -1908,35 +2064,6 @@ class _PrivateProfileView extends StatelessWidget {
     );
   }
 }
-
-// class _PrivateTabIcon extends StatelessWidget {
-//   final IconData icon;
-//   final bool active;
-
-//   const _PrivateTabIcon({required this.icon, this.active = false});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         Icon(
-//           icon,
-//           color: active ? Colors.white : const Color(0xFF6F6F6F),
-//           size: 30,
-//         ),
-//         const SizedBox(height: 10),
-//         Container(
-//           width: 56,
-//           height: 3,
-//           decoration: BoxDecoration(
-//             color: active ? Colors.white70 : Colors.transparent,
-//             borderRadius: BorderRadius.circular(99),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
 
 class _ShareActionItem extends StatelessWidget {
   final _SheetAction action;
@@ -1997,3 +2124,4 @@ class _ProfileViewState {
 
   const _ProfileViewState({required this.profile, required this.isOwner});
 }
+
