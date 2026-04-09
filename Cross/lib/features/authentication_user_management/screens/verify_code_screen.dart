@@ -1,17 +1,21 @@
+import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
-import 'package:cross_team5/features/authentication_user_management/widgets/auth_back_button.dart';
-import 'package:cross_team5/features/authentication_user_management/widgets/auth_title_text.dart';
-import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
+import 'package:cross_team5/features/home/home_routes.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
   final String pendingToken;
 
+  // Optional because your current flow only passes pendingToken.
+  // If you later have the email from backend/callback, pass it here.
+  final String? email;
+
   const VerifyCodeScreen({
     super.key,
     required this.pendingToken,
+    this.email,
   });
 
   @override
@@ -20,11 +24,25 @@ class VerifyCodeScreen extends StatefulWidget {
 
 class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   final TextEditingController _codeController = TextEditingController();
+  final FocusNode _codeFocusNode = FocusNode();
+
   bool _isLoading = false;
+  bool _isSendingAgain = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _codeFocusNode.requestFocus();
+      }
+    });
+  }
 
   @override
   void dispose() {
     _codeController.dispose();
+    _codeFocusNode.dispose();
     super.dispose();
   }
 
@@ -60,6 +78,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       code: code,
     );
 
+    LoggerService.logger.i("Verify code result: ${result.$1}, ${result.$2}");
+
     if (!mounted) return;
 
     setState(() {
@@ -69,7 +89,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     if (result.$1 >= 200 && result.$1 < 300) {
       Navigator.pushNamedAndRemoveUntil(
         context,
-        "/home", // replace with your actual route
+        HomeRoutes.home,
         (route) => false,
       );
     } else {
@@ -82,66 +102,244 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     }
   }
 
+  Future<void> _handleSendAgain() async {
+    // Your current backend/service layer does NOT include
+    // a resend-Google-verification-code endpoint.
+    // So this button currently only informs the user.
+    setState(() {
+      _isSendingAgain = true;
+    });
+
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSendingAgain = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Resend code is not connected yet"),
+        backgroundColor: AppColors.anger,
+      ),
+    );
+  }
+
+  void _onCodeChanged(String value) {
+    final digitsOnly = value.replaceAll(RegExp(r'[^0-9]'), '');
+    final limited = digitsOnly.length > 6 ? digitsOnly.substring(0, 6) : digitsOnly;
+
+    if (limited != _codeController.text) {
+      _codeController.value = TextEditingValue(
+        text: limited,
+        selection: TextSelection.collapsed(offset: limited.length),
+      );
+    } else {
+      setState(() {});
+    }
+  }
+
+  Widget _buildCodeBox(int index) {
+    final code = _codeController.text;
+    final char = index < code.length ? code[index] : '';
+
+    return GestureDetector(
+      onTap: () {
+        _codeFocusNode.requestFocus();
+      },
+      child: Container(
+        width: 54,
+        height: 76,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          char,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final displayedEmail =
+        (widget.email != null && widget.email!.trim().isNotEmpty)
+            ? widget.email!.trim()
+            : "your email";
+
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const AuthBackButton(),
-              const SizedBox(height: 20),
+        child: GestureDetector(
+          onTap: () => _codeFocusNode.requestFocus(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 18),
 
-              const Center(
-                child: AuthTitleText(
-                  text: "Enter verification code",
+                    const Text(
+                      "An account exists\nwith this email address!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
+                      ),
+                    ),
+
+                    const SizedBox(height: 26),
+
+                    const Text(
+                      "We can connect your Google credentials to this account\nso you can use it to log in next time.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.45,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      "To continue, enter the code we have sent to this email as\nverification.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.45,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Text(
+                      displayedEmail,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Opacity(
+                          opacity: 0.0,
+                          child: TextField(
+                            controller: _codeController,
+                            focusNode: _codeFocusNode,
+                            autofocus: true,
+                            keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.done,
+                            maxLength: 6,
+                            onChanged: _onCodeChanged,
+                            onSubmitted: (_) {
+                              if (_codeController.text.trim().length == 6 &&
+                                  !_isLoading) {
+                                _handleVerify();
+                              }
+                            },
+                            style: const TextStyle(color: Colors.transparent),
+                            cursorColor: Colors.transparent,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              counterText: "",
+                            ),
+                          ),
+                        ),
+
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          alignment: WrapAlignment.center,
+                          children: List.generate(6, _buildCodeBox),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleVerify,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFB3B3B3),
+                          disabledBackgroundColor: const Color(0xFFB3B3B3),
+                          foregroundColor: Colors.black,
+                          disabledForegroundColor: Colors.black,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : const Text(
+                                "Continue",
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    GestureDetector(
+                      onTap: _isSendingAgain ? null : _handleSendAgain,
+                      child: Text(
+                        _isSendingAgain ? "Sending..." : "Send again",
+                        style: const TextStyle(
+                          color: Color(0xFF2F7CF6),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    const Text(
+                      "Otherwise, you can go back and choose another\nauthentication method.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              const Text(
-                "We sent a 6-digit verification code to your email. Enter it below to finish signing in with Google.",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              TextField(
-                controller: _codeController,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: "6-digit code",
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: AppColors.googleBackGround,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 18,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              LoginButton(
-                text: _isLoading ? "Verifying..." : "Verify",
-                color: AppColors.silver,
-                onPressed: _isLoading ? () {} : _handleVerify,
-              ),
-            ],
+            ),
           ),
         ),
       ),

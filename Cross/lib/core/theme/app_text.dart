@@ -4,7 +4,7 @@ class AppText {
   static const String signInOrCreateAccount = "Sign in or create an account";
 
   static const String termsAgreementStart =
-      "By clicking on any of the \"Continue\" buttons below, you agree to Beatza's";
+      "By clicking on any of the \"Continue\" buttons below, you agree to Beatza's ";
 
   static const String termsOfUse = "Terms of Use";
 

@@ -1,6 +1,5 @@
 // Dart imports
 import 'dart:io' show Platform;
-import 'dart:ui';
 import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -22,100 +21,6 @@ import 'package:cross_team5/features/home/home_routes.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  String? _readQueryParam(Uri uri, String key) {
-    final value = uri.queryParameters[key]?.trim();
-    if (value == null || value.isEmpty) return null;
-    return value;
-  }
-
-  Future<void> _handleGoogleLogin(BuildContext context) async {
-    final authApiService = AuthApiService();
-    final authUrl =
-        "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
-
-    try {
-      final result = await FlutterWebAuth2.authenticate(
-        url: authUrl,
-        callbackUrlScheme: "beatza",
-        options: const FlutterWebAuth2Options(useWebview: true),
-      );
-
-      final uri = Uri.parse(result);
-
-      final accessToken = _readQueryParam(uri, "accessToken");
-      final refreshToken = _readQueryParam(uri, "refreshToken");
-      final pendingToken = _readQueryParam(uri, "pendingToken");
-      final incompleteToken = _readQueryParam(uri, "incompleteToken");
-      final displayName = _readQueryParam(uri, "displayName");
-
-      LoggerService.logger.i("result: $result");
-
-      // Case 3: returning Google user
-      if (accessToken != null && refreshToken != null) {
-        LoggerService.logger.i("Case 3: Returning Google user logged in successfully");
-        await authApiService.saveTokens(
-          accessToken: accessToken,
-          refreshToken: refreshToken,
-        );
-
-        await authApiService.refreshToken();
-
-        if (!context.mounted) return;
-        Navigator.pushReplacementNamed(context, HomeRoutes.home);
-        return;
-      }
-
-      // Case 2: existing user, first Google login
-      if (pendingToken != null) {
-        if (!context.mounted) return;
-        LoggerService.logger.i("Case 2: Existing user, first Google login");
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => VerifyCodeScreen(
-              pendingToken: pendingToken,
-            ),
-          ),
-        );
-        return;
-      }
-
-      // Case 1: new Google user
-      if (incompleteToken != null) {
-        if (!context.mounted) return;
-        LoggerService.logger.i("Case 1: New Google user");
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => UserInfoScreen(
-              incompleteToken: incompleteToken,
-              initialDisplayName: displayName ?? "",
-              isGoogleFlow: true,
-            ),
-          ),
-        );
-        return;
-      }
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Google sign-in returned no usable data"),
-          backgroundColor: AppColors.anger,
-        ),
-      );
-    } catch (e) {
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Google sign-in failed: $e"),
-          backgroundColor: AppColors.anger,
-        ),
-      );
-    }
-  }
 
   Future<void> _showQrDialog(BuildContext context) async {
     showDialog(
@@ -293,7 +198,7 @@ class LoginScreen extends StatelessWidget {
                       options: const FlutterWebAuth2Options(useWebview: true)
                     );
 
-                    LoggerService.logger.i("Google auth callback result: $result");
+                    // LoggerService.logger.i("Google auth callback result: $result");
 
                     final uri = Uri.parse(result);
 
@@ -305,7 +210,9 @@ class LoginScreen extends StatelessWidget {
 
                     // Case 3: returning Google user
                     if (accessToken != null && accessToken.isNotEmpty && refreshToken != null && refreshToken.isNotEmpty) {
-                      
+
+                      LoggerService.logger.i("Case 3: Returning Google user logged in successfully");
+
                       await authApiService.saveTokens(accessToken: accessToken, refreshToken: refreshToken);
 
                       await authApiService.refreshToken();
@@ -318,6 +225,9 @@ class LoginScreen extends StatelessWidget {
 
                     // Case 2: existing user, first Google login
                     if (pendingToken != null && pendingToken.isNotEmpty) {
+
+                      LoggerService.logger.i("Case 2: Existing user, first Google login");
+
                       if (context.mounted) {
                         Navigator.push(
                           context,
@@ -333,17 +243,20 @@ class LoginScreen extends StatelessWidget {
 
                     // Case 1: new Google user
                     if (incompleteToken != null && incompleteToken.isNotEmpty) {
+
+                      LoggerService.logger.i("Case 1: New Google user");
+                      
                       if (context.mounted) {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (_) => UserInfoScreen(
-                        //       incompleteToken: incompleteToken,
-                        //       initialDisplayName: displayName ?? "",
-                        //       isGoogleFlow: true,
-                        //     ),
-                        //   ),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserInfoScreen(
+                              incompleteToken: incompleteToken,
+                              initialDisplayName: displayName ?? "",
+                              isGoogleFlow: true,
+                            ),
+                          ),
+                        );
                       }
                       return;
                     }
