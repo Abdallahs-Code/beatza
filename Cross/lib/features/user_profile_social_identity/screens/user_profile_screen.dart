@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
@@ -12,7 +11,6 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
-
 class UserProfileScreen extends StatefulWidget {
   final String userId;
   final String token;
@@ -33,74 +31,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final UserProfileService _apiService = UserProfileService();
   late Future<_ProfileViewState> _profileFuture;
 
-  final AudioPlayer _audioPlayer = AudioPlayer();
   TrackModel? _currentlyPlayingTrack;
-  bool _isPlaying = false;
-  final Set<String> _likedTrackIds = {};
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
-    _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = state == PlayerState.playing;
-        });
-      }
-    });
   }
 
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  void _playTrack(TrackModel track) async {
-    if (_currentlyPlayingTrack?.id == track.id) {
-      _togglePlayPause();
-      return;
-    }
-
+  void _playTrack(TrackModel track) {
     setState(() {
       _currentlyPlayingTrack = track;
     });
-
-    if (track.audioUrl.isNotEmpty) {
-      await _audioPlayer.play(DeviceFileSource(track.audioUrl));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Audio file not found!'), backgroundColor: Colors.red),
-      );
-    }
   }
 
-  void _togglePlayPause() async {
-    if (_isPlaying) {
-      await _audioPlayer.pause();
-    } else {
-      await _audioPlayer.resume();
-    }
-  }
-
-  void _closePlayer() async {
-    await _audioPlayer.stop();
+  void _closePlayer() {
     setState(() {
       _currentlyPlayingTrack = null;
-      _isPlaying = false;
     });
   }
 
-  void _toggleLike(String trackId) {
-    setState(() {
-      if (_likedTrackIds.contains(trackId)) {
-        _likedTrackIds.remove(trackId);
-      } else {
-        _likedTrackIds.add(trackId);
-      }
-    });
-  }
   void _showTrackOptions(TrackModel track) {
     showModalBottomSheet(
       context: context,
@@ -624,7 +574,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   left: 0,
                   right: 0,
                   bottom: 56,
-                  child: _buildRealMiniPlayer(_currentlyPlayingTrack!),
+                  child: YourInsights(
+                    track: _currentlyPlayingTrack!,
+                    onClose: _closePlayer,
+                  ),
                 ),
 
               const Positioned(
@@ -636,67 +589,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildRealMiniPlayer(TrackModel track) {
-    bool isLiked = _likedTrackIds.contains(track.id);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      height: 62,
-      decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.white24),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 5)),
-          ]
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _togglePlayPause,
-            child: Container(
-              width: 42, height: 42,
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  track.title,
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                const Text('You', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? const Color(0xFFFF5500) : Colors.white70),
-            onPressed: () => _toggleLike(track.id),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            iconSize: 22,
-          ),
-          const SizedBox(width: 14),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white70, size: 20),
-            onPressed: _closePlayer,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(width: 14),
-        ],
       ),
     );
   }
@@ -802,16 +694,19 @@ class _SoundCloudProfileView extends StatelessWidget {
     final updated = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            EditProfileScreen(currentProfile: profile, token: token),
+        builder: (context) => EditProfileScreen(
+          currentProfile: profile,
+          token: token,
+        ),
       ),
     );
+
+    if (!context.mounted) return;
 
     if (updated == true) {
       onEdited();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -2124,4 +2019,3 @@ class _ProfileViewState {
 
   const _ProfileViewState({required this.profile, required this.isOwner});
 }
-
