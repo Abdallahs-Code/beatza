@@ -62,30 +62,41 @@ class LoginButton extends StatelessWidget {
 class TextInputField extends StatelessWidget {
   final String hintText;
   final TextEditingController controller;
+  final bool autofocus;
 
   const TextInputField({
     super.key,
     required this.hintText,
     required this.controller,
+    this.autofocus = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      autofocus: autofocus,
+      style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: const TextStyle(color: Colors.white54),
+        filled: true,
+        fillColor: const Color(0xFF333333),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.white54),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.white54),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: BorderSide(color: Colors.grey[500]!),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.white70),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 14,
+          horizontal: 16,
+          vertical: 18,
         ),
       ),
     );
