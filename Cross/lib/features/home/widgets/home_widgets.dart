@@ -5,29 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 
+import '../../audio_upload_track_management/audio_upload_track_management_routes.dart';
+
 class TopHeader extends StatelessWidget {
   const TopHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 96,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.glowBlue.withValues(alpha: 0.10),
-            AppColors.glowOrange.withValues(alpha: 0.10),
-            AppColors.glowPurple.withValues(alpha: 0.10),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: const Row(
+      child: Row(
         children: [
-          Spacer(),
-          Text(
+          const Spacer(),
+          const Text(
             AppText.homeTitle,
             style: TextStyle(
               color: AppColors.whiteSmoke,
@@ -35,35 +24,43 @@ class TopHeader extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Spacer(),
-          HeaderIcon(Icons.cloud_upload_outlined),
-          SizedBox(width: 10),
-          HeaderIcon(Icons.more_horiz),
+          const Spacer(),
+          HeaderIcon(
+            Icons.cloud_upload_outlined,
+            onTap: () {
+              Navigator.pushNamed(context, AudioUploadRoutes.uploadTrack);
+            },
+          ),
+
+          const SizedBox(width: 10),
+          const HeaderIcon(Icons.more_horiz),
         ],
       ),
     );
   }
 }
-
 class HeaderIcon extends StatelessWidget {
   final IconData icon;
+  final VoidCallback? onTap;
 
-  const HeaderIcon(this.icon, {super.key});
+  const HeaderIcon(this.icon, {super.key, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.whiteSmoke.withValues(alpha: 0.04),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.whiteSmoke.withValues(alpha: 0.04),
+        ),
+        child: Icon(icon, color: AppColors.whiteSmoke, size: 21),
       ),
-      child: Icon(icon, color: AppColors.whiteSmoke, size: 21),
     );
   }
 }
-
 class YourLikesCard extends StatelessWidget {
   const YourLikesCard({super.key});
 
