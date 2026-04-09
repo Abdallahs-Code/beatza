@@ -1,7 +1,5 @@
-// Dart imports
 import 'package:flutter/material.dart';
 
-// Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/check_inbox_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_back_button.dart';
@@ -12,13 +10,19 @@ import 'package:cross_team5/features/authentication_user_management/models/user.
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class UserInfoScreen extends StatefulWidget {
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
+  final String? incompleteToken;
+  final String? initialDisplayName;
+  final bool isGoogleFlow;
 
   const UserInfoScreen({
     super.key,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
+    this.incompleteToken,
+    this.initialDisplayName,
+    this.isGoogleFlow = false,
   });
 
   @override
@@ -68,20 +72,37 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if ((widget.initialDisplayName ?? "").trim().isNotEmpty) {
+      _displayNameController.text = widget.initialDisplayName!.trim();
+    }
+  }
+
+  @override
   void dispose() {
     _displayNameController.dispose();
     super.dispose();
   }
 
   Future<void> _handleContinue() async {
-    if (_displayNameController.text.trim().isEmpty ||
-        _selectedMonth == null ||
+    if (_selectedMonth == null ||
         _selectedDay == null ||
         _selectedYear == null ||
         _selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please complete all required fields"),
+        ),
+      );
+      return;
+    }
+
+    if (!widget.isGoogleFlow &&
+        _displayNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Display name is required"),
         ),
       );
       return;
@@ -98,16 +119,25 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     });
 
     final authApiService = AuthApiService();
+    late final (int, dynamic) result;
 
-    final result = await authApiService.signup(
-      user: user_model.User(
-        widget.email,
-        widget.password,
-        _displayNameController.text.trim(),
-        formattedDate,
-        _selectedGender!,
-      ),
-    );
+    if (widget.isGoogleFlow) {
+      result = await authApiService.completeGoogleSignup(
+        incompleteToken: widget.incompleteToken ?? "",
+        dateOfBirth: formattedDate,
+        gender: _selectedGender!,
+      );
+    } else {
+      result = await authApiService.signup(
+        user: user_model.User(
+          widget.email ?? "",
+          widget.password ?? "",
+          _displayNameController.text.trim(),
+          formattedDate,
+          _selectedGender!,
+        ),
+      );
+    }
 
     if (!mounted) return;
 
@@ -116,12 +146,20 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     });
 
     if (result.$1 >= 200 && result.$1 < 300) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CheckInboxScreen(email: widget.email),
-        ),
-      );
+      if (widget.isGoogleFlow) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          "/home",
+          (route) => false,
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CheckInboxScreen(email: widget.email ?? ""),
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -134,6 +172,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isGoogleFlow = widget.isGoogleFlow;
+
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
@@ -153,37 +193,73 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
 
               const SizedBox(height: 28),
 
-              TextField(
-                controller: _displayNameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: "Display name",
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: AppColors.googleBackGround,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
+              if (!isGoogleFlow) ...[
+                TextField(
+                  controller: _displayNameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "Display name",
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: AppColors.googleBackGround,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
+                ),
+
+                const SizedBox(height: 10),
+
+                const Text(
+                  "Your display name can be anything you like. Your name or artist name are good choices.",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+              ],
+
+              if (isGoogleFlow && (widget.initialDisplayName ?? "").trim().isNotEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 18,
                   ),
+                  decoration: BoxDecoration(
+                    color: AppColors.googleBackGround,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.initialDisplayName!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              const Text(
-                "Your display name can be anything you like. Your name or artist name are good choices.",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  height: 1.4,
+                const Text(
+                  "This display name came from your Google account.",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 28),
+                const SizedBox(height: 28),
+              ],
 
               const Text(
                 "Date of birth (required)",
@@ -203,9 +279,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     child: _buildDropdown(
                       hint: "Month",
                       value: _selectedMonth,
-                      items: _months
-                          .where((month) => month != "Month")
-                          .toList(),
+                      items: _months.where((month) => month != "Month").toList(),
                       onChanged: (value) {
                         setState(() {
                           _selectedMonth = value;

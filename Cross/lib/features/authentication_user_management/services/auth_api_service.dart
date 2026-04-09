@@ -314,7 +314,7 @@ class AuthApiService {
     }
   }
 
-    Future<bool> checkUserExists({required String email}) async {
+  Future<bool> checkUserExists({required String email}) async {
     if (!_isValidEmail(email)) {
       LoggerService.logger.i("checkUserExists: Invalid email format");
       throw Exception("Invalid email format");
@@ -432,4 +432,165 @@ class AuthApiService {
       return (500, "Network error: $err");
     }
   }
+
+  Future<(int, dynamic)> verifyGoogleCode({
+  required String pendingToken,
+  required String code,
+}) async {
+  if (pendingToken.trim().isEmpty) {
+    return (400, "Pending token is required");
+  }
+
+  if (code.trim().isEmpty) {
+    return (400, "Verification code is required");
+  }
+
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/verify-code"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "pendingToken": pendingToken,
+        "code": code.trim(),
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    LoggerService.logger.i(
+      "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
+    );
+
+    if (response.statusCode == 200) {
+      final userData = data["data"]?["user"];
+      final accessToken = userData?["accessToken"];
+      final refreshTokenValue = userData?["refreshToken"];
+
+      if (accessToken != null && refreshTokenValue != null) {
+        await saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshTokenValue,
+        );
+
+        await refreshToken();
+        return (200, userData ?? "Authenticated successfully");
+      }
+
+      return (200, data["message"] ?? "Authenticated successfully");
+    }
+
+    return (
+      response.statusCode,
+      data["message"] ?? "Google code verification failed",
+    );
+  } catch (err) {
+    LoggerService.logger.i("verifyGoogleCode error: $err");
+    return (500, "Network error: $err");
+  }
+}
+
+Future<(int, dynamic)> completeGoogleSignup({
+  required String incompleteToken,
+  required String dateOfBirth,
+  required String gender,
+}) async {
+  if (incompleteToken.trim().isEmpty) {
+    return (400, "Incomplete token is required");
+  }
+
+  if (dateOfBirth.trim().isEmpty) {
+    return (400, "Date of birth is required");
+  }
+
+  if (gender.trim().isEmpty) {
+    return (400, "Gender is required");
+  }
+
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/complete"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "incompleteToken": incompleteToken,
+        "dateOfBirth": dateOfBirth,
+        "gender": gender,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    LoggerService.logger.i(
+      "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
+    );
+
+    if (response.statusCode == 201) {
+      final userData = data["data"]?["user"];
+      final accessToken = userData?["accessToken"];
+      final refreshTokenValue = userData?["refreshToken"];
+
+      if (accessToken != null && refreshTokenValue != null) {
+        await saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshTokenValue,
+        );
+
+        await refreshToken();
+        return (201, userData ?? "Authenticated successfully");
+      }
+
+      return (201, data["message"] ?? "Authenticated successfully");
+    }
+
+    return (
+      response.statusCode,
+      data["message"] ?? "Google signup completion failed",
+    );
+  } catch (err) {
+    LoggerService.logger.i("completeGoogleSignup error: $err");
+    return (500, "Network error: $err");
+  }
+}
+
+  Future<void> initiateGoogle() async{
+    // url: _servicePath + /google
+
+    // GET Method
+
+    // Redirects the user to Google's consent screen to authenticate.
+    // This endpoint is browser-only — do not call it from Postman or a REST client.
+    // Google will redirect back to /api/auth/v1/google/callback upon completion.
+
+    // No Parameters
+
+    // code 302 Redirect to Google consent screen
+    // code 500 Internal Server Error
+  }
+
+  Future<void> callbackGoogle() async{
+    // url: _servicePath + /google/callback
+
+    // GET Method
+
+
+
+  }
+
+  Future<void> verifyGoogle() async{
+    // url: _servicePath + /google/verify-code
+    // POST Method
+
+  }
+
+  Future<void> completeGoogle() async{
+    // url: _servicePath + /google/complete
+    // POST Method
+
+  }
+
 }

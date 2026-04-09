@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'dart:io' show Platform;
 
 // Package imports
@@ -12,6 +13,10 @@ import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/email_entry_screen.dart';
+import 'package:cross_team5/core/services/logger_service.dart';
+import 'package:cross_team5/features/authentication_user_management/screens/user_info_screen.dart';
+import 'package:cross_team5/features/authentication_user_management/screens/verify_code_screen.dart';
+import 'package:cross_team5/features/home/home_routes.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});  
@@ -186,7 +191,92 @@ class LoginScreen extends StatelessWidget {
                 text: AppText.continueWithGoogle,
                 icon: Icons.g_mobiledata,
                 color: AppColors.googleBackGround,
-                onPressed: () {},
+                onPressed: () async {
+                  final authApiService = AuthApiService();
+                  final authUrl = "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
+
+                  try {
+                    final result = await FlutterWebAuth2.authenticate(
+                      url: authUrl,
+                      callbackUrlScheme: "beatza",
+                      options: const FlutterWebAuth2Options(useWebview: true)
+                    );
+
+                    LoggerService.logger.i("Google auth callback result: $result");
+
+                    final uri = Uri.parse(result);
+
+                    final accessToken = uri.queryParameters["accessToken"];
+                    final refreshToken = uri.queryParameters["refreshToken"];
+                    final pendingToken = uri.queryParameters["pendingToken"];
+                    final incompleteToken = uri.queryParameters["incompleteToken"];
+                    final displayName = uri.queryParameters["displayName"];
+
+                    // Case 3: returning Google user
+                    if (accessToken != null && accessToken.isNotEmpty && refreshToken != null && refreshToken.isNotEmpty) {
+                      
+                      await authApiService.saveTokens(accessToken: accessToken, refreshToken: refreshToken);
+
+                      await authApiService.refreshToken();
+
+                      if (context.mounted) {
+                        Navigator.pushReplacementNamed(context, HomeRoutes.home);
+                      }
+                      return;
+                    }
+
+                    // Case 2: existing user, first Google login
+                    if (pendingToken != null && pendingToken.isNotEmpty) {
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VerifyCodeScreen(
+                              pendingToken: pendingToken,
+                            ),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    // Case 1: new Google user
+                    if (incompleteToken != null && incompleteToken.isNotEmpty) {
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserInfoScreen(
+                              incompleteToken: incompleteToken,
+                              initialDisplayName: displayName ?? "",
+                              isGoogleFlow: true,
+                            ),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Google sign-in returned no usable data"),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    LoggerService.logger.i("Google sign-in failed: $e");
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Google sign-in failed: $e"),
+                          backgroundColor: AppColors.anger,
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
 
               if (Platform.isWindows) ...[
