@@ -6,8 +6,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 // Package imports
 import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
-import 'package:cross_team5/features/authentication_user_management/services/qr_polling_service.dart';
-import 'package:cross_team5/features/home/home.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
@@ -21,90 +19,39 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     detectionSpeed: DetectionSpeed.normal,
   );
 
-  QrPollingService? _pollingService;
-  bool _isPolling = false;
-  String _pollingStatus = 'waiting';
+  bool _isProcessing = false;
+  String _status = 'idle'; // idle, approving, success, error
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Place the Qr Code in the center of the box'),
+        title: const Text('Scan QR Code'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Stack(
         children: [
+          // Camera preview
           MobileScanner(
             controller: controller,
             onDetect: (capture) {
-              // Handle scan logic
-              final List<Barcode> barcodes = capture.barcodes;
+              // Only handle first valid scan
+              if (_isProcessing) return;
+              
+              final barcodes = capture.barcodes;
               for (final barcode in barcodes) {
-                _handleScan(barcode.rawValue);
+                if (barcode.rawValue != null) {
+                  _handleScan(barcode.rawValue);
+                  break; // Handle only first code
+                }
               }
             },
           ),
-          // Inside Stack children[], after the MobileScanner:
-          if (_isPolling)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.7),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_pollingStatus == 'waiting')
-                        const CircularProgressIndicator(color: Colors.white)
-                      else if (_pollingStatus == 'success')
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 60,
-                        )
-                      else if (_pollingStatus == 'error')
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 60,
-                        )
-                      else if (_pollingStatus == 'timeout')
-                        const Icon(
-                          Icons.timer_off,
-                          color: Colors.orange,
-                          size: 60,
-                        ),
-
-                      const SizedBox(height: 20),
-                      Text(
-                        _getStatusMessage(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      if (_pollingStatus == 'waiting') ...[
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Confirm login on your desktop',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ],
-
-                      if (_pollingStatus == 'error' ||
-                          _pollingStatus == 'timeout') ...[
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _resetScanner,
-                          child: const Text('Try Again'),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          // Overlay UI
+          
+          // Scanning frame overlay
           Positioned.fill(
             child: IgnorePointer(
               child: Center(
@@ -119,125 +66,149 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               ),
             ),
           ),
+          
+          // Processing status overlay
+          if (_isProcessing)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.7),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Status icon
+                      if (_status == 'approving')
+                        const CircularProgressIndicator(color: Colors.white)
+                      else if (_status == 'success')
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 80,
+                        )
+                      else if (_status == 'error')
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 80,
+                        ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Status message
+                      Text(
+                        _status == 'approving' 
+                          ? 'Approving login...'
+                          : _status == 'success'
+                          ? '✓ Login approved!'
+                          : 'Approval failed',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      
+                      // Subtext for success
+                      if (_status == 'success') ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Return to desktop to continue',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                      
+                      // Retry button for error
+                      if (_status == 'error') ...[
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _resetScanner,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                          ),
+                          child: const Text('Try Again'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  void _handleScan(String? value) async {
-    if (value == null || value.isEmpty || _isPolling) return;
+  /// Handle QR scan: Mobile just APPROVES, doesn't poll or save tokens
+  Future<void> _handleScan(String? qrCode) async {
+    if (qrCode == null || qrCode.isEmpty || _isProcessing) return;
 
     // Stop camera to save resources
     await controller.stop();
 
     setState(() {
-      _isPolling = true;
-      _pollingStatus = 'waiting';
+      _isProcessing = true;
+      _status = 'approving';
     });
 
     try {
       final authApi = AuthApiService();
 
-      _pollingService = QrPollingService(
-        authApi: authApi,
-        pollInterval: const Duration(seconds: 5),
-        timeout: const Duration(minutes: 2),
-      );
+      // Mobile calls approve endpoint only - no polling
+      final bool success = await authApi.approveQrCode(qrCode);
 
-      // Start polling
-      final result = await _pollingService!.startPolling(
-        qrData: value,
-        onStatusUpdate: (status) {
-          if (mounted) {
-            setState(() => _pollingStatus = status);
-          }
-        },
-        onError: (error) {
-          LoggerService.logger.e('Polling error: $error');
-          if (mounted) {
-            setState(() => _pollingStatus = 'error');
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
-          }
-        },
-      );
-
-      // SUCCESS: Handle login
-      if (mounted && result['status'] == 'success') {
-        await _handleLoginSuccess(result);
-      }
-    } on TimeoutException {
-      if (mounted) {
-        setState(() => _pollingStatus = 'timeout');
+      if (success && mounted) {
+        setState(() => _status = 'success');
+        
+        // Show success briefly, then return
+        await Future.delayed(const Duration(seconds: 2));
+        
+        if (mounted) {
+          Navigator.pop(context); // Return to Library screen
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Desktop login approved! ✓'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else if (mounted) {
+        setState(() => _status = 'error');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Session expired. Please scan a new QR code.'),
+            content: Text('Failed to approve. Please try again.'),
+            backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
-      LoggerService.logger.e('Scan failed: $e');
+      LoggerService.logger.e('QR approval failed: $e');
       if (mounted) {
-        setState(() => _pollingStatus = 'error');
-      }
-    } finally {
-      // Only restart camera if we're NOT done (success/navigation happened)
-      if (_isPolling && mounted && _pollingStatus != 'success') {
-        await controller.start();
+        setState(() => _status = 'error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Connection error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
-  /// Handle successful authentication
-  Future<void> _handleLoginSuccess(Map<String, dynamic> userData) async {
-    // Save tokens securely
-    final AuthApiService authApiService = AuthApiService();
-    await authApiService.saveTokens(
-      accessToken: userData['accessToken'],
-      refreshToken: userData['refreshToken'],
-    );
-    await authApiService.refreshToken(); // for user ID storing
-
-    // Navigate to home and clear stack
-    if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        HomeRoutes.home, // Your home route constant
-        (route) => false,
-        arguments: {'loginMethod': 'qr'},
-      );
-    }
+  /// Reset scanner to allow re-scanning after error
+  Future<void> _resetScanner() async {
+    setState(() {
+      _isProcessing = false;
+      _status = 'idle';
+    });
+    await controller.start();
   }
 
   @override
   void dispose() {
-    _pollingService?.dispose();
-    controller.dispose();
+    controller.dispose(); // Clean up camera
     super.dispose();
-  }
-
-  String _getStatusMessage() {
-    switch (_pollingStatus) {
-      case 'waiting':
-        return 'Waiting for confirmation...';
-      case 'success':
-        return 'Login successful!';
-      case 'error':
-        return 'Connection error';
-      case 'timeout':
-        return 'Session expired';
-      default:
-        return 'Verifying...';
-    }
-  }
-
-  void _resetScanner() async {
-    _pollingService?.stopPolling();
-    setState(() {
-      _isPolling = false;
-      _pollingStatus = 'waiting';
-    });
-    await controller.start();
   }
 }

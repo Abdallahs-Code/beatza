@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Package imports
 import 'package:cross_team5/core/services/api_services.dart';
@@ -373,22 +374,29 @@ class LoginScreen extends StatelessWidget {
   ) async {
     try {
       final authApi = AuthApiService();
-      final data = userData['data']; // Tokens are inside 'data' field
+      final data = userData['data'];
 
       if (data != null) {
         final accessToken = data['accessToken'];
         final refreshToken = data['refreshToken'];
+
+        final userId = data['user']?['id']?.toString();
 
         if (accessToken != null && refreshToken != null) {
           await authApi.saveTokens(
             accessToken: accessToken,
             refreshToken: refreshToken,
           );
+
+          // Save user_id to storage
+          if (userId != null && userId.trim().isNotEmpty) {
+            await FlutterSecureStorage().write(key: 'user_id', value: userId);
+          }
         }
       }
 
       if (context.mounted) {
-        Navigator.pop(context); // Close QR dialog first
+        Navigator.pop(context);
         Navigator.pushNamedAndRemoveUntil(
           context,
           HomeRoutes.home,
