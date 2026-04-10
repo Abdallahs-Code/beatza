@@ -7,10 +7,25 @@ import 'package:cross_team5/main.dart' as app;
 import 'helpers/auth_helpers.dart';
 import 'helpers/nav_helpers.dart';
 
+Future<void> navigateToProfile(WidgetTester tester) async {
+  await tester.pumpAndSettle(const Duration(seconds: 1));
+  await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
+  await tester.pumpAndSettle();
+}
+
+Future<void> navigateToEditProfile(WidgetTester tester) async {
+  await navigateToProfile(tester);
+  await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('Navigation', () {
     testWidgets('Home screen -> Library screen -> User Profile screen', (tester) async {
       app.main();
+
       // Wait for splash to redirect to Home screen
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
@@ -35,13 +50,8 @@ void main() {
 
     testWidgets('User Profile screen -> Edit Profile screen', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-      // }
+
+      await navigateToProfile(tester);
 
       // Tap edit button
       final editBtn = find.byKey(const Key('test_profile_edit_btn'));
@@ -55,15 +65,8 @@ void main() {
 
     testWidgets('Edit Profile screen (cancel) -> User Profile screen', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-        await tester.pumpAndSettle();
-      // }
+
+      await navigateToEditProfile(tester);
 
       // Tap cancel button
       final cancelBtn = find.byKey(const Key('test_edit_profile_cancel_btn'));
@@ -77,15 +80,8 @@ void main() {
 
     testWidgets('Edit Profile screen (save) -> User Profile screen', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-        await tester.pumpAndSettle();
-      // }
+
+      await navigateToEditProfile(tester);
 
       // Tap save button
       final saveBtn = find.byKey(const Key('test_edit_profile_save_btn'));
@@ -101,13 +97,8 @@ void main() {
   group('User Profile', () {
     testWidgets('Tapping three dots opens share sheet', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-      // }
+
+      await navigateToProfile(tester);
 
       // Tap three dots
       final moreBtn = find.byKey(const Key('test_profile_more_btn'));
@@ -121,15 +112,11 @@ void main() {
 
     testWidgets('Copy link copies to clipboard', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_profile_more_btn')));
-        await tester.pumpAndSettle();
-      // }
+
+      await navigateToProfile(tester);
+
+      await tester.tap(find.byKey(const Key('test_profile_more_btn')));
+      await tester.pumpAndSettle();
 
       // Tap Copy link
       final copyLink = find.descendant(
@@ -151,15 +138,11 @@ void main() {
 
     testWidgets('Tapping linked profile does not crash', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_profile_more_btn')));
-        await tester.pumpAndSettle();
-      // }
+
+      await navigateToProfile(tester);
+
+      await tester.tap(find.byKey(const Key('test_profile_more_btn')));
+      await tester.pumpAndSettle();
 
       // Tap linked profile
       final linkedProfile = find.descendant(
@@ -179,14 +162,7 @@ void main() {
     testWidgets('Saving profile reflects updated banner URL on profile screen', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testUrl = 'https://images.unsplash.com/photo-1603647045834-a31d35679a2b?fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDExfHx8ZW58MHx8fHx8&ixlib=rb-4.1.0&q=60&w=3000';
 
@@ -249,14 +225,7 @@ void main() {
     testWidgets('Saving profile reflects updated avatar URL on profile screen', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testUrl = 'https://images.unsplash.com/photo-1603647045834-a31d35679a2b?fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDExfHx8ZW58MHx8fHx8&ixlib=rb-4.1.0&q=60&w=3000';
 
@@ -317,14 +286,7 @@ void main() {
     testWidgets('Saving profile reflects updated display name on profile screen', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testName = 'Johnny';
 
@@ -384,14 +346,7 @@ void main() {
     testWidgets('Saving profile reflects updated city on profile screen', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testCity = 'Berlin';
 
@@ -440,14 +395,7 @@ void main() {
     testWidgets('Saving profile reflects updated country on profile screen', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testCountry = 'Egypt';
 
@@ -490,14 +438,7 @@ void main() {
     testWidgets('Saving profile reflects updated bio on profile screen', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testBio = 'This is my test bio.';
 
@@ -546,14 +487,7 @@ void main() {
     testWidgets('Adding a link reflects the new link in the list and on the profile share sheet', (tester) async {
       app.main();
 
-      // Navigate to Edit Profile
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       const testName = 'gitlens';
       const testUrl = 'https://gitlens.com/test';
@@ -657,15 +591,8 @@ void main() {
 
     testWidgets('Editing a link reflects the updated link in the list and on the profile share sheet', (tester) async {
       app.main();
-      // Already tested {
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-        await tester.pumpAndSettle();
-      // }
+      
+      await navigateToEditProfile(tester);
 
       const updatedName = 'SoundCloud';
       const updatedUrl = 'https://soundcloud.com/test';
@@ -770,13 +697,7 @@ void main() {
     testWidgets('Deleting a link removes it from the list', (tester) async {
       app.main();
 
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-      await tester.tap(find.byKey(const Key('test_home_to_library_nav')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_library_to_profile_btn')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('test_profile_edit_btn')));
-      await tester.pumpAndSettle();
+      await navigateToEditProfile(tester);
 
       // Assert the row exists before deleting
       expect(find.byKey(const Key('test_edit_link_row_0')), findsOneWidget);
