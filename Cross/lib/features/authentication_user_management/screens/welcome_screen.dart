@@ -69,6 +69,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_welcome_screen'),
       body: Stack(
         children: [
           const WelcomeBackground(),

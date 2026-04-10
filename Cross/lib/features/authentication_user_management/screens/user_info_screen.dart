@@ -333,6 +333,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_user_info_screen'),
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -374,6 +375,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               ),
               const SizedBox(height: 34),
               TextField(
+                key: const Key('test_user_info_display_name_input'),
                 controller: _displayNameController,
                 readOnly: widget.isGoogleFlow,
                 style: const TextStyle(
@@ -425,6 +427,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               _buildFieldLabel("Date of birth (required)"),
               const SizedBox(height: 14),
               Row(
+                key: const Key('test_user_info_dob_row'),
                 children: [
                   Expanded(
                     child: _buildDropdownBox<int>(
@@ -547,6 +550,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  key: const Key('test_user_info_submit_btn'),
                   onPressed: _isLoading ? null : _handleSubmit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB3B3B3),

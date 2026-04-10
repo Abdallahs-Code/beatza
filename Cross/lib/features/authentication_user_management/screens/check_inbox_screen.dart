@@ -72,6 +72,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_check_inbox_screen'),
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -98,6 +99,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
               const SizedBox(height: 6),
 
               Text(
+                key: const Key('test_check_inbox_email'),
                 widget.email,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -110,6 +112,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
               const SizedBox(height: 18),
 
               GestureDetector(
+                key: const Key('test_check_inbox_resend_btn'),
                 onTap: _isResending ? null : _handleResendVerificationEmail,
                 child: RichText(
                   textAlign: TextAlign.center,
@@ -178,6 +181,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
               const SizedBox(height: 28),
 
               GestureDetector(
+                key: const Key('test_check_inbox_back_to_login_btn'),
                 onTap: () {
                   Navigator.pushNamedAndRemoveUntil(
                     context,

@@ -109,6 +109,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_password_screen'),
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -133,6 +134,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               const SizedBox(height: 6),
 
               Text(
+                key: const Key('test_password_email_display'),
                 widget.email,
                 style: const TextStyle(
                   fontSize: 18,
@@ -144,6 +146,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               const SizedBox(height: 26),
 
               PasswordInputField(
+                key: const Key('test_password_input'),
                 hintText: "Your Password (min. 6 characters)",
                 controller: _passwordController,
               ),
@@ -151,6 +154,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               const SizedBox(height: 24),
 
               LoginButton(
+                key: const Key('test_password_continue_btn'),
                 text: _isLoading ? "Loading..." : "Continue",
                 color: AppColors.silver,
                 onPressed: _isLoading ? () {} : _handleContinue,
@@ -159,6 +163,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               const SizedBox(height: 20),
 
               GestureDetector(
+                key: const Key('test_password_forgot_btn'),
                 onTap: _isForgotPasswordLoading ? null : _handleForgotPassword,
                 child: AuthLinkText(
                   text: _isForgotPasswordLoading

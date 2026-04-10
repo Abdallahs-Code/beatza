@@ -470,6 +470,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final top = MediaQuery.of(context).padding.top;
 
     return Scaffold(
+      key: const Key('test_edit_profile_screen'),
       backgroundColor: Colors.black,
       body: Shortcuts(
         shortcuts: {LogicalKeySet(LogicalKeyboardKey.enter): const ActivateIntent()},

@@ -104,6 +104,7 @@ class LoginScreen extends StatelessWidget {
     final emailController = TextEditingController();
 
     return Scaffold(
+      key: const Key('test_login_screen'),
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -113,6 +114,7 @@ class LoginScreen extends StatelessWidget {
             children: [
               /// BACK BUTTON
               IconButton(
+                key: const Key('test_login_back_btn'),
                 onPressed: () {
                   Navigator.pushReplacementNamed(
                     context,
@@ -184,6 +186,7 @@ class LoginScreen extends StatelessWidget {
 
               /// GOOGLE LOGIN BUTTON
               LoginButton(
+                key: const Key('test_login_google_btn'),
                 text: AppText.continueWithGoogle,
                 icon: Icons.g_mobiledata,
                 color: AppColors.googleBackGround,
@@ -307,6 +310,7 @@ class LoginScreen extends StatelessWidget {
               ),
 
               GestureDetector(
+                key: const Key('test_login_email_field'),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -327,6 +331,7 @@ class LoginScreen extends StatelessWidget {
 
               /// CONTINUE BUTTON
               LoginButton(
+                key: const Key('test_login_continue_btn'),
                 text: AppText.continueButtonText,
                 color: AppColors.silver,
                 onPressed: () {},

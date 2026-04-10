@@ -75,6 +75,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_library_screen'), 
       backgroundColor: AppColors.pureBlack,
       bottomNavigationBar: const CommonBottomNavBar(
         currentItem: AppNavItem.library,

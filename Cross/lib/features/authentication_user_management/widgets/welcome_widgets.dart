@@ -60,6 +60,7 @@ class WelcomeBottomPanel extends StatelessWidget {
 
           /// CREATE ACCOUNT BUTTON
           WelcomeButton(
+            key: const Key('test_welcome_create_account_btn'),
             text: AppText.createAccount,
             backgroundColor: Colors.white,
             textColor: Colors.black,
@@ -70,6 +71,7 @@ class WelcomeBottomPanel extends StatelessWidget {
 
           /// LOGIN BUTTON
           WelcomeButton(
+            key: const Key('test_welcome_login_btn'),
             text: AppText.login,
             backgroundColor: const Color.fromRGBO(187, 210, 254, 1),
             textColor: Colors.black,

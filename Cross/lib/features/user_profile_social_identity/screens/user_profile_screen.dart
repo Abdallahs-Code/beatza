@@ -523,6 +523,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_user_profile_screen'),
       backgroundColor: Colors.black,
       body: FutureBuilder<_ProfileViewState>(
         future: _profileFuture,

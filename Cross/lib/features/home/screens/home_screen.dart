@@ -13,6 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_home_screen'),
       backgroundColor: AppColors.homeBackground,
       bottomNavigationBar: const CommonBottomNavBar(
         currentItem: AppNavItem.home,

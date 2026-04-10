@@ -59,6 +59,7 @@ void _handleContinue() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_create_password_screen'),
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -83,6 +84,7 @@ void _handleContinue() {
               const SizedBox(height: 6),
 
               Text(
+                key: const Key('test_create_password_email_display'),
                 widget.email,
                 style: const TextStyle(
                   fontSize: 18,
@@ -94,6 +96,7 @@ void _handleContinue() {
               const SizedBox(height: 26),
 
               PasswordInputField(
+                key: const Key('test_create_password_input'),
                 hintText: "Choose a password (min. 8 characters)",
                 controller: _passwordController,
               ),
@@ -101,6 +104,7 @@ void _handleContinue() {
               const SizedBox(height: 24),
 
               LoginButton(
+                key: const Key('test_create_password_continue_btn'),
                 text: "Continue",
                 color: AppColors.silver,
                 onPressed: _handleContinue,

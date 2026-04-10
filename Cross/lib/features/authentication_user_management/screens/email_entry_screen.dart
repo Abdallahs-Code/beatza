@@ -82,6 +82,7 @@ if (userExists) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('test_email_entry_screen'),
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -101,6 +102,7 @@ if (userExists) {
               const SizedBox(height: 30),
 
               TextInputField(
+                key: const Key('test_email_entry_input'),
                 hintText: "Your email address or profile URL",
                 controller: _emailController,
                 autofocus: true,
@@ -109,6 +111,7 @@ if (userExists) {
               const SizedBox(height: 24),
 
               LoginButton(
+                key: const Key('test_email_entry_continue_btn'),
                 text: _isLoading ? "Loading..." : "Continue",
                 color: AppColors.silver,
                 onPressed: _isLoading ? () {} : _handleContinue,
