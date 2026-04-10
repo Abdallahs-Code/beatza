@@ -4,7 +4,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     
     <application
-        android:label="cross_team5"
+        android:label="Beatza"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

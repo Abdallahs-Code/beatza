@@ -45,6 +45,7 @@ dependencies:
   flutter_web_auth_2: ^5.0.1
   qr_flutter: 4.1.0
   mobile_scanner: 7.2.0
+  flutter_launcher_icons: 0.14.4
   file_picker: ^11.0.2
   audioplayers: ^6.6.0
   image_picker: ^1.2.1
@@ -73,6 +74,13 @@ flutter:
   assets:
     - assets/images/
     - .env
+
+# The following section is specific to APK/EXE icon + title
+flutter_launcher_icon:
+  platforms:
+    - android
+    - windows
+  image_path: "assets/images/BEATZA.ico"
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
