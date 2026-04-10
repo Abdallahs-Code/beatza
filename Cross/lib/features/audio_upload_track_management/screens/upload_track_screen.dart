@@ -1,3 +1,4 @@
+// Dart imports
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
@@ -211,7 +212,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       _isUploading = true;
       _uploadComplete = false;
       _uploadProgress = 0;
-      _isPlayerVisible = true;
+      _isPlayerVisible = false;
     });
 
     _uploadSubscription?.cancel();
@@ -222,6 +223,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         setState(() {
           _isUploading = false;
           _uploadComplete = true;
+          _isPlayerVisible = true;
         });
       }
     });
@@ -451,7 +453,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ],
           ),
 
-          if (_selectedFile != null && _selectedFile!.path != null && _isPlayerVisible)
+          if (_selectedFile != null && _selectedFile!.path != null && _isPlayerVisible && _uploadComplete)
             Positioned(
               left: 0,
               right: 0,
@@ -971,6 +973,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       ),
     );
   }
+
   Widget _buildSaveButton() {
     bool isReady = _selectedFile != null && _uploadComplete;
     bool canSave = !_isSaving && isReady;
@@ -1009,4 +1012,5 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ),
       ],
     );
-  }}
+  }
+}
