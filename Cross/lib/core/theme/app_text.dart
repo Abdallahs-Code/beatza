@@ -4,7 +4,7 @@ class AppText {
   static const String signInOrCreateAccount = "Sign in or create an account";
 
   static const String termsAgreementStart =
-      "By clicking on any of the \"Continue\" buttons below, you agree to Beatza's";
+      "By clicking on any of the \"Continue\" buttons below, you agree to Beatza's ";
 
   static const String termsOfUse = "Terms of Use";
 
@@ -147,4 +147,17 @@ class AppText {
   static const String nowPlaying = "Now Playing...";
 
   static const String continueWithQrCode = "Continue with QR code";
+
+  static const String qrCodeLoginTitle = 'Sign in with QR code';
+
+  static const String qrCodeLoginDesc =
+      'Open SoundCloud on your phone and scan this code to sign in.';
+
+  static const List<String> stepInstruction = [
+    'Open the SoundCloud app on your phone',
+    'Go to QR scanner',
+    'Scan and approve login',
+  ];
+
+  static const String qrCodeLoginStatus = 'Waiting for scan approval...';
 }

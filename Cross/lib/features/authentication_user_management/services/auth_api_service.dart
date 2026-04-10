@@ -5,6 +5,7 @@ import "package:http/http.dart" as http;
 
 // Package imports
 import "package:cross_team5/core/services/api_services.dart";
+import "package:cross_team5/core/services/logger_service.dart";
 import "package:cross_team5/features/authentication_user_management/models/user.dart"
     as user_model;
 
@@ -122,6 +123,9 @@ class AuthApiService {
       );
 
       final data = jsonDecode(response.body);
+      LoggerService.logger.i(
+      "signup statusCode: ${response.statusCode}, body: ${response.body}",
+    );
       return (
         response.statusCode,
         data["message"] ?? "Signup request processed",
@@ -234,4 +238,320 @@ class AuthApiService {
       throw Exception("Network error: $err");
     }
   }
+
+  Future<bool> approveQrCode(String qrData) async {
+    final accessToken = await _storage.read(key: "access_token");
+    try 
+    {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/cross/mobile"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $accessToken",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({"qrCode": qrData}),
+      );
+
+      if (response.statusCode == 200)
+      {
+        return true;
+      }
+      return false;
+    }
+    catch(e)
+    {
+      LoggerService.logger.i('Approve Qr code Func: $e');
+      return false;
+    }
+    
+  }
+
+  Future<Map<String, dynamic>> checkQrStatus(String qrData) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$_servicePath/cross/desktop/poll'),
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+        body: jsonEncode({'qrCode': qrData}),
+      ).timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(response.body);
+      
+      switch (response.statusCode) {
+        case 200:
+          if (data.containsKey('data')) {
+            return {
+              'status': 'success',
+              'message': data['message'] ?? 'Authenticated successfully',
+              'data': data['data'],
+            };
+          } else {
+            return {
+              'status': 'waiting',
+              'message': data['message'] ?? 'QR code not scanned, waiting for approval.',
+            };
+          }
+        
+        case 400:
+          throw Exception(data['message'] ?? 'Bad request');
+        
+        case 401:
+          throw Exception(data['message'] ?? 'Session expired');
+        
+        case 500:
+          throw Exception(data['message'] ?? 'Internal server error');
+        
+        default:
+          throw Exception('Failed to check QR status: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.logger.i('checkQrStatus error: $e');
+      rethrow;
+    }
+  }
+
+    Future<bool> checkUserExists({required String email}) async {
+    if (!_isValidEmail(email)) {
+      LoggerService.logger.i("checkUserExists: Invalid email format");
+      throw Exception("Invalid email format");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/find-email"),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({
+          "email": email.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "checkUserExists statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        return data["data"]?["exists"] == true;
+      }
+
+      throw Exception(data["message"] ?? "Failed to check email");
+    } catch (err) {
+      LoggerService.logger.i("checkUserExists error: $err");
+      throw Exception("Network error: $err");
+    }
+  }
+
+  Future<(int, dynamic)> forgotPassword({required String email}) async {
+    if (!_isValidEmail(email)) {
+      LoggerService.logger.i("forgotPassword: Invalid email format");
+      return (400, "Invalid email format");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/forgot-password"),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({
+          "email": email.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "forgotPassword statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        return (
+          200,
+          data["message"] ?? "Password reset email sent successfully",
+        );
+      }
+
+      return (
+        response.statusCode,
+        data["message"] ?? "Failed to send password reset email",
+      );
+    } catch (err) {
+      LoggerService.logger.i("forgotPassword error: $err");
+      return (500, "Network error: $err");
+    }
+  }
+
+  Future<(int, dynamic)> resendVerificationEmail({
+    required String email,
+  }) async {
+    if (!_isValidEmail(email)) {
+      LoggerService.logger.i("resendVerificationEmail: Invalid email format");
+      return (400, "Invalid email format");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/resend-verification-email"),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+        body: jsonEncode({
+          "email": email.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "resendVerificationEmail statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        return (
+          200,
+          data["message"] ?? "Email existence check completed successfully",
+        );
+      }
+
+      return (
+        response.statusCode,
+        data["message"] ?? "Failed to resend verification email",
+      );
+    } catch (err) {
+      LoggerService.logger.i("resendVerificationEmail error: $err");
+      return (500, "Network error: $err");
+    }
+  }
+
+  Future<(int, dynamic)> verifyGoogleCode({
+  required String pendingToken,
+  required String code,
+}) async {
+  if (pendingToken.trim().isEmpty) {
+    return (400, "Pending token is required");
+  }
+
+  if (code.trim().isEmpty) {
+    return (400, "Verification code is required");
+  }
+
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/verify-code?client=Android"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "pendingToken": pendingToken,
+        "code": code.trim(),
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    LoggerService.logger.i(
+      "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = data["data"];
+      final accessToken = responseData?["accessToken"];
+      final refreshTokenValue = responseData?["refreshToken"];
+
+      if (accessToken != null && refreshTokenValue != null) {
+        await saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshTokenValue,
+        );
+
+        await refreshToken();
+      }
+
+      return (200, data["message"] ?? "Authenticated successfully");
+    }
+
+    return (
+      response.statusCode,
+      data["message"] ?? "Google code verification failed",
+    );
+  } catch (err) {
+    LoggerService.logger.i("verifyGoogleCode error: $err");
+    return (500, "Network error: $err");
+  }
+}
+
+Future<(int, dynamic)> completeGoogleSignup({
+  required String incompleteToken,
+  required String dateOfBirth,
+  required String gender,
+}) async {
+  if (incompleteToken.trim().isEmpty) {
+    return (400, "Incomplete token is required");
+  }
+
+  if (dateOfBirth.trim().isEmpty) {
+    return (400, "Date of birth is required");
+  }
+
+  if (gender.trim().isEmpty) {
+    return (400, "Gender is required");
+  }
+
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/complete?client=Android"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "incompleteToken": incompleteToken,
+        "dateOfBirth": dateOfBirth,
+        "gender": gender,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    LoggerService.logger.i(
+      "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = data["data"];
+      final accessToken = responseData?["accessToken"];
+      final refreshTokenValue = responseData?["refreshToken"];
+
+      if (accessToken != null && refreshTokenValue != null) {
+        await saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshTokenValue,
+        );
+
+        await refreshToken();
+        return (200, responseData ?? "Authenticated successfully");
+      }
+
+      return (200, data["message"] ?? "Authenticated successfully");
+    }
+
+    return (
+      response.statusCode,
+      data["message"] ?? "Google signup completion failed",
+    );
+  } catch (err) {
+    LoggerService.logger.i("completeGoogleSignup error: $err");
+    return (500, "Network error: $err");
+  }
+}
 }

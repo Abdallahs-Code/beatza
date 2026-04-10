@@ -6,9 +6,11 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/welcome_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
+  final bool isCrossPlatFlow = true;
 
   Future<void> _openAuthFlow(BuildContext context) async {
     final authApiService = AuthApiService();
@@ -56,6 +58,14 @@ class WelcomeScreen extends StatelessWidget {
     }
   }
 
+  void _handleAuth(BuildContext context) {
+  if (isCrossPlatFlow) {
+    Navigator.pushNamed(context, AuthenticationRoutes.login);
+  } else {
+    _openAuthFlow(context);
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,8 +77,8 @@ class WelcomeScreen extends StatelessWidget {
             left: 0,
             right: 0,
             child: WelcomeBottomPanel(
-              onCreateAccount: () => _openAuthFlow(context),
-              onLogin: () => _openAuthFlow(context),
+              onCreateAccount: () => _handleAuth(context),
+              onLogin: () => _handleAuth(context),
             ),
           ),
         ],

@@ -55,4 +55,5 @@ class AppColors {
   static const Color googleBackGround = Color(0xFF484848);
   static const Color blueHyperlink = Color(0xFF699FFF);
   static const Color orangeQrCode = Color(0xFFF97316);
+  static const Color transparent = Color(0x00000000);
 }
