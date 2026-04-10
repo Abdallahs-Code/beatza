@@ -161,6 +161,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
             ),
 
+            /// Profile Image Overlay
             Positioned(
               top: 8,
               right: 12,
@@ -175,22 +176,32 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       onTap: () => _openProfile(context),
                       borderRadius: BorderRadius.circular(999),
                       child: Container(
+                        width: 44,
+                        height: 44,
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
+                          color: AppColors.pureBlack,
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.10),
                           ),
                         ),
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.white.withValues(alpha: 0.08),
-                          backgroundImage: imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : null,
-                          child: imageUrl.isEmpty
-                              ? const Icon(Icons.person, color: Colors.white, size: 22)
-                              : null,
+                        child: ClipOval(
+                          child: Container(
+                            color: AppColors.pureBlack,
+                            child: imageUrl.isNotEmpty
+                                ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.person, color: Colors.white, size: 22),
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Icon(Icons.person, color: Colors.white, size: 22);
+                              },
+                            )
+                                : const Icon(Icons.person, color: Colors.white, size: 22),
+                          ),
                         ),
                       ),
                     ),

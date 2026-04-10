@@ -1,5 +1,5 @@
-// Dart imports
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +11,10 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
+import '../models/spotlight_models.dart';
+import 'edit_spotlight_screen.dart';
+
+// --- Main Screen ---
 class UserProfileScreen extends StatefulWidget {
   final String userId;
   final String token;
@@ -594,7 +598,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
-class _SoundCloudProfileView extends StatelessWidget {
+class _SoundCloudProfileView extends StatefulWidget {
   final UserProfileModel profile;
   final bool isOwner;
   final String token;
@@ -618,9 +622,16 @@ class _SoundCloudProfileView extends StatelessWidget {
     this.currentlyPlayingTrackId,
   });
 
-  bool get _hasProfilePhoto => profile.profileImgLink.trim().isNotEmpty;
-  bool get _hasBio => profile.bio.trim().isNotEmpty;
-  bool get _hasBanner => profile.bannerImgLink.trim().isNotEmpty;
+  @override
+  State<_SoundCloudProfileView> createState() => _SoundCloudProfileViewState();
+}
+
+class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
+  List<SpotlightItemModel?> spotlightItems = List.filled(5, null);
+
+  bool get _hasProfilePhoto => widget.profile.profileImgLink.trim().isNotEmpty;
+  bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
+  bool get _hasBanner => widget.profile.bannerImgLink.trim().isNotEmpty;
 
   int get _completedStepsCount {
     int count = 2;
@@ -632,6 +643,32 @@ class _SoundCloudProfileView extends StatelessWidget {
 
   bool get _shouldShowCompleteProfile {
     return !_hasProfilePhoto || !_hasBio || !_hasBanner;
+  }
+
+  void _openEditSpotlight() async {
+    if (!widget.isOwner) return;
+
+    final updatedSpotlight = await Navigator.push<List<SpotlightItemModel?>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditSpotlightScreen(
+          initialItems: spotlightItems.whereType<SpotlightItemModel>().toList(),
+          artistName: widget.profile.resolvedDisplayName,
+        ),
+      ),
+    );
+
+    if (updatedSpotlight != null && mounted) {
+      setState(() {
+        for (int i = 0; i < 5; i++) {
+          if (i < updatedSpotlight.length) {
+            spotlightItems[i] = updatedSpotlight[i];
+          } else {
+            spotlightItems[i] = null;
+          }
+        }
+      });
+    }
   }
 
   List<_ProfileCompletionCardData> _buildCompletionCards() {
@@ -689,24 +726,95 @@ class _SoundCloudProfileView extends StatelessWidget {
   }
 
   Future<void> _openEditProfile(BuildContext context) async {
-    if (!isOwner) return;
+    if (!widget.isOwner) return;
 
     final updated = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => EditProfileScreen(
-          currentProfile: profile,
-          token: token,
+          currentProfile: widget.profile,
+          token: widget.token,
         ),
       ),
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     if (updated == true) {
-      onEdited();
+      widget.onEdited();
     }
   }
+
+  Widget _buildSpotlightSlot(int index) {
+    return GestureDetector(
+      onTap: _openEditSpotlight,
+      child: DragTarget<TrackModel>(
+        onWillAccept: (track) {
+          if (track == null || !widget.isOwner) return false;
+          String visibility = track.visibility.toString().toLowerCase();
+          if (visibility.contains('private') || visibility.contains('unlisted')) {
+            return false;
+          }
+          return true;
+        },
+        onAccept: (track) {
+          setState(() {
+            spotlightItems[index] = SpotlightItemModel.fromTrack(track, widget.profile.resolvedDisplayName);
+          });
+        },
+        builder: (context, candidateData, rejectedData) {
+          final item = spotlightItems[index];
+          final isHovered = candidateData.isNotEmpty;
+
+          return AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isHovered ? Colors.white12 : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: CustomPaint(
+                painter: item == null ? DottedBorderPainter() : null,
+                child: item != null
+                    ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                          ? (item.imageUrl!.startsWith('http')
+                          ? Image.network(item.imageUrl!, fit: BoxFit.cover)
+                          : Image.file(File(item.imageUrl!), fit: BoxFit.cover))
+                          : Container(color: Colors.grey[800], child: const Icon(Icons.music_note, color: Colors.white)),
+                    ),
+                    if (widget.isOwner)
+                      Positioned(
+                        top: 6, right: 6,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              spotlightItems[index] = null;
+                            });
+                          },
+                          child: const CircleAvatar(
+                            radius: 12, backgroundColor: Colors.black54,
+                            child: Icon(Icons.close, size: 14, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                  ],
+                )
+                    : const Center(
+                  child: Icon(Icons.lock_outline, color: Colors.white54, size: 28),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -724,22 +832,20 @@ class _SoundCloudProfileView extends StatelessWidget {
           automaticallyImplyLeading: false,
           flexibleSpace: LayoutBuilder(
             builder: (context, constraints) {
-              final collapsed =
-                  constraints.maxHeight <= kToolbarHeight + topPadding + 24;
+              final collapsed = constraints.maxHeight <= kToolbarHeight + topPadding + 24;
 
               return Stack(
                 fit: StackFit.expand,
                 children: [
                   Container(
                     color: const Color(0xFF121212),
-                    child: profile.bannerImgLink.trim().isNotEmpty
+                    child: widget.profile.bannerImgLink.trim().isNotEmpty
                         ? Image.network(
-                      profile.bannerImgLink,
+                      widget.profile.bannerImgLink,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                      const SizedBox.shrink(),
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
                     )
-                        : _AutoBannerFromAvatar(profile.profileImgLink),
+                        : _AutoBannerFromAvatar(widget.profile.profileImgLink),
                   ),
                   Container(color: Colors.black.withValues(alpha: 0.18)),
                   Positioned(
@@ -755,28 +861,24 @@ class _SoundCloudProfileView extends StatelessWidget {
                     right: 16,
                     child: _RoundIconButton(
                       icon: Icons.more_horiz,
-                      onTap: onMorePressed,
+                      onTap: widget.onMorePressed,
                     ),
                   ),
                   if (collapsed)
                     Positioned(
-                      left: 60,
-                      right: 60,
-                      top: topPadding + 12,
+                      left: 60, right: 60, top: topPadding + 12,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _SmallAvatar(profile.profileImgLink),
+                          _SmallAvatar(widget.profile.profileImgLink),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              profile.resolvedDisplayName,
+                              widget.profile.resolvedDisplayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
@@ -791,445 +893,380 @@ class _SoundCloudProfileView extends StatelessWidget {
         SliverToBoxAdapter(
           child: Transform.translate(
             offset: const Offset(0, -4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Container(
-                    width: 104,
-                    height: 104,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: CircleAvatar(
-                      radius: 48,
-                      backgroundColor: const Color(0xFF1C1C1C),
-                      backgroundImage:
-                      profile.profileImgLink.trim().isNotEmpty
-                          ? NetworkImage(profile.profileImgLink)
-                          : null,
-                      child: profile.profileImgLink.trim().isEmpty
-                          ? const Icon(
-                        Icons.person,
-                        color: Colors.white38,
-                        size: 42,
-                      )
-                          : null,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                  child: Text(
-                    profile.resolvedDisplayName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                  child: Text(
-                    profile.resolvedLocation,
-                    style: const TextStyle(
-                      color: Color(0xFFB3B3B3),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            FollowersSocialGraphRoutes.followers,
-                            arguments: {'userId': profile.userId},
-                          );
-                        },
-                        child: Text(
-                          '${profile.followersCount} Followers',
-                          style: const TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 13,
-                          ),
+            child: ValueListenableBuilder<List<TrackModel>>(
+              valueListenable: AudioUploadService.globalMockTracksNotifier,
+              builder: (context, tracks, child) {
+                final bool hasTracks = tracks.isNotEmpty;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Container(
+                        width: 104, height: 104,
+                        decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
+                        alignment: Alignment.center,
+                        child: CircleAvatar(
+                          radius: 48, backgroundColor: const Color(0xFF1C1C1C),
+                          backgroundImage: widget.profile.profileImgLink.trim().isNotEmpty
+                              ? NetworkImage(widget.profile.profileImgLink)
+                              : null,
+                          child: widget.profile.profileImgLink.trim().isEmpty
+                              ? const Icon(Icons.person, color: Colors.white38, size: 42)
+                              : null,
                         ),
                       ),
-                      const Text(
-                        ' • ',
-                        style: TextStyle(
-                          color: Color(0xFFB3B3B3),
-                          fontSize: 13,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            FollowersSocialGraphRoutes.followers,
-                            arguments: {
-                              'userId': profile.userId,
-                              'tabIndex': 1,
-                            },
-                          );
-                        },
-                        child: Text(
-                          '${profile.followingsCount} Following',
-                          style: const TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                  child: Text(
-                    profile.role,
-                    style: const TextStyle(
-                      color: Color(0xFFB3B3B3),
-                      fontSize: 13,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: isOwner
-                            ? () => _openEditProfile(context)
-                            : null,
-                        icon: const Icon(
-                          Icons.edit_outlined,
-                          color: Colors.white70,
-                          size: 22,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.shuffle,
-                          color: Colors.white70,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.play_arrow,
-                            color: Colors.black,
-                            size: 34,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (profile.bio.trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      profile.bio.trim(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        height: 1.35,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                      child: Text(
+                        widget.profile.resolvedDisplayName,
+                        style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700),
                       ),
                     ),
-                  ),
-                if (profile.favoriteGenres.isNotEmpty)
-                  const SizedBox(height: 12),
-                if (profile.favoriteGenres.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: profile.favoriteGenres.map((genre) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF171717),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.white12),
-                          ),
-                          child: Text(
-                            genre,
-                            style: const TextStyle(
-                              color: Color(0xFFCCCCCC),
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                      child: Text(
+                        widget.profile.resolvedLocation,
+                        style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 14),
+                      ),
                     ),
-                  ),
-                if (_shouldShowCompleteProfile) ...[
-                  const SizedBox(height: 28),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Complete your profile',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.keyboard_arrow_up,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                    child: RichText(
-                      text: TextSpan(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+                      child: Row(
                         children: [
-                          TextSpan(
-                            text: '$_completedStepsCount OF 5 ',
-                            style: const TextStyle(
-                              color: Color(0xFFFF6A00),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                            ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, FollowersSocialGraphRoutes.followers, arguments: {'userId': widget.profile.userId});
+                            },
+                            child: Text('${widget.profile.followersCount} Followers', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
                           ),
-                          const TextSpan(
-                            text: 'COMPLETE',
-                            style: TextStyle(
-                              color: Color(0xFFD0D0D0),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                          const Text(' • ', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, FollowersSocialGraphRoutes.followers, arguments: {'userId': widget.profile.userId, 'tabIndex': 1});
+                            },
+                            child: Text('${widget.profile.followingsCount} Following', style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                      child: Text(
+                        (widget.profile.role.toLowerCase() == 'listener' && hasTracks) ? 'Artist' : widget.profile.role,
+                        style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+                            onPressed: widget.isOwner ? () => _openEditProfile(context) : null,
+                            icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 22),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+                            onPressed: () {},
+                            icon: const Icon(Icons.shuffle, color: Colors.white70, size: 22),
+                          ),
+                          const SizedBox(width: 24),
+                          Container(
+                            width: 56, height: 56,
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(Icons.play_arrow, color: Colors.black, size: 34),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    height: 350,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: completionCards.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 14),
-                      itemBuilder: (context, index) {
-                        final card = completionCards[index];
-                        return _CompleteProfileCard(
-                          data: card,
-                          onPressed: isOwner
-                              ? () => _openEditProfile(context)
-                              : null,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-                if (showArtistSections) ...[
-                  const SizedBox(height: 28),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      'Spotlight',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      'Pin your gems to your profile',
-                      style: TextStyle(
-                        color: Color(0xFFB3B3B3),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(
-                      children: [
-                        Expanded(child: _SpotlightCard()),
-                        SizedBox(width: 14),
-                        Expanded(child: _SpotlightCard()),
-                        SizedBox(width: 14),
-                        Expanded(child: _SpotlightCard()),
-                      ],
-                    ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
 
-                ValueListenableBuilder<List<TrackModel>>(
-                  valueListenable: AudioUploadService.globalMockTracksNotifier,
-                  builder: (context, tracks, child) {
-                    if (tracks.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 28),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 14),
-                          child: Text(
-                            'Tracks',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
+                    if (widget.profile.bio.trim().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(widget.profile.bio.trim(), style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.35)),
+                      ),
+
+                    if (widget.profile.favoriteGenres.isNotEmpty)
+                      const SizedBox(height: 12),
+
+                    if (widget.profile.favoriteGenres.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Wrap(
+                          spacing: 8, runSpacing: 8,
+                          children: widget.profile.favoriteGenres.map((genre) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF171717),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: Text(genre, style: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 11.5, fontWeight: FontWeight.w500)),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    if (_shouldShowCompleteProfile) ...[
+                      const SizedBox(height: 28),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Expanded(child: Text('Complete your profile', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700))),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(text: '$_completedStepsCount OF 5 ', style: const TextStyle(color: Color(0xFFFF6A00), fontSize: 14, fontWeight: FontWeight.w800)),
+                              const TextSpan(text: 'COMPLETE', style: TextStyle(color: Color(0xFFD0D0D0), fontSize: 14, fontWeight: FontWeight.w700)),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        ...tracks.map((track) {
-                          bool isPlaying = currentlyPlayingTrackId == track.id;
-                          return InkWell(
-                            onTap: () => onTrackTap(track),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              child: _LocalTrackRow(
-                                track: track,
-                                artistName: profile.resolvedDisplayName,
-                                isPlaying: isPlaying,
-                                onMoreTap: () => onTrackOptionsTap(track),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        height: 350,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: completionCards.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 14),
+                          itemBuilder: (context, index) {
+                            final card = completionCards[index];
+                            return _CompleteProfileCard(
+                              data: card,
+                              onPressed: widget.isOwner ? () => _openEditProfile(context) : null,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+
+                    if (widget.isOwner && hasTracks) ...[
+                      const SizedBox(height: 24),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const YourInsightsScreen()));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text(
+                                'Your insights',
+                                style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                              ),
+                              Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
+
+                    if (widget.showArtistSections || widget.isOwner) ...[
+                      const SizedBox(height: 28),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14),
+                        child: Text('Spotlight', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
+                      ),
+                      const SizedBox(height: 10),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14),
+                        child: Text('Pin your gems to your profile', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 14)),
+                      ),
+                      const SizedBox(height: 14),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          children: List.generate(5, (index) {
+                            return Padding(
+                              padding: EdgeInsets.only(right: index < 4 ? 14 : 0),
+                              child: SizedBox(
+                                width: 110,
+                                height: 110,
+                                child: _buildSpotlightSlot(index),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ],
+
+                    if (hasTracks) ...[
+                      const SizedBox(height: 28),
+                      const _SectionHeader(title: 'Top tracks', actionText: ''),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: InkWell(
+                          onTap: () => widget.onTrackTap(tracks.first),
+                          child: _LocalTrackRow(
+                            track: tracks.first,
+                            artistName: widget.profile.resolvedDisplayName,
+                            isPlaying: widget.currentlyPlayingTrackId == tracks.first.id,
+                            onMoreTap: () => widget.onTrackOptionsTap(tracks.first),
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    if (hasTracks) ...[
+                      const SizedBox(height: 28),
+                      const _SectionHeader(title: 'All tracks', actionText: ''),
+                      const SizedBox(height: 10),
+                      ...tracks.map((track) {
+                        bool isPlaying = widget.currentlyPlayingTrackId == track.id;
+                        String vis = track.visibility.toString().toLowerCase();
+                        bool isPrivate = vis.contains('private') || vis.contains('unlisted');
+
+                        Widget trackRow = InkWell(
+                          onTap: () => widget.onTrackTap(track),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            child: _LocalTrackRow(
+                              track: track,
+                              artistName: widget.profile.resolvedDisplayName,
+                              isPlaying: isPlaying,
+                              onMoreTap: () => widget.onTrackOptionsTap(track),
+                            ),
+                          ),
+                        );
+
+                        if (isPrivate || !widget.isOwner) return trackRow;
+
+                        return LongPressDraggable<TrackModel>(
+                          data: track,
+                          feedback: Material(
+                            color: Colors.transparent,
+                            child: Opacity(
+                              opacity: 0.8,
+                              child: Container(
+                                width: MediaQuery.of(context).size.width - 28,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C1C1C),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: _LocalTrackRow(
+                                  track: track,
+                                  artistName: widget.profile.resolvedDisplayName,
+                                  isPlaying: isPlaying,
+                                  onMoreTap: () {},
+                                ),
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  },
-                ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.4,
+                            child: trackRow,
+                          ),
+                          child: trackRow,
+                        );
+                      }).toList(),
+                    ],
 
-                const SizedBox(height: 28),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Text(
-                    'Playlists',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(height: 28),
+                    const _SectionHeader(title: 'Playlists', actionText: ''),
+                    const SizedBox(height: 14),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Row(
+                        children: [
+                          Expanded(child: _PlaylistCard(title: 'Untitled playlist', subtitle: 'ozOo', imageUrl: '')),
+                          SizedBox(width: 14),
+                          Expanded(child: _PlaylistCard(title: 'Songs', subtitle: 'darus 123', imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop')),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _PlaylistCard(
-                          title: 'Untitled playlist',
-                          subtitle: 'darus 123',
-                          imageUrl: '',
-                        ),
+
+                    const SizedBox(height: 28),
+                    const _SectionHeader(title: 'Reposts', actionText: 'See all'),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Column(
+                        children: [
+                          _UserMusicRow(imageUrl: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop', title: 'Drake playlist', subtitle: 'k1r1lli', meta: '1,188 · 239 tracks'),
+                          SizedBox(height: 16),
+                          _UserMusicRow(imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop', title: 'Ya Leil', subtitle: 'Toubz', meta: '16.3K · 4:57'),
+                        ],
                       ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: _PlaylistCard(
-                          title: 'Songs',
-                          subtitle: 'darus 123',
-                          imageUrl:
-                          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-                        ),
+                    ),
+
+                    const SizedBox(height: 26),
+                    const _SectionHeader(title: 'Likes', actionText: 'See all'),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Column(
+                        children: [
+                          _TrackRow(imageUrl: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop', title: 'Tamer Ashour - Haygely Mawgow3', subtitle: 'Auro', meta: '246.7K · 3:16'),
+                          SizedBox(height: 16),
+                          _TrackRow(imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop', title: 'الكلام ليك انت عمرو دياب كاملة بالكلمات', subtitle: 'Mohamed Salah', meta: '1.1M · 3:00'),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 28),
-                _SectionHeader(title: 'Reposts', actionText: 'See all'),
-                const SizedBox(height: 10),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Column(
-                    children: [
-                      _UserMusicRow(
-                        imageUrl:
-                        'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
-                        title: 'husd',
-                        subtitle: 'Daniel',
-                        meta: '0 • 9 tracks',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 26),
-                _SectionHeader(title: 'Likes', actionText: 'See all'),
-                const SizedBox(height: 10),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Column(
-                    children: [
-                      _TrackRow(
-                        imageUrl:
-                        'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
-                        title: 'Best Afro House 2025',
-                        subtitle: 'Raven Musik',
-                        meta: 'Album · 2025',
-                      ),
-                      SizedBox(height: 16),
-                      _TrackRow(
-                        imageUrl:
-                        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
-                        title: 'ورده .. ف يوم و ليله',
-                        subtitle: 'Yousra Yousry',
-                        meta: '766.9K · 51:09',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 130),
-              ],
+                    ),
+                    const SizedBox(height: 130),
+                  ],
+                );
+              },
             ),
           ),
         ),
       ],
     );
   }
+}
+
+class DottedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white38
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 6.0;
+    const dashSpace = 4.0;
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
+
+    Path path = Path()..addRRect(rrect);
+    Path dashPath = Path();
+
+    for (PathMetric measurePath in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < measurePath.length) {
+        dashPath.addPath(
+          measurePath.extractPath(distance, distance + dashWidth),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
 class _ProfileCompletionCardData {
@@ -1367,35 +1404,16 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Text(
-            actionText,
-            style: const TextStyle(
-              color: Color(0xFFB3B3B3),
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+          if (actionText.isNotEmpty)
+            Text(
+              actionText,
+              style: const TextStyle(
+                color: Color(0xFFB3B3B3),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
         ],
-      ),
-    );
-  }
-}
-
-class _SpotlightCard extends StatelessWidget {
-  const _SpotlightCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white38, width: 1.2),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: const Center(
-          child: Icon(Icons.lock_outline, color: Colors.white54, size: 28),
-        ),
       ),
     );
   }
@@ -1418,19 +1436,38 @@ class _PlaylistCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 120,
+          height: 140,
           decoration: BoxDecoration(
-            color: const Color(0xFF2B2B2B),
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white10),
           ),
           child: imageUrl.isEmpty
-              ? const Center(
-            child: Icon(Icons.cloud, color: Colors.white24, size: 42),
+              ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud, color: Colors.white24, size: 42),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(width: 4, height: 16, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 2)),
+                    Container(width: 4, height: 24, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 2)),
+                    Container(width: 4, height: 16, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 2)),
+                    Container(width: 4, height: 8, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 2)),
+                  ],
+                ),
+              ],
+            ),
           )
-              : Image.network(
-            imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
+              : ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              width: double.infinity,
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -1562,12 +1599,18 @@ class _SquareImage extends StatelessWidget {
     return Container(
       width: 58,
       height: 58,
-      color: const Color(0xFF1D1D1D),
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) =>
-        const Icon(Icons.music_note, color: Colors.white24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1D1D1D),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) =>
+          const Icon(Icons.music_note, color: Colors.white24),
+        ),
       ),
     );
   }
@@ -1592,10 +1635,18 @@ class _LocalTrackRow extends StatelessWidget {
       children: [
         Container(
           width: 58, height: 58,
-          color: const Color(0xFF1D1D1D),
-          child: track.coverImagePath != null && track.coverImagePath!.isNotEmpty
-              ? Image.file(File(track.coverImagePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.music_note, color: Colors.white24))
-              : const Icon(Icons.music_note, color: Colors.white24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1D1D1D),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: track.coverImagePath != null && track.coverImagePath!.isNotEmpty
+                ? (track.coverImagePath!.startsWith('http')
+                ? Image.network(track.coverImagePath!, fit: BoxFit.cover)
+                : Image.file(File(track.coverImagePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.music_note, color: Colors.white24)))
+                : const Icon(Icons.music_note, color: Colors.white24),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1606,7 +1657,7 @@ class _LocalTrackRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(artistName, style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
               const SizedBox(height: 2),
-              const Text('▶ 0', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+              const Text('▶ 1', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
             ],
           ),
         ),
