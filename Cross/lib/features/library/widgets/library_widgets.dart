@@ -5,6 +5,7 @@ import 'dart:io' show Platform;
 // Package imports
 import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
+import 'package:cross_team5/features/library/screens/settings_screen.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 
@@ -27,10 +28,24 @@ class LibraryHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          if (Platform.isAndroid) const QrCodeScanButton(
-          ),
+          if (Platform.isAndroid) const QrCodeScanButton(),
           const SizedBox(width: 10),
-          Icon(Icons.settings_outlined, color: AppColors.whiteSmoke),
+
+          GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
+      ),
+    );
+  },
+  child: const Icon(
+    Icons.settings_outlined,
+    color: AppColors.whiteSmoke,
+  ),
+),
+
           const SizedBox(width: 10),
           GestureDetector(
             onTap: () {
@@ -151,7 +166,6 @@ class TrackPlaceholder extends StatelessWidget {
         ),
         const SizedBox(width: 12),
 
-        /// TEXT BLOCK
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +208,6 @@ class ImportCard extends StatelessWidget {
           children: [
             const Text("💎", style: TextStyle(fontSize: 22)),
             const SizedBox(width: 10),
-
             const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,7 +227,6 @@ class ImportCard extends StatelessWidget {
                 ],
               ),
             ),
-
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -252,15 +264,13 @@ class MiniPlayer extends StatelessWidget {
             child: Icon(Icons.play_arrow, color: Colors.black),
           ),
           const SizedBox(width: 10),
-
           const Expanded(
             child: Text(
               AppText.nowPlaying,
               style: TextStyle(color: AppColors.whiteSmoke),
             ),
           ),
-
-          Icon(Icons.favorite_border, color: AppColors.whiteSmoke),
+          const Icon(Icons.favorite_border, color: AppColors.whiteSmoke),
         ],
       ),
     );
@@ -277,7 +287,7 @@ class QrCodeScanButton extends StatelessWidget {
         Navigator.pushReplacementNamed(context, LibraryRoutes.qrScanner);
       },
       style: ElevatedButton.styleFrom(
-        shape: const CircleBorder(), 
+        shape: const CircleBorder(),
         padding: const EdgeInsets.all(10),
       ),
       child: const Icon(Icons.qr_code_scanner),
