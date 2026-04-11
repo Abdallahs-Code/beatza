@@ -1,8 +1,9 @@
-// Dart imports
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cross_team5/core/widgets/common_widgets.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
@@ -11,6 +12,10 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
+import '../models/spotlight_models.dart';
+import 'edit_spotlight_screen.dart';
+
+// --- Main Screen ---
 class UserProfileScreen extends StatefulWidget {
   final String userId;
   final String token;
@@ -55,7 +60,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF141414),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
         return SafeArea(
           child: Padding(
@@ -63,39 +70,85 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 ListTile(
                   leading: Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(color: Colors.grey[800], borderRadius: BorderRadius.circular(4)),
-                    child: track.coverImagePath != null && track.coverImagePath!.isNotEmpty
-                        ? ClipRRect(borderRadius: BorderRadius.circular(4), child: Image.file(File(track.coverImagePath!), fit: BoxFit.cover))
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[800],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: track.coverImagePath != null &&
+                            track.coverImagePath!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.file(
+                              File(track.coverImagePath!),
+                              fit: BoxFit.cover,
+                            ),
+                          )
                         : const Icon(Icons.music_note, color: Colors.white54),
                   ),
-                  title: Text(track.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(track.genre.isEmpty ? 'Unknown Genre' : track.genre, style: const TextStyle(color: Colors.white54)),
+                  title: Text(
+                    track.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    track.genre.isEmpty ? 'Unknown Genre' : track.genre,
+                    style: const TextStyle(color: Colors.white54),
+                  ),
                 ),
                 const Divider(color: Colors.white10),
                 ListTile(
                   leading: const Icon(Icons.bar_chart, color: Colors.white),
-                  title: const Text('Insights', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Insights',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const YourInsightsScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const YourInsightsScreen(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined, color: Colors.white),
-                  title: const Text('Edit Track', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Edit Track',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _showEditDialog(track);
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                  title: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
+                  title: const Text(
+                    'Delete',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _deleteTrack(track);
@@ -110,73 +163,108 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _showEditDialog(TrackModel track) {
-    TextEditingController titleCtrl = TextEditingController(text: track.title);
-    TextEditingController genreCtrl = TextEditingController(text: track.genre);
+    final TextEditingController titleCtrl =
+        TextEditingController(text: track.title);
+    final TextEditingController genreCtrl =
+        TextEditingController(text: track.genre);
 
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: const Color(0xFF1C1C1C),
-            title: const Text('Edit Track', style: TextStyle(color: Colors.white)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    labelStyle: TextStyle(color: Colors.white54),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1C1C1C),
+          title: const Text(
+            'Edit Track',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: genreCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Genre',
-                    labelStyle: TextStyle(color: Colors.white54),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF5500)),
-                onPressed: () {
-                  _updateTrackData(track.id, titleCtrl.text, genreCtrl.text);
-                  Navigator.pop(context);
-                },
-                child: const Text('Save', style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: genreCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Genre',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                ),
               ),
             ],
-          );
-        }
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF5500),
+              ),
+              onPressed: () {
+                _updateTrackData(track.id, titleCtrl.text, genreCtrl.text);
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Save',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void _updateTrackData(String id, String newTitle, String newGenre) {
-    final currentList = List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+    final currentList =
+        List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
     final index = currentList.indexWhere((t) => t.id == id);
 
     if (index != -1) {
       final oldTrack = currentList[index];
       final updatedTrack = TrackModel(
-        id: oldTrack.id, title: newTitle, genre: newGenre, descriptiveTags: oldTrack.descriptiveTags,
-        releaseDate: oldTrack.releaseDate, fileFormat: oldTrack.fileFormat, processingState: oldTrack.processingState,
-        visibility: oldTrack.visibility, audioUrl: oldTrack.audioUrl, waveformPeaks: oldTrack.waveformPeaks,
-        description: oldTrack.description, caption: oldTrack.caption, recordLabel: oldTrack.recordLabel,
-        publisher: oldTrack.publisher, isrc: oldTrack.isrc, containsExplicitContent: oldTrack.containsExplicitContent,
-        pLine: oldTrack.pLine, enableDirectDownloads: oldTrack.enableDirectDownloads, offlineListening: oldTrack.offlineListening,
-        includeInRssFeed: oldTrack.includeInRssFeed, displayEmbedCode: oldTrack.displayEmbedCode, enableAppPlayback: oldTrack.enableAppPlayback,
-        availability: oldTrack.availability, licensing: oldTrack.licensing, coverImagePath: oldTrack.coverImagePath,
+        id: oldTrack.id,
+        title: newTitle,
+        genre: newGenre,
+        descriptiveTags: oldTrack.descriptiveTags,
+        releaseDate: oldTrack.releaseDate,
+        fileFormat: oldTrack.fileFormat,
+        processingState: oldTrack.processingState,
+        visibility: oldTrack.visibility,
+        audioUrl: oldTrack.audioUrl,
+        waveformPeaks: oldTrack.waveformPeaks,
+        description: oldTrack.description,
+        caption: oldTrack.caption,
+        recordLabel: oldTrack.recordLabel,
+        publisher: oldTrack.publisher,
+        isrc: oldTrack.isrc,
+        containsExplicitContent: oldTrack.containsExplicitContent,
+        pLine: oldTrack.pLine,
+        enableDirectDownloads: oldTrack.enableDirectDownloads,
+        offlineListening: oldTrack.offlineListening,
+        includeInRssFeed: oldTrack.includeInRssFeed,
+        displayEmbedCode: oldTrack.displayEmbedCode,
+        enableAppPlayback: oldTrack.enableAppPlayback,
+        availability: oldTrack.availability,
+        licensing: oldTrack.licensing,
+        coverImagePath: oldTrack.coverImagePath,
       );
 
       currentList[index] = updatedTrack;
@@ -185,12 +273,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       if (_currentlyPlayingTrack?.id == id) {
         setState(() => _currentlyPlayingTrack = updatedTrack);
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Track updated!'), backgroundColor: Colors.green));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Track updated!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
   void _deleteTrack(TrackModel track) {
-    final currentList = List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+    final currentList =
+        List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
     currentList.removeWhere((t) => t.id == track.id);
     AudioUploadService.globalMockTracksNotifier.value = currentList;
 
@@ -199,7 +294,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Track deleted successfully'), backgroundColor: Colors.redAccent, duration: Duration(seconds: 2)),
+      const SnackBar(
+        content: Text('Track deleted successfully'),
+        backgroundColor: Colors.redAccent,
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -222,8 +321,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final trimmed = rawUrl.trim();
     if (trimmed.isEmpty) return;
 
-    final normalized =
-    trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    final normalized = trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 
@@ -293,49 +392,107 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ? NetworkImage(profile.profileImgLink)
                           : null,
                       child: profile.profileImgLink.trim().isEmpty
-                          ? const Icon(Icons.person, color: Colors.white38, size: 22)
+                          ? const Icon(
+                              Icons.person,
+                              color: Colors.white38,
+                              size: 22,
+                            )
                           : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         profile.resolvedDisplayName,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 18),
-                const Text('Location', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Text(profile.resolvedLocation, style: const TextStyle(color: Colors.white, fontSize: 15)),
-                const SizedBox(height: 16),
-                const Text('Role', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Text(profile.role, style: const TextStyle(color: Colors.white, fontSize: 15)),
-                const SizedBox(height: 16),
-                const Text('Bio', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text(
+                  'Location',
+                  style: TextStyle(
+                    color: Color(0xFF9A9A9A),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Text(
-                  profile.bio.trim().isEmpty ? 'No bio added yet.' : profile.bio.trim(),
-                  style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
+                  profile.resolvedLocation,
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Role',
+                  style: TextStyle(
+                    color: Color(0xFF9A9A9A),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  profile.role,
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Bio',
+                  style: TextStyle(
+                    color: Color(0xFF9A9A9A),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  profile.bio.trim().isEmpty
+                      ? 'No bio added yet.'
+                      : profile.bio.trim(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    height: 1.4,
+                  ),
                 ),
                 if (profile.favoriteGenres.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  const Text('Favorite genres', style: TextStyle(color: Color(0xFF9A9A9A), fontSize: 12, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Favorite genres',
+                    style: TextStyle(
+                      color: Color(0xFF9A9A9A),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: profile.favoriteGenres.map((genre) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF171717),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: Colors.white12),
                         ),
-                        child: Text(genre, style: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 11.5, fontWeight: FontWeight.w500)),
+                        child: Text(
+                          genre,
+                          style: const TextStyle(
+                            color: Color(0xFFCCCCCC),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       );
                     }).toList(),
                   ),
@@ -368,12 +525,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
           const _SheetAction(label: 'Message', icon: Icons.send_outlined),
           const _SheetAction(label: 'QR code', icon: Icons.qr_code_2),
-          const _SheetAction(label: 'SMS', icon: Icons.chat_bubble, bgColor: Color(0xFF32D74B)),
-          const _SheetAction(label: 'WhatsApp', icon: Icons.phone, bgColor: Color(0xFF25D366)),
-          const _SheetAction(label: 'Stories', icon: Icons.camera_alt_outlined, bgColor: Color(0xFFE1306C)),
-          const _SheetAction(label: 'Snapchat', icon: Icons.circle, bgColor: Color(0xFFFFFC00), iconColor: Colors.black),
+          const _SheetAction(
+            label: 'SMS',
+            icon: Icons.chat_bubble,
+            bgColor: Color(0xFF32D74B),
+          ),
+          const _SheetAction(
+            label: 'WhatsApp',
+            icon: Icons.phone,
+            bgColor: Color(0xFF25D366),
+          ),
+          const _SheetAction(
+            label: 'Stories',
+            icon: Icons.camera_alt_outlined,
+            bgColor: Color(0xFFE1306C),
+          ),
+          const _SheetAction(
+            label: 'Snapchat',
+            icon: Icons.circle,
+            bgColor: Color(0xFFFFFC00),
+            iconColor: Colors.black,
+          ),
           const _SheetAction(label: 'X', icon: Icons.close),
-          const _SheetAction(label: 'Messenger', icon: Icons.message, bgColor: Color(0xFF8B5CF6)),
+          const _SheetAction(
+            label: 'Messenger',
+            icon: Icons.message,
+            bgColor: Color(0xFF8B5CF6),
+          ),
           const _SheetAction(label: 'More', icon: Icons.more_horiz),
         ];
 
@@ -403,18 +581,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ? NetworkImage(profile.profileImgLink)
                       : null,
                   child: profile.profileImgLink.trim().isEmpty
-                      ? const Icon(Icons.person, color: Colors.white38, size: 38)
+                      ? const Icon(
+                          Icons.person,
+                          color: Colors.white38,
+                          size: 38,
+                        )
                       : null,
                 ),
                 const SizedBox(height: 14),
                 Text(
                   profile.resolvedDisplayName,
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${profile.followersCount} followers',
-                  style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 14),
+                  style: const TextStyle(
+                    color: Color(0xFFB3B3B3),
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -440,13 +629,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         SizedBox(width: 10),
                         Text(
                           'Linked profiles',
-                          style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   ...linkedProfiles.map(
-                        (link) => ListTile(
+                    (link) => ListTile(
                       onTap: () async {
                         Navigator.pop(context);
                         await _openUrl(link.normalizedUrl);
@@ -478,17 +671,34 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 if (isOwner)
                   ListTile(
                     dense: true,
-                    leading: const Icon(Icons.block, color: Colors.white70, size: 20),
-                    title: const Text('Blocked users', style: TextStyle(color: Colors.white, fontSize: 17)),
+                    leading: const Icon(
+                      Icons.block,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    title: const Text(
+                      'Blocked users',
+                      style: TextStyle(color: Colors.white, fontSize: 17),
+                    ),
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(context, FollowersSocialGraphRoutes.blockedUsers);
+                      Navigator.pushNamed(
+                        context,
+                        FollowersSocialGraphRoutes.blockedUsers,
+                      );
                     },
                   ),
                 ListTile(
                   dense: true,
-                  leading: const Icon(Icons.info_outline, color: Colors.white70, size: 20),
-                  title: const Text('View info', style: TextStyle(color: Colors.white, fontSize: 17)),
+                  leading: const Icon(
+                    Icons.info_outline,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  title: const Text(
+                    'View info',
+                    style: TextStyle(color: Colors.white, fontSize: 17),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _showInfoSheet(profile);
@@ -506,12 +716,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final platform = link.platform.toLowerCase();
     final title = link.title.toLowerCase();
 
-    if (platform.contains('instagram') || title.contains('instagram')) return Icons.camera_alt_outlined;
-    if (platform.contains('twitter') || platform == 'x' || title.contains('twitter') || title == 'x') return Icons.close;
-    if (platform.contains('website') || title.contains('website')) return Icons.language;
-    if (platform.contains('facebook') || title.contains('facebook')) return Icons.facebook;
-    if (platform.contains('youtube') || title.contains('youtube')) return Icons.play_arrow;
-    if (platform.contains('tiktok') || title.contains('tiktok')) return Icons.music_note;
+    if (platform.contains('instagram') || title.contains('instagram')) {
+      return Icons.camera_alt_outlined;
+    }
+    if (platform.contains('twitter') ||
+        platform == 'x' ||
+        title.contains('twitter') ||
+        title == 'x') {
+      return Icons.close;
+    }
+    if (platform.contains('website') || title.contains('website')) {
+      return Icons.language;
+    }
+    if (platform.contains('facebook') || title.contains('facebook')) {
+      return Icons.facebook;
+    }
+    if (platform.contains('youtube') || title.contains('youtube')) {
+      return Icons.play_arrow;
+    }
+    if (platform.contains('tiktok') || title.contains('tiktok')) {
+      return Icons.music_note;
+    }
 
     return Icons.link;
   }
@@ -529,7 +754,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Colors.white));
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
 
           if (snapshot.hasError) {
@@ -570,23 +797,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onTrackOptionsTap: _showTrackOptions,
                 currentlyPlayingTrackId: _currentlyPlayingTrack?.id,
               ),
-
               if (_currentlyPlayingTrack != null)
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: 56,
+                  bottom: 84,
                   child: YourInsights(
                     track: _currentlyPlayingTrack!,
                     onClose: _closePlayer,
                   ),
                 ),
-
               const Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: _BottomNavReplica(),
+                child: CommonBottomNavBar(currentItem: AppNavItem.library),
               ),
             ],
           );
@@ -596,14 +821,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
-class _SoundCloudProfileView extends StatelessWidget {
+class _SoundCloudProfileView extends StatefulWidget {
   final UserProfileModel profile;
   final bool isOwner;
   final String token;
   final VoidCallback onEdited;
   final VoidCallback onMorePressed;
   final bool showArtistSections;
-
   final Function(TrackModel) onTrackTap;
   final Function(TrackModel) onTrackOptionsTap;
   final String? currentlyPlayingTrackId;
@@ -620,9 +844,16 @@ class _SoundCloudProfileView extends StatelessWidget {
     this.currentlyPlayingTrackId,
   });
 
-  bool get _hasProfilePhoto => profile.profileImgLink.trim().isNotEmpty;
-  bool get _hasBio => profile.bio.trim().isNotEmpty;
-  bool get _hasBanner => profile.bannerImgLink.trim().isNotEmpty;
+  @override
+  State<_SoundCloudProfileView> createState() => _SoundCloudProfileViewState();
+}
+
+class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
+  List<SpotlightItemModel?> spotlightItems = List.filled(5, null);
+
+  bool get _hasProfilePhoto => widget.profile.profileImgLink.trim().isNotEmpty;
+  bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
+  bool get _hasBanner => widget.profile.bannerImgLink.trim().isNotEmpty;
 
   int get _completedStepsCount {
     int count = 2;
@@ -634,6 +865,32 @@ class _SoundCloudProfileView extends StatelessWidget {
 
   bool get _shouldShowCompleteProfile {
     return !_hasProfilePhoto || !_hasBio || !_hasBanner;
+  }
+
+  void _openEditSpotlight() async {
+    if (!widget.isOwner) return;
+
+    final updatedSpotlight = await Navigator.push<List<SpotlightItemModel?>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditSpotlightScreen(
+          initialItems: spotlightItems.whereType<SpotlightItemModel>().toList(),
+          artistName: widget.profile.resolvedDisplayName,
+        ),
+      ),
+    );
+
+    if (updatedSpotlight != null && mounted) {
+      setState(() {
+        for (int i = 0; i < 5; i++) {
+          if (i < updatedSpotlight.length) {
+            spotlightItems[i] = updatedSpotlight[i];
+          } else {
+            spotlightItems[i] = null;
+          }
+        }
+      });
+    }
   }
 
   List<_ProfileCompletionCardData> _buildCompletionCards() {
@@ -691,24 +948,121 @@ class _SoundCloudProfileView extends StatelessWidget {
   }
 
   Future<void> _openEditProfile(BuildContext context) async {
-    if (!isOwner) return;
+    if (!widget.isOwner) return;
 
     final updated = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => EditProfileScreen(
-          currentProfile: profile,
-          token: token,
+          currentProfile: widget.profile,
+          token: widget.token,
         ),
       ),
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     if (updated == true) {
-      onEdited();
+      widget.onEdited();
     }
   }
+
+  Widget _buildSpotlightSlot(int index) {
+    return GestureDetector(
+      onTap: _openEditSpotlight,
+      child: DragTarget<TrackModel>(
+        onWillAccept: (track) {
+          if (track == null || !widget.isOwner) return false;
+          final String visibility = track.visibility.toString().toLowerCase();
+          if (visibility.contains('private') || visibility.contains('unlisted')) {
+            return false;
+          }
+          return true;
+        },
+        onAccept: (track) {
+          setState(() {
+            spotlightItems[index] = SpotlightItemModel.fromTrack(
+              track,
+              widget.profile.resolvedDisplayName,
+            );
+          });
+        },
+        builder: (context, candidateData, rejectedData) {
+          final item = spotlightItems[index];
+          final isHovered = candidateData.isNotEmpty;
+
+          return AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isHovered ? Colors.white12 : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: CustomPaint(
+                painter: item == null ? DottedBorderPainter() : null,
+                child: item != null
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: item.imageUrl != null &&
+                                    item.imageUrl!.isNotEmpty
+                                ? (item.imageUrl!.startsWith('http')
+                                    ? Image.network(
+                                        item.imageUrl!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.file(
+                                        File(item.imageUrl!),
+                                        fit: BoxFit.cover,
+                                      ))
+                                : Container(
+                                    color: Colors.grey[800],
+                                    child: const Icon(
+                                      Icons.music_note,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                          if (widget.isOwner)
+                            Positioned(
+                              top: 6,
+                              right: 6,
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    spotlightItems[index] = null;
+                                  });
+                                },
+                                child: const CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: Colors.black54,
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.lock_outline,
+                          color: Colors.white54,
+                          size: 28,
+                        ),
+                      ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -734,15 +1088,14 @@ class _SoundCloudProfileView extends StatelessWidget {
                 children: [
                   Container(
                     color: const Color(0xFF121212),
-                    child: profile.bannerImgLink.trim().isNotEmpty
+                    child: widget.profile.bannerImgLink.trim().isNotEmpty
                         ? Image.network(
-                      profile.bannerImgLink,
-                      key: const Key('test_profile_banner_image'),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                      const SizedBox.shrink(),
-                    )
-                        : _AutoBannerFromAvatar(profile.profileImgLink),
+                            widget.profile.bannerImgLink,
+                            key: const Key('test_profile_banner_image'),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                          )
+                        : _AutoBannerFromAvatar(widget.profile.profileImgLink),
                   ),
                   Container(color: Colors.black.withValues(alpha: 0.18)),
                   Positioned(
@@ -760,7 +1113,7 @@ class _SoundCloudProfileView extends StatelessWidget {
                     child: _RoundIconButton(
                       key: const Key('test_profile_more_btn'),
                       icon: Icons.more_horiz,
-                      onTap: onMorePressed,
+                      onTap: widget.onMorePressed,
                     ),
                   ),
                   if (collapsed)
@@ -771,11 +1124,11 @@ class _SoundCloudProfileView extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _SmallAvatar(profile.profileImgLink),
+                          _SmallAvatar(widget.profile.profileImgLink),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              profile.resolvedDisplayName,
+                              widget.profile.resolvedDisplayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -796,450 +1149,565 @@ class _SoundCloudProfileView extends StatelessWidget {
         SliverToBoxAdapter(
           child: Transform.translate(
             offset: const Offset(0, -4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Container(
-                    width: 104,
-                    height: 104,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: CircleAvatar(
-                      key: const Key('test_profile_avatar_image'),
-                      radius: 48,
-                      backgroundColor: const Color(0xFF1C1C1C),
-                      backgroundImage:
-                      profile.profileImgLink.trim().isNotEmpty
-                          ? NetworkImage(profile.profileImgLink)
-                          : null,
-                      child: profile.profileImgLink.trim().isEmpty
-                          ? const Icon(
-                        Icons.person,
-                        color: Colors.white38,
-                        size: 42,
-                      )
-                          : null,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                  child: Text(
-                    profile.resolvedDisplayName,
-                    key: const Key('test_profile_display_name'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                  child: Text(
-                    profile.resolvedLocation,
-                    key: const Key('test_profile_location'),
-                    style: const TextStyle(
-                      color: Color(0xFFB3B3B3),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            FollowersSocialGraphRoutes.followers,
-                            arguments: {'userId': profile.userId},
-                          );
-                        },
-                        child: Text(
-                          '${profile.followersCount} Followers',
-                          style: const TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      const Text(
-                        ' • ',
-                        style: TextStyle(
-                          color: Color(0xFFB3B3B3),
-                          fontSize: 13,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            FollowersSocialGraphRoutes.followers,
-                            arguments: {
-                              'userId': profile.userId,
-                              'tabIndex': 1,
-                            },
-                          );
-                        },
-                        child: Text(
-                          '${profile.followingsCount} Following',
-                          style: const TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                  child: Text(
-                    profile.role,
-                    style: const TextStyle(
-                      color: Color(0xFFB3B3B3),
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        key: const Key('test_profile_edit_btn'),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: isOwner
-                            ? () => _openEditProfile(context)
-                            : null,
-                        icon: const Icon(
-                          Icons.edit_outlined,
-                          color: Colors.white70,
-                          size: 22,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.shuffle,
-                          color: Colors.white70,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Container(
-                        width: 56,
-                        height: 56,
+            child: ValueListenableBuilder<List<TrackModel>>(
+              valueListenable: AudioUploadService.globalMockTracksNotifier,
+              builder: (context, tracks, child) {
+                final bool hasTracks = tracks.isNotEmpty;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Container(
+                        width: 104,
+                        height: 104,
                         decoration: const BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.black,
                           shape: BoxShape.circle,
                         ),
-                        child: IconButton(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.play_arrow,
-                            color: Colors.black,
-                            size: 34,
-                          ),
+                        alignment: Alignment.center,
+                        child: CircleAvatar(
+                          key: const Key('test_profile_avatar_image'),
+                          radius: 48,
+                          backgroundColor: const Color(0xFF1C1C1C),
+                          backgroundImage:
+                              widget.profile.profileImgLink.trim().isNotEmpty
+                                  ? NetworkImage(widget.profile.profileImgLink)
+                                  : null,
+                          child: widget.profile.profileImgLink.trim().isEmpty
+                              ? const Icon(
+                                  Icons.person,
+                                  color: Colors.white38,
+                                  size: 42,
+                                )
+                              : null,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (profile.bio.trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      profile.bio.trim(),
-                      key: const Key('test_profile_bio'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        height: 1.35,
-                      ),
                     ),
-                  ),
-                if (profile.favoriteGenres.isNotEmpty)
-                  const SizedBox(height: 12),
-                if (profile.favoriteGenres.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: profile.favoriteGenres.map((genre) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF171717),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.white12),
-                          ),
-                          child: Text(
-                            genre,
-                            style: const TextStyle(
-                              color: Color(0xFFCCCCCC),
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                if (_shouldShowCompleteProfile) ...[
-                  const SizedBox(height: 28),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Complete your profile',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.keyboard_arrow_up,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                      child: Text(
+                        widget.profile.resolvedDisplayName,
+                        key: const Key('test_profile_display_name'),
+                        style: const TextStyle(
                           color: Colors.white,
-                          size: 28,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-                    child: RichText(
-                      text: TextSpan(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                      child: Text(
+                        widget.profile.resolvedLocation,
+                        key: const Key('test_profile_location'),
+                        style: const TextStyle(
+                          color: Color(0xFFB3B3B3),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+                      child: Row(
                         children: [
-                          TextSpan(
-                            text: '$_completedStepsCount OF 5 ',
-                            style: const TextStyle(
-                              color: Color(0xFFFF6A00),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                FollowersSocialGraphRoutes.followers,
+                                arguments: {'userId': widget.profile.userId},
+                              );
+                            },
+                            child: Text(
+                              '${widget.profile.followersCount} Followers',
+                              style: const TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 13,
+                              ),
                             ),
                           ),
-                          const TextSpan(
-                            text: 'COMPLETE',
+                          const Text(
+                            ' • ',
                             style: TextStyle(
-                              color: Color(0xFFD0D0D0),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFB3B3B3),
+                              fontSize: 13,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                FollowersSocialGraphRoutes.following,
+                                arguments: {
+                                  'userId': widget.profile.userId,
+                                  'tabIndex': 1,
+                                },
+                              );
+                            },
+                            child: Text(
+                              '${widget.profile.followingsCount} Following',
+                              style: const TextStyle(
+                                color: Color(0xFFB3B3B3),
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    height: 350,
-                    child: ListView.separated(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                      child: Text(
+                        (widget.profile.role.toLowerCase() == 'listener' &&
+                                hasTracks)
+                            ? 'Artist'
+                            : widget.profile.role,
+                        style: const TextStyle(
+                          color: Color(0xFFB3B3B3),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: completionCards.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 14),
-                      itemBuilder: (context, index) {
-                        final card = completionCards[index];
-                        return _CompleteProfileCard(
-                          data: card,
-                          onPressed: isOwner
-                              ? () => _openEditProfile(context)
-                              : null,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-                if (showArtistSections) ...[
-                  const SizedBox(height: 28),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      'Spotlight',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      'Pin your gems to your profile',
-                      style: TextStyle(
-                        color: Color(0xFFB3B3B3),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(
-                      children: [
-                        Expanded(child: _SpotlightCard()),
-                        SizedBox(width: 14),
-                        Expanded(child: _SpotlightCard()),
-                        SizedBox(width: 14),
-                        Expanded(child: _SpotlightCard()),
-                      ],
-                    ),
-                  ),
-                ],
-
-                ValueListenableBuilder<List<TrackModel>>(
-                  valueListenable: AudioUploadService.globalMockTracksNotifier,
-                  builder: (context, tracks, child) {
-                    if (tracks.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 28),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 14),
-                          child: Text(
-                            'Tracks',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            key: const Key('test_profile_edit_btn'),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: widget.isOwner
+                                ? () => _openEditProfile(context)
+                                : null,
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: Colors.white70,
+                              size: 22,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
-                        ...tracks.map((track) {
-                          bool isPlaying = currentlyPlayingTrackId == track.id;
-                          return InkWell(
-                            onTap: () => onTrackTap(track),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              child: _LocalTrackRow(
-                                track: track,
-                                artistName: profile.resolvedDisplayName,
-                                isPlaying: isPlaying,
-                                onMoreTap: () => onTrackOptionsTap(track),
+                          const Spacer(),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.shuffle,
+                              color: Colors.white70,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.black,
+                                size: 34,
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 28),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Text(
-                    'Playlists',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _PlaylistCard(
-                          title: 'Untitled playlist',
-                          subtitle: 'darus 123',
-                          imageUrl: '',
+                    const SizedBox(height: 16),
+                    if (widget.profile.bio.trim().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(
+                          widget.profile.bio.trim(),
+                          key: const Key('test_profile_bio'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            height: 1.35,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: _PlaylistCard(
-                          title: 'Songs',
-                          subtitle: 'darus 123',
-                          imageUrl:
-                          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
+                    if (widget.profile.favoriteGenres.isNotEmpty)
+                      const SizedBox(height: 12),
+                    if (widget.profile.favoriteGenres.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: widget.profile.favoriteGenres.map((genre) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF171717),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: Text(
+                                genre,
+                                style: const TextStyle(
+                                  color: Color(0xFFCCCCCC),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    if (_shouldShowCompleteProfile) ...[
+                      const SizedBox(height: 28),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Expanded(
+                              child: Text(
+                                'Complete your profile',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '$_completedStepsCount OF 5 ',
+                                style: const TextStyle(
+                                  color: Color(0xFFFF6A00),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const TextSpan(
+                                text: 'COMPLETE',
+                                style: TextStyle(
+                                  color: Color(0xFFD0D0D0),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        height: 350,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: completionCards.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 14),
+                          itemBuilder: (context, index) {
+                            final card = completionCards[index];
+                            return _CompleteProfileCard(
+                              data: card,
+                              onPressed: widget.isOwner
+                                  ? () => _openEditProfile(context)
+                                  : null,
+                            );
+                          },
                         ),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 28),
-                _SectionHeader(title: 'Reposts', actionText: 'See all'),
-                const SizedBox(height: 10),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Column(
-                    children: [
-                      _UserMusicRow(
-                        imageUrl:
-                        'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
-                        title: 'husd',
-                        subtitle: 'Daniel',
-                        meta: '0 • 9 tracks',
+                    if (widget.isOwner && hasTracks) ...[
+                      const SizedBox(height: 24),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const YourInsightsScreen(),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text(
+                                'Your insights',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 26),
-                _SectionHeader(title: 'Likes', actionText: 'See all'),
-                const SizedBox(height: 10),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Column(
-                    children: [
-                      _TrackRow(
-                        imageUrl:
-                        'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
-                        title: 'Best Afro House 2025',
-                        subtitle: 'Raven Musik',
-                        meta: 'Album · 2025',
+                    if (widget.showArtistSections || widget.isOwner) ...[
+                      const SizedBox(height: 28),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(
+                          'Spotlight',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                      SizedBox(height: 16),
-                      _TrackRow(
-                        imageUrl:
-                        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
-                        title: 'ورده .. ف يوم و ليله',
-                        subtitle: 'Yousra Yousry',
-                        meta: '766.9K · 51:09',
+                      const SizedBox(height: 10),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(
+                          'Pin your gems to your profile',
+                          style: TextStyle(
+                            color: Color(0xFFB3B3B3),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          children: List.generate(5, (index) {
+                            return Padding(
+                              padding:
+                                  EdgeInsets.only(right: index < 4 ? 14 : 0),
+                              child: SizedBox(
+                                width: 110,
+                                height: 110,
+                                child: _buildSpotlightSlot(index),
+                              ),
+                            );
+                          }),
+                        ),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 130),
-              ],
+                    if (hasTracks) ...[
+                      const SizedBox(height: 28),
+                      const _SectionHeader(title: 'Top tracks', actionText: ''),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: InkWell(
+                          onTap: () => widget.onTrackTap(tracks.first),
+                          child: _LocalTrackRow(
+                            track: tracks.first,
+                            artistName: widget.profile.resolvedDisplayName,
+                            isPlaying:
+                                widget.currentlyPlayingTrackId == tracks.first.id,
+                            onMoreTap: () =>
+                                widget.onTrackOptionsTap(tracks.first),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (hasTracks) ...[
+                      const SizedBox(height: 28),
+                      const _SectionHeader(title: 'All tracks', actionText: ''),
+                      const SizedBox(height: 10),
+                      ...tracks.map((track) {
+                        final bool isPlaying =
+                            widget.currentlyPlayingTrackId == track.id;
+                        final String vis =
+                            track.visibility.toString().toLowerCase();
+                        final bool isPrivate =
+                            vis.contains('private') || vis.contains('unlisted');
+
+                        final Widget trackRow = InkWell(
+                          onTap: () => widget.onTrackTap(track),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            child: _LocalTrackRow(
+                              track: track,
+                              artistName: widget.profile.resolvedDisplayName,
+                              isPlaying: isPlaying,
+                              onMoreTap: () =>
+                                  widget.onTrackOptionsTap(track),
+                            ),
+                          ),
+                        );
+
+                        if (isPrivate || !widget.isOwner) return trackRow;
+
+                        return LongPressDraggable<TrackModel>(
+                          data: track,
+                          feedback: Material(
+                            color: Colors.transparent,
+                            child: Opacity(
+                              opacity: 0.8,
+                              child: Container(
+                                width: MediaQuery.of(context).size.width - 28,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C1C1C),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: _LocalTrackRow(
+                                  track: track,
+                                  artistName: widget.profile.resolvedDisplayName,
+                                  isPlaying: isPlaying,
+                                  onMoreTap: () {},
+                                ),
+                              ),
+                            ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.4,
+                            child: trackRow,
+                          ),
+                          child: trackRow,
+                        );
+                      }).toList(),
+                    ],
+                    const SizedBox(height: 28),
+                    const _SectionHeader(title: 'Playlists', actionText: ''),
+                    const SizedBox(height: 14),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _PlaylistCard(
+                              title: 'Untitled playlist',
+                              subtitle: 'ozOo',
+                              imageUrl: '',
+                            ),
+                          ),
+                          SizedBox(width: 14),
+                          Expanded(
+                            child: _PlaylistCard(
+                              title: 'Songs',
+                              subtitle: 'darus 123',
+                              imageUrl:
+                                  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    const _SectionHeader(title: 'Reposts', actionText: 'See all'),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Column(
+                        children: [
+                          _UserMusicRow(
+                            imageUrl:
+                                'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
+                            title: 'Drake playlist',
+                            subtitle: 'k1r1lli',
+                            meta: '1,188 · 239 tracks',
+                          ),
+                          SizedBox(height: 16),
+                          _UserMusicRow(
+                            imageUrl:
+                                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
+                            title: 'Ya Leil',
+                            subtitle: 'Toubz',
+                            meta: '16.3K · 4:57',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    const _SectionHeader(title: 'Likes', actionText: 'See all'),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Column(
+                        children: [
+                          _TrackRow(
+                            imageUrl:
+                                'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
+                            title: 'Tamer Ashour - Haygely Mawgow3',
+                            subtitle: 'Auro',
+                            meta: '246.7K · 3:16',
+                          ),
+                          SizedBox(height: 16),
+                          _TrackRow(
+                            imageUrl:
+                                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
+                            title: 'الكلام ليك انت عمرو دياب كاملة بالكلمات',
+                            subtitle: 'Mohamed Salah',
+                            meta: '1.1M · 3:00',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 150),
+                  ],
+                );
+              },
             ),
           ),
         ),
       ],
     );
   }
+}
+
+class DottedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white38
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 6.0;
+    const dashSpace = 4.0;
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
+
+    final Path path = Path()..addRRect(rrect);
+    final Path dashPath = Path();
+
+    for (final PathMetric measurePath in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < measurePath.length) {
+        dashPath.addPath(
+          measurePath.extractPath(distance, distance + dashWidth),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
 class _ProfileCompletionCardData {
@@ -1262,7 +1730,10 @@ class _CompleteProfileCard extends StatelessWidget {
   final _ProfileCompletionCardData data;
   final VoidCallback? onPressed;
 
-  const _CompleteProfileCard({required this.data, required this.onPressed});
+  const _CompleteProfileCard({
+    required this.data,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1281,18 +1752,18 @@ class _CompleteProfileCard extends StatelessWidget {
             alignment: Alignment.topRight,
             child: data.isComplete
                 ? Container(
-              width: 34,
-              height: 34,
-              decoration: const BoxDecoration(
-                color: Color(0xFF49D17D),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.black,
-                size: 22,
-              ),
-            )
+                    width: 34,
+                    height: 34,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF49D17D),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.black,
+                      size: 22,
+                    ),
+                  )
                 : const SizedBox(width: 34, height: 34),
           ),
           const SizedBox(height: 12),
@@ -1360,7 +1831,10 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final String actionText;
 
-  const _SectionHeader({required this.title, required this.actionText});
+  const _SectionHeader({
+    required this.title,
+    required this.actionText,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1377,35 +1851,16 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Text(
-            actionText,
-            style: const TextStyle(
-              color: Color(0xFFB3B3B3),
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+          if (actionText.isNotEmpty)
+            Text(
+              actionText,
+              style: const TextStyle(
+                color: Color(0xFFB3B3B3),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
         ],
-      ),
-    );
-  }
-}
-
-class _SpotlightCard extends StatelessWidget {
-  const _SpotlightCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white38, width: 1.2),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: const Center(
-          child: Icon(Icons.lock_outline, color: Colors.white54, size: 28),
-        ),
       ),
     );
   }
@@ -1428,20 +1883,59 @@ class _PlaylistCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 120,
+          height: 140,
           decoration: BoxDecoration(
-            color: const Color(0xFF2B2B2B),
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white10),
           ),
           child: imageUrl.isEmpty
-              ? const Center(
-            child: Icon(Icons.cloud, color: Colors.white24, size: 42),
-          )
-              : Image.network(
-            imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-          ),
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.cloud, color: Colors.white24, size: 42),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 16,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                          Container(
+                            width: 4,
+                            height: 24,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                          Container(
+                            width: 4,
+                            height: 16,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                          Container(
+                            width: 4,
+                            height: 8,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -1572,12 +2066,18 @@ class _SquareImage extends StatelessWidget {
     return Container(
       width: 58,
       height: 58,
-      color: const Color(0xFF1D1D1D),
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) =>
-        const Icon(Icons.music_note, color: Colors.white24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1D1D1D),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) =>
+              const Icon(Icons.music_note, color: Colors.white24),
+        ),
       ),
     );
   }
@@ -1601,22 +2101,56 @@ class _LocalTrackRow extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 58, height: 58,
-          color: const Color(0xFF1D1D1D),
-          child: track.coverImagePath != null && track.coverImagePath!.isNotEmpty
-              ? Image.file(File(track.coverImagePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.music_note, color: Colors.white24))
-              : const Icon(Icons.music_note, color: Colors.white24),
+          width: 58,
+          height: 58,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1D1D1D),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: track.coverImagePath != null &&
+                    track.coverImagePath!.isNotEmpty
+                ? (track.coverImagePath!.startsWith('http')
+                    ? Image.network(track.coverImagePath!, fit: BoxFit.cover)
+                    : Image.file(
+                        File(track.coverImagePath!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.music_note, color: Colors.white24),
+                      ))
+                : const Icon(Icons.music_note, color: Colors.white24),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: isPlaying ? const Color(0xFFFF5500) : Colors.white, fontSize: 14, fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal)),
+              Text(
+                track.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isPlaying ? const Color(0xFFFF5500) : Colors.white,
+                  fontSize: 14,
+                  fontWeight:
+                      isPlaying ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text(artistName, style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+              Text(
+                artistName,
+                style: const TextStyle(
+                  color: Color(0xFFB3B3B3),
+                  fontSize: 13,
+                ),
+              ),
               const SizedBox(height: 2),
-              const Text('▶ 0', style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13)),
+              const Text(
+                '▶ 1',
+                style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
+              ),
             ],
           ),
         ),
@@ -1636,7 +2170,7 @@ class _RoundIconButton extends StatelessWidget {
   const _RoundIconButton({
     super.key,
     required this.icon,
-    required this.onTap
+    required this.onTap,
   });
 
   @override
@@ -1667,9 +2201,8 @@ class _SmallAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 10,
       backgroundColor: const Color(0xFF1C1C1C),
-      backgroundImage: imageUrl.trim().isNotEmpty
-          ? NetworkImage(imageUrl)
-          : null,
+      backgroundImage:
+          imageUrl.trim().isNotEmpty ? NetworkImage(imageUrl) : null,
     );
   }
 }
@@ -1690,10 +2223,8 @@ class _AutoBannerFromAvatar extends StatelessWidget {
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
-
         if (imageUrl.trim().isNotEmpty)
           Container(color: Colors.black.withValues(alpha: 0.4)),
-
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -1703,58 +2234,6 @@ class _AutoBannerFromAvatar extends StatelessWidget {
             ),
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _BottomNavReplica extends StatelessWidget {
-  const _BottomNavReplica();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 56,
-      color: const Color(0xFF0A0A0A),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _BottomTabItem(icon: Icons.home_outlined, label: 'Home'),
-          _BottomTabItem(icon: Icons.feed_outlined, label: 'Feed'),
-          _BottomTabItem(icon: Icons.search, label: 'Search'),
-          _BottomTabItem(
-            icon: Icons.library_music,
-            label: 'Library',
-            active: true,
-          ),
-          _BottomTabItem(icon: Icons.cloud_outlined, label: 'Upgrade'),
-        ],
-      ),
-    );
-  }
-}
-
-class _BottomTabItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-
-  const _BottomTabItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = active ? Colors.white : const Color(0xFF9B9B9B);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 22, color: color),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(color: color, fontSize: 11)),
       ],
     );
   }
@@ -1783,10 +2262,11 @@ class _PrivateProfileView extends StatelessWidget {
                     color: const Color(0xFF111111),
                     child: profile.bannerImgLink.trim().isNotEmpty
                         ? Image.network(
-                      profile.bannerImgLink,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    )
+                            profile.bannerImgLink,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const SizedBox.shrink(),
+                          )
                         : null,
                   ),
                   Container(
@@ -1824,15 +2304,15 @@ class _PrivateProfileView extends StatelessWidget {
                         radius: 60,
                         backgroundColor: const Color(0xFF1C1C1C),
                         backgroundImage:
-                        profile.profileImgLink.trim().isNotEmpty
-                            ? NetworkImage(profile.profileImgLink)
-                            : null,
+                            profile.profileImgLink.trim().isNotEmpty
+                                ? NetworkImage(profile.profileImgLink)
+                                : null,
                         child: profile.profileImgLink.trim().isEmpty
                             ? const Icon(
-                          Icons.person,
-                          color: Colors.white38,
-                          size: 44,
-                        )
+                                Icons.person,
+                                color: Colors.white38,
+                                size: 44,
+                              )
                             : null,
                       ),
                       const SizedBox(height: 18),
@@ -1885,7 +2365,7 @@ class _PrivateProfileView extends StatelessWidget {
                             onTap: () {
                               Navigator.pushNamed(
                                 context,
-                                FollowersSocialGraphRoutes.followers,
+                                FollowersSocialGraphRoutes.following,
                                 arguments: {
                                   'userId': profile.userId,
                                   'tabIndex': 0,
@@ -1955,7 +2435,7 @@ class _PrivateProfileView extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 140),
+                      const SizedBox(height: 150),
                     ],
                   ),
                 ),
@@ -1967,7 +2447,7 @@ class _PrivateProfileView extends StatelessWidget {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _BottomNavReplica(),
+          child: CommonBottomNavBar(currentItem: AppNavItem.library),
         ),
       ],
     );
@@ -1994,7 +2474,10 @@ class _ShareActionItem extends StatelessWidget {
             Container(
               width: 52,
               height: 52,
-              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+              ),
               child: Icon(action.icon, color: iconColor, size: 24),
             ),
             const SizedBox(height: 8),
@@ -2031,5 +2514,8 @@ class _ProfileViewState {
   final UserProfileModel profile;
   final bool isOwner;
 
-  const _ProfileViewState({required this.profile, required this.isOwner});
+  const _ProfileViewState({
+    required this.profile,
+    required this.isOwner,
+  });
 }

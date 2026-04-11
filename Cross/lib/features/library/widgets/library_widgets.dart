@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 
 // Package imports
 import 'package:cross_team5/features/home/home_routes.dart';
@@ -26,8 +27,7 @@ class LibraryHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          QrCodeScanButton(
-
+          if (Platform.isAndroid) const QrCodeScanButton(
           ),
           const SizedBox(width: 10),
           Icon(Icons.settings_outlined, color: AppColors.whiteSmoke),

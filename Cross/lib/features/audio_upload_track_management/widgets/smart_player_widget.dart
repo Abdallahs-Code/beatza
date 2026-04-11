@@ -20,7 +20,11 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
   List<double> _waveformHeights = [];
+
+  // Mock Data States
   bool _isLiked = false;
+  int _likeCount = 2990;
+  bool _isAddedToPlaylist = false;
 
   @override
   void initState() {
@@ -35,7 +39,6 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.track.id != widget.track.id) {
       _generateWaveform();
-      _playTrack();
     }
   }
 
@@ -57,7 +60,6 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() { _isPlaying = false; _position = Duration.zero; });
     });
-    _playTrack();
   }
 
   void _playTrack() async {
@@ -76,14 +78,42 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
     if (_isPlaying) {
       _audioPlayer.pause();
     } else {
-      _audioPlayer.resume();
+      if (_position == Duration.zero) {
+        _playTrack();
+      } else {
+        _audioPlayer.resume();
+      }
     }
   }
 
-  void _toggleLike() {
+  void _mockLikeAction() {
     setState(() {
       _isLiked = !_isLiked;
+      _likeCount = _isLiked ? _likeCount + 1 : _likeCount - 1;
     });
+  }
+
+  void _mockAddToPlaylist(BuildContext context) {
+    setState(() => _isAddedToPlaylist = !_isAddedToPlaylist);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isAddedToPlaylist ? 'Added to Next up' : 'Removed from Next up'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: const Color(0xFF2A2A2A),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _mockShareAction(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Link copied to clipboard'),
+        duration: Duration(seconds: 2),
+        backgroundColor: Color(0xFFFF5500),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _showDevicesModal() {
@@ -134,6 +164,7 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
         }
     );
   }
+
   void _showFullPlayer() {
     showModalBottomSheet(
         context: context,
@@ -210,14 +241,14 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                _toggleLike();
+                                _mockLikeAction();
                                 setModalState((){});
                               },
                               child: Row(
                                 children: [
                                   Icon(_isLiked ? Icons.favorite : Icons.favorite_border, color: _isLiked ? const Color(0xFFFF5500) : Colors.white, size: 28),
                                   const SizedBox(width: 8),
-                                  Text(_isLiked ? '2991' : '2990', style: TextStyle(color: _isLiked ? const Color(0xFFFF5500) : Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                  Text('$_likeCount', style: TextStyle(color: _isLiked ? const Color(0xFFFF5500) : Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                                 ],
                               ),
                             ),
@@ -228,8 +259,21 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
                                 Text('13', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                               ],
                             ),
-                            const Icon(Icons.ios_share, color: Colors.white, size: 28),
-                            const Icon(Icons.playlist_add, color: Colors.white, size: 30),
+                            IconButton(
+                              onPressed: () => _mockShareAction(context),
+                              icon: const Icon(Icons.ios_share, color: Colors.white, size: 28),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                _mockAddToPlaylist(context);
+                                setModalState((){});
+                              },
+                              icon: Icon(
+                                _isAddedToPlaylist ? Icons.playlist_add_check : Icons.playlist_add,
+                                color: _isAddedToPlaylist ? const Color(0xFFFF5500) : Colors.white,
+                                size: 30,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -308,7 +352,7 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
                 ),
               ),
               GestureDetector(
-                onTap: _toggleLike,
+                onTap: _mockLikeAction,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4.0),
                   child: Icon(_isLiked ? Icons.favorite : Icons.favorite_border, color: _isLiked ? const Color(0xFFFF5500) : Colors.white, size: 26),

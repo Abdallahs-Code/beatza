@@ -1,20 +1,80 @@
 // Dart imports
 import 'package:flutter/material.dart';
-
-// Package imports
+import 'package:file_picker/file_picker.dart';
 import 'package:cross_team5/features/home/widgets/home_widgets.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
-
+import '../../audio_upload_track_management/screens/artist_studio_screen.dart';
+import '../../audio_upload_track_management/screens/upload_track_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+  void _handleUpload(BuildContext context) async {
+    FilePickerResult? result = await FilePicker.pickFiles(
+      type: FileType.audio,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const UploadTrackScreen(),
+            settings: RouteSettings(arguments: result.files.first),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: const Key('test_home_screen'),
       backgroundColor: AppColors.homeBackground,
+      appBar: AppBar(
+        backgroundColor: AppColors.homeBackground,
+        elevation: 0,
+        leadingWidth: 140,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0, top: 10, bottom: 10),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ArtistStudioScreen()),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white24, width: 1),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bar_chart, color: Colors.white, size: 16),
+                  SizedBox(width: 6),
+                  Text('Artist Studio', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
+            onPressed: () => _handleUpload(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.more_horiz, color: Colors.white),
+            onPressed: () {},
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       bottomNavigationBar: const CommonBottomNavBar(
         currentItem: AppNavItem.home,
       ),
@@ -22,7 +82,6 @@ class HomeScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            const TopHeader(),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),

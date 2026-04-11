@@ -7,7 +7,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cross_team5/routes/app_router.dart';
 
 void main() async {
-  // Test PR
   await dotenv.load(fileName: '.env');
   await AuthApiService().logout();
   runApp(const MyApp());
