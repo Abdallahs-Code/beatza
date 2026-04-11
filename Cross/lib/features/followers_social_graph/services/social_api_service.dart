@@ -1,6 +1,7 @@
 // Dart imports
 import 'dart:convert';
 
+import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -101,6 +102,7 @@ class SocialApiService {
 
       if (response.statusCode == 200) {
         final followers = _parseUserList(response.body);
+        LoggerService.logger.i("Fetched ${followers.length} followers for userId: $userId response: ${response.body}");
         return (200, followers);
       }
 
@@ -133,9 +135,14 @@ class SocialApiService {
       );
 
       if (response.statusCode == 200) {
-        final following = _parseUserList(response.body);
-        return (200, following);
-      }
+  final following = _parseUserList(response.body);
+
+  for (final user in following) {
+    user.isFollowing = true;
+  }
+
+  return (200, following);
+}
 
       final data = jsonDecode(response.body);
       return (

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 // Package imports
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart' hide YourUploadsScreen;
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class UserTile extends StatelessWidget {
   final Follower follower;
@@ -27,11 +29,20 @@ class UserTile extends StatelessWidget {
     return InkWell(
       // ── Tapping anywhere on tile navigates to user profile ──
       onTap: () {
+        final authService = AuthApiService();
+        authService.getStoredAccessToken().then((token) {
+          final safeToken = (token == null || token.trim().isEmpty) ? 'mock_token' : token;
+          final safeUserId = (follower.userId.trim().isEmpty) ? 'mock_user_id' : follower.userId;
         Navigator.pushNamed(
-          context,
-          '/user-profile',
-          arguments: {'userId': follower.userId},
-        );
+        context,
+        UserProfileSocialIdentityRoutes.userProfileRoute,
+        arguments: {
+          'userId': safeUserId,
+          'token': safeToken,
+          'currentUserId': safeUserId,
+        },
+      );
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

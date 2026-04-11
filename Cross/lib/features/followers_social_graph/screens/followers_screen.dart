@@ -59,24 +59,43 @@ class _FollowersScreenState extends State<FollowersScreen>
   // Load followers from API — called on open and on return
   // ─────────────────────────────────────────────
   Future<void> _loadFollowers() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
 
-    final result = await _socialApiService.getFollowers(
-      userId: widget.userId,
-    );
+  final followersResult = await _socialApiService.getFollowers(
+    userId: widget.userId,
+  );
 
+  if (followersResult.$1 != 200) {
     setState(() {
       _isLoading = false;
-      if (result.$1 == 200) {
-        _followers = result.$2 as List<Follower>;
-      } else {
-        _errorMessage = result.$2.toString();
-      }
+      _errorMessage = followersResult.$2.toString();
     });
+    return;
   }
+
+  final followingResult = await _socialApiService.getFollowing(
+    userId: widget.userId,
+  );
+
+  final followers = List<Follower>.from(followersResult.$2 as List<Follower>);
+
+  if (followingResult.$1 == 200) {
+    final following = followingResult.$2 as List<Follower>;
+    final followedUserIds = following.map((u) => u.userId).toSet();
+
+    for (final follower in followers) {
+      follower.isFollowing = followedUserIds.contains(follower.userId);
+    }
+  }
+
+  setState(() {
+    _followers = followers;
+    _isLoading = false;
+  });
+}
 
   // ─────────────────────────────────────────────
   // Follow — optimistic update, revert on failure
