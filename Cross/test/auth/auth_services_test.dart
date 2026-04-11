@@ -540,4 +540,545 @@ void main() {
       expect(result.$2.toString(), contains("Network error"));
     });
   });
+
+  group("Google Auth — New user (completeGoogleSignup)", () {
+    test("returns 400 if incompleteToken is empty", () async {
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "",
+        dateOfBirth: "2000-01-01",
+        gender: "Male",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Incomplete token is required");
+    });
+
+    test("returns 400 if dateOfBirth is empty", () async {
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "incomplete_token_123",
+        dateOfBirth: "",
+        gender: "Male",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Date of birth is required");
+    });
+
+    test("returns 400 if gender is empty", () async {
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "incomplete_token_123",
+        dateOfBirth: "2000-01-01",
+        gender: "",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Gender is required");
+    });
+
+    test("returns 200 and stores tokens on successful signup completion",
+        () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/complete?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "message": "Authenticated successfully",
+            "data": {
+              "accessToken": "google_access_123",
+              "refreshToken": "google_refresh_123",
+            },
+          }),
+          200,
+        ),
+      );
+
+      when(
+        () => mockStorage.write(
+          key: any(named: "key"),
+          value: any(named: "value"),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockStorage.read(key: "refresh_token"),
+      ).thenAnswer((_) async => "google_refresh_123");
+
+      when(
+        () => mockClient.get(
+          Uri.parse("https://beatza.me/api/auth/v1/refresh-token"),
+          headers: any(named: "headers"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "data": {
+              "accessToken": "google_access_new",
+              "refreshToken": "google_refresh_new",
+              "user": {"id": "user_1"},
+            },
+          }),
+          200,
+        ),
+      );
+
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "incomplete_token_123",
+        dateOfBirth: "2000-01-01",
+        gender: "Male",
+      );
+
+      expect(result.$1, 200);
+
+      verify(
+        () => mockStorage.write(
+            key: "access_token", value: "google_access_123"),
+      ).called(1);
+      verify(
+        () => mockStorage.write(
+            key: "refresh_token", value: "google_refresh_123"),
+      ).called(1);
+    });
+
+    test("sends correct request body", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/complete?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "message": "Authenticated successfully",
+            "data": {
+              "accessToken": "google_access_123",
+              "refreshToken": "google_refresh_123",
+            },
+          }),
+          200,
+        ),
+      );
+
+      when(
+        () => mockStorage.write(
+          key: any(named: "key"),
+          value: any(named: "value"),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockStorage.read(key: "refresh_token"),
+      ).thenAnswer((_) async => "google_refresh_123");
+
+      when(
+        () => mockClient.get(
+          Uri.parse("https://beatza.me/api/auth/v1/refresh-token"),
+          headers: any(named: "headers"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "data": {
+              "accessToken": "google_access_new",
+              "refreshToken": "google_refresh_new",
+            },
+          }),
+          200,
+        ),
+      );
+
+      await authApiService.completeGoogleSignup(
+        incompleteToken: "incomplete_token_123",
+        dateOfBirth: "2000-01-01",
+        gender: "Male",
+      );
+
+      verify(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/complete?client=Android"),
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "Android",
+          },
+          body: jsonEncode({
+            "incompleteToken": "incomplete_token_123",
+            "dateOfBirth": "2000-01-01",
+            "gender": "Male",
+          }),
+        ),
+      ).called(1);
+    });
+
+    test("returns backend error on non-200 response", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/complete?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({"message": "Invalid token"}),
+          400,
+        ),
+      );
+
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "bad_token",
+        dateOfBirth: "2000-01-01",
+        gender: "Male",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Invalid token");
+    });
+
+    test("returns 500 on network error", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/complete?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenThrow(Exception("network down"));
+
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "incomplete_token_123",
+        dateOfBirth: "2000-01-01",
+        gender: "Male",
+      );
+
+      expect(result.$1, 500);
+      expect(result.$2.toString(), contains("Network error"));
+    });
+  });
+
+  group("Google Auth — Returning Google user (verifyGoogleCode)", () {
+    // This group tests the scenario where a user who previously signed up
+    // with Google is signing back in. The backend returns accessToken and
+    // refreshToken directly from the OAuth callback (Case 3 in login_screen).
+    // Since that callback is handled by FlutterWebAuth2 and only parses
+    // query parameters, the testable service method here is verifyGoogleCode
+    // which is used for Case 2. For Case 3, we verify token storage works
+    // correctly through the saveTokens + refreshToken flow.
+
+    test("saveTokens stores tokens correctly for returning Google user",
+        () async {
+      when(
+        () => mockStorage.write(
+          key: any(named: "key"),
+          value: any(named: "value"),
+        ),
+      ).thenAnswer((_) async {});
+
+      await authApiService.saveTokens(
+        accessToken: "google_returning_access",
+        refreshToken: "google_returning_refresh",
+      );
+
+      verify(
+        () => mockStorage.write(
+            key: "access_token", value: "google_returning_access"),
+      ).called(1);
+      verify(
+        () => mockStorage.write(
+            key: "refresh_token", value: "google_returning_refresh"),
+      ).called(1);
+      verify(
+        () => mockStorage.write(
+          key: "token_time",
+          value: any(named: "value"),
+        ),
+      ).called(1);
+    });
+
+    test("refreshToken succeeds after saving returning Google user tokens",
+        () async {
+      when(
+        () => mockStorage.write(
+          key: any(named: "key"),
+          value: any(named: "value"),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockStorage.read(key: "refresh_token"),
+      ).thenAnswer((_) async => "google_returning_refresh");
+
+      when(
+        () => mockClient.get(
+          Uri.parse("https://beatza.me/api/auth/v1/refresh-token"),
+          headers: any(named: "headers"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "data": {
+              "accessToken": "google_refreshed_access",
+              "refreshToken": "google_refreshed_refresh",
+              "user": {"id": "google_user_42"},
+            },
+          }),
+          200,
+        ),
+      );
+
+      // Simulate the returning Google user flow:
+      // 1. Save tokens from OAuth callback
+      await authApiService.saveTokens(
+        accessToken: "google_returning_access",
+        refreshToken: "google_returning_refresh",
+      );
+
+      // 2. Refresh token to get user data
+      final result = await authApiService.refreshToken();
+
+      expect(result.$1, 200);
+      expect(result.$2, "Token refreshed successfully");
+
+      verify(
+        () => mockStorage.write(key: "user_id", value: "google_user_42"),
+      ).called(1);
+    });
+  });
+
+  group(
+      "Google Auth — Existing email user signing in with Google (verifyGoogleCode)",
+      () {
+    test("returns 400 if pendingToken is empty", () async {
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "",
+        code: "123456",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Pending token is required");
+    });
+
+    test("returns 400 if code is empty", () async {
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "pending_token_123",
+        code: "",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Verification code is required");
+    });
+
+    test(
+        "returns 200 and stores tokens on successful code verification",
+        () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/verify-code?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "message": "Authenticated successfully",
+            "data": {
+              "accessToken": "verified_access_123",
+              "refreshToken": "verified_refresh_123",
+            },
+          }),
+          200,
+        ),
+      );
+
+      when(
+        () => mockStorage.write(
+          key: any(named: "key"),
+          value: any(named: "value"),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockStorage.read(key: "refresh_token"),
+      ).thenAnswer((_) async => "verified_refresh_123");
+
+      when(
+        () => mockClient.get(
+          Uri.parse("https://beatza.me/api/auth/v1/refresh-token"),
+          headers: any(named: "headers"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "data": {
+              "accessToken": "verified_access_new",
+              "refreshToken": "verified_refresh_new",
+              "user": {"id": "existing_user_99"},
+            },
+          }),
+          200,
+        ),
+      );
+
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "pending_token_123",
+        code: "123456",
+      );
+
+      expect(result.$1, 200);
+      expect(result.$2, "Authenticated successfully");
+
+      verify(
+        () => mockStorage.write(
+            key: "access_token", value: "verified_access_123"),
+      ).called(1);
+      verify(
+        () => mockStorage.write(
+            key: "refresh_token", value: "verified_refresh_123"),
+      ).called(1);
+    });
+
+    test("sends correct request body for verify-code", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/verify-code?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "message": "Authenticated successfully",
+            "data": {
+              "accessToken": "verified_access_123",
+              "refreshToken": "verified_refresh_123",
+            },
+          }),
+          200,
+        ),
+      );
+
+      when(
+        () => mockStorage.write(
+          key: any(named: "key"),
+          value: any(named: "value"),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockStorage.read(key: "refresh_token"),
+      ).thenAnswer((_) async => "verified_refresh_123");
+
+      when(
+        () => mockClient.get(
+          Uri.parse("https://beatza.me/api/auth/v1/refresh-token"),
+          headers: any(named: "headers"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "data": {
+              "accessToken": "verified_access_new",
+              "refreshToken": "verified_refresh_new",
+            },
+          }),
+          200,
+        ),
+      );
+
+      await authApiService.verifyGoogleCode(
+        pendingToken: "pending_token_123",
+        code: "123456",
+      );
+
+      verify(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/verify-code?client=Android"),
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "Android",
+          },
+          body: jsonEncode({
+            "pendingToken": "pending_token_123",
+            "code": "123456",
+          }),
+        ),
+      ).called(1);
+    });
+
+    test("returns backend error on invalid code", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/verify-code?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({"message": "Invalid verification code"}),
+          400,
+        ),
+      );
+
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "pending_token_123",
+        code: "000000",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Invalid verification code");
+    });
+
+    test("returns backend error on expired pending token", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/verify-code?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({"message": "Token expired"}),
+          401,
+        ),
+      );
+
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "expired_token",
+        code: "123456",
+      );
+
+      expect(result.$1, 401);
+      expect(result.$2, "Token expired");
+    });
+
+    test("returns 500 on network error", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse(
+              "https://beatza.me/api/auth/v1/google/verify-code?client=Android"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenThrow(Exception("connection refused"));
+
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "pending_token_123",
+        code: "123456",
+      );
+
+      expect(result.$1, 500);
+      expect(result.$2.toString(), contains("Network error"));
+    });
+  });
 }
