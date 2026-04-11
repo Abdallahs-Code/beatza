@@ -1,13 +1,17 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { ProfileEditForm } from '../profile/profile_edit_form'
 export class ProfilePage {
     profileImg: Locator
-    uploadheaderImg: Locator
+    headerImg: Locator
+    uploadheaderImgBtn: Locator
     editBtn: Locator
+    editform: ProfileEditForm
     shareBtn: Locator
     uploadProfileImgBtn: Locator
     replaceImgBtn: Locator
     deleteImgBtn: Locator
     uploadSongBtn: Locator
+    supportArtistBtn: Locator
     allLink: Locator
     popularTracksLink: Locator
     albumsLink: Locator
@@ -17,13 +21,16 @@ export class ProfilePage {
     constructor(page: Page) {
         const profilePage = page;
         this.profileImg = profilePage.getByTestId("")
+        this.headerImg = profilePage.getByTestId("")
         this.uploadProfileImgBtn = profilePage.getByRole("button", { name: "Upload image" })
-        this.uploadheaderImg = profilePage.getByRole("button", { name: "Upload header image" })
+        this.uploadheaderImgBtn = profilePage.getByRole("button", { name: "Upload header image" })
         this.replaceImgBtn = profilePage.getByRole("button", { name: "Replace image" })
         this.deleteImgBtn = profilePage.getByRole("button", { name: "Delete image" })
 
-        this.editBtn = profilePage.getByTestId("")
-        this.shareBtn = profilePage.getByTestId("")
+        this.editBtn = profilePage.getByRole("button", { name: "Edit", exact: true })
+        this.editform = new ProfileEditForm(page)
+        this.shareBtn = profilePage.getByRole("button", { name: "Share" })
+        this.supportArtistBtn = profilePage.getByRole('button', { name: /Support/i })
         this.uploadSongBtn = profilePage.getByRole("button", { name: "Upload now" })
 
         this.allLink = profilePage.getByTestId("")
@@ -33,6 +40,9 @@ export class ProfilePage {
         this.repostsLink = profilePage.getByTestId("")
 
     }
+    async ClickEditBtn() {
+        await this.editBtn.click()
+    }
     async UploadProfileImg() {
         await this.uploadProfileImgBtn.click()
         await this.replaceImgBtn.click()
@@ -41,15 +51,13 @@ export class ProfilePage {
         await this.uploadProfileImgBtn.click()
         await this.deleteImgBtn.click()
     }
-    async UploadCoverImg() {
-        await this.uploadheaderImg.click()
+    async UploadHeaderImg() {
+        await this.uploadheaderImgBtn.click()
         await this.replaceImgBtn.click()
     }
     async DeleteCoverImg() {
-        await this.uploadheaderImg.click()
+        await this.uploadheaderImgBtn.click()
         await this.deleteImgBtn.click()
     }
-    async UploadSong() {
 
-    }
 }
