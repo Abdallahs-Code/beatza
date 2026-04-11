@@ -71,30 +71,41 @@ class AuthHelpers {
     await tester.enterText(nameInput, displayName);
     await tester.pumpAndSettle();
 
-    final monthDropdown = find.text('Month');
-    if (monthDropdown.evaluate().isNotEmpty) {
-      await tester.tap(monthDropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('January').last);
-      await tester.pumpAndSettle();
-    }
+    // Find all DropdownButtonFormField widgets inside the DOB row
+    final dobRow = find.byKey(const Key('test_user_info_dob_row'));
 
-    final dayDropdown = find.text('Day');
-    if (dayDropdown.evaluate().isNotEmpty) {
-      await tester.tap(dayDropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1').last);
-      await tester.pumpAndSettle();
-    }
+    // Tap the Month dropdown (first DropdownButtonFormField in the row)
+    final monthDropdown = find.descendant(
+      of: dobRow,
+      matching: find.byType(DropdownButtonFormField<int>),
+    );
+    await tester.tap(monthDropdown.first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('January').last);
+    await tester.pumpAndSettle();
 
-    final yearDropdown = find.text('Year');
-    if (yearDropdown.evaluate().isNotEmpty) {
-      await tester.tap(yearDropdown);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('2000').last);
-      await tester.pumpAndSettle();
-    }
+    // Tap the Day dropdown (second DropdownButtonFormField in the row)
+    await tester.tap(monthDropdown.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('1').last);
+    await tester.pumpAndSettle();
 
+    // Tap the Year dropdown (third DropdownButtonFormField in the row)
+    await tester.tap(monthDropdown.at(2));
+    await tester.pumpAndSettle();
+    // The year list starts from the current year descending.
+    // Use scrollUntilVisible with the dropdown's own Scrollable.
+    final dropdownScrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.text('2000'),
+      200.0,
+      scrollable: dropdownScrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2000').last);
+    await tester.pumpAndSettle();
+
+    // Tap the Gender dropdown
     final genderDropdown = find.text('Gender (required)');
     if (genderDropdown.evaluate().isNotEmpty) {
       await tester.tap(genderDropdown);

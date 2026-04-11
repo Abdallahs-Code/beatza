@@ -102,7 +102,7 @@ void main() {
 
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'unregistered_email@gmail.com',
       );
 
       NavHelpers.assertOnCreatePasswordScreen();
@@ -176,7 +176,7 @@ void main() {
       await AuthHelpers.loginWith(
         tester,
         email: 'beatzacrosstester@gmail.com',
-        password: 'Beatza@123',
+        password: 'Beatza#123',
       );
 
       NavHelpers.assertOnHomeScreen();
@@ -197,7 +197,7 @@ void main() {
 
       await AuthHelpers.enterPasswordAndContinue(
         tester,
-        password: 'WrongPass@999',
+        password: 'WrongPass#999',
       );
 
       NavHelpers.assertOnPasswordScreen();
@@ -222,8 +222,9 @@ void main() {
       final forgotBtn = find.byKey(const Key('test_password_forgot_btn'));
       expect(forgotBtn, findsOneWidget);
 
-      await tester.tap(forgotBtn);
-      await tester.pumpAndSettle(const Duration(seconds: 1));
+      final gestureDetector = tester.widget<GestureDetector>(forgotBtn);
+      gestureDetector.onTap!();
+      await tester.pumpAndSettle();
 
       expect(find.byType(SnackBar), findsOneWidget);
     });
@@ -239,7 +240,7 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user@gmail.com',
       );
 
       NavHelpers.assertOnCreatePasswordScreen();
@@ -247,7 +248,7 @@ void main() {
       final emailText = tester.widget<Text>(
         find.byKey(const Key('test_create_password_email_display')),
       );
-      expect(emailText.data, equals('newuser_testonly@gmail.com'));
+      expect(emailText.data, equals('new_user@gmail.com'));
     });
 
     testWidgets('Short password shows SnackBar error', (tester) async {
@@ -258,7 +259,7 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user@gmail.com',
       );
 
       NavHelpers.assertOnCreatePasswordScreen();
@@ -284,14 +285,14 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user@gmail.com',
       );
 
       NavHelpers.assertOnCreatePasswordScreen();
 
       await AuthHelpers.enterCreatePasswordAndContinue(
         tester,
-        password: 'StrongPass@123',
+        password: 'StrongPass#123',
       );
 
       NavHelpers.assertOnUserInfoScreen();
@@ -309,11 +310,11 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user@gmail.com',
       );
       await AuthHelpers.enterCreatePasswordAndContinue(
         tester,
-        password: 'StrongPass@123',
+        password: 'StrongPass#123',
       );
 
       NavHelpers.assertOnUserInfoScreen();
@@ -338,11 +339,11 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user1@gmail.com',
       );
       await AuthHelpers.enterCreatePasswordAndContinue(
         tester,
-        password: 'StrongPass@123',
+        password: 'StrongPass#123',
       );
 
       NavHelpers.assertOnUserInfoScreen();
@@ -367,11 +368,11 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user2@gmail.com',
       );
       await AuthHelpers.enterCreatePasswordAndContinue(
         tester,
-        password: 'StrongPass@123',
+        password: 'StrongPass#123',
       );
       await AuthHelpers.fillUserInfoAndSubmit(
         tester,
@@ -384,7 +385,7 @@ void main() {
       final emailText = tester.widget<Text>(
         find.byKey(const Key('test_check_inbox_email')),
       );
-      expect(emailText.data, equals('newuser_testonly@gmail.com'));
+      expect(emailText.data, equals('new_user2@gmail.com'));
     });
 
     testWidgets('Back to login link navigates to Login screen',
@@ -396,11 +397,11 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user3@gmail.com',
       );
       await AuthHelpers.enterCreatePasswordAndContinue(
         tester,
-        password: 'StrongPass@123',
+        password: 'StrongPass#123',
       );
       await AuthHelpers.fillUserInfoAndSubmit(
         tester,
@@ -428,11 +429,11 @@ void main() {
       await AuthHelpers.goToEmailEntry(tester);
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'newuser_testonly@gmail.com',
+        email: 'new_user4@gmail.com',
       );
       await AuthHelpers.enterCreatePasswordAndContinue(
         tester,
-        password: 'StrongPass@123',
+        password: 'StrongPass#123',
       );
       await AuthHelpers.fillUserInfoAndSubmit(
         tester,
