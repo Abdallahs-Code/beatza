@@ -4,34 +4,47 @@ import { AuthForm } from '../pages/components/auth_form/auth_form';
 import { LandingPage } from '../pages/landing_page';
 import { EmailVerificationLink, EmailResetPass } from '../helpers/verification'
 import { ResetPassPage } from '../pages/reset_password_page';
+import { networkInterfaces } from 'node:os';
 
 test.describe("authentication (Happy Path)", () => {
   test("Signup with Email", async ({ page }) => {
-    test.setTimeout(40000);
-    await page.goto('https://beatza.me');
-
-    const landingPage = new LandingPage(page)
-
-    await page.waitForLoadState();
-
-    await landingPage.signInBtn.click()
-
-    const loginForm = new AuthForm(page)
-    const testEmail = `beatzatesting+${Date.now()}@gmail.com`;
-    await loginForm.Signup(testEmail)
-
-    await page.waitForTimeout(6000)
-    const verificationLink = await EmailVerificationLink(testEmail)
-    await page.goto(verificationLink, { waitUntil: 'networkidle' });
+    try {
 
 
-    await page.goto('https://beatza.me')
-    await landingPage.signInBtn.click()
+      test.setTimeout(40000);
+      await page.goto('https://beatza.me');
 
-    await loginForm.Login(testEmail, "Beatza@123")
-    await expect(page).toHaveURL(/\/home/);
+      const landingPage = new LandingPage(page)
+
+      await page.waitForLoadState();
+
+      await landingPage.signInBtn.click()
+
+      const loginForm = new AuthForm(page)
+      const testEmail = `beatzatesting+${Date.now()}@gmail.com`;
+      await loginForm.Signup(testEmail)
+
+      await page.waitForTimeout(6000)
+      const verificationLink = await EmailVerificationLink(testEmail)
+      await page.goto(verificationLink, { waitUntil: 'networkidle' });
 
 
+      await page.goto('https://beatza.me')
+      await landingPage.signInBtn.click()
+
+      await loginForm.Login(testEmail, "Beatza@123")
+      await expect(page).toHaveURL(/\/home/);
+    } finally {
+      if (true) {
+        const navbar = new Navbar(page)
+        await navbar.ClickMore()
+        await navbar.moreDropdown.settings.click()
+        await page.getByRole("button", { name: "Delete Account" }).click()
+        await page.getByRole('checkbox', { name: /Yes, I understand this is permanent/i }).check();
+        await page.getByRole("button", { name: "Delete my account" }).click()
+      }
+
+    }
 
   })
   test("Login with Email and signout", async ({ page }) => {
@@ -52,7 +65,6 @@ test.describe("authentication (Happy Path)", () => {
     const navbar = new Navbar(page)
     await navbar.ClickMore()
     await navbar.moreDropdown.ClickSignOut()
-    // await expect(page).toHaveURL("beatza.me");
 
 
 
