@@ -70,6 +70,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _PrimaryActionButton(
+                      key: const Key('test_settings_delete_account_btn'),
                       title: 'Delete account',
                       backgroundColor: const Color(0xFFC62828),
                       textColor: Colors.white,
@@ -209,6 +210,7 @@ class _PrimaryActionButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _PrimaryActionButton({
+    super.key,
     required this.title,
     required this.backgroundColor,
     required this.textColor,
@@ -346,6 +348,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Checkbox(
+                  key: const Key('test_delete_account_checkbox'),
                   value: _confirmed,
                   onChanged: _isDeleting
                       ? null
@@ -402,6 +405,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                 SizedBox(
                   height: 44,
                   child: ElevatedButton(
+                    key: const Key('test_delete_account_confirm_btn'),
                     onPressed: (_confirmed && !_isDeleting)
                         ? _handleDeleteAccount
                         : null,

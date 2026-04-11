@@ -1,7 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cross_team5/main.dart' as app;
 
 class AuthHelpers {
+  /// Logs in with the given credentials and deletes the account via the UI.
+  /// Assumes the account exists — the test will fail if it doesn't.
+  /// Ends on the Welcome screen after successful deletion.
+  static Future<void> deleteAccount(
+    WidgetTester tester, {
+    required String email,
+    required String password,
+  }) async {
+    // Log in
+    await loginWith(tester, email: email, password: password);
+
+    // Navigate to Library
+    final libraryNav = find.byKey(const Key('test_home_to_library_nav'));
+    expect(libraryNav, findsOneWidget);
+    await tester.tap(libraryNav);
+    await tester.pumpAndSettle();
+
+    // Tap Settings
+    final settingsBtn = find.byKey(const Key('test_library_settings_btn'));
+    expect(settingsBtn, findsOneWidget);
+    await tester.tap(settingsBtn);
+    await tester.pumpAndSettle();
+
+    // Tap Delete account button
+    final deleteBtn = find.byKey(const Key('test_settings_delete_account_btn'));
+    expect(deleteBtn, findsOneWidget);
+    await tester.tap(deleteBtn);
+    await tester.pumpAndSettle();
+
+    // Check the confirmation checkbox
+    final checkbox = find.byKey(const Key('test_delete_account_checkbox'));
+    expect(checkbox, findsOneWidget);
+    await tester.tap(checkbox);
+    await tester.pumpAndSettle();
+
+    // Tap "Delete my account" confirm button
+    final confirmBtn = find.byKey(const Key('test_delete_account_confirm_btn'));
+    expect(confirmBtn, findsOneWidget);
+    await tester.tap(confirmBtn);
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
+    // Should be back on Welcome screen after deletion
+  }
+
   static Future<void> goToLogin(WidgetTester tester) async {
     final loginBtn = find.byKey(const Key('test_welcome_login_btn'));
     expect(loginBtn, findsOneWidget);

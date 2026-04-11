@@ -32,6 +32,7 @@ class LibraryHeader extends StatelessWidget {
           const SizedBox(width: 10),
 
           GestureDetector(
+  key: const Key('test_library_settings_btn'),
   onTap: () {
     Navigator.push(
       context,

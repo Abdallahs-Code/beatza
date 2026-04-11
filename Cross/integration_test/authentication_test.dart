@@ -75,23 +75,6 @@ void main() {
 
   group('Navigation — Email Entry Screen', () {
     testWidgets(
-        'Entering a registered email navigates to Password screen',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'beatzacrosstester@gmail.com',
-      );
-
-      NavHelpers.assertOnPasswordScreen();
-    });
-
-    testWidgets(
         'Entering an unregistered email navigates to Create Password screen',
         (tester) async {
       app.main();
@@ -102,7 +85,7 @@ void main() {
 
       await AuthHelpers.enterEmailAndContinue(
         tester,
-        email: 'unregistered_email@gmail.com',
+        email: 'beatzacrosstester@gmail.com',
       );
 
       NavHelpers.assertOnCreatePasswordScreen();
@@ -126,7 +109,272 @@ void main() {
     });
   });
 
+  group('Signup — Create Password Screen', () {
+    testWidgets('Displays the entered email on Create Password screen',
+        (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+
+      NavHelpers.assertOnCreatePasswordScreen();
+
+      final emailText = tester.widget<Text>(
+        find.byKey(const Key('test_create_password_email_display')),
+      );
+      expect(emailText.data, equals('beatzacrosstester@gmail.com'));
+    });
+
+    testWidgets('Short password shows SnackBar error', (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+
+      NavHelpers.assertOnCreatePasswordScreen();
+
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: '123',
+      );
+
+      // Should still be on Create Password screen
+      NavHelpers.assertOnCreatePasswordScreen();
+
+      AuthHelpers.assertSnackBarMessage(
+          'Password must be at least 8 characters');
+    });
+
+    testWidgets(
+        'Valid password navigates to User Info screen', (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+
+      NavHelpers.assertOnCreatePasswordScreen();
+
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: 'Beatza#123',
+      );
+
+      NavHelpers.assertOnUserInfoScreen();
+    });
+  });
+
+  group('Signup — User Info Screen', () {
+    testWidgets(
+        'Submitting without filling required fields shows SnackBar error',
+        (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: 'Beatza#123',
+      );
+
+      NavHelpers.assertOnUserInfoScreen();
+
+      // Tap submit without filling any fields
+      final submitBtn = find.byKey(const Key('test_user_info_submit_btn'));
+      expect(submitBtn, findsOneWidget);
+      await tester.tap(submitBtn);
+      await tester.pumpAndSettle();
+
+      // Should show error about missing fields
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
+
+    testWidgets(
+        'Filling all fields and submitting navigates to Check Inbox screen',
+        (tester) async {
+      // Account does not exist at this point — sign up creates it
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: 'Beatza#123',
+      );
+
+      NavHelpers.assertOnUserInfoScreen();
+
+      await AuthHelpers.fillUserInfoAndSubmit(
+        tester,
+        displayName: 'Test User',
+        gender: 'Male',
+      );
+
+      NavHelpers.assertOnCheckInboxScreen();
+    });
+  });
+
+  group('Signup — Check Inbox Screen', () {
+    testWidgets('Displays the correct email on Check Inbox screen',
+        (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+      
+      // Delete account created by previous test
+      await AuthHelpers.deleteAccount(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+        password: 'Beatza#123',
+      );
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: 'Beatza#123',
+      );
+      await AuthHelpers.fillUserInfoAndSubmit(
+        tester,
+        displayName: 'Test User',
+        gender: 'Male',
+      );
+
+      NavHelpers.assertOnCheckInboxScreen();
+
+      final emailText = tester.widget<Text>(
+        find.byKey(const Key('test_check_inbox_email')),
+      );
+      expect(emailText.data, equals('beatzacrosstester@gmail.com'));
+    });
+
+    testWidgets('Back to login link navigates to Login screen',
+        (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Delete account created by previous test
+      await AuthHelpers.deleteAccount(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+        password: 'Beatza#123',
+      );
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: 'Beatza#123',
+      );
+      await AuthHelpers.fillUserInfoAndSubmit(
+        tester,
+        displayName: 'Test User',
+        gender: 'Male',
+      );
+
+      NavHelpers.assertOnCheckInboxScreen();
+
+      final backBtn =
+          find.byKey(const Key('test_check_inbox_back_to_login_btn'));
+      expect(backBtn, findsOneWidget);
+      await tester.tap(backBtn);
+      await tester.pumpAndSettle();
+
+      NavHelpers.assertOnLoginScreen();
+    });
+
+    testWidgets('Resend verification email button is tappable',
+        (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+      
+      // Delete account created by previous test
+      await AuthHelpers.deleteAccount(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+        password: 'Beatza#123',
+      );
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+      await AuthHelpers.enterCreatePasswordAndContinue(
+        tester,
+        password: 'Beatza#123',
+      );
+      await AuthHelpers.fillUserInfoAndSubmit(
+        tester,
+        displayName: 'Test User',
+        gender: 'Male',
+      );
+
+      NavHelpers.assertOnCheckInboxScreen();
+
+      final resendBtn =
+          find.byKey(const Key('test_check_inbox_resend_btn'));
+      expect(resendBtn, findsOneWidget);
+
+      await tester.tap(resendBtn);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Should show a SnackBar with the result
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
+  });
+
   group('Login — Password Screen', () {
+    // Account exists from the last signup test above
+
+    testWidgets('Entering a registered email navigates to Password screen',
+        (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.goToLogin(tester);
+      await AuthHelpers.goToEmailEntry(tester);
+
+      await AuthHelpers.enterEmailAndContinue(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+      );
+
+      NavHelpers.assertOnPasswordScreen();
+    });
+
     testWidgets('Displays the entered email on Password screen',
         (tester) async {
       app.main();
@@ -226,231 +474,6 @@ void main() {
       gestureDetector.onTap!();
       await tester.pumpAndSettle();
 
-      expect(find.byType(SnackBar), findsOneWidget);
-    });
-  });
-
-  group('Signup — Create Password Screen', () {
-    testWidgets('Displays the entered email on Create Password screen',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user@gmail.com',
-      );
-
-      NavHelpers.assertOnCreatePasswordScreen();
-
-      final emailText = tester.widget<Text>(
-        find.byKey(const Key('test_create_password_email_display')),
-      );
-      expect(emailText.data, equals('new_user@gmail.com'));
-    });
-
-    testWidgets('Short password shows SnackBar error', (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user@gmail.com',
-      );
-
-      NavHelpers.assertOnCreatePasswordScreen();
-
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: '123',
-      );
-
-      // Should still be on Create Password screen
-      NavHelpers.assertOnCreatePasswordScreen();
-
-      AuthHelpers.assertSnackBarMessage(
-          'Password must be at least 8 characters');
-    });
-
-    testWidgets(
-        'Valid password navigates to User Info screen', (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user@gmail.com',
-      );
-
-      NavHelpers.assertOnCreatePasswordScreen();
-
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: 'StrongPass#123',
-      );
-
-      NavHelpers.assertOnUserInfoScreen();
-    });
-  });
-
-  group('Signup — User Info Screen', () {
-    testWidgets(
-        'Submitting without filling required fields shows SnackBar error',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user@gmail.com',
-      );
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: 'StrongPass#123',
-      );
-
-      NavHelpers.assertOnUserInfoScreen();
-
-      // Tap submit without filling any fields
-      final submitBtn = find.byKey(const Key('test_user_info_submit_btn'));
-      expect(submitBtn, findsOneWidget);
-      await tester.tap(submitBtn);
-      await tester.pumpAndSettle();
-
-      // Should show error about missing fields
-      expect(find.byType(SnackBar), findsOneWidget);
-    });
-
-    testWidgets(
-        'Filling all fields and submitting navigates to Check Inbox screen',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user1@gmail.com',
-      );
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: 'StrongPass#123',
-      );
-
-      NavHelpers.assertOnUserInfoScreen();
-
-      await AuthHelpers.fillUserInfoAndSubmit(
-        tester,
-        displayName: 'Test User',
-        gender: 'Male',
-      );
-
-      NavHelpers.assertOnCheckInboxScreen();
-    });
-  });
-
-  group('Signup — Check Inbox Screen', () {
-    testWidgets('Displays the correct email on Check Inbox screen',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user2@gmail.com',
-      );
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: 'StrongPass#123',
-      );
-      await AuthHelpers.fillUserInfoAndSubmit(
-        tester,
-        displayName: 'Test User',
-        gender: 'Male',
-      );
-
-      NavHelpers.assertOnCheckInboxScreen();
-
-      final emailText = tester.widget<Text>(
-        find.byKey(const Key('test_check_inbox_email')),
-      );
-      expect(emailText.data, equals('new_user2@gmail.com'));
-    });
-
-    testWidgets('Back to login link navigates to Login screen',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user3@gmail.com',
-      );
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: 'StrongPass#123',
-      );
-      await AuthHelpers.fillUserInfoAndSubmit(
-        tester,
-        displayName: 'Test User',
-        gender: 'Male',
-      );
-
-      NavHelpers.assertOnCheckInboxScreen();
-
-      final backBtn =
-          find.byKey(const Key('test_check_inbox_back_to_login_btn'));
-      expect(backBtn, findsOneWidget);
-      await tester.tap(backBtn);
-      await tester.pumpAndSettle();
-
-      NavHelpers.assertOnLoginScreen();
-    });
-
-    testWidgets('Resend verification email button is tappable',
-        (tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      await AuthHelpers.goToLogin(tester);
-      await AuthHelpers.goToEmailEntry(tester);
-      await AuthHelpers.enterEmailAndContinue(
-        tester,
-        email: 'new_user4@gmail.com',
-      );
-      await AuthHelpers.enterCreatePasswordAndContinue(
-        tester,
-        password: 'StrongPass#123',
-      );
-      await AuthHelpers.fillUserInfoAndSubmit(
-        tester,
-        displayName: 'Test User',
-        gender: 'Male',
-      );
-
-      NavHelpers.assertOnCheckInboxScreen();
-
-      final resendBtn =
-          find.byKey(const Key('test_check_inbox_resend_btn'));
-      expect(resendBtn, findsOneWidget);
-
-      await tester.tap(resendBtn);
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      // Should show a SnackBar with the result
       expect(find.byType(SnackBar), findsOneWidget);
     });
   });
