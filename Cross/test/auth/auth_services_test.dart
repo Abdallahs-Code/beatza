@@ -541,7 +541,7 @@ void main() {
     });
   });
 
-  group("Google Auth — New user (completeGoogleSignup)", () {
+  group("Google Auth - New user", () {
     test("returns 400 if incompleteToken is empty", () async {
       final result = await authApiService.completeGoogleSignup(
         incompleteToken: "",
@@ -762,14 +762,8 @@ void main() {
     });
   });
 
-  group("Google Auth — Returning Google user (verifyGoogleCode)", () {
-    // This group tests the scenario where a user who previously signed up
-    // with Google is signing back in. The backend returns accessToken and
-    // refreshToken directly from the OAuth callback (Case 3 in login_screen).
-    // Since that callback is handled by FlutterWebAuth2 and only parses
-    // query parameters, the testable service method here is verifyGoogleCode
-    // which is used for Case 2. For Case 3, we verify token storage works
-    // correctly through the saveTokens + refreshToken flow.
+  group("Google Auth - Returning Google user", () {
+    // This group tests the scenario where a user who previously signed up with Google is signing back in.
 
     test("saveTokens stores tokens correctly for returning Google user",
         () async {
@@ -851,8 +845,7 @@ void main() {
     });
   });
 
-  group(
-      "Google Auth — Existing email user signing in with Google (verifyGoogleCode)",
+  group("Google Auth - Existing email user signing in with Google",
       () {
     test("returns 400 if pendingToken is empty", () async {
       final result = await authApiService.verifyGoogleCode(
