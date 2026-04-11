@@ -10,6 +10,7 @@ class UserTile extends StatelessWidget {
   final VoidCallback? onBlockTap;
   final VoidCallback? onUnblockTap;
   final bool showBlockOption;
+  final bool showUnblockOption;
 
   const UserTile({
     super.key,
@@ -18,73 +19,129 @@ class UserTile extends StatelessWidget {
     this.onBlockTap,
     this.onUnblockTap,
     this.showBlockOption = true,
+    this.showUnblockOption = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      // ── Avatar ──────────────────────────────────
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundImage: follower.profileImgLink != null
-            ? NetworkImage(follower.profileImgLink!)
-            : null,
-        child: follower.profileImgLink == null
-            ? Text(
-                follower.displayName.isNotEmpty
-                    ? follower.displayName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              )
-            : null,
-      ),
+    return InkWell(
+      // ── Tapping anywhere on tile navigates to user profile ──
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          '/user-profile',
+          arguments: {'userId': follower.userId},
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            // ── Avatar ──────────────────────────────────────
+            CircleAvatar(
+              radius: 24,
+              backgroundImage: follower.profileImgLink != null
+                  ? NetworkImage(follower.profileImgLink!)
+                  : null,
+              child: follower.profileImgLink == null
+                  ? Text(
+                      follower.displayName.isNotEmpty
+                          ? follower.displayName[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    )
+                  : null,
+            ),
 
-      // ── Display name & track count ───────────────
-      title: Text(
-        follower.displayName,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text('${follower.trackCount} tracks'),
+            const SizedBox(width: 12),
 
-      // ── Follow button + block menu ───────────────
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (onFollowTap != null)
-            OutlinedButton(
-              onPressed: onFollowTap,
-              style: OutlinedButton.styleFrom(
-                backgroundColor: follower.isFollowing
-                    ? Colors.grey.shade200
-                    : Colors.orange,
-                foregroundColor: follower.isFollowing
-                    ? Colors.black
-                    : Colors.white,
-                side: BorderSide.none,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+            // ── Display name & track count ───────────────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    follower.displayName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${follower.trackCount} tracks',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Follow / Following button ────────────────────
+            if (onFollowTap != null)
+              GestureDetector(
+                onTap: onFollowTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: follower.isFollowing
+                        ? Colors.grey.shade300
+                        : Colors.orange,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    follower.isFollowing ? 'Following' : 'Follow',
+                    style: TextStyle(
+                      color: follower.isFollowing
+                          ? Colors.black87
+                          : Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
-              child: Text(follower.isFollowing ? 'Following' : 'Follow'),
-            ),
 
-          if (showBlockOption)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                if (value == 'block' && onBlockTap != null) onBlockTap!();
-                if (value == 'unblock' && onUnblockTap != null) onUnblockTap!();
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 'block', child: Text('Block user')),
-                const PopupMenuItem(
-                  value: 'unblock',
-                  child: Text('Unblock user'),
-                ),
-              ],
-            ),
-        ],
+            const SizedBox(width: 4),
+
+            // ── Block menu (followers/following lists) ────────
+            if (showBlockOption)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'block' && onBlockTap != null) onBlockTap!();
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'block',
+                    child: Text('Block user'),
+                  ),
+                ],
+              ),
+
+            // ── Unblock menu (blocked users list) ────────────
+            if (showUnblockOption)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'unblock' && onUnblockTap != null) {
+                    onUnblockTap!();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'unblock',
+                    child: Text('Unblock'),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -1231,7 +1231,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             onTap: () {
                               Navigator.pushNamed(
                                 context,
-                                FollowersSocialGraphRoutes.followers,
+                                FollowersSocialGraphRoutes.following,
                                 arguments: {
                                   'userId': widget.profile.userId,
                                   'tabIndex': 1,
@@ -2354,7 +2354,7 @@ class _PrivateProfileView extends StatelessWidget {
                             onTap: () {
                               Navigator.pushNamed(
                                 context,
-                                FollowersSocialGraphRoutes.followers,
+                                FollowersSocialGraphRoutes.following,
                                 arguments: {
                                   'userId': profile.userId,
                                   'tabIndex': 0,
