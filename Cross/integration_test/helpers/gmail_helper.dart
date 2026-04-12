@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 
 class GmailHelper {
   static const String _tokenUrl = 'https://oauth2.googleapis.com/token';
@@ -44,8 +43,12 @@ class GmailHelper {
     final accessToken = await _getAccessToken();
 
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      final query = 'to:$toEmail subject:$subjectContains';
+      final searchUrl = Uri.parse('$_gmailApiBase/messages').replace(
+        queryParameters: {'q': query},
+      );
       final searchResponse = await http.get(
-        Uri.parse('$_gmailApiBase/messages?q=to:$toEmail+subject:$subjectContains'),
+        searchUrl,
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
@@ -125,14 +128,8 @@ class GmailHelper {
     return null;
   }
 
-  static Future<void> openVerificationLink(String link) async {
-    final uri = Uri.parse(link);
-    if (!await canLaunchUrl(uri)) {
-      throw Exception('Cannot launch URL: $link');
-    }
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
+  /// Extracts the token from the verification link and calls the backend
+  /// API directly to verify the email (the frontend page relies on JS).
   static Future<void> verifyEmail({
     required String email,
     String subjectContains = 'Welcome to BeatZa!',
@@ -141,27 +138,75 @@ class GmailHelper {
       toEmail: email,
       subjectContains: subjectContains,
     );
-    await openVerificationLink(link);
+
+    final uri = Uri.parse(link);
+    final token = uri.queryParameters['token'];
+    if (token == null) {
+      throw Exception('Could not extract token from verification link: $link');
+    }
+
+    // Call the backend API endpoint directly
+    final response = await http.get(
+      Uri.parse('https://beatza.me/api/auth/v1/verify-email?token=$token'),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 400) {
+      throw Exception(
+        'Failed to verify email via API: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// Trashes all emails matching the given subject query.
+  static Future<void> _trashEmailsBySubject({
+    required String toEmail,
+    required String subjectContains,
+  }) async {
+    final accessToken = await _getAccessToken();
+
+    final query = 'to:$toEmail subject:$subjectContains';
+    final searchUrl = Uri.parse('$_gmailApiBase/messages').replace(
+      queryParameters: {'q': query},
+    );
+    final searchResponse = await http.get(
+      searchUrl,
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    final messages = (jsonDecode(searchResponse.body)['messages'] as List?) ?? [];
+
+    for (final msg in messages) {
+      await http.post(
+        Uri.parse('$_gmailApiBase/messages/${msg['id']}/trash'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+    }
   }
 
   static Future<void> deleteVerificationEmail({
     required String toEmail,
-    String subjectContains = 'Welcome to BeatZa!',
   }) async {
-    final accessToken = await _getAccessToken();
-
-    final searchResponse = await http.get(
-      Uri.parse('$_gmailApiBase/messages?q=to:$toEmail+subject:$subjectContains'),
-      headers: {'Authorization': 'Bearer $accessToken'},
+    await _trashEmailsBySubject(
+      toEmail: toEmail,
+      subjectContains: 'Welcome to BeatZa!',
     );
+  }
 
-    final messages =(jsonDecode(searchResponse.body)['messages'] as List?) ?? [];
+  static Future<void> deleteAccountDeletionEmail({
+    required String toEmail,
+  }) async {
+    await _trashEmailsBySubject(
+      toEmail: toEmail,
+      subjectContains: 'Your account has been deleted',
+    );
+  }
 
-    for (final msg in messages) {
-      await http.delete(
-        Uri.parse('$_gmailApiBase/messages/${msg['id']}'),
-        headers: {'Authorization': 'Bearer $accessToken'},
-      );
-    }
+  static Future<void> deletePasswordResetEmail({
+    required String toEmail,
+  }) async {
+    await _trashEmailsBySubject(
+      toEmail: toEmail,
+      subjectContains: 'Password Reset Requested',
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:cross_team5/main.dart' as app;
 
 import 'helpers/auth_helpers.dart';
+import 'helpers/gmail_helper.dart';
 import 'helpers/nav_helpers.dart';
 
 void main() {
@@ -235,6 +236,11 @@ void main() {
       );
 
       NavHelpers.assertOnCheckInboxScreen();
+
+      // Verify email via Gmail API so subsequent login/deleteAccount works
+      await GmailHelper.verifyEmail(email: 'beatzacrosstester@gmail.com');
+      await GmailHelper.deleteVerificationEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
     });
   });
 
@@ -243,13 +249,15 @@ void main() {
         (tester) async {
       app.main();
       await tester.pumpAndSettle(const Duration(seconds: 1));
-      
+
       // Delete account created by previous test
       await AuthHelpers.deleteAccount(
         tester,
         email: 'beatzacrosstester@gmail.com',
         password: 'Beatza#123',
       );
+      await GmailHelper.deleteAccountDeletionEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
@@ -273,6 +281,11 @@ void main() {
         find.byKey(const Key('test_check_inbox_email')),
       );
       expect(emailText.data, equals('beatzacrosstester@gmail.com'));
+
+      // Verify email via Gmail API so the next test's deleteAccount works
+      await GmailHelper.verifyEmail(email: 'beatzacrosstester@gmail.com');
+      await GmailHelper.deleteVerificationEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
     });
 
     testWidgets('Back to login link navigates to Login screen',
@@ -286,6 +299,8 @@ void main() {
         email: 'beatzacrosstester@gmail.com',
         password: 'Beatza#123',
       );
+      await GmailHelper.deleteAccountDeletionEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
@@ -305,6 +320,11 @@ void main() {
 
       NavHelpers.assertOnCheckInboxScreen();
 
+      // Verify email via Gmail API so the next test's deleteAccount works
+      await GmailHelper.verifyEmail(email: 'beatzacrosstester@gmail.com');
+      await GmailHelper.deleteVerificationEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
+
       final backBtn =
           find.byKey(const Key('test_check_inbox_back_to_login_btn'));
       expect(backBtn, findsOneWidget);
@@ -318,13 +338,15 @@ void main() {
         (tester) async {
       app.main();
       await tester.pumpAndSettle(const Duration(seconds: 1));
-      
+
       // Delete account created by previous test
       await AuthHelpers.deleteAccount(
         tester,
         email: 'beatzacrosstester@gmail.com',
         password: 'Beatza#123',
       );
+      await GmailHelper.deleteAccountDeletionEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
@@ -353,6 +375,13 @@ void main() {
 
       // Should show a SnackBar with the result
       expect(find.byType(SnackBar), findsOneWidget);
+
+      // Verify email via Gmail API so the login tests in the next group work
+      await GmailHelper.verifyEmail(email: 'beatzacrosstester@gmail.com');
+      // Wait for the resend email to arrive before deleting all
+      await Future.delayed(const Duration(seconds: 5));
+      await GmailHelper.deleteVerificationEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
     });
   });
 
@@ -470,11 +499,30 @@ void main() {
       final forgotBtn = find.byKey(const Key('test_password_forgot_btn'));
       expect(forgotBtn, findsOneWidget);
 
+      // Call onTap directly — the GestureDetector's child doesn't fill
+      // the hit test area, so tester.tap() misses it
       final gestureDetector = tester.widget<GestureDetector>(forgotBtn);
       gestureDetector.onTap!();
-      await tester.pumpAndSettle();
+      // Wait for the async forgotPassword API call to complete
+      await tester.pumpAndSettle(const Duration(seconds: 3));
 
       expect(find.byType(SnackBar), findsOneWidget);
+
+      await GmailHelper.deletePasswordResetEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
+    });
+
+    testWidgets('Cleanup — delete test account', (tester) async {
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      await AuthHelpers.deleteAccount(
+        tester,
+        email: 'beatzacrosstester@gmail.com',
+        password: 'Beatza#123',
+      );
+      await GmailHelper.deleteAccountDeletionEmail(
+          toEmail: 'beatzacrosstester@gmail.com');
     });
   });
 }

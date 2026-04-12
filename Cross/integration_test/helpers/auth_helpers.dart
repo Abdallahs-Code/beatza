@@ -26,9 +26,14 @@ class AuthHelpers {
     await tester.tap(settingsBtn);
     await tester.pumpAndSettle();
 
-    // Tap Delete account button
+    // Scroll to and tap Delete account button
     final deleteBtn = find.byKey(const Key('test_settings_delete_account_btn'));
-    expect(deleteBtn, findsOneWidget);
+    await tester.scrollUntilVisible(
+      deleteBtn,
+      200.0,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(deleteBtn);
     await tester.pumpAndSettle();
 
