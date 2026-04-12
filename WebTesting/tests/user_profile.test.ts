@@ -1,10 +1,10 @@
 import * as path from 'path';
-import { test, expect } from '@playwright/test';
+import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { Navbar } from '../pages/components/navbar/navbar';
 import { ProfilePage } from '../pages/profile/profile_page'
 
 const artistState = path.join(process.cwd(), 'playwright/.auth/artist2.json');
-
+const artist1State = path.join(process.cwd(), 'playwright/.auth/artist1.json'); // Adjust file name if needed
 
 test.use({ storageState: artistState })
 test.describe("Profile Management(Happy Path)", () => {
@@ -70,3 +70,54 @@ test.describe("Profile Management(Happy Path)", () => {
     })
 
 })
+
+test.describe("Cross Profile Visit", () => {
+    let context1: BrowserContext;
+    let context2: BrowserContext;
+    let page1: Page;
+    let page2: Page;
+    let profileUrl1: string;
+    let profileUrl2: string;
+
+    test.beforeEach(async ({ browser }) => {
+        // Setup Context 1 (Account 1 - using artistState)
+        context1 = await browser.newContext({ storageState: artistState });
+        page1 = await context1.newPage();
+
+        // Setup Context 2 (Account 2 - using artist1State)
+        context2 = await browser.newContext({ storageState: artist1State });
+        page2 = await context2.newPage();
+
+        // Navigate Account 1 to its profile and get URL
+        await page1.goto('https://beatza.me/home');
+        const navbar1 = new Navbar(page1);
+        await navbar1.GoToProfilePage();
+        profileUrl1 = page1.url();
+
+        // Navigate Account 2 to its profile and get URL
+        await page2.goto('https://beatza.me/home');
+        const navbar2 = new Navbar(page2);
+        await navbar2.GoToProfilePage();
+        profileUrl2 = page2.url();
+    });
+
+    test.afterEach(async () => {
+        // Clean up contexts after each test
+        await context1.close();
+        await context2.close();
+    });
+
+    test("Visit each other's profile using two accounts", async () => {
+        // Cross-visit: Account 1 visits Account 2's profile
+        await page1.goto(profileUrl2);
+
+        // Cross-visit: Account 2 visits Account 1's profile
+        await page2.goto(profileUrl1);
+
+        // Assert that they successfully landed on each other's profiles
+        await expect(page1).toHaveURL(profileUrl2);
+        await expect(page2).toHaveURL(profileUrl1);
+    });
+
+
+});

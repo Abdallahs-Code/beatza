@@ -12,7 +12,7 @@ export class LandingPage {
     exploreTrendingPlaylistsBtn: Locator
 
     constructor(page: Page) {
-        this.signInBtn = page.getByRole("button", { name: "Sign in" })
+        this.signInBtn = page.getByRole("button", { name: "Sign in" }).first()
         this.createAccountBtn = page.getByRole("button", { name: "Create account" })
         this.forArtistsLink = page.getByRole("link", { name: "For Artists" })
         this.uploadBtn = page.getByRole("button", { name: "Upload" })

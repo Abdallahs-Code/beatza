@@ -4,10 +4,11 @@ export class ProfilePage {
     profileImg: Locator
     headerImg: Locator
     uploadheaderImgBtn: Locator
+    uploadProfileImgBtn: Locator
+
     editBtn: Locator
     editform: ProfileEditForm
-    shareBtn: Locator
-    uploadProfileImgBtn: Locator
+
     replaceImgBtn: Locator
     deleteImgBtn: Locator
     uploadSongBtn: Locator
@@ -17,6 +18,11 @@ export class ProfilePage {
     albumsLink: Locator
     playlistsLink: Locator
     repostsLink: Locator
+
+    shareBtn: Locator
+    moreBtn: Locator
+    followBtn: Locator
+    sendMsgBtn: Locator
 
     constructor(page: Page) {
         const profilePage = page;
@@ -38,6 +44,12 @@ export class ProfilePage {
         this.albumsLink = profilePage.getByTestId("")
         this.playlistsLink = profilePage.getByTestId("")
         this.repostsLink = profilePage.getByTestId("")
+
+
+        this.moreBtn = profilePage.getByTestId("ThreeDots-button")
+        this.repostsLink = profilePage.getByTestId("")
+        this.followBtn = profilePage.getByTestId("Follow-button")
+        this.sendMsgBtn = profilePage.getByTestId("SendMsg-button")
 
     }
     async ClickEditBtn() {

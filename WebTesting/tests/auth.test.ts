@@ -35,7 +35,7 @@ test.describe("authentication (Happy Path)", () => {
       await loginForm.Login(testEmail, "Beatza@123")
       await expect(page).toHaveURL(/\/home/);
     } finally {
-      if (true) {
+      if (false) {
         const navbar = new Navbar(page)
         await navbar.ClickMore()
         await navbar.moreDropdown.settings.click()
