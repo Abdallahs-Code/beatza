@@ -9,6 +9,7 @@ import 'package:cross_team5/features/user_profile_social_identity/models/user_pr
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/screens/edit_profile_screen.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
@@ -20,12 +21,14 @@ class UserProfileScreen extends StatefulWidget {
   final String userId;
   final String token;
   final String? currentUserId;
+  final bool initialIsFollowing;
 
   const UserProfileScreen({
     super.key,
     required this.userId,
     required this.token,
     this.currentUserId,
+    this.initialIsFollowing = false,
   });
 
   @override
@@ -34,13 +37,18 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final UserProfileService _apiService = UserProfileService();
+  final SocialApiService _socialApiService = SocialApiService();
+
   late Future<_ProfileViewState> _profileFuture;
 
   TrackModel? _currentlyPlayingTrack;
+  late bool _isFollowing;
+  bool _isFollowActionLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _isFollowing = widget.initialIsFollowing;
     _loadProfile();
   }
 
@@ -53,6 +61,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void _closePlayer() {
     setState(() {
       _currentlyPlayingTrack = null;
+    });
+  }
+
+  Future<void> _toggleFollowUser() async {
+    if (_isFollowActionLoading) return;
+
+    final previousValue = _isFollowing;
+
+    setState(() {
+      _isFollowActionLoading = true;
+      _isFollowing = !previousValue;
+    });
+
+    final result = previousValue
+        ? await _socialApiService.unfollowUser(targetUserId: widget.userId)
+        : await _socialApiService.followUser(targetUserId: widget.userId);
+
+    if (!mounted) return;
+
+    if (result.$1 != 200) {
+      setState(() {
+        _isFollowing = previousValue;
+        _isFollowActionLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.$2.toString())),
+      );
+      return;
+    }
+
+    setState(() {
+      _isFollowActionLoading = false;
+      _loadProfile();
     });
   }
 
@@ -315,6 +357,45 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final isOwner = currentUserId.isNotEmpty && currentUserId == profile.userId;
 
     return _ProfileViewState(profile: profile, isOwner: isOwner);
+  }
+
+  Future<void> _openFollowersScreen(String profileUserId) async {
+    await Navigator.pushNamed(
+      context,
+      FollowersSocialGraphRoutes.followers,
+      arguments: {
+        'userId': profileUserId,
+        'token': widget.token,
+        'currentUserId': widget.currentUserId,
+        'tabIndex': 0,
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _loadProfile();
+    });
+  }
+
+  Future<void> _openFollowingScreen(
+    String profileUserId, {
+    int tabIndex = 0,
+  }) async {
+    await Navigator.pushNamed(
+      context,
+      FollowersSocialGraphRoutes.following,
+      arguments: {
+        'userId': profileUserId,
+        'token': widget.token,
+        'currentUserId': widget.currentUserId,
+        'tabIndex': tabIndex,
+      },
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _loadProfile();
+    });
   }
 
   Future<void> _openUrl(String rawUrl) async {
@@ -777,7 +858,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           final isOwner = data.isOwner;
 
           if (profile.isPrivate && !isOwner) {
-            return _PrivateProfileView(profile: profile);
+            return _PrivateProfileView(
+              profile: profile,
+              onFollowersTap: () => _openFollowersScreen(profile.userId),
+              onFollowingTap: () =>
+                  _openFollowingScreen(profile.userId, tabIndex: 0),
+              isFollowing: _isFollowing,
+              isFollowActionLoading: _isFollowActionLoading,
+              onFollowToggle: _toggleFollowUser,
+            );
           }
 
           return Stack(
@@ -796,6 +885,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onTrackTap: _playTrack,
                 onTrackOptionsTap: _showTrackOptions,
                 currentlyPlayingTrackId: _currentlyPlayingTrack?.id,
+                onFollowersTap: () => _openFollowersScreen(profile.userId),
+                onFollowingTap: () =>
+                    _openFollowingScreen(profile.userId, tabIndex: 1),
+                isFollowing: _isFollowing,
+                isFollowActionLoading: _isFollowActionLoading,
+                onFollowToggle: _toggleFollowUser,
               ),
               if (_currentlyPlayingTrack != null)
                 Positioned(
@@ -831,6 +926,11 @@ class _SoundCloudProfileView extends StatefulWidget {
   final Function(TrackModel) onTrackTap;
   final Function(TrackModel) onTrackOptionsTap;
   final String? currentlyPlayingTrackId;
+  final Future<void> Function() onFollowersTap;
+  final Future<void> Function() onFollowingTap;
+  final bool isFollowing;
+  final bool isFollowActionLoading;
+  final Future<void> Function() onFollowToggle;
 
   const _SoundCloudProfileView({
     required this.profile,
@@ -842,6 +942,11 @@ class _SoundCloudProfileView extends StatefulWidget {
     required this.onTrackTap,
     required this.onTrackOptionsTap,
     this.currentlyPlayingTrackId,
+    required this.onFollowersTap,
+    required this.onFollowingTap,
+    required this.isFollowing,
+    required this.isFollowActionLoading,
+    required this.onFollowToggle,
   });
 
   @override
@@ -1213,13 +1318,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       child: Row(
                         children: [
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                FollowersSocialGraphRoutes.followers,
-                                arguments: {'userId': widget.profile.userId},
-                              );
-                            },
+                            onTap: widget.onFollowersTap,
                             child: Text(
                               '${widget.profile.followersCount} Followers',
                               style: const TextStyle(
@@ -1236,16 +1335,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                FollowersSocialGraphRoutes.following,
-                                arguments: {
-                                  'userId': widget.profile.userId,
-                                  'tabIndex': 1,
-                                },
-                              );
-                            },
+                            onTap: widget.onFollowingTap,
                             child: Text(
                               '${widget.profile.followingsCount} Following',
                               style: const TextStyle(
@@ -1275,19 +1365,54 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Row(
                         children: [
-                          IconButton(
-                            key: const Key('test_profile_edit_btn'),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: widget.isOwner
-                                ? () => _openEditProfile(context)
-                                : null,
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: Colors.white70,
-                              size: 22,
+                          if (widget.isOwner)
+                            IconButton(
+                              key: const Key('test_profile_edit_btn'),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => _openEditProfile(context),
+                              icon: const Icon(
+                                Icons.edit_outlined,
+                                color: Colors.white70,
+                                size: 22,
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: SizedBox(
+                                height: 42,
+                                child: ElevatedButton(
+                                  onPressed: widget.isFollowActionLoading
+                                      ? null
+                                      : widget.onFollowToggle,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: widget.isFollowing
+                                        ? const Color(0xFF2A2A2A)
+                                        : const Color(0xFFFF5500),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                  ),
+                                  child: widget.isFollowActionLoading
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          widget.isFollowing
+                                              ? 'Following'
+                                              : 'Follow',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                ),
+                              ),
                             ),
-                          ),
                           const Spacer(),
                           IconButton(
                             padding: EdgeInsets.zero,
@@ -1364,7 +1489,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                           }).toList(),
                         ),
                       ),
-                    if (_shouldShowCompleteProfile) ...[
+                    if (widget.isOwner && _shouldShowCompleteProfile) ...[
                       const SizedBox(height: 28),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -2241,8 +2366,20 @@ class _AutoBannerFromAvatar extends StatelessWidget {
 
 class _PrivateProfileView extends StatelessWidget {
   final UserProfileModel profile;
+  final Future<void> Function() onFollowersTap;
+  final Future<void> Function() onFollowingTap;
+  final bool isFollowing;
+  final bool isFollowActionLoading;
+  final Future<void> Function() onFollowToggle;
 
-  const _PrivateProfileView({required this.profile});
+  const _PrivateProfileView({
+    required this.profile,
+    required this.onFollowersTap,
+    required this.onFollowingTap,
+    required this.isFollowing,
+    required this.isFollowActionLoading,
+    required this.onFollowToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2336,16 +2473,7 @@ class _PrivateProfileView extends StatelessWidget {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                FollowersSocialGraphRoutes.followers,
-                                arguments: {
-                                  'userId': profile.userId,
-                                  'tabIndex': 0,
-                                },
-                              );
-                            },
+                            onTap: onFollowersTap,
                             child: Text(
                               '${profile.followersCount} Followers',
                               style: const TextStyle(
@@ -2362,16 +2490,7 @@ class _PrivateProfileView extends StatelessWidget {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                FollowersSocialGraphRoutes.following,
-                                arguments: {
-                                  'userId': profile.userId,
-                                  'tabIndex': 0,
-                                },
-                              );
-                            },
+                            onTap: onFollowingTap,
                             child: Text(
                               '${profile.followingsCount} Following',
                               style: const TextStyle(
@@ -2385,22 +2504,34 @@ class _PrivateProfileView extends StatelessWidget {
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
-                        child: Container(
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF4F5DFF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Follow',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                              ),
+                        height: 46,
+                        child: ElevatedButton(
+                          onPressed:
+                              isFollowActionLoading ? null : onFollowToggle,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isFollowing
+                                ? const Color(0xFF2A2A2A)
+                                : const Color(0xFF4F5DFF),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                          child: isFollowActionLoading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  isFollowing ? 'Following' : 'Follow',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 26),

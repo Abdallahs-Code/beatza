@@ -7,14 +7,15 @@ import 'package:cross_team5/features/followers_social_graph/screens/followers_sc
 import 'package:cross_team5/features/followers_social_graph/screens/following_screen.dart';
 
 class FollowersSocialGraphRoutes {
-  static const String followers    = '/followers';
-  static const String following    = '/following';
+  static const String followers = '/followers';
+  static const String following = '/following';
   static const String blockedUsers = '/blocked-users';
 
   static Map<String, WidgetBuilder> routes = {
     followers: (context) {
       final args =
           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
       return FollowersScreen(
         userId: args['userId'] as String,
       );
@@ -23,8 +24,12 @@ class FollowersSocialGraphRoutes {
     following: (context) {
       final args =
           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
       return FollowingScreen(
         userId: args['userId'] as String,
+        token: (args['token'] ?? '') as String,
+        currentUserId: args['currentUserId'] as String?,
+        initialTabIndex: (args['tabIndex'] ?? 0) as int,
       );
     },
 

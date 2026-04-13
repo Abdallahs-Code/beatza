@@ -2,12 +2,14 @@
 import 'package:flutter/material.dart';
 
 // Package imports
-import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart' hide YourUploadsScreen;
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart'
+    hide YourUploadsScreen;
 
 class UserTile extends StatelessWidget {
   final Follower follower;
+  final String? currentUserId;
   final VoidCallback? onFollowTap;
   final VoidCallback? onBlockTap;
   final VoidCallback? onUnblockTap;
@@ -17,6 +19,7 @@ class UserTile extends StatelessWidget {
   const UserTile({
     super.key,
     required this.follower,
+    this.currentUserId,
     this.onFollowTap,
     this.onBlockTap,
     this.onUnblockTap,
@@ -26,29 +29,47 @@ class UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMe =
+        currentUserId != null &&
+        currentUserId!.trim() == follower.userId.trim();
+
     return InkWell(
-      // ── Tapping anywhere on tile navigates to user profile ──
-      onTap: () {
+      onTap: () async {
         final authService = AuthApiService();
-        authService.getStoredAccessToken().then((token) {
-          final safeToken = (token == null || token.trim().isEmpty) ? 'mock_token' : token;
-          final safeUserId = (follower.userId.trim().isEmpty) ? 'mock_user_id' : follower.userId;
+
+        final token = await authService.getStoredAccessToken();
+        final currentUserIdFromStorage = await authService.getStoredUserId();
+
+        final safeToken =
+            (token == null || token.trim().isEmpty) ? 'mock_token' : token;
+
+        final safeViewedUserId = follower.userId.trim().isEmpty
+            ? 'mock_user_id'
+            : follower.userId;
+
+        final safeCurrentUserId =
+            (currentUserIdFromStorage == null ||
+                    currentUserIdFromStorage.trim().isEmpty)
+                ? null
+                : currentUserIdFromStorage;
+
+        if (!context.mounted) return;
+
         Navigator.pushNamed(
-        context,
-        UserProfileSocialIdentityRoutes.userProfileRoute,
-        arguments: {
-          'userId': safeUserId,
-          'token': safeToken,
-          'currentUserId': safeUserId,
-        },
-      );
-        });
+          context,
+          UserProfileSocialIdentityRoutes.userProfileRoute,
+          arguments: {
+            'userId': safeViewedUserId,
+            'token': safeToken,
+            'currentUserId': safeCurrentUserId,
+            'initialIsFollowing': follower.isFollowing,
+          },
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // ── Avatar ──────────────────────────────────────
             CircleAvatar(
               radius: 24,
               backgroundImage: follower.profileImgLink != null
@@ -63,10 +84,7 @@ class UserTile extends StatelessWidget {
                     )
                   : null,
             ),
-
             const SizedBox(width: 12),
-
-            // ── Display name & track count ───────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,9 +107,7 @@ class UserTile extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── Follow / Following button ────────────────────
-            if (onFollowTap != null)
+            if (onFollowTap != null && !isMe)
               GestureDetector(
                 onTap: onFollowTap,
                 child: Container(
@@ -117,15 +133,15 @@ class UserTile extends StatelessWidget {
                   ),
                 ),
               ),
-
-            const SizedBox(width: 4),
-
-            // ── Block menu (followers/following lists) ────────
-            if (showBlockOption)
+            if ((showBlockOption && !isMe) || (showUnblockOption && !isMe))
+              const SizedBox(width: 4),
+            if (showBlockOption && !isMe)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
-                  if (value == 'block' && onBlockTap != null) onBlockTap!();
+                  if (value == 'block' && onBlockTap != null) {
+                    onBlockTap!();
+                  }
                 },
                 itemBuilder: (context) => [
                   const PopupMenuItem(
@@ -134,9 +150,7 @@ class UserTile extends StatelessWidget {
                   ),
                 ],
               ),
-
-            // ── Unblock menu (blocked users list) ────────────
-            if (showUnblockOption)
+            if (showUnblockOption && !isMe)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {

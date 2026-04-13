@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
@@ -16,10 +17,12 @@ class BlockedUsersScreen extends StatefulWidget {
 class _BlockedUsersScreenState extends State<BlockedUsersScreen>
     with RouteAware {
   final SocialApiService _socialApiService = SocialApiService();
+  final AuthApiService _authApiService = AuthApiService();
 
   List<Follower> _blockedUsers = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String? _currentUserId;
 
   static final RouteObserver<ModalRoute<void>> routeObserver =
       RouteObserver<ModalRoute<void>>();
@@ -47,19 +50,18 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
     _loadBlockedUsers();
   }
 
-  // ─────────────────────────────────────────────
-  // Load blocked users on screen open
-  // ─────────────────────────────────────────────
   Future<void> _loadBlockedUsers() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
+    final storedCurrentUserId = await _authApiService.getStoredUserId();
     final result = await _socialApiService.getBlockedUsers();
 
     setState(() {
       _isLoading = false;
+      _currentUserId = storedCurrentUserId;
       if (result.$1 == 200) {
         _blockedUsers = result.$2 as List<Follower>;
       } else {
@@ -68,9 +70,6 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Unblock — remove from local list on success
-  // ─────────────────────────────────────────────
   Future<void> _unblockUser(String targetUserId) async {
     final result = await _socialApiService.unblockUser(
       targetUserId: targetUserId,
@@ -129,9 +128,8 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
                             final user = _blockedUsers[index];
                             return UserTile(
                               follower: user,
-                              // No follow button on blocked list
+                              currentUserId: _currentUserId,
                               onFollowTap: null,
-                              // Show unblock option in popup menu
                               showBlockOption: false,
                               showUnblockOption: true,
                               onUnblockTap: () => _unblockUser(user.userId),

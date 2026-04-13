@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
@@ -21,10 +22,12 @@ class FollowersScreen extends StatefulWidget {
 class _FollowersScreenState extends State<FollowersScreen>
     with RouteAware {
   final SocialApiService _socialApiService = SocialApiService();
+  final AuthApiService _authApiService = AuthApiService();
 
   List<Follower> _followers = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String? _currentUserId;
 
   // RouteObserver for detecting when user returns to this screen
   static final RouteObserver<ModalRoute<void>> routeObserver =
@@ -39,7 +42,6 @@ class _FollowersScreenState extends State<FollowersScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Subscribe to route events so we can refresh when returning to this screen
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
@@ -49,57 +51,54 @@ class _FollowersScreenState extends State<FollowersScreen>
     super.dispose();
   }
 
-  // Called when user navigates back to this screen from another screen
   @override
   void didPopNext() {
     _loadFollowers();
   }
 
-  // ─────────────────────────────────────────────
-  // Load followers from API — called on open and on return
-  // ─────────────────────────────────────────────
   Future<void> _loadFollowers() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  final followersResult = await _socialApiService.getFollowers(
-    userId: widget.userId,
-  );
-
-  if (followersResult.$1 != 200) {
     setState(() {
-      _isLoading = false;
-      _errorMessage = followersResult.$2.toString();
+      _isLoading = true;
+      _errorMessage = null;
     });
-    return;
-  }
 
-  final followingResult = await _socialApiService.getFollowing(
-    userId: widget.userId,
-  );
+    final storedCurrentUserId = await _authApiService.getStoredUserId();
 
-  final followers = List<Follower>.from(followersResult.$2 as List<Follower>);
+    final followersResult = await _socialApiService.getFollowers(
+      userId: widget.userId,
+    );
 
-  if (followingResult.$1 == 200) {
-    final following = followingResult.$2 as List<Follower>;
-    final followedUserIds = following.map((u) => u.userId).toSet();
-
-    for (final follower in followers) {
-      follower.isFollowing = followedUserIds.contains(follower.userId);
+    if (followersResult.$1 != 200) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = followersResult.$2.toString();
+        _currentUserId = storedCurrentUserId;
+      });
+      return;
     }
+
+    final followingResult = await _socialApiService.getFollowing(
+      userId: widget.userId,
+    );
+
+    final followers = List<Follower>.from(followersResult.$2 as List<Follower>);
+
+    if (followingResult.$1 == 200) {
+      final following = followingResult.$2 as List<Follower>;
+      final followedUserIds = following.map((u) => u.userId).toSet();
+
+      for (final follower in followers) {
+        follower.isFollowing = followedUserIds.contains(follower.userId);
+      }
+    }
+
+    setState(() {
+      _followers = followers;
+      _currentUserId = storedCurrentUserId;
+      _isLoading = false;
+    });
   }
 
-  setState(() {
-    _followers = followers;
-    _isLoading = false;
-  });
-}
-
-  // ─────────────────────────────────────────────
-  // Follow — optimistic update, revert on failure
-  // ─────────────────────────────────────────────
   Future<void> _followUser(String targetUserId) async {
     setState(() {
       for (final f in _followers) {
@@ -121,9 +120,6 @@ class _FollowersScreenState extends State<FollowersScreen>
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Unfollow — optimistic update, revert on failure
-  // ─────────────────────────────────────────────
   Future<void> _unfollowUser(String targetUserId) async {
     setState(() {
       for (final f in _followers) {
@@ -145,9 +141,6 @@ class _FollowersScreenState extends State<FollowersScreen>
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Block — remove from local list on success
-  // ─────────────────────────────────────────────
   Future<void> _blockUser(String targetUserId) async {
     final result = await _socialApiService.blockUser(
       targetUserId: targetUserId,
@@ -218,7 +211,6 @@ class _FollowersScreenState extends State<FollowersScreen>
                   ),
                 )
               : RefreshIndicator(
-                  // Pull-to-refresh support
                   onRefresh: _loadFollowers,
                   child: _followers.isEmpty
                       ? const Center(child: Text('No followers yet.'))
@@ -230,9 +222,9 @@ class _FollowersScreenState extends State<FollowersScreen>
                             final follower = _followers[index];
                             return UserTile(
                               follower: follower,
+                              currentUserId: _currentUserId,
                               showBlockOption: true,
                               showUnblockOption: false,
-                              // Follow if not following, unfollow if already following
                               onFollowTap: () => follower.isFollowing
                                   ? _unfollowUser(follower.userId)
                                   : _followUser(follower.userId),

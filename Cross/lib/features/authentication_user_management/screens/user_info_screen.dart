@@ -112,7 +112,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     final displayName = _displayNameController.text.trim();
     final dateOfBirth = _buildDateOfBirth();
 
-    if (!widget.isGoogleFlow && displayName.isEmpty) {
+    if (displayName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter your display name"),
@@ -148,6 +148,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
 
         final result = await AuthApiService().completeGoogleSignup(
           incompleteToken: incompleteToken,
+          displayName: displayName,
           dateOfBirth: dateOfBirth,
           gender: gender,
         );
@@ -377,7 +378,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               TextField(
                 key: const Key('test_user_info_display_name_input'),
                 controller: _displayNameController,
-                readOnly: widget.isGoogleFlow,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,

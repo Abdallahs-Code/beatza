@@ -15,11 +15,14 @@ class UserProfileSocialIdentityRoutes {
       final String userId = (args?['userId'] ?? '').toString().trim();
       final String token = (args?['token'] ?? '').toString().trim();
       final String? currentUserId = args?['currentUserId']?.toString();
+      final bool initialIsFollowing =
+          (args?['initialIsFollowing'] ?? false) as bool;
 
       return UserProfileScreen(
         userId: userId.isEmpty ? 'test_user_id' : userId,
         token: token.isEmpty ? 'test_token' : token,
         currentUserId: currentUserId,
+        initialIsFollowing: initialIsFollowing,
       );
     },
   };

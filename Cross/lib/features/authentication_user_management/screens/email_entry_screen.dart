@@ -20,7 +20,6 @@ class EmailEntryScreen extends StatefulWidget {
 
 class _EmailEntryScreenState extends State<EmailEntryScreen> {
   final TextEditingController _emailController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,10 +38,6 @@ class _EmailEntryScreenState extends State<EmailEntryScreen> {
       );
       return;
     }
-
-    setState(() {
-      _isLoading = true;
-    });
 
     try {
       final authApiService = AuthApiService();
@@ -112,9 +107,9 @@ if (userExists) {
 
               LoginButton(
                 key: const Key('test_email_entry_continue_btn'),
-                text: _isLoading ? "Loading..." : "Continue",
+                text: "Continue",
                 color: AppColors.silver,
-                onPressed: _isLoading ? () {} : _handleContinue,
+                onPressed: _handleContinue,
               ),
 
               const SizedBox(height: 20),

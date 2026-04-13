@@ -538,68 +538,74 @@ class AuthApiService {
     }
   }
 
-  Future<(int, dynamic)> completeGoogleSignup({
-    required String incompleteToken,
-    required String dateOfBirth,
-    required String gender,
-  }) async {
-    if (incompleteToken.trim().isEmpty) {
-      return (400, "Incomplete token is required");
-    }
+ Future<(int, dynamic)> completeGoogleSignup({
+  required String incompleteToken,
+  required String displayName,
+  required String dateOfBirth,
+  required String gender,
+}) async {
+  if (incompleteToken.trim().isEmpty) {
+    return (400, "Incomplete token is required");
+  }
 
-    if (dateOfBirth.trim().isEmpty) {
-      return (400, "Date of birth is required");
-    }
+  if (displayName.trim().isEmpty) {
+    return (400, "Display name is required");
+  }
 
-    if (gender.trim().isEmpty) {
-      return (400, "Gender is required");
-    }
+  if (dateOfBirth.trim().isEmpty) {
+    return (400, "Date of birth is required");
+  }
 
-    try {
-      final response = await _client.post(
-        Uri.parse("$_servicePath/google/complete?client=Android"),
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Android",
-        },
-        body: jsonEncode({
-          "incompleteToken": incompleteToken,
-          "dateOfBirth": dateOfBirth,
-          "gender": gender,
-        }),
-      );
+  if (gender.trim().isEmpty) {
+    return (400, "Gender is required");
+  }
 
-      final data = jsonDecode(response.body);
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/complete?client=Android"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "incompleteToken": incompleteToken,
+        "displayName": displayName,
+        "dateOfBirth": dateOfBirth,
+        "gender": gender,
+      }),
+    );
 
-      LoggerService.logger.i(
-        "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
-      );
+    final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
-        final responseData = data["data"];
-        final accessToken = responseData?["accessToken"];
-        final refreshTokenValue = responseData?["refreshToken"];
+    LoggerService.logger.i(
+      "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
+    );
 
-        if (accessToken != null && refreshTokenValue != null) {
-          await saveTokens(
-            accessToken: accessToken,
-            refreshToken: refreshTokenValue,
-          );
+    if (response.statusCode == 200) {
+      final responseData = data["data"];
+      final accessToken = responseData?["accessToken"];
+      final refreshTokenValue = responseData?["refreshToken"];
 
-          await refreshToken();
-          return (200, responseData ?? "Authenticated successfully");
-        }
+      if (accessToken != null && refreshTokenValue != null) {
+        await saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshTokenValue,
+        );
 
-        return (200, data["message"] ?? "Authenticated successfully");
+        await refreshToken();
+        return (200, responseData ?? "Authenticated successfully");
       }
 
-      return (
-        response.statusCode,
-        data["message"] ?? "Google signup completion failed",
-      );
-    } catch (err) {
-      LoggerService.logger.i("completeGoogleSignup error: $err");
-      return (500, "Network error: $err");
+      return (200, data["message"] ?? "Authenticated successfully");
     }
+
+    return (
+      response.statusCode,
+      data["message"] ?? "Google signup completion failed",
+    );
+  } catch (err) {
+    LoggerService.logger.i("completeGoogleSignup error: $err");
+    return (500, "Network error: $err");
   }
+}
 }
