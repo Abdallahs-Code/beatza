@@ -1,7 +1,11 @@
+// Routes for audio_upload_track_management (Module 4).
+// Spread into AppRouter.routes:
+//   ...AudioUploadRoutes.getRoutes()
+
 import 'package:flutter/material.dart';
-import 'screens/upload_track_screen.dart';
-import 'screens/track_management_screen.dart';
-import 'screens/your_uploads_screen.dart';
+import 'package:cross_team5/features/audio_upload_track_management/screens/upload_track_screen.dart';
+import 'package:cross_team5/features/audio_upload_track_management/screens/track_management_screen.dart';
+import 'package:cross_team5/features/audio_upload_track_management/screens/your_uploads_screen.dart';
 
 class AudioUploadRoutes {
   static const String trackManagement = '/track_management';
@@ -10,9 +14,9 @@ class AudioUploadRoutes {
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
-      trackManagement: (context) => const TrackManagementScreen(),
-      uploadTrack: (context) => const UploadTrackScreen(),
-      yourUploads: (context) => const YourUploadsScreen(),
+      trackManagement: (_) => const TrackManagementScreen(),
+      uploadTrack: (_) => const UploadTrackScreen(),
+      yourUploads: (_) => const YourUploadsScreen(),
     };
   }
 }

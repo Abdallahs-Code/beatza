@@ -1,3 +1,8 @@
+// Model: TrackModel
+// Local upload model — used by UploadTrackScreen, YourUploadsScreen,
+// and AudioUploadService. Completely independent of API Track model.
+// This is the in-memory representation of a locally uploaded track.
+
 enum TrackProcessingState { processing, finished }
 enum TrackVisibility { public, private, unlisted }
 
@@ -39,7 +44,6 @@ class TrackModel {
     this.visibility = TrackVisibility.public,
     required this.audioUrl,
     required this.waveformPeaks,
-
     this.description = '',
     this.caption = '',
     this.recordLabel = '',
