@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 // Package imports
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart' hide YourUploadsScreen;
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart'
+    hide YourUploadsScreen;
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class UserTile extends StatelessWidget {
@@ -27,28 +28,41 @@ class UserTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      // ── Tapping anywhere on tile navigates to user profile ──
-      onTap: () {
+      onTap: () async {
         final authService = AuthApiService();
-        authService.getStoredAccessToken().then((token) {
-          final safeToken = (token == null || token.trim().isEmpty) ? 'mock_token' : token;
-          final safeUserId = (follower.userId.trim().isEmpty) ? 'mock_user_id' : follower.userId;
+
+        final token = await authService.getStoredAccessToken();
+        final currentUserId = await authService.getStoredUserId();
+
+        final safeToken =
+            (token == null || token.trim().isEmpty) ? 'mock_token' : token;
+
+        final safeViewedUserId = follower.userId.trim().isEmpty
+            ? 'mock_user_id'
+            : follower.userId;
+
+        final safeCurrentUserId =
+            (currentUserId == null || currentUserId.trim().isEmpty)
+                ? null
+                : currentUserId;
+
+        if (!context.mounted) return;
+
         Navigator.pushNamed(
-        context,
-        UserProfileSocialIdentityRoutes.userProfileRoute,
-        arguments: {
-          'userId': safeUserId,
-          'token': safeToken,
-          'currentUserId': safeUserId,
-        },
-      );
-        });
+          context,
+          UserProfileSocialIdentityRoutes.userProfileRoute,
+          arguments: {
+            'userId': safeViewedUserId,
+            'token': safeToken,
+            'currentUserId': safeCurrentUserId,
+            'initialIsFollowing': follower.isFollowing,
+          },
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // ── Avatar ──────────────────────────────────────
             CircleAvatar(
               radius: 24,
               backgroundImage: follower.profileImgLink != null
@@ -63,10 +77,7 @@ class UserTile extends StatelessWidget {
                     )
                   : null,
             ),
-
             const SizedBox(width: 12),
-
-            // ── Display name & track count ───────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,8 +100,6 @@ class UserTile extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── Follow / Following button ────────────────────
             if (onFollowTap != null)
               GestureDetector(
                 onTap: onFollowTap,
@@ -117,15 +126,14 @@ class UserTile extends StatelessWidget {
                   ),
                 ),
               ),
-
             const SizedBox(width: 4),
-
-            // ── Block menu (followers/following lists) ────────
             if (showBlockOption)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
-                  if (value == 'block' && onBlockTap != null) onBlockTap!();
+                  if (value == 'block' && onBlockTap != null) {
+                    onBlockTap!();
+                  }
                 },
                 itemBuilder: (context) => [
                   const PopupMenuItem(
@@ -134,8 +142,6 @@ class UserTile extends StatelessWidget {
                   ),
                 ],
               ),
-
-            // ── Unblock menu (blocked users list) ────────────
             if (showUnblockOption)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),

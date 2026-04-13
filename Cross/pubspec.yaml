@@ -45,16 +45,18 @@ dependencies:
   flutter_web_auth_2: ^5.0.1
   qr_flutter: 4.1.0
   mobile_scanner: 7.2.0
-  flutter_launcher_icons: 0.14.4
   file_picker: ^11.0.2
   audioplayers: ^6.6.0
   image_picker: ^1.2.1
   share_plus: ^12.0.2
 
 dev_dependencies:
+
   flutter_test:
     sdk: flutter
-    
+
+  flutter_launcher_icons: ^0.13.1
+
   mocktail: ^1.0.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -64,8 +66,13 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+# Launcher icon configuration (FIXED POSITION + INDENTATION)
+flutter_launcher_icons:
+  android: true
+  ios: false
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/colouredlogo.png"
+  image_path: "assets/images/colouredlogo.png"
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -74,13 +81,6 @@ flutter:
   assets:
     - assets/images/
     - .env
-
-# The following section is specific to APK/EXE icon + title
-flutter_launcher_icon:
-  platforms:
-    - android
-    - windows
-  image_path: "assets/images/BEATZA.ico"
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
