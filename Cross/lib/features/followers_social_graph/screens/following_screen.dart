@@ -290,6 +290,7 @@ class _FollowingScreenState extends State<FollowingScreen>
                         final follower = _following[index];
                         return UserTile(
                           follower: follower,
+                          currentUserId: widget.currentUserId,
                           showBlockOption: true,
                           showUnblockOption: false,
                           onFollowTap: () => follower.isFollowing
@@ -345,6 +346,7 @@ class _FollowingScreenState extends State<FollowingScreen>
                         final follower = _suggested[index];
                         return UserTile(
                           follower: follower,
+                          currentUserId: widget.currentUserId,
                           showBlockOption: false,
                           showUnblockOption: false,
                           onFollowTap: () => follower.isFollowing

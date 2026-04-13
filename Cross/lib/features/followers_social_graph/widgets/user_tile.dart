@@ -2,13 +2,14 @@
 import 'package:flutter/material.dart';
 
 // Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart'
     hide YourUploadsScreen;
-import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class UserTile extends StatelessWidget {
   final Follower follower;
+  final String? currentUserId;
   final VoidCallback? onFollowTap;
   final VoidCallback? onBlockTap;
   final VoidCallback? onUnblockTap;
@@ -18,6 +19,7 @@ class UserTile extends StatelessWidget {
   const UserTile({
     super.key,
     required this.follower,
+    this.currentUserId,
     this.onFollowTap,
     this.onBlockTap,
     this.onUnblockTap,
@@ -27,12 +29,16 @@ class UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMe =
+        currentUserId != null &&
+        currentUserId!.trim() == follower.userId.trim();
+
     return InkWell(
       onTap: () async {
         final authService = AuthApiService();
 
         final token = await authService.getStoredAccessToken();
-        final currentUserId = await authService.getStoredUserId();
+        final currentUserIdFromStorage = await authService.getStoredUserId();
 
         final safeToken =
             (token == null || token.trim().isEmpty) ? 'mock_token' : token;
@@ -42,9 +48,10 @@ class UserTile extends StatelessWidget {
             : follower.userId;
 
         final safeCurrentUserId =
-            (currentUserId == null || currentUserId.trim().isEmpty)
+            (currentUserIdFromStorage == null ||
+                    currentUserIdFromStorage.trim().isEmpty)
                 ? null
-                : currentUserId;
+                : currentUserIdFromStorage;
 
         if (!context.mounted) return;
 
@@ -100,7 +107,7 @@ class UserTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (onFollowTap != null)
+            if (onFollowTap != null && !isMe)
               GestureDetector(
                 onTap: onFollowTap,
                 child: Container(
@@ -126,8 +133,9 @@ class UserTile extends StatelessWidget {
                   ),
                 ),
               ),
-            const SizedBox(width: 4),
-            if (showBlockOption)
+            if ((showBlockOption && !isMe) || (showUnblockOption && !isMe))
+              const SizedBox(width: 4),
+            if (showBlockOption && !isMe)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
@@ -142,7 +150,7 @@ class UserTile extends StatelessWidget {
                   ),
                 ],
               ),
-            if (showUnblockOption)
+            if (showUnblockOption && !isMe)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
