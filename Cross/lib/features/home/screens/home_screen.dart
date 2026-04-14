@@ -5,26 +5,14 @@ import 'package:cross_team5/features/home/widgets/home_widgets.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
-import '../../audio_upload_track_management/screens/artist_studio_screen.dart';
-import '../../audio_upload_track_management/screens/upload_track_screen.dart';
+import 'package:cross_team5/features/audio_upload_track_management/audio_upload_track_management.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
   void _handleUpload(BuildContext context) async {
-    FilePickerResult? result = await FilePicker.pickFiles(
-      type: FileType.audio,
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UploadTrackScreen()),
     );
-
-    if (result != null && result.files.isNotEmpty) {
-      if (context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const UploadTrackScreen(),
-            settings: RouteSettings(arguments: result.files.first),
-          ),
-        );
-      }
-    }
   }
 
   @override
