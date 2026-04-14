@@ -72,52 +72,198 @@ test.describe("Profile Management(Happy Path)", () => {
 })
 
 test.describe("Cross Profile Visit", () => {
-    let context1: BrowserContext;
-    let context2: BrowserContext;
-    let page1: Page;
-    let page2: Page;
-    let profileUrl1: string;
-    let profileUrl2: string;
+    let userContext1: BrowserContext;
+    let userContext2: BrowserContext;
+    let user1: Page;
+    let user2: Page;
+    let user1ProfileUrl: string;
+    let user2ProfileUrl: string;
 
     test.beforeEach(async ({ browser }) => {
         // Setup Context 1 (Account 1 - using artistState)
-        context1 = await browser.newContext({ storageState: artistState });
-        page1 = await context1.newPage();
+        userContext1 = await browser.newContext({ storageState: artistState });
+        user1 = await userContext1.newPage();
 
         // Setup Context 2 (Account 2 - using artist1State)
-        context2 = await browser.newContext({ storageState: artist1State });
-        page2 = await context2.newPage();
+        userContext2 = await browser.newContext({ storageState: artist1State });
+        user2 = await userContext2.newPage();
 
         // Navigate Account 1 to its profile and get URL
-        await page1.goto('https://beatza.me/home');
-        const navbar1 = new Navbar(page1);
+        await user1.goto('https://beatza.me/home');
+        const navbar1 = new Navbar(user1);
         await navbar1.GoToProfilePage();
-        profileUrl1 = page1.url();
+        await user1.waitForURL(/\/profile\/[a-zA-Z0-9]+/); // Ensure navigation finishes before capturing URL
+        user1ProfileUrl = user1.url();
+        console.log(user1ProfileUrl)
 
         // Navigate Account 2 to its profile and get URL
-        await page2.goto('https://beatza.me/home');
-        const navbar2 = new Navbar(page2);
+        await user2.goto('https://beatza.me/home');
+        const navbar2 = new Navbar(user2);
         await navbar2.GoToProfilePage();
-        profileUrl2 = page2.url();
+        await user2.waitForURL(/\/profile\/[a-zA-Z0-9]+/); // Ensure navigation finishes before capturing URL
+        user2ProfileUrl = user2.url();
+        console.log(user2ProfileUrl)
     });
 
     test.afterEach(async () => {
         // Clean up contexts after each test
-        await context1.close();
-        await context2.close();
+        await userContext1.close();
+        await userContext2.close();
+    });
+
+    test("User blocks and unblocks another user", async () => {
+        test.setTimeout(50000);
+        const user1ProfilePage = new ProfilePage(user1);
+        const user2ProfilePage = new ProfilePage(user2);
+
+        // --- User 1 blocks User 2 ---
+
+        // User 1 visits User 2's profile
+        await user1.goto(user2ProfileUrl);
+        await expect(user1).toHaveURL(user2ProfileUrl);
+        await user1.waitForTimeout(2000);
+
+        // User 1 uses the 'More' menu to block User 2
+        await user1ProfilePage.moreBtn.click();
+        await user1.waitForTimeout(500);
+        await user1ProfilePage.blockBtn.click();
+
+        // Ensure the Block modal/form is filled and submitted
+        await user1ProfilePage.blockForm.SubmitBlock();
+        await user1.waitForTimeout(2000);
+
+        await user2.goto(user1ProfileUrl);
+        await expect(user2).toHaveURL(user1ProfileUrl);
+        await user2.waitForTimeout(2000);
+
+        // Try to follow User 1 as User 2 (Blocked user)
+        const initialFollowersText = await user2.locator('a:has(p:text-is("Followers")) span').innerText();
+        const initialFollowers = parseInt(initialFollowersText.replace(/,/g, ''), 10) || 0;
+
+        await user2ProfilePage.ClickFollowBtn();
+        await user2.waitForTimeout(2000);
+
+        // Refresh and assert the follower count did not increase
+        await user2.reload();
+        await user2.waitForTimeout(2000);
+
+        const finalFollowersText = await user2.locator('a:has(p:text-is("Followers")) span').innerText();
+        const finalFollowers = parseInt(finalFollowersText.replace(/,/g, ''), 10) || 0;
+        await expect(finalFollowers).toBe(initialFollowers);
+
+
+        await user1.goto(user2ProfileUrl);
+        await expect(user1).toHaveURL(user2ProfileUrl);
+        await user1.waitForTimeout(2000); // Wait to fetch info
+
+        await user1ProfilePage.moreBtn.click();
+        await user1.waitForTimeout(500);
+
+        await user1ProfilePage.blockBtn.click();
     });
 
     test("Visit each other's profile using two accounts", async () => {
-        // Cross-visit: Account 1 visits Account 2's profile
-        await page1.goto(profileUrl2);
+        test.setTimeout(50000);
+        const user1ProfilePage = new ProfilePage(user1);
+        const user2ProfilePage = new ProfilePage(user2);
 
-        // Cross-visit: Account 2 visits Account 1's profile
-        await page2.goto(profileUrl1);
+        // --- User 1 follows User 2 ---
 
-        // Assert that they successfully landed on each other's profiles
-        await expect(page1).toHaveURL(profileUrl2);
-        await expect(page2).toHaveURL(profileUrl1);
+        // Get initial follower count of User 2 from User 2's own perspective (already on their profile)
+        await user2.waitForTimeout(2000); // Wait to fetch info at test start
+        const initialFollowersUser2Text = await user2.locator('a:has(p:text-is("Followers")) span').innerText();
+        const initialFollowersUser2 = parseInt(initialFollowersUser2Text.replace(/,/g, ''), 10) || 0;
+
+        // User 1 visits User 2's profile and clicks follow
+        await user1.goto(user2ProfileUrl);
+        await expect(user1).toHaveURL(user2ProfileUrl);
+        await user1.waitForTimeout(1000); // Wait for React hydration
+        await user1ProfilePage.ClickFollowBtn();
+
+        // User 1 refreshes their own profile to see the update
+        await user2.reload();
+
+        await user2.waitForTimeout(2000);
+
+        // Assert User 2's followers increased by 1
+        const finalFollowersUser2Text = await user2.locator('a:has(p:text-is("Followers")) span').innerText();
+        const finalFollowersUser2 = parseInt(finalFollowersUser2Text.replace(/,/g, ''), 10) || 0;
+        await expect(finalFollowersUser2).toBe(initialFollowersUser2 + 1);
+
+
+        // --- User 2 follows User 1 ---
+
+        // Navigate User 1 back to their own profile first to get the initial count
+        await user1.goto(user1ProfileUrl);
+        await user1.waitForTimeout(2000); // Wait to fetch info
+        const initialFollowersUser1Text = await user1.locator('a:has(p:text-is("Followers")) span').innerText();
+        const initialFollowersUser1 = parseInt(initialFollowersUser1Text.replace(/,/g, ''), 10) || 0;
+
+        // User 2 visits User 1's profile and clicks follow
+        await user2.goto(user1ProfileUrl);
+        await expect(user2).toHaveURL(user1ProfileUrl);
+        await user2.waitForTimeout(1000); // Wait for React hydration
+        await user2ProfilePage.ClickFollowBtn();
+
+
+        // User 1 refreshes their own profile to see the update
+        await user1.reload();
+
+        await user1.waitForTimeout(2000);
+
+        // Assert User 1's followers increased by 1
+        const finalFollowersUser1Text = await user1.locator('a:has(p:text-is("Followers")) span').innerText();
+        const finalFollowersUser1 = parseInt(finalFollowersUser1Text.replace(/,/g, ''), 10) || 0;
+        await expect(finalFollowersUser1).toBe(initialFollowersUser1 + 1);
+
+
+        // --- User 1 unfollows User 2 ---
+
+        // Navigate User 2 back to their own profile first to get the baseline count before unfollowing
+        await user2.goto(user2ProfileUrl);
+        await user2.waitForTimeout(2000); // Wait to fetch info
+        const peakFollowersUser2Text = await user2.locator('a:has(p:text-is("Followers")) span').innerText();
+        const peakFollowersUser2 = parseInt(peakFollowersUser2Text.replace(/,/g, ''), 10) || 0;
+
+        // User 1 visits User 2's profile and clicks follow (which acts as unfollow toggle)
+        await user1.goto(user2ProfileUrl);
+        await expect(user1).toHaveURL(user2ProfileUrl);
+        await user1.waitForTimeout(1000); // Wait for React hydration
+        await user1ProfilePage.ClickFollowBtn();
+
+        // User 1 refreshes their own profile to see the update
+        await user2.reload();
+
+        await user2.waitForTimeout(2000);
+        // Assert User 2's followers decreased by 1
+        const unfollowedFollowersUser2Text = await user2.locator('a:has(p:text-is("Followers")) span').innerText();
+        const unfollowedFollowersUser2 = parseInt(unfollowedFollowersUser2Text.replace(/,/g, ''), 10) || 0;
+        await expect(unfollowedFollowersUser2).toBe(peakFollowersUser2 - 1);
+
+
+        // --- User 2 unfollows User 1 ---
+
+        // Navigate User 1 back to their own profile first to get the baseline count before unfollowing
+        await user1.goto(user1ProfileUrl);
+        await user1.waitForTimeout(2000); // Wait to fetch info
+        const peakFollowersUser1Text = await user1.locator('a:has(p:text-is("Followers")) span').innerText();
+        const peakFollowersUser1 = parseInt(peakFollowersUser1Text.replace(/,/g, ''), 10) || 0;
+
+        // User 2 visits User 1's profile and clicks follow (which acts as unfollow toggle)
+        await user2.goto(user1ProfileUrl);
+        await expect(user2).toHaveURL(user1ProfileUrl);
+        await user2.waitForTimeout(1000); // Wait for React hydration
+        await user2ProfilePage.ClickFollowBtn();
+
+        // User 1 refreshes their own profile to see the update
+        await user1.waitForTimeout(2000);
+        await user1.reload();
+
+        await user1.waitForTimeout(2000);
+        // Assert User 1's followers decreased by 1
+        const unfollowedFollowersUser1Text = await user1.locator('a:has(p:text-is("Followers")) span').innerText();
+        const unfollowedFollowersUser1 = parseInt(unfollowedFollowersUser1Text.replace(/,/g, ''), 10) || 0;
+        await expect(unfollowedFollowersUser1).toBe(peakFollowersUser1 - 1);
     });
-
 
 });

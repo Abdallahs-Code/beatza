@@ -22,6 +22,7 @@ test.describe("authentication (Happy Path)", () => {
 
       const loginForm = new AuthForm(page)
       const testEmail = `beatzatesting+${Date.now()}@gmail.com`;
+      console.log(testEmail)
       await loginForm.Signup(testEmail)
 
       await page.waitForTimeout(6000)
@@ -35,7 +36,7 @@ test.describe("authentication (Happy Path)", () => {
       await loginForm.Login(testEmail, "Beatza@123")
       await expect(page).toHaveURL(/\/home/);
     } finally {
-      if (false) {
+      if (true) {
         const navbar = new Navbar(page)
         await navbar.ClickMore()
         await navbar.moreDropdown.settings.click()

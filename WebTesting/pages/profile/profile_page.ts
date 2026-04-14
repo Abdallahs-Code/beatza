@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { ProfileEditForm } from '../profile/profile_edit_form'
+import { BlockForm } from '../profile/block_form'
 export class ProfilePage {
     profileImg: Locator
     headerImg: Locator
@@ -21,6 +22,10 @@ export class ProfilePage {
 
     shareBtn: Locator
     moreBtn: Locator
+    blockBtn: Locator
+    blockForm: BlockForm
+    reportBtn: Locator
+
     followBtn: Locator
     sendMsgBtn: Locator
 
@@ -47,10 +52,16 @@ export class ProfilePage {
 
 
         this.moreBtn = profilePage.getByTestId("ThreeDots-button")
+        this.blockBtn = profilePage.getByTestId("Block-button")
+        this.blockForm = new BlockForm(page)
+        this.reportBtn = profilePage.getByTestId("ThreeDots-button")
         this.repostsLink = profilePage.getByTestId("")
         this.followBtn = profilePage.getByTestId("Follow-button")
         this.sendMsgBtn = profilePage.getByTestId("SendMsg-button")
 
+    }
+    async ClickFollowBtn() {
+        await this.followBtn.click()
     }
     async ClickEditBtn() {
         await this.editBtn.click()
