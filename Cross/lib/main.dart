@@ -8,7 +8,7 @@ import 'package:cross_team5/routes/app_router.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
-  await AuthApiService().logout();
+  // await AuthApiService().logout();
   runApp(const MyApp());
 }
 

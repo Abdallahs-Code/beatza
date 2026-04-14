@@ -49,4 +49,16 @@ class NavHelpers {
   static void assertOnVerifyEmailScreen() {
     expect(find.byKey(const Key('verify_email_screen')), findsOneWidget);
   }
+
+  static void assertOnFollowersScreen() {
+    expect(find.text('Followers'), findsWidgets);
+  }
+
+  static void assertOnFollowingScreen() {
+    expect(find.text('Suggested'), findsOneWidget);
+  }
+
+  static void assertOnBlockedUsersScreen() {
+    expect(find.text('Blocked Users'), findsOneWidget);
+  }
 }
