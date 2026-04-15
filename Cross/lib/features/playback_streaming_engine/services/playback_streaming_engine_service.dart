@@ -1,0 +1,518 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:cross_team5/core/services/api_services.dart';
+
+import '../models/playback_state_model.dart';
+import '../models/playback_track_model.dart';
+import 'audio_player_client.dart';
+
+class PlaybackStreamingEngineService extends ChangeNotifier {
+  static final PlaybackStreamingEngineService shared =
+      PlaybackStreamingEngineService._shared();
+
+  final AudioPlayerClient _audioPlayerClient;
+  final FlutterSecureStorage _storage;
+  final http.Client _httpClient;
+
+  PlaybackStateModel _state = const PlaybackStateModel();
+  List<PlaybackTrackModel> _activeQueue = const <PlaybackTrackModel>[];
+  int _currentQueueIndex = -1;
+
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+  StreamSubscription<Duration>? _durationSubscription;
+  StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<void>? _completionSubscription;
+
+  bool _previewLimitReached = false;
+  String? _lastHistoryReportedTrackId;
+  int _outputLevelRequestId = 0;
+
+  PlaybackStreamingEngineService._shared()
+      : _audioPlayerClient = AudioplayersClient(),
+        _storage = const FlutterSecureStorage(),
+        _httpClient = http.Client() {
+    _bindPlayerStreams();
+  }
+
+  PlaybackStreamingEngineService({
+    AudioPlayerClient? audioPlayerClient,
+    FlutterSecureStorage? storage,
+    http.Client? httpClient,
+  })  : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
+        _storage = storage ?? const FlutterSecureStorage(),
+        _httpClient = httpClient ?? http.Client() {
+    _bindPlayerStreams();
+  }
+
+  PlaybackStateModel get state => _state;
+  List<PlaybackTrackModel> get activeQueue => List<PlaybackTrackModel>.unmodifiable(_activeQueue);
+  int get currentQueueIndex => _currentQueueIndex;
+  bool get hasPreviousInQueue => _currentQueueIndex > 0 && _activeQueue.isNotEmpty;
+  bool get hasNextInQueue =>
+      _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length - 1;
+
+  Future<void> playTrack(
+    PlaybackTrackModel track, {
+    List<PlaybackTrackModel>? queue,
+    int? startIndex,
+  }) async {
+    if (queue != null) {
+      _setQueueContext(
+        queue,
+        preferredTrackId: track.id,
+        preferredIndex: startIndex,
+      );
+    } else if (_activeQueue.isEmpty) {
+      _setQueueContext(
+        <PlaybackTrackModel>[track],
+        preferredTrackId: track.id,
+        preferredIndex: 0,
+      );
+    } else {
+      final int existingIndex = _activeQueue.indexWhere((item) => item.id == track.id);
+      if (existingIndex >= 0) {
+        _currentQueueIndex = existingIndex;
+      }
+    }
+
+    if (track.accessState == PlaybackAccessState.blocked) {
+      _previewLimitReached = false;
+      _updateState(
+        _state.copyWith(
+          currentTrack: track,
+          status: PlaybackStatus.blocked,
+          message: track.blockedReason ?? 'This track is currently unavailable.',
+          currentPosition: Duration.zero,
+          totalDuration: track.duration ?? Duration.zero,
+        ),
+      );
+      return;
+    }
+
+    final String trimmedUrl = track.playbackUrl.trim();
+    if (trimmedUrl.isEmpty) {
+      _updateState(
+        _state.copyWith(
+          currentTrack: track,
+          status: PlaybackStatus.error,
+          message: 'Track source is missing.',
+          currentPosition: Duration.zero,
+          totalDuration: track.duration ?? Duration.zero,
+        ),
+      );
+      return;
+    }
+
+    try {
+      _previewLimitReached = false;
+      _lastHistoryReportedTrackId = null;
+
+      if (_state.hasTrack) {
+        await _audioPlayerClient.stop();
+      }
+
+      _updateState(
+        _state.copyWith(
+          currentTrack: track,
+          status: PlaybackStatus.loading,
+          currentPosition: Duration.zero,
+          totalDuration: track.duration ?? Duration.zero,
+          clearMessage: true,
+        ),
+      );
+
+      await _applyCurrentOutputLevel();
+      await _audioPlayerClient.play(track);
+      await _enforceCurrentOutputLevelForTrack(track.id);
+    } catch (error) {
+      _updateState(
+        _state.copyWith(
+          currentTrack: track,
+          status: PlaybackStatus.error,
+          message: 'Failed to start playback: $error',
+        ),
+      );
+    }
+  }
+
+  Future<void> pause() async {
+    if (!_state.hasTrack || _state.status != PlaybackStatus.playing) {
+      return;
+    }
+
+    await _audioPlayerClient.pause();
+    _updateState(_state.copyWith(status: PlaybackStatus.paused));
+  }
+
+  Future<void> resume() async {
+    if (!_state.hasTrack) {
+      return;
+    }
+
+    if (_state.currentTrack?.accessState == PlaybackAccessState.blocked) {
+      return;
+    }
+
+    if (_state.status == PlaybackStatus.loading ||
+        _state.status == PlaybackStatus.error) {
+      return;
+    }
+
+    if (_previewLimitReached &&
+        _state.currentTrack?.accessState == PlaybackAccessState.preview) {
+      _updateState(
+        _state.copyWith(
+          status: PlaybackStatus.previewEnded,
+          message: 'Preview finished. Unlock the full track to keep listening.',
+        ),
+      );
+      return;
+    }
+
+    await _audioPlayerClient.resume();
+    _updateState(
+      _state.copyWith(
+        status: PlaybackStatus.playing,
+        clearMessage: true,
+      ),
+    );
+  }
+
+  Future<void> togglePlayPause() async {
+    if (!_state.hasTrack) {
+      return;
+    }
+
+    if (_state.isPlaying) {
+      await pause();
+      return;
+    }
+
+    if (_state.status == PlaybackStatus.previewEnded ||
+        _state.status == PlaybackStatus.completed) {
+      await restartFromBeginning();
+      return;
+    }
+
+    await resume();
+  }
+
+  Future<void> playNextTrack() async {
+    if (!hasNextInQueue) {
+      return;
+    }
+
+    final int nextIndex = _currentQueueIndex + 1;
+    await playTrack(
+      _activeQueue[nextIndex],
+      queue: _activeQueue,
+      startIndex: nextIndex,
+    );
+  }
+
+  Future<void> playPreviousTrack() async {
+    if (!hasPreviousInQueue) {
+      return;
+    }
+
+    final int previousIndex = _currentQueueIndex - 1;
+    await playTrack(
+      _activeQueue[previousIndex],
+      queue: _activeQueue,
+      startIndex: previousIndex,
+    );
+  }
+
+  Future<void> stop() async {
+    _outputLevelRequestId++;
+    await _audioPlayerClient.stop();
+    _previewLimitReached = false;
+    _updateState(
+      _state.copyWith(
+        status: PlaybackStatus.stopped,
+        currentPosition: Duration.zero,
+        clearMessage: true,
+      ),
+    );
+  }
+
+  Future<void> seek(Duration position) async {
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) {
+      return;
+    }
+
+    Duration targetPosition = position;
+    if (currentTrack.accessState == PlaybackAccessState.preview) {
+      final Duration previewLimit = currentTrack.effectivePreviewDuration;
+      if (targetPosition > previewLimit) {
+        targetPosition = previewLimit;
+      }
+    }
+
+    await _audioPlayerClient.seek(targetPosition);
+    _previewLimitReached = false;
+
+    _updateState(
+      _state.copyWith(
+        currentPosition: targetPosition,
+        clearMessage: true,
+      ),
+    );
+  }
+
+  Future<void> restartFromBeginning() async {
+    await seek(Duration.zero);
+
+    if (_state.hasTrack &&
+        _state.status != PlaybackStatus.playing &&
+        _state.currentTrack?.accessState != PlaybackAccessState.blocked) {
+      await resume();
+    }
+  }
+
+  Future<void> setVolume(double volume) async {
+    final double safeVolume = volume.clamp(0.0, 1.0).toDouble();
+    _updateState(_state.copyWith(volume: safeVolume));
+    await _applyCurrentOutputLevel();
+  }
+
+  Future<void> toggleMute() async {
+    final bool nextMutedState = !_state.isMuted;
+    _updateState(_state.copyWith(isMuted: nextMutedState));
+    await _applyCurrentOutputLevel();
+  }
+  void _setQueueContext(
+    List<PlaybackTrackModel> queue, {
+    String? preferredTrackId,
+    int? preferredIndex,
+  }) {
+    _activeQueue = List<PlaybackTrackModel>.from(queue);
+
+    if (_activeQueue.isEmpty) {
+      _currentQueueIndex = -1;
+      return;
+    }
+
+    int nextIndex = preferredIndex ?? -1;
+    if (nextIndex < 0 || nextIndex >= _activeQueue.length) {
+      nextIndex = preferredTrackId == null
+          ? 0
+          : _activeQueue.indexWhere((item) => item.id == preferredTrackId);
+    }
+
+    _currentQueueIndex = nextIndex >= 0 ? nextIndex : 0;
+  }
+
+  void _bindPlayerStreams() {
+    _playerStateSubscription = _audioPlayerClient.onPlayerStateChanged.listen(
+      _handlePlayerStateChanged,
+    );
+    _durationSubscription = _audioPlayerClient.onDurationChanged.listen(
+      _handleDurationChanged,
+    );
+    _positionSubscription = _audioPlayerClient.onPositionChanged.listen(
+      _handlePositionChanged,
+    );
+    _completionSubscription = _audioPlayerClient.onPlayerComplete.listen(
+      (_) {
+        unawaited(_handlePlaybackCompleted());
+      },
+    );
+  }
+
+  void _handlePlayerStateChanged(PlayerState playerState) {
+    final PlaybackStatus nextStatus = switch (playerState) {
+      PlayerState.playing => PlaybackStatus.playing,
+      PlayerState.paused => _previewLimitReached
+          ? PlaybackStatus.previewEnded
+          : PlaybackStatus.paused,
+      PlayerState.stopped => _previewLimitReached
+          ? PlaybackStatus.previewEnded
+          : PlaybackStatus.stopped,
+      PlayerState.completed => PlaybackStatus.completed,
+      PlayerState.disposed => PlaybackStatus.stopped,
+    };
+
+    _updateState(_state.copyWith(status: nextStatus));
+
+    if (playerState == PlayerState.playing) {
+      final PlaybackTrackModel? currentTrack = _state.currentTrack;
+      if (currentTrack != null) {
+        unawaited(_enforceCurrentOutputLevelForTrack(currentTrack.id));
+      }
+      _reportTrackPlayedIfNeeded();
+    }
+  }
+
+  void _handleDurationChanged(Duration duration) {
+    _updateState(_state.copyWith(totalDuration: duration));
+  }
+
+  void _handlePositionChanged(Duration position) {
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) {
+      return;
+    }
+
+    if (currentTrack.accessState == PlaybackAccessState.preview) {
+      final Duration previewLimit = currentTrack.effectivePreviewDuration;
+      if (position >= previewLimit) {
+        _handlePreviewCompleted(previewLimit);
+        return;
+      }
+    }
+
+    _updateState(
+      _state.copyWith(
+        currentPosition: position,
+        clearMessage: true,
+      ),
+    );
+  }
+
+  Future<void> _handlePlaybackCompleted() async {
+    _outputLevelRequestId++;
+    _previewLimitReached = false;
+
+    if (hasNextInQueue) {
+      await playNextTrack();
+      return;
+    }
+
+    _updateState(
+      _state.copyWith(
+        status: PlaybackStatus.completed,
+        currentPosition: Duration.zero,
+        clearMessage: true,
+      ),
+    );
+  }
+
+  Future<void> _handlePreviewCompleted(Duration previewLimit) async {
+    if (_previewLimitReached) {
+      return;
+    }
+
+    _previewLimitReached = true;
+    await _audioPlayerClient.pause();
+    await _audioPlayerClient.seek(Duration.zero);
+
+    _updateState(
+      _state.copyWith(
+        status: PlaybackStatus.previewEnded,
+        currentPosition: previewLimit,
+        message: 'Preview finished. Unlock the full track to keep listening.',
+      ),
+    );
+  }
+
+  void _reportTrackPlayedIfNeeded() {
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) {
+      return;
+    }
+
+    if (currentTrack.id.trim().isEmpty) {
+      return;
+    }
+
+    if (_lastHistoryReportedTrackId == currentTrack.id) {
+      return;
+    }
+
+    _lastHistoryReportedTrackId = currentTrack.id;
+    _sendPlayedHistoryRequest(currentTrack.id);
+  }
+
+  Future<void> _sendPlayedHistoryRequest(String trackId) async {
+    try {
+      final String? accessToken = await _storage.read(key: 'access_token');
+
+      if (accessToken == null || accessToken.trim().isEmpty) {
+        _lastHistoryReportedTrackId = null;
+        debugPrint(
+          'Playback history skipped: no access token found for track $trackId',
+        );
+        return;
+      }
+
+      final String url = '${ApiServices().baseUrl}/api/tracks/v1/played/$trackId';
+
+      final response = await _httpClient.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          'User-Agent': 'Android',
+        },
+      );
+
+      debugPrint(
+        'Playback history response for $trackId: '
+        '${response.statusCode} ${response.body}',
+      );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        _lastHistoryReportedTrackId = null;
+      }
+    } catch (error) {
+      _lastHistoryReportedTrackId = null;
+      debugPrint('Playback history request failed for $trackId: $error');
+    }
+  }
+
+
+Future<void> _applyCurrentOutputLevel() async {
+  await _audioPlayerClient.setVolume(_state.isMuted ? 0.0 : _state.volume);
+}
+
+Future<void> _enforceCurrentOutputLevelForTrack(String trackId) async {
+  final int requestId = ++_outputLevelRequestId;
+
+  Future<void> applyIfStillCurrent() async {
+    if (_outputLevelRequestId != requestId) return;
+    if (_state.currentTrack?.id != trackId) return;
+    await _applyCurrentOutputLevel();
+  }
+
+  await applyIfStillCurrent();
+
+  unawaited(Future<void>.delayed(const Duration(milliseconds: 20), () async {
+    await applyIfStillCurrent();
+  }));
+
+  unawaited(Future<void>.delayed(const Duration(milliseconds: 80), () async {
+    await applyIfStillCurrent();
+  }));
+
+  unawaited(Future<void>.delayed(const Duration(milliseconds: 180), () async {
+    await applyIfStillCurrent();
+  }));
+
+  unawaited(Future<void>.delayed(const Duration(milliseconds: 320), () async {
+    await applyIfStillCurrent();
+  }));
+}
+
+  void _updateState(PlaybackStateModel nextState) {
+    _state = nextState;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _playerStateSubscription?.cancel();
+    _durationSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _completionSubscription?.cancel();
+    _httpClient.close();
+    _audioPlayerClient.dispose();
+    super.dispose();
+  }
+}
