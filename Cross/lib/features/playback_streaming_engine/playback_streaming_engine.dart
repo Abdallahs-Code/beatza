@@ -1,1 +1,12 @@
+library playback_streaming_engine;
 
+export 'models/playback_state_model.dart';
+export 'models/playback_track_model.dart';
+export 'screens/playback_debug_screen.dart';
+export 'services/audio_player_client.dart';
+export 'services/playback_streaming_engine_service.dart';
+export 'services/playback_track_api_service.dart';
+export 'widgets/playback_debug_track_tile.dart';
+export 'widgets/playback_mini_player_bar.dart';
+export 'widgets/playback_now_playing_card.dart';
+export 'playback_streaming_engine_routes.dart';
