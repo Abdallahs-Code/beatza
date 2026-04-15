@@ -10,13 +10,17 @@ import 'package:cross_team5/features/user_profile_social_identity/services/user_
 import 'package:cross_team5/features/user_profile_social_identity/screens/edit_profile_screen.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
+import 'package:cross_team5/features/library/services/library_history_api_service.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../models/spotlight_models.dart';
 import 'edit_spotlight_screen.dart';
 
-// --- Main Screen ---
 class UserProfileScreen extends StatefulWidget {
   final String userId;
   final String token;
@@ -38,9 +42,12 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final UserProfileService _apiService = UserProfileService();
   final SocialApiService _socialApiService = SocialApiService();
+  final PublicTracksApiService _publicTracksApiService =
+      PublicTracksApiService();
 
   late Future<_ProfileViewState> _profileFuture;
-
+  late Future<List<PlaybackTrackModel>> _publicTracksFuture;
+  late Future<List<PlaybackTrackModel>> _repostedTracksFuture;
   TrackModel? _currentlyPlayingTrack;
   late bool _isFollowing;
   bool _isFollowActionLoading = false;
@@ -50,6 +57,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     super.initState();
     _isFollowing = widget.initialIsFollowing;
     _loadProfile();
+    _publicTracksFuture = _publicTracksApiService.getPublicTracks(limit: 10);
+    _repostedTracksFuture = _loadRepostedTracks();
+  }
+
+  @override
+  void dispose() {
+    _publicTracksApiService.dispose();
+    super.dispose();
   }
 
   void _playTrack(TrackModel track) {
@@ -64,34 +79,49 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
   }
 
+  Future<void> _playLikedTrack(PlaybackTrackModel track, int index) async {
+    final List<PlaybackTrackModel> likedTracks =
+        await _publicTracksFuture.catchError((_) => <PlaybackTrackModel>[]);
+    if (likedTracks.isEmpty) {
+      return;
+    }
+    await PlaybackStreamingEngineService.shared.playTrack(
+      track,
+      queue: likedTracks,
+      startIndex: index,
+    );
+  }
+
+  Future<List<PlaybackTrackModel>> _loadRepostedTracks() async {
+    try {
+      return await LibraryHistoryApiService()
+          .getUserRepostedTracks(widget.userId, widget.token);
+    } catch (e) {
+      return [];
+    }
+  }
+
   Future<void> _toggleFollowUser() async {
     if (_isFollowActionLoading) return;
-
     final previousValue = _isFollowing;
-
     setState(() {
       _isFollowActionLoading = true;
       _isFollowing = !previousValue;
     });
-
     final result = previousValue
         ? await _socialApiService.unfollowUser(targetUserId: widget.userId)
         : await _socialApiService.followUser(targetUserId: widget.userId);
-
     if (!mounted) return;
-
     if (result.$1 != 200) {
       setState(() {
         _isFollowing = previousValue;
         _isFollowActionLoading = false;
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result.$2.toString())),
       );
       return;
     }
-
     setState(() {
       _isFollowActionLoading = false;
       _loadProfile();
@@ -209,7 +239,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         TextEditingController(text: track.title);
     final TextEditingController genreCtrl =
         TextEditingController(text: track.genre);
-
     showDialog(
       context: context,
       builder: (context) {
@@ -278,7 +307,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final currentList =
         List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
     final index = currentList.indexWhere((t) => t.id == id);
-
     if (index != -1) {
       final oldTrack = currentList[index];
       final updatedTrack = TrackModel(
@@ -308,14 +336,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         licensing: oldTrack.licensing,
         coverImagePath: oldTrack.coverImagePath,
       );
-
       currentList[index] = updatedTrack;
       AudioUploadService.globalMockTracksNotifier.value = currentList;
-
       if (_currentlyPlayingTrack?.id == id) {
         setState(() => _currentlyPlayingTrack = updatedTrack);
       }
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Track updated!'),
@@ -330,11 +355,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
     currentList.removeWhere((t) => t.id == track.id);
     AudioUploadService.globalMockTracksNotifier.value = currentList;
-
     if (_currentlyPlayingTrack?.id == track.id) {
       _closePlayer();
     }
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Track deleted successfully'),
@@ -353,9 +376,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       widget.userId,
       widget.token,
     );
+    MockPlaybackAccessService.shared
+        .syncCountryFromProfileLocation(profile.resolvedLocation);
     final currentUserId = widget.currentUserId?.trim() ?? '';
     final isOwner = currentUserId.isNotEmpty && currentUserId == profile.userId;
-
     return _ProfileViewState(profile: profile, isOwner: isOwner);
   }
 
@@ -370,7 +394,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         'tabIndex': 0,
       },
     );
-
     if (!mounted) return;
     setState(() {
       _loadProfile();
@@ -391,7 +414,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         'tabIndex': tabIndex,
       },
     );
-
     if (!mounted) return;
     setState(() {
       _loadProfile();
@@ -401,15 +423,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> _openUrl(String rawUrl) async {
     final trimmed = rawUrl.trim();
     if (trimmed.isEmpty) return;
-
     final normalized = trimmed.startsWith('http://') ||
             trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
-
     final uri = Uri.tryParse(normalized);
     if (uri == null) return;
-
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -425,9 +444,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
       return;
     }
-
     await Clipboard.setData(ClipboardData(text: link));
-
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -635,9 +652,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
           const _SheetAction(label: 'More', icon: Icons.more_horiz),
         ];
-
         final linkedProfiles = profile.visibleLinks;
-
         return SafeArea(
           top: false,
           child: Padding(
@@ -795,7 +810,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   IconData _iconForLink(ProfileLinkModel link) {
     final platform = link.platform.toLowerCase();
     final title = link.title.toLowerCase();
-
     if (platform.contains('instagram') || title.contains('instagram')) {
       return Icons.camera_alt_outlined;
     }
@@ -817,7 +831,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (platform.contains('tiktok') || title.contains('tiktok')) {
       return Icons.music_note;
     }
-
     return Icons.link;
   }
 
@@ -837,7 +850,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: CircularProgressIndicator(color: Colors.white),
             );
           }
-
           if (snapshot.hasError) {
             return Center(
               child: Padding(
@@ -850,11 +862,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             );
           }
-
           final data = snapshot.data!;
           final profile = data.profile;
           final isOwner = data.isOwner;
-
           if (profile.isPrivate && !isOwner) {
             return _PrivateProfileView(
               profile: profile,
@@ -866,47 +876,71 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               onFollowToggle: _toggleFollowUser,
             );
           }
-
-          return Stack(
-            children: [
-              _SoundCloudProfileView(
-                profile: profile,
-                isOwner: isOwner,
-                token: widget.token,
-                onEdited: () {
-                  setState(() {
-                    _loadProfile();
-                  });
+          return FutureBuilder<List<PlaybackTrackModel>>(
+            future: _publicTracksFuture,
+            builder: (context, tracksSnapshot) {
+              final List<PlaybackTrackModel> likedTracks =
+                  tracksSnapshot.data ?? const <PlaybackTrackModel>[];
+              return FutureBuilder<List<PlaybackTrackModel>>(
+                future: _repostedTracksFuture,
+                builder: (context, repostedSnapshot) {
+                  final List<PlaybackTrackModel> repostedTracks =
+                      repostedSnapshot.data ?? const <PlaybackTrackModel>[];
+                  return Stack(
+                    children: [
+                      _SoundCloudProfileView(
+                        profile: profile,
+                        isOwner: isOwner,
+                        token: widget.token,
+                        onEdited: () {
+                          setState(() {
+                            _loadProfile();
+                            _publicTracksFuture =
+                                _publicTracksApiService.getPublicTracks(limit: 10);
+                          });
+                        },
+                        onMorePressed: () =>
+                            _showShareSheet(profile, isOwner: isOwner),
+                        showArtistSections: _isArtistRole(profile.role),
+                        onTrackTap: _playTrack,
+                        onTrackOptionsTap: _showTrackOptions,
+                        onLikedTrackTap: _playLikedTrack,
+                        currentlyPlayingTrackId: _currentlyPlayingTrack?.id,
+                        likedTracks: likedTracks,
+                        repostedTracks: repostedTracks,
+                        isLoadingLikedTracks:
+                            tracksSnapshot.connectionState == ConnectionState.waiting,
+                        likedTracksError: tracksSnapshot.hasError
+                            ? tracksSnapshot.error.toString()
+                            : null,
+                        onFollowersTap: () => _openFollowersScreen(profile.userId),
+                        onFollowingTap: () =>
+                            _openFollowingScreen(profile.userId, tabIndex: 1),
+                        isFollowing: _isFollowing,
+                        isFollowActionLoading: _isFollowActionLoading,
+                        onFollowToggle: _toggleFollowUser,
+                      ),
+                      if (_currentlyPlayingTrack != null)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 84,
+                          child: YourInsights(
+                            track: _currentlyPlayingTrack!,
+                            onClose: _closePlayer,
+                          ),
+                        ),
+                      const Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: CommonBottomNavBar(currentItem: AppNavItem.library),
+                      ),
+                    ],
+                  );
                 },
-                onMorePressed: () => _showShareSheet(profile, isOwner: isOwner),
-                showArtistSections: _isArtistRole(profile.role),
-                onTrackTap: _playTrack,
-                onTrackOptionsTap: _showTrackOptions,
-                currentlyPlayingTrackId: _currentlyPlayingTrack?.id,
-                onFollowersTap: () => _openFollowersScreen(profile.userId),
-                onFollowingTap: () =>
-                    _openFollowingScreen(profile.userId, tabIndex: 1),
-                isFollowing: _isFollowing,
-                isFollowActionLoading: _isFollowActionLoading,
-                onFollowToggle: _toggleFollowUser,
-              ),
-              if (_currentlyPlayingTrack != null)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 84,
-                  child: YourInsights(
-                    track: _currentlyPlayingTrack!,
-                    onClose: _closePlayer,
-                  ),
-                ),
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: CommonBottomNavBar(currentItem: AppNavItem.library),
-              ),
-            ],
+              );
+            },
           );
         },
       ),
@@ -923,7 +957,13 @@ class _SoundCloudProfileView extends StatefulWidget {
   final bool showArtistSections;
   final Function(TrackModel) onTrackTap;
   final Function(TrackModel) onTrackOptionsTap;
+  final Future<void> Function(PlaybackTrackModel track, int index)
+      onLikedTrackTap;
   final String? currentlyPlayingTrackId;
+  final List<PlaybackTrackModel> likedTracks;
+  final List<PlaybackTrackModel> repostedTracks;
+  final bool isLoadingLikedTracks;
+  final String? likedTracksError;
   final Future<void> Function() onFollowersTap;
   final Future<void> Function() onFollowingTap;
   final bool isFollowing;
@@ -939,7 +979,12 @@ class _SoundCloudProfileView extends StatefulWidget {
     required this.showArtistSections,
     required this.onTrackTap,
     required this.onTrackOptionsTap,
+    required this.onLikedTrackTap,
     this.currentlyPlayingTrackId,
+    required this.likedTracks,
+    required this.repostedTracks,
+    required this.isLoadingLikedTracks,
+    this.likedTracksError,
     required this.onFollowersTap,
     required this.onFollowingTap,
     required this.isFollowing,
@@ -953,11 +998,9 @@ class _SoundCloudProfileView extends StatefulWidget {
 
 class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
   List<SpotlightItemModel?> spotlightItems = List.filled(5, null);
-
   bool get _hasProfilePhoto => widget.profile.profileImgLink.trim().isNotEmpty;
   bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
   bool get _hasBanner => widget.profile.bannerImgLink.trim().isNotEmpty;
-
   int get _completedStepsCount {
     int count = 2;
     if (_hasProfilePhoto) count++;
@@ -965,14 +1008,11 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
     if (_hasBanner) count++;
     return count;
   }
-
   bool get _shouldShowCompleteProfile {
     return !_hasProfilePhoto || !_hasBio || !_hasBanner;
   }
-
   void _openEditSpotlight() async {
     if (!widget.isOwner) return;
-
     final updatedSpotlight = await Navigator.push<List<SpotlightItemModel?>>(
       context,
       MaterialPageRoute(
@@ -982,7 +1022,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         ),
       ),
     );
-
     if (updatedSpotlight != null && mounted) {
       setState(() {
         for (int i = 0; i < 5; i++) {
@@ -995,7 +1034,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
       });
     }
   }
-
   List<_ProfileCompletionCardData> _buildCompletionCards() {
     final cards = <_ProfileCompletionCardData>[
       const _ProfileCompletionCardData(
@@ -1013,7 +1051,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         isComplete: true,
       ),
     ];
-
     if (!_hasProfilePhoto) {
       cards.add(
         const _ProfileCompletionCardData(
@@ -1024,7 +1061,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         ),
       );
     }
-
     if (!_hasBio) {
       cards.add(
         const _ProfileCompletionCardData(
@@ -1035,7 +1071,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         ),
       );
     }
-
     if (!_hasBanner) {
       cards.add(
         const _ProfileCompletionCardData(
@@ -1046,13 +1081,10 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         ),
       );
     }
-
     return cards;
   }
-
   Future<void> _openEditProfile(BuildContext context) async {
     if (!widget.isOwner) return;
-
     final updated = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -1062,14 +1094,11 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         ),
       ),
     );
-
     if (!mounted) return;
-
     if (updated == true) {
       widget.onEdited();
     }
   }
-
   Widget _buildSpotlightSlot(int index) {
     return GestureDetector(
       onTap: _openEditSpotlight,
@@ -1093,7 +1122,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         builder: (context, candidateData, rejectedData) {
           final item = spotlightItems[index];
           final isHovered = candidateData.isNotEmpty;
-
           return AspectRatio(
             aspectRatio: 1,
             child: Container(
@@ -1165,12 +1193,10 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
     final completionCards = _buildCompletionCards();
-
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -1185,7 +1211,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
             builder: (context, constraints) {
               final collapsed =
                   constraints.maxHeight <= kToolbarHeight + topPadding + 24;
-
               return Stack(
                 fit: StackFit.expand,
                 children: [
@@ -1253,7 +1278,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
               valueListenable: AudioUploadService.globalMockTracksNotifier,
               builder: (context, tracks, child) {
                 final bool hasTracks = tracks.isNotEmpty;
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1496,6 +1520,11 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                 ),
                               ),
                             ),
+                            Icon(
+                              Icons.keyboard_arrow_up,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           ],
                         ),
                       ),
@@ -1655,7 +1684,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             track.visibility.toString().toLowerCase();
                         final bool isPrivate =
                             vis.contains('private') || vis.contains('unlisted');
-
                         final Widget trackRow = InkWell(
                           onTap: () => widget.onTrackTap(track),
                           child: Padding(
@@ -1672,9 +1700,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             ),
                           ),
                         );
-
                         if (isPrivate || !widget.isOwner) return trackRow;
-
                         return LongPressDraggable<TrackModel>(
                           data: track,
                           feedback: Material(
@@ -1733,51 +1759,24 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                     const SizedBox(height: 28),
                     const _SectionHeader(title: 'Reposts', actionText: 'See all'),
                     const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Column(
-                        children: [
-                          _UserMusicRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
-                            title: 'Drake playlist',
-                            subtitle: 'k1r1lli',
-                            meta: '1,188 · 239 tracks',
-                          ),
-                          SizedBox(height: 16),
-                          _UserMusicRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
-                            title: 'Ya Leil',
-                            subtitle: 'Toubz',
-                            meta: '16.3K · 4:57',
-                          ),
-                        ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: _ProfileRepostsTracksSection(
+                        tracks: widget.repostedTracks,
+                        isLoading: false,
+                        errorMessage: null,
                       ),
                     ),
                     const SizedBox(height: 26),
                     const _SectionHeader(title: 'Likes', actionText: 'See all'),
                     const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Column(
-                        children: [
-                          _TrackRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
-                            title: 'Tamer Ashour - Haygely Mawgow3',
-                            subtitle: 'Auro',
-                            meta: '246.7K · 3:16',
-                          ),
-                          SizedBox(height: 16),
-                          _TrackRow(
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
-                            title: 'الكلام ليك انت عمرو دياب كاملة بالكلمات',
-                            subtitle: 'Mohamed Salah',
-                            meta: '1.1M · 3:00',
-                          ),
-                        ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: _ProfileLikesTracksSection(
+                        tracks: widget.likedTracks,
+                        isLoading: widget.isLoadingLikedTracks,
+                        errorMessage: widget.likedTracksError,
+                        onTrackTap: widget.onLikedTrackTap,
                       ),
                     ),
                     const SizedBox(height: 150),
@@ -1799,15 +1798,12 @@ class DottedBorderPainter extends CustomPainter {
       ..color = Colors.white38
       ..strokeWidth = 1.2
       ..style = PaintingStyle.stroke;
-
     const dashWidth = 6.0;
     const dashSpace = 4.0;
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(14));
-
     final Path path = Path()..addRRect(rrect);
     final Path dashPath = Path();
-
     for (final PathMetric measurePath in path.computeMetrics()) {
       double distance = 0.0;
       while (distance < measurePath.length) {
@@ -1831,7 +1827,6 @@ class _ProfileCompletionCardData {
   final String buttonText;
   final IconData icon;
   final bool isComplete;
-
   const _ProfileCompletionCardData({
     required this.title,
     required this.subtitle,
@@ -1844,12 +1839,10 @@ class _ProfileCompletionCardData {
 class _CompleteProfileCard extends StatelessWidget {
   final _ProfileCompletionCardData data;
   final VoidCallback? onPressed;
-
   const _CompleteProfileCard({
     required this.data,
     required this.onPressed,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1945,12 +1938,10 @@ class _CompleteProfileCard extends StatelessWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String actionText;
-
   const _SectionHeader({
     required this.title,
     required this.actionText,
   });
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1985,13 +1976,11 @@ class _PlaylistCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final String imageUrl;
-
   const _PlaylistCard({
     required this.title,
     required this.subtitle,
     required this.imageUrl,
   });
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -2078,14 +2067,12 @@ class _UserMusicRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final String meta;
-
   const _UserMusicRow({
     required this.imageUrl,
     required this.title,
     required this.subtitle,
     required this.meta,
   });
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -2121,61 +2108,297 @@ class _UserMusicRow extends StatelessWidget {
   }
 }
 
-class _TrackRow extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String subtitle;
-  final String meta;
-
-  const _TrackRow({
-    required this.imageUrl,
-    required this.title,
-    required this.subtitle,
-    required this.meta,
+class _ProfileRepostsTracksSection extends StatelessWidget {
+  final List<PlaybackTrackModel> tracks;
+  final bool isLoading;
+  final String? errorMessage;
+  const _ProfileRepostsTracksSection({
+    required this.tracks,
+    required this.isLoading,
+    required this.errorMessage,
   });
-
   @override
   Widget build(BuildContext context) {
-    final looksLikeAlbum = meta.toLowerCase().contains('album');
+    if (isLoading) {
+      return const Column(
+        children: [
+          _ProfileLikeTrackPlaceholder(),
+          SizedBox(height: 16),
+          _ProfileLikeTrackPlaceholder(),
+        ],
+      );
+    }
+    if (errorMessage != null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Text(
+          'Could not load reposted tracks right now.',
+          style: TextStyle(
+            color: Color(0xFFB3B3B3),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
+    if (tracks.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Text(
+          'No reposts yet.',
+          style: TextStyle(
+            color: Color(0xFFB3B3B3),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
+    final visibleTracks = tracks.take(2).toList();
+    return Column(
+      children: List.generate(visibleTracks.length, (index) {
+        final track = visibleTracks[index];
+        final Widget row = _TrackRow(track: track);
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: index == visibleTracks.length - 1 ? 0 : 16,
+          ),
+          child: row,
+        );
+      }),
+    );
+  }
+}
 
+class _ProfileLikesTracksSection extends StatelessWidget {
+  final List<PlaybackTrackModel> tracks;
+  final bool isLoading;
+  final String? errorMessage;
+  final Future<void> Function(PlaybackTrackModel track, int index)? onTrackTap;
+  const _ProfileLikesTracksSection({
+    required this.tracks,
+    required this.isLoading,
+    required this.errorMessage,
+    this.onTrackTap,
+  });
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Column(
+        children: [
+          _ProfileLikeTrackPlaceholder(),
+          SizedBox(height: 16),
+          _ProfileLikeTrackPlaceholder(),
+        ],
+      );
+    }
+    if (errorMessage != null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Text(
+          'Could not load liked tracks right now.',
+          style: TextStyle(
+            color: Color(0xFFB3B3B3),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
+    if (tracks.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Text(
+          'No tracks available yet.',
+          style: TextStyle(
+            color: Color(0xFFB3B3B3),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
+    final visibleTracks = tracks.take(2).toList();
+    return Column(
+      children: List.generate(visibleTracks.length, (index) {
+        final track = visibleTracks[index];
+        final Widget row = _TrackRow(track: track);
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: index == visibleTracks.length - 1 ? 0 : 16,
+          ),
+          child: track.accessState == PlaybackAccessState.blocked ||
+                  onTrackTap == null
+              ? row
+              : GestureDetector(
+                  onTap: () => onTrackTap!(track, index),
+                  behavior: HitTestBehavior.opaque,
+                  child: row,
+                ),
+        );
+      }),
+    );
+  }
+}
+
+class _ProfileLikeTrackPlaceholder extends StatelessWidget {
+  const _ProfileLikeTrackPlaceholder();
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
-        _SquareImage(imageUrl: imageUrl),
+        Container(
+          width: 58,
+          height: 58,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1D1D1D),
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+              Container(
+                height: 14,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D1D1D),
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
+              const SizedBox(height: 8),
+              Container(
+                height: 13,
+                width: 140,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D1D1D),
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                looksLikeAlbum ? meta : '▶ $meta',
-                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
+              const SizedBox(height: 8),
+              Container(
+                height: 12,
+                width: 90,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D1D1D),
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
             ],
           ),
         ),
-        const Icon(Icons.more_horiz, color: Colors.white54),
+        const SizedBox(width: 12),
+        const Icon(Icons.more_horiz, color: Colors.white24),
       ],
     );
   }
 }
 
+class _TrackRow extends StatelessWidget {
+  final PlaybackTrackModel track;
+  const _TrackRow({
+    required this.track,
+  });
+  bool get _isBlocked => track.accessState == PlaybackAccessState.blocked;
+  bool get _isPreview => track.accessState == PlaybackAccessState.preview;
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: _isBlocked ? 0.55 : 1,
+      child: Row(
+        children: [
+          _SquareImage(imageUrl: track.artworkUrl ?? ''),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  track.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _isBlocked ? Colors.white60 : Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  track.artistName,
+                  style: const TextStyle(
+                    color: Color(0xFFB3B3B3),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _buildMeta(),
+                  style: const TextStyle(
+                    color: Color(0xFFB3B3B3),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.more_horiz, color: Colors.white54),
+        ],
+      ),
+    );
+  }
+  String _buildMeta() {
+    if (_isBlocked) {
+      return '✖ ${track.blockedReason ?? 'Not available'}';
+    }
+    if (_isPreview) {
+      return '▶ Preview only · ${track.effectivePreviewDuration.inSeconds}s';
+    }
+    final String plays = _formatPlays(track.numPlays);
+    final String genre = (track.genre ?? '').trim();
+    if (genre.isNotEmpty) {
+      return '▶ $plays · $genre';
+    }
+    return '▶ $plays';
+  }
+  String _formatPlays(int plays) {
+    if (plays >= 1000000) {
+      final double value = plays / 1000000;
+      return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)}M';
+    }
+    if (plays >= 1000) {
+      final double value = plays / 1000;
+      return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)}K';
+    }
+    return plays.toString();
+  }
+}
+
 class _SquareImage extends StatelessWidget {
   final String imageUrl;
-
   const _SquareImage({required this.imageUrl});
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2203,14 +2426,12 @@ class _LocalTrackRow extends StatelessWidget {
   final String artistName;
   final bool isPlaying;
   final VoidCallback onMoreTap;
-
   const _LocalTrackRow({
     required this.track,
     required this.artistName,
     required this.onMoreTap,
     this.isPlaying = false,
   });
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -2281,12 +2502,10 @@ class _LocalTrackRow extends StatelessWidget {
 class _RoundIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-
   const _RoundIconButton({
     required this.icon,
     required this.onTap,
   });
-
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -2307,9 +2526,7 @@ class _RoundIconButton extends StatelessWidget {
 
 class _SmallAvatar extends StatelessWidget {
   final String imageUrl;
-
   const _SmallAvatar(this.imageUrl);
-
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
@@ -2323,9 +2540,7 @@ class _SmallAvatar extends StatelessWidget {
 
 class _AutoBannerFromAvatar extends StatelessWidget {
   final String imageUrl;
-
   const _AutoBannerFromAvatar(this.imageUrl);
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -2360,7 +2575,6 @@ class _PrivateProfileView extends StatelessWidget {
   final bool isFollowing;
   final bool isFollowActionLoading;
   final Future<void> Function() onFollowToggle;
-
   const _PrivateProfileView({
     required this.profile,
     required this.onFollowersTap,
@@ -2369,11 +2583,9 @@ class _PrivateProfileView extends StatelessWidget {
     required this.isFollowActionLoading,
     required this.onFollowToggle,
   });
-
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-
     return Stack(
       children: [
         CustomScrollView(
@@ -2576,14 +2788,11 @@ class _PrivateProfileView extends StatelessWidget {
 
 class _ShareActionItem extends StatelessWidget {
   final _SheetAction action;
-
   const _ShareActionItem({required this.action});
-
   @override
   Widget build(BuildContext context) {
     final bgColor = action.bgColor ?? const Color(0xFF2A2A2A);
     final iconColor = action.iconColor ?? Colors.white;
-
     return InkWell(
       onTap: action.onTap,
       borderRadius: BorderRadius.circular(16),
@@ -2620,7 +2829,6 @@ class _SheetAction {
   final Color? bgColor;
   final Color? iconColor;
   final Future<void> Function()? onTap;
-
   const _SheetAction({
     required this.label,
     required this.icon,
@@ -2633,7 +2841,6 @@ class _SheetAction {
 class _ProfileViewState {
   final UserProfileModel profile;
   final bool isOwner;
-
   const _ProfileViewState({
     required this.profile,
     required this.isOwner,
