@@ -157,18 +157,18 @@ class TrackApiService {
       //     : _generateValidISRC(); // Generate proper ISRC format
 
       request.fields['advanced'] = jsonEncode({
-        'buyLink': advanced?['buyLink'] ?? '',
-        'recordLabel': advanced?['recordLabel'] ?? '',
-        'releaseDate': advanced?['releaseDate'] ?? '',
-        'publisher': advanced?['publisher'] ?? '',
-        'ISRC': advanced?['ISRC'] ?? '', // Use validated/generated ISRC
-        'explicitContent': advanced?['explicitContent'] ?? false,
-        'pLine': advanced?['pLine'] ?? '',
-        'audioClipStart': advanced?['audioClipStart'] ?? 0,
-        'audioClipEnd': advanced?['audioClipEnd'] ?? 0,
-        'composer': advanced?['composer'] ?? '',
-        'ISWC': advanced?['ISWC'] ?? '',
-        'albumTitle': advanced?['albumTitle'] ?? '',
+        // 'buyLink': advanced?['buyLink'] ?? '',
+        // 'recordLabel': advanced?['recordLabel'] ?? '',
+        // 'releaseDate': advanced?['releaseDate'] ?? '',
+        // 'publisher': advanced?['publisher'] ?? '',
+        // 'ISRC': advanced?['ISRC'] ?? '', // Use validated/generated ISRC
+        // 'explicitContent': advanced?['explicitContent'] ?? false,
+        // 'pLine': advanced?['pLine'] ?? '',
+        // 'audioClipStart': advanced?['audioClipStart'] ?? 0,
+        // 'audioClipEnd': advanced?['audioClipEnd'] ?? 0,
+        // 'composer': advanced?['composer'] ?? '',
+        // 'ISWC': advanced?['ISWC'] ?? '',
+        // 'albumTitle': advanced?['albumTitle'] ?? '',
       });
 
       final streamed = await _client.send(request);
