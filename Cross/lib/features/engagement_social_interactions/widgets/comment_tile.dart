@@ -110,28 +110,31 @@ class CommentTile extends StatelessWidget {
 
                     const SizedBox(width: 8),
 
-                    // Timestamp pill — blue, tappable (seeks player)
-                    GestureDetector(
-                      onTap: onTimestampTap,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2C6BED),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'at ${comment.formattedTimestamp}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                    // Timestamp pill — only shown when timestamp > 0.
+                    // Replies always return from the server with timestamp 0
+                    // because the backend does not store reply timestamps.
+                    if (comment.timestamp > 0)
+                      GestureDetector(
+                        onTap: onTimestampTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2C6BED),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'at ${comment.formattedTimestamp}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
                     const SizedBox(width: 8),
 
@@ -265,18 +268,19 @@ class CommentTile extends StatelessWidget {
 
             // ── Common tiles ──────────────────────
 
-            // Play from timestamp
-            ListTile(
-              leading: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-              title: Text(
-                'Play from ${comment.formattedTimestamp}',
-                style: const TextStyle(color: Colors.white),
+            // Play from timestamp — hidden for replies where server stores 0.
+            if (comment.timestamp > 0)
+              ListTile(
+                leading: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                title: Text(
+                  'Play from ${comment.formattedTimestamp}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onTimestampTap?.call();
+                },
               ),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                onTimestampTap?.call();
-              },
-            ),
 
             // Go to profile
             if (onGoToProfileTap != null)

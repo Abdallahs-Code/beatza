@@ -26,6 +26,10 @@ import 'package:cross_team5/features/followers_social_graph/services/social_api_
 final ValueNotifier<bool> _isExpandedPlayerVisible = ValueNotifier<bool>(false);
 final ValueNotifier<bool> _isTransientSheetOpening = ValueNotifier<bool>(false);
 
+// Notifies the engagement bar that a comment was posted from the inline bar.
+// Set to the trackId of the commented track, reset to null after consumption.
+final ValueNotifier<String?> _trackCommentPosted = ValueNotifier<String?>(null);
+
 final Map<String, List<double>> _expandedWaveformCache = <String, List<double>>{};
 
 class GlobalPlaybackOverlay extends StatelessWidget {
@@ -460,53 +464,17 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                         top: MediaQuery.of(context).size.height * 0.43,
                         child: _ExpandedProgressSection(track: track),
                       ),
-                      Positioned(
-                        left: 16,
-                        right: 16,
-                        bottom: 90,
-                        child: GestureDetector(
-                          onTap: () {
-                            final int pos = PlaybackStreamingEngineService
-                                .shared.state.currentPosition.inSeconds;
-                            Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute(
-                                builder: (_) => CommentsScreen(
-                                  trackId: track.id,
-                                  trackTitle: track.title,
-                                  trackArtist: track.artistName,
-                                  trackThumbnailUrl: track.artworkUrl,
-                                  currentPositionSeconds: pos,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade700.withValues(alpha: 0.72),
-                              borderRadius: BorderRadius.circular(26),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: const Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Comment...',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                                Text('🔥', style: TextStyle(fontSize: 24)),
-                                SizedBox(width: 14),
-                                Text('👏', style: TextStyle(fontSize: 24)),
-                                SizedBox(width: 14),
-                                Text('🥺', style: TextStyle(fontSize: 24)),
-                              ],
-                            ),
-                          ),
-                        ),
+                      Builder(
+                        builder: (bCtx) {
+                          final double keyboardOffset =
+                              MediaQuery.of(bCtx).viewInsets.bottom;
+                          return Positioned(
+                            left: 16,
+                            right: 16,
+                            bottom: 90 + keyboardOffset,
+                            child: _InlineCommentBar(track: track),
+                          );
+                        },
                       ),
                       const Positioned(
                         left: 16,
@@ -1874,6 +1842,20 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
     _likeCount = widget.track.numLikes;
     _commentCount = widget.track.numComments;
     _checkLikeStatus();
+    _trackCommentPosted.addListener(_onExternalCommentPosted);
+  }
+
+  @override
+  void dispose() {
+    _trackCommentPosted.removeListener(_onExternalCommentPosted);
+    super.dispose();
+  }
+
+  // Increments comment count when the inline bar posts a comment for this track.
+  void _onExternalCommentPosted() {
+    if (_trackCommentPosted.value == widget.track.id && mounted) {
+      setState(() => _commentCount++);
+    }
   }
 
   @override
@@ -1944,10 +1926,10 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
     );
   }
 
-  void _openCommentsScreen() {
+  Future<void> _openCommentsScreen() async {
     final int positionSeconds =
         PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
-    Navigator.of(context, rootNavigator: true).push(
+    await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => CommentsScreen(
           trackId: widget.track.id,
@@ -1958,6 +1940,17 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
         ),
       ),
     );
+    if (!mounted) return;
+    // Refresh comment count after returning from CommentsScreen
+    // (user may have posted or deleted comments while there).
+    final result = await _engagementService.getTrackComments(
+      trackId: widget.track.id,
+      limit: 100,
+    );
+    if (!mounted) return;
+    if (result.$1 == 200 && result.$2 is List) {
+      setState(() => _commentCount = (result.$2 as List).length);
+    }
   }
 
   String _formatCount(int count) {
@@ -2036,8 +2029,17 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
           icon: Icons.more_horiz_rounded,
           label: '',
           onTap: () async {
+            final bool wasLiked = _isLiked;
             await widget.onMoreTap();
-            if (mounted) _checkLikeStatus();
+            if (!mounted) return;
+            await _checkLikeStatus();
+            if (!mounted) return;
+            // If like state changed in the options sheet, sync the count shown here.
+            if (_isLiked != wasLiked) {
+              setState(() {
+                _likeCount = _isLiked ? _likeCount + 1 : _likeCount - 1;
+              });
+            }
           },
         ),
       ],
@@ -2372,6 +2374,142 @@ class _ShareAction extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(color: Colors.white, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  INLINE COMMENT BAR — post a comment directly from the expanded player.
+//  Shows a text field with emoji quick-post buttons when empty, and an
+//  arrow send button once the user starts typing.
+// ─────────────────────────────────────────────────────────
+class _InlineCommentBar extends StatefulWidget {
+  final PlaybackTrackModel track;
+  const _InlineCommentBar({required this.track});
+
+  @override
+  State<_InlineCommentBar> createState() => _InlineCommentBarState();
+}
+
+class _InlineCommentBarState extends State<_InlineCommentBar> {
+  final EngagementApiService _engagementService = EngagementApiService();
+  final TextEditingController _controller = TextEditingController();
+  bool _isPosting = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _postComment(String content) async {
+    final trimmed = content.trim();
+    if (trimmed.isEmpty || _isPosting) return;
+    setState(() => _isPosting = true);
+
+    final int positionSeconds =
+        PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
+
+    final result = await _engagementService.postComment(
+      trackId: widget.track.id,
+      content: trimmed,
+      timestamp: positionSeconds,
+    );
+
+    if (!mounted) return;
+    setState(() => _isPosting = false);
+    _controller.clear();
+
+    if (result.$1 == 201) {
+      // Notify the engagement bar to increment its comment count.
+      _trackCommentPosted.value = widget.track.id;
+      Future.microtask(() => _trackCommentPosted.value = null);
+    } else {
+      final ctx = appNavigatorKey.currentContext ?? context;
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text('Could not post comment: ${result.$2}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade700.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              decoration: const InputDecoration(
+                hintText: 'Comment...',
+                hintStyle: TextStyle(color: Colors.white70, fontSize: 14),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onSubmitted: (_) => _postComment(_controller.text),
+            ),
+          ),
+          const SizedBox(width: 6),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _controller,
+            builder: (_, value, child) {
+              if (value.text.isNotEmpty) {
+                // Show send arrow when user has typed something.
+                return GestureDetector(
+                  onTap: () => _postComment(_controller.text),
+                  child: _isPosting
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.orange,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.arrow_circle_up_rounded,
+                          color: Colors.orange,
+                          size: 28,
+                        ),
+                );
+              }
+              // Show emoji quick-post buttons when bar is empty.
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () => _postComment('🔥'),
+                    child: const Text('🔥', style: TextStyle(fontSize: 22)),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => _postComment('👏'),
+                    child: const Text('👏', style: TextStyle(fontSize: 22)),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => _postComment('🥺'),
+                    child: const Text('🥺', style: TextStyle(fontSize: 22)),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),

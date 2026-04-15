@@ -1757,7 +1757,20 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    const _SectionHeader(title: 'Reposts', actionText: 'See all'),
+                    _SectionHeader(
+                      title: 'Reposts',
+                      actionText: 'See all',
+                      onActionTap: widget.repostedTracks.isEmpty
+                          ? null
+                          : () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => _AllRepostsScreen(
+                                    tracks: widget.repostedTracks,
+                                  ),
+                                ),
+                              ),
+                    ),
                     const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -1938,9 +1951,11 @@ class _CompleteProfileCard extends StatelessWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String actionText;
+  final VoidCallback? onActionTap;
   const _SectionHeader({
     required this.title,
     required this.actionText,
+    this.onActionTap,
   });
   @override
   Widget build(BuildContext context) {
@@ -1958,12 +1973,16 @@ class _SectionHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (actionText.isNotEmpty)
-            Text(
-              actionText,
-              style: const TextStyle(
-                color: Color(0xFFB3B3B3),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+            GestureDetector(
+              onTap: onActionTap,
+              behavior: HitTestBehavior.opaque,
+              child: Text(
+                actionText,
+                style: const TextStyle(
+                  color: Color(0xFFB3B3B3),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
         ],
@@ -2176,6 +2195,41 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
           child: row,
         );
       }),
+    );
+  }
+}
+
+// Full-screen list shown when the user taps "See all" in the Reposts section.
+class _AllRepostsScreen extends StatelessWidget {
+  final List<PlaybackTrackModel> tracks;
+  const _AllRepostsScreen({required this.tracks});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0A),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0A0A0A),
+        foregroundColor: Colors.white,
+        title: Text(
+          '${tracks.length} Reposts',
+          style: const TextStyle(color: Colors.white, fontSize: 17),
+        ),
+        elevation: 0,
+      ),
+      body: tracks.isEmpty
+          ? const Center(
+              child: Text(
+                'No reposts yet.',
+                style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 15),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+              itemCount: tracks.length,
+              separatorBuilder: (_, i) => const SizedBox(height: 16),
+              itemBuilder: (_, index) => _TrackRow(track: tracks[index]),
+            ),
     );
   }
 }
