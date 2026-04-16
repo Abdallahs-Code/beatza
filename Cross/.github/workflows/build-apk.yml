@@ -27,6 +27,14 @@ jobs:
         flutter-version: 3.38.5
         cache: true
 
+    - name: Initialize Flutter SDK
+      uses: chika3742/setup-fvm@v3
+      with:
+        project-dir: . # default
+        cache: true # default
+
+    - run: fvm flutter --version
+
     - name: Build
       run: fvm flutter clean && fvm flutter pub get && fvm flutter build windows --release
 
