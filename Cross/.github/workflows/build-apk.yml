@@ -30,13 +30,13 @@ jobs:
     - name: Initialize Flutter SDK
       uses: kuhnroyal/flutter-fvm-config-action/setup@v3
 
-    - run: fvm flutter --version
+    # - run: fvm flutter --version
 
     - name: Build
       run: |
-        fvm flutter clean
-        fvm flutter pub get
-        fvm flutter build windows --release
+        flutter clean
+        flutter pub get
+        flutter build windows --release
 
     # - name: Build APK
     #   run: flutter build apk --release
