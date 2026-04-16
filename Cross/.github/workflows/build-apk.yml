@@ -35,8 +35,11 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
 
+    - run: |
+       echo "BASE_URL=${{ secrets.BASE_URL }}" > .env
+
     - name: Build Windows
-      run: flutter build windows --release --dart-define=BASE_URL=${{ secrets.BASE_URL }}
+      run: flutter build windows --release 
 
     # - name: Build APK
     #   run: flutter build apk --release
