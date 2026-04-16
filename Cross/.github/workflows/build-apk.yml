@@ -28,15 +28,13 @@ jobs:
         cache: true
 
     - name: Initialize Flutter SDK
-      uses: chika3742/setup-fvm@v3
-      with:
-        project-dir: . # default
-        cache: true # default
+      uses: kuhnroyal/flutter-fvm-config-action/setup@v3
 
     - run: fvm flutter --version
 
     - name: Build
-      run: fvm flutter clean | 
+      run: |
+        fvm flutter clean
         fvm flutter pub get
         fvm flutter build windows --release
 
@@ -54,5 +52,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: beatza-${{ github.sha }}
-        path: build\windows\x64\runner\Release\
+        path: build/windows/x64/runner/Release/
         retention-days: 30
