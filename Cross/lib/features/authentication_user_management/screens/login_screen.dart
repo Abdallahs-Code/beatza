@@ -514,118 +514,133 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               /// GOOGLE LOGIN BUTTON
-              LoginButton(
-                text: AppText.continueWithGoogle,
-                icon: Icons.g_mobiledata,
-                color: AppColors.googleBackGround,
-                onPressed: () async {
-                  final authApiService = AuthApiService();
-                  final authUrl =
-                      "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
+              SizedBox(
+  width: double.infinity,
+  height: 32,
+  child: ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black87,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    ),
+    onPressed: () async {
+      final authApiService = AuthApiService();
+      final authUrl =
+          "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
 
-                  try {
-                    final result = await FlutterWebAuth2.authenticate(
-                      url: authUrl,
-                      callbackUrlScheme: "beatza",
-                      options: const FlutterWebAuth2Options(useWebview: true),
-                    );
+      try {
+        final result = await FlutterWebAuth2.authenticate(
+          url: authUrl,
+          callbackUrlScheme: "beatza",
+          options: const FlutterWebAuth2Options(useWebview: true),
+        );
 
-                    // LoggerService.logger.i("Google auth callback result: $result");
+        final uri = Uri.parse(result);
 
-                    final uri = Uri.parse(result);
+        final accessToken = uri.queryParameters["accessToken"];
+        final refreshToken = uri.queryParameters["refreshToken"];
+        final pendingToken = uri.queryParameters["pendingToken"];
+        final incompleteToken = uri.queryParameters["incompleteToken"];
+        final displayName = uri.queryParameters["displayName"];
 
-                    final accessToken = uri.queryParameters["accessToken"];
-                    final refreshToken = uri.queryParameters["refreshToken"];
-                    final pendingToken = uri.queryParameters["pendingToken"];
-                    final incompleteToken =
-                        uri.queryParameters["incompleteToken"];
-                    final displayName = uri.queryParameters["displayName"];
+        if (accessToken != null &&
+            accessToken.isNotEmpty &&
+            refreshToken != null &&
+            refreshToken.isNotEmpty) {
+          LoggerService.logger.i(
+            "Case 3: Returning Google user logged in successfully",
+          );
 
-                    // Case 3: returning Google user
-                    if (accessToken != null &&
-                        accessToken.isNotEmpty &&
-                        refreshToken != null &&
-                        refreshToken.isNotEmpty) {
-                      LoggerService.logger.i(
-                        "Case 3: Returning Google user logged in successfully",
-                      );
+          await authApiService.saveTokens(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+          );
 
-                      await authApiService.saveTokens(
-                        accessToken: accessToken,
-                        refreshToken: refreshToken,
-                      );
+          await authApiService.refreshToken();
 
-                      await authApiService.refreshToken();
+          if (context.mounted) {
+            Navigator.pushReplacementNamed(context, HomeRoutes.home);
+          }
+          return;
+        }
 
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(
-                          context,
-                          HomeRoutes.home,
-                        );
-                      }
-                      return;
-                    }
+        if (pendingToken != null && pendingToken.isNotEmpty) {
+          LoggerService.logger.i(
+            "Case 2: Existing user, first Google login",
+          );
 
-                    // Case 2: existing user, first Google login
-                    if (pendingToken != null && pendingToken.isNotEmpty) {
-                      LoggerService.logger.i(
-                        "Case 2: Existing user, first Google login",
-                      );
-
-                      if (context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                VerifyCodeScreen(pendingToken: pendingToken),
-                          ),
-                        );
-                      }
-                      return;
-                    }
-
-                    // Case 1: new Google user
-                    if (incompleteToken != null && incompleteToken.isNotEmpty) {
-                      LoggerService.logger.i("Case 1: New Google user");
-
-                      if (context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => UserInfoScreen(
-                              incompleteToken: incompleteToken,
-                              initialDisplayName: displayName ?? "",
-                              isGoogleFlow: true,
-                            ),
-                          ),
-                        );
-                      }
-                      return;
-                    }
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Google sign-in returned no usable data",
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    LoggerService.logger.i("Google sign-in failed: $e");
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Google sign-in failed: $e"),
-                          backgroundColor: AppColors.anger,
-                        ),
-                      );
-                    }
-                  }
-                },
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => VerifyCodeScreen(pendingToken: pendingToken),
               ),
+            );
+          }
+          return;
+        }
+
+        if (incompleteToken != null && incompleteToken.isNotEmpty) {
+          LoggerService.logger.i("Case 1: New Google user");
+
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => UserInfoScreen(
+                  incompleteToken: incompleteToken,
+                  initialDisplayName: displayName ?? "",
+                  isGoogleFlow: true,
+                ),
+              ),
+            );
+          }
+          return;
+        }
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Google sign-in returned no usable data"),
+            ),
+          );
+        }
+      } catch (e) {
+        LoggerService.logger.i("Google sign-in failed: $e");
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Google sign-in failed: $e"),
+              backgroundColor: AppColors.anger,
+            ),
+          );
+        }
+      }
+    },
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          'assets/images/googlelogo.png',
+          height: 20,
+          width: 20,
+        ),
+        const SizedBox(width: 12),
+        const Text(
+          'Continue with Google',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
 
               if (Platform.isWindows) ...[
                 const SizedBox(height: 5),

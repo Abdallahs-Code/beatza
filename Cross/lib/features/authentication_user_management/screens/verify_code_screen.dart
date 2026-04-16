@@ -224,19 +224,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
-                    Text(
-                      displayedEmail,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 52),
 
                     Stack(
                       alignment: Alignment.center,
