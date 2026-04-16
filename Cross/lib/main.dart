@@ -4,15 +4,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Package imports
 import 'package:cross_team5/core/navigation/app_navigator.dart';
-import 'package:cross_team5/features/playback_streaming_engine/playback_streaming_engine.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
 import 'package:cross_team5/routes/app_router.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
+import 'package:cross_team5/core/widgets/global_connectivity_overlay.dart';
+import 'core/services/connectivity_service.dart';
 
 const bool OPEN_PLAYBACK_DEBUG_ON_START = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ConnectivityService.instance.initialize();
   await dotenv.load(fileName: '.env');
   runApp(const MyApp());
 }
@@ -34,6 +36,7 @@ class MyApp extends StatelessWidget {
           children: [
             child ?? const SizedBox.shrink(),
             const GlobalPlaybackOverlay(),
+            const GlobalConnectivityOverlay(),
           ],
         );
       },
