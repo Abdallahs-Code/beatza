@@ -599,4 +599,52 @@ Future<(int, dynamic)> completeGoogleSignup({
     }
   }
 
+  Future<(int, dynamic)> resendGoogleVerificationCode({
+  required String pendingToken,
+}) async {
+  if (pendingToken.trim().isEmpty) {
+    return (400, "Pending token is required");
+  }
+
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/resend-code"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "pendingToken": pendingToken.trim(),
+      }),
+    );
+
+    dynamic message = "Failed to resend Google verification code";
+
+    if (response.body.trim().isNotEmpty) {
+      try {
+        final data = jsonDecode(response.body);
+        message = data["message"] ?? message;
+      } catch (_) {
+        message = response.body;
+      }
+    }
+
+    LoggerService.logger.i(
+      "resendGoogleVerificationCode statusCode: ${response.statusCode}, body: ${response.body}",
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return (response.statusCode, message == "Failed to resend Google verification code"
+          ? "Verification code resent"
+          : message);
+    }
+
+    return (response.statusCode, message);
+  } catch (err) {
+    LoggerService.logger.i("resendGoogleVerificationCode error: $err");
+    return (500, "Network error: $err");
+  }
+}
+
+
 }
