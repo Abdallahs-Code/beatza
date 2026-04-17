@@ -102,29 +102,37 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     }
   }
 
-  Future<void> _handleSendAgain() async {
-    // Your current backend/service layer does NOT include
-    // a resend-Google-verification-code endpoint.
-    // So this button currently only informs the user.
-    setState(() {
-      _isSendingAgain = true;
-    });
+Future<void> _handleSendAgain() async {
+  setState(() {
+    _isSendingAgain = true;
+  });
 
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+  final authApiService = AuthApiService();
 
-    if (!mounted) return;
+  final result = await authApiService.resendGoogleVerificationCode(
+    pendingToken: widget.pendingToken,
+  );
 
-    setState(() {
-      _isSendingAgain = false;
-    });
+  LoggerService.logger.i(
+    "Resend Google code result: ${result.$1}, ${result.$2}",
+  );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Resend code is not connected yet"),
-        backgroundColor: AppColors.anger,
-      ),
-    );
-  }
+  if (!mounted) return;
+
+  setState(() {
+    _isSendingAgain = false;
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(result.$2.toString()),
+      backgroundColor:
+          (result.$1 >= 200 && result.$1 < 300)
+              ? Colors.green
+              : AppColors.anger,
+    ),
+  );
+}
 
   void _onCodeChanged(String value) {
     final digitsOnly = value.replaceAll(RegExp(r'[^0-9]'), '');
