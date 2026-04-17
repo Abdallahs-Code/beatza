@@ -45,17 +45,21 @@ class GlobalPlaybackOverlay extends StatelessWidget {
       child: ValueListenableBuilder<bool>(
         valueListenable: _isExpandedPlayerVisible,
         builder: (context, isExpanded, _) {
-          return ValueListenableBuilder<bool>(
-            valueListenable: globalPopupRouteVisible,
-            builder: (context, isPopupVisible, __) {
+          return ValueListenableBuilder<AppOverlayVisibilityState>(
+            valueListenable: globalOverlayVisibility,
+            builder: (context, overlayVisibility, __) {
               return AnimatedBuilder(
                 animation: globalPlayer,
                 builder: (context, ___) {
                   final PlaybackStateModel state = globalPlayer.state;
-                  if (!state.hasTrack ||
+                  final bool shouldHideMiniPlayer =
+                      !state.hasTrack ||
                       isExpanded ||
-                      isPopupVisible ||
-                      _isTransientSheetOpening.value) {
+                      overlayVisibility.isPopupRouteVisible ||
+                      !overlayVisibility.shouldShowMiniPlayerOnCurrentRoute ||
+                      _isTransientSheetOpening.value;
+
+                  if (shouldHideMiniPlayer) {
                     return const SizedBox.shrink();
                   }
 

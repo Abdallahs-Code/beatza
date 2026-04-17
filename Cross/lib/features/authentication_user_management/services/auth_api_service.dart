@@ -8,6 +8,7 @@ import "package:cross_team5/core/services/api_services.dart";
 import "package:cross_team5/core/services/logger_service.dart";
 import "package:cross_team5/features/authentication_user_management/models/user.dart"
     as user_model;
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 
 class AuthApiService {
   final ApiServices _apiServices;
@@ -124,8 +125,8 @@ class AuthApiService {
 
       final data = jsonDecode(response.body);
       LoggerService.logger.i(
-        "signup statusCode: ${response.statusCode}, body: ${response.body}",
-      );
+      "signup statusCode: ${response.statusCode}, body: ${response.body}",
+    );
       return (
         response.statusCode,
         data["message"] ?? "Signup request processed",
@@ -163,57 +164,7 @@ class AuthApiService {
     } catch (_) {
     } finally {
       await _clearTokens();
-    }
-  }
-
-  Future<(int, dynamic)> deleteAccount() async {
-    final accessToken = await _storage.read(key: "access_token");
-
-    if (accessToken == null || accessToken.trim().isEmpty) {
-      return (401, "No access token found");
-    }
-
-    try {
-      final response = await _client.delete(
-        Uri.parse("$_servicePath/delete-account"),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $accessToken",
-          "User-Agent": "Android",
-        },
-      );
-
-      dynamic message = "Account deletion failed";
-
-      if (response.body.trim().isNotEmpty) {
-        try {
-          final data = jsonDecode(response.body);
-          message = data["message"] ?? message;
-        } catch (_) {
-          message = response.body;
-        }
-      }
-
-      LoggerService.logger.i(
-        "deleteAccount statusCode: ${response.statusCode}, body: ${response.body}",
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        await _clearTokens();
-        return (200, message == "Account deletion failed"
-            ? "Account deleted successfully"
-            : message);
-      }
-
-      if (response.statusCode == 401) {
-        await _clearTokens();
-        return (401, message);
-      }
-
-      return (response.statusCode, message);
-    } catch (err) {
-      LoggerService.logger.i("deleteAccount error: $err");
-      return (500, "Network error: $err");
+      await PlaybackStreamingEngineService.shared.clearSessionState();
     }
   }
 
@@ -292,7 +243,8 @@ class AuthApiService {
 
   Future<bool> approveQrCode(String qrData) async {
     final accessToken = await _storage.read(key: "access_token");
-    try {
+    try 
+    {
       final response = await _client.post(
         Uri.parse("$_servicePath/cross/mobile"),
         headers: {
@@ -303,14 +255,18 @@ class AuthApiService {
         body: jsonEncode({"qrCode": qrData}),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200)
+      {
         return true;
       }
       return false;
-    } catch (e) {
+    }
+    catch(e)
+    {
       LoggerService.logger.i('Approve Qr code Func: $e');
       return false;
     }
+    
   }
 
   Future<Map<String, dynamic>> checkQrStatus(String qrData) async {
@@ -325,7 +281,7 @@ class AuthApiService {
       ).timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(response.body);
-
+      
       switch (response.statusCode) {
         case 200:
           if (data.containsKey('data')) {
@@ -337,21 +293,19 @@ class AuthApiService {
           } else {
             return {
               'status': 'waiting',
-              'message':
-                  data['message'] ??
-                  'QR code not scanned, waiting for approval.',
+              'message': data['message'] ?? 'QR code not scanned, waiting for approval.',
             };
           }
-
+        
         case 400:
           throw Exception(data['message'] ?? 'Bad request');
-
+        
         case 401:
           throw Exception(data['message'] ?? 'Session expired');
-
+        
         case 500:
           throw Exception(data['message'] ?? 'Internal server error');
-
+        
         default:
           throw Exception('Failed to check QR status: ${response.statusCode}');
       }
@@ -361,7 +315,7 @@ class AuthApiService {
     }
   }
 
-  Future<bool> checkUserExists({required String email}) async {
+    Future<bool> checkUserExists({required String email}) async {
     if (!_isValidEmail(email)) {
       LoggerService.logger.i("checkUserExists: Invalid email format");
       throw Exception("Invalid email format");
@@ -481,75 +435,71 @@ class AuthApiService {
   }
 
   Future<(int, dynamic)> verifyGoogleCode({
-    required String pendingToken,
-    required String code,
-  }) async {
-    if (pendingToken.trim().isEmpty) {
-      return (400, "Pending token is required");
-    }
-
-    if (code.trim().isEmpty) {
-      return (400, "Verification code is required");
-    }
-
-    try {
-      final response = await _client.post(
-        Uri.parse("$_servicePath/google/verify-code?client=Android"),
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Android",
-        },
-        body: jsonEncode({
-          "pendingToken": pendingToken,
-          "code": code.trim(),
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      LoggerService.logger.i(
-        "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = data["data"];
-        final accessToken = responseData?["accessToken"];
-        final refreshTokenValue = responseData?["refreshToken"];
-
-        if (accessToken != null && refreshTokenValue != null) {
-          await saveTokens(
-            accessToken: accessToken,
-            refreshToken: refreshTokenValue,
-          );
-
-          await refreshToken();
-        }
-
-        return (200, data["message"] ?? "Authenticated successfully");
-      }
-
-      return (
-        response.statusCode,
-        data["message"] ?? "Google code verification failed",
-      );
-    } catch (err) {
-      LoggerService.logger.i("verifyGoogleCode error: $err");
-      return (500, "Network error: $err");
-    }
+  required String pendingToken,
+  required String code,
+}) async {
+  if (pendingToken.trim().isEmpty) {
+    return (400, "Pending token is required");
   }
 
- Future<(int, dynamic)> completeGoogleSignup({
+  if (code.trim().isEmpty) {
+    return (400, "Verification code is required");
+  }
+
+  try {
+    final response = await _client.post(
+      Uri.parse("$_servicePath/google/verify-code?client=Android"),
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "pendingToken": pendingToken,
+        "code": code.trim(),
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    LoggerService.logger.i(
+      "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = data["data"];
+      final accessToken = responseData?["accessToken"];
+      final refreshTokenValue = responseData?["refreshToken"];
+
+      if (accessToken != null && refreshTokenValue != null) {
+        await saveTokens(
+          accessToken: accessToken,
+          refreshToken: refreshTokenValue,
+        );
+
+        await refreshToken();
+      }
+
+      return (200, data["message"] ?? "Authenticated successfully");
+    }
+
+    return (
+      response.statusCode,
+      data["message"] ?? "Google code verification failed",
+    );
+  } catch (err) {
+    LoggerService.logger.i("verifyGoogleCode error: $err");
+    return (500, "Network error: $err");
+  }
+}
+
+Future<(int, dynamic)> completeGoogleSignup({
   required String incompleteToken,
-  required String displayName,
   required String dateOfBirth,
   required String gender,
+  String? displayName,
 }) async {
   if (incompleteToken.trim().isEmpty) {
     return (400, "Incomplete token is required");
-  }
-
-  if (displayName.trim().isEmpty) {
-    return (400, "Display name is required");
   }
 
   if (dateOfBirth.trim().isEmpty) {
@@ -569,9 +519,10 @@ class AuthApiService {
       },
       body: jsonEncode({
         "incompleteToken": incompleteToken,
-        "displayName": displayName,
         "dateOfBirth": dateOfBirth,
         "gender": gender,
+        if (displayName != null && displayName.trim().isNotEmpty)
+          "displayName": displayName.trim(),
       }),
     );
 
@@ -608,4 +559,44 @@ class AuthApiService {
     return (500, "Network error: $err");
   }
 }
+
+  Future<(int, dynamic)> deleteAccount() async {
+    final accessToken = await _storage.read(key: "access_token");
+
+    if (accessToken == null || accessToken.trim().isEmpty) {
+      return (401, "No access token found");
+    }
+
+    try {
+      final response = await _client.delete(
+        Uri.parse("$_servicePath/delete-account"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $accessToken",
+          "User-Agent": "Android",
+        },
+      );
+
+      dynamic data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (_) {
+        data = null;
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        await _clearTokens();
+        await PlaybackStreamingEngineService.shared.clearSessionState();
+        return (response.statusCode, data?["message"] ?? "Account deleted successfully");
+      }
+
+      return (
+        response.statusCode,
+        data?["message"] ?? "Failed to delete account",
+      );
+    } catch (err) {
+      return (500, "Network error: $err");
+    }
+  }
+
 }
