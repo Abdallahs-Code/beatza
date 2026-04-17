@@ -10,6 +10,7 @@ import 'package:cross_team5/core/services/api_services.dart';
 import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
 import 'audio_player_client.dart';
+import 'public_tracks_paging_service.dart';
 
 class PlaybackStreamingEngineService extends ChangeNotifier {
   static final PlaybackStreamingEngineService shared =
@@ -31,6 +32,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   bool _previewLimitReached = false;
   String? _lastHistoryReportedTrackId;
   int _outputLevelRequestId = 0;
+  Future<bool> Function()? _ensureNextTrackAvailable;
 
   PlaybackStreamingEngineService._shared()
       : _audioPlayerClient = AudioplayersClient(),
@@ -50,9 +52,11 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   PlaybackStateModel get state => _state;
-  List<PlaybackTrackModel> get activeQueue => List<PlaybackTrackModel>.unmodifiable(_activeQueue);
+  List<PlaybackTrackModel> get activeQueue =>
+      List<PlaybackTrackModel>.unmodifiable(_activeQueue);
   int get currentQueueIndex => _currentQueueIndex;
-  bool get hasPreviousInQueue => _currentQueueIndex > 0 && _activeQueue.isNotEmpty;
+  bool get hasPreviousInQueue =>
+      _currentQueueIndex > 0 && _activeQueue.isNotEmpty;
   bool get hasNextInQueue =>
       _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length - 1;
 
@@ -60,6 +64,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     PlaybackTrackModel track, {
     List<PlaybackTrackModel>? queue,
     int? startIndex,
+    Future<bool> Function()? ensureNextTrackAvailable,
   }) async {
     if (queue != null) {
       _setQueueContext(
@@ -74,10 +79,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         preferredIndex: 0,
       );
     } else {
-      final int existingIndex = _activeQueue.indexWhere((item) => item.id == track.id);
+      final int existingIndex =
+          _activeQueue.indexWhere((item) => item.id == track.id);
       if (existingIndex >= 0) {
         _currentQueueIndex = existingIndex;
       }
+    }
+
+    if (ensureNextTrackAvailable != null) {
+      _ensureNextTrackAvailable = ensureNextTrackAvailable;
+    } else if (queue != null) {
+      _ensureNextTrackAvailable = null;
     }
 
     if (track.accessState == PlaybackAccessState.blocked) {
@@ -202,9 +214,16 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     await resume();
   }
 
-  Future<void> playNextTrack() async {
+  Future<bool> playNextTrack() async {
     if (!hasNextInQueue) {
-      return;
+      final bool loadedMore = await _tryExpandQueueForNextTrack();
+      if (!loadedMore && !hasNextInQueue) {
+        return false;
+      }
+    }
+
+    if (!hasNextInQueue) {
+      return false;
     }
 
     final int nextIndex = _currentQueueIndex + 1;
@@ -212,7 +231,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _activeQueue[nextIndex],
       queue: _activeQueue,
       startIndex: nextIndex,
+      ensureNextTrackAvailable: _ensureNextTrackAvailable,
     );
+    return true;
   }
 
   Future<void> playPreviousTrack() async {
@@ -225,6 +246,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _activeQueue[previousIndex],
       queue: _activeQueue,
       startIndex: previousIndex,
+      ensureNextTrackAvailable: _ensureNextTrackAvailable,
     );
   }
 
@@ -287,6 +309,22 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _updateState(_state.copyWith(isMuted: nextMutedState));
     await _applyCurrentOutputLevel();
   }
+
+  Future<void> clearSessionState() async {
+    _outputLevelRequestId++;
+    _previewLimitReached = false;
+    _lastHistoryReportedTrackId = null;
+    _ensureNextTrackAvailable = null;
+    _activeQueue = const <PlaybackTrackModel>[];
+    _currentQueueIndex = -1;
+
+    try {
+      await _audioPlayerClient.stop();
+    } catch (_) {}
+
+    _updateState(const PlaybackStateModel());
+  }
+
   void _setQueueContext(
     List<PlaybackTrackModel> queue, {
     String? preferredTrackId,
@@ -307,6 +345,49 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     _currentQueueIndex = nextIndex >= 0 ? nextIndex : 0;
+  }
+
+  Future<bool> _tryExpandQueueForNextTrack() async {
+    bool loadedMore = false;
+
+    if (_ensureNextTrackAvailable != null) {
+      loadedMore = await _ensureNextTrackAvailable!.call();
+    }
+
+    if (!loadedMore) {
+      loadedMore =
+          await PublicTracksPagingService.shared.ensureNextTrackAvailableForPlayer();
+    }
+
+    if (loadedMore) {
+      _syncQueueFromPublicTracksPagingIfPossible();
+    }
+
+    return loadedMore;
+  }
+
+  void _syncQueueFromPublicTracksPagingIfPossible() {
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) {
+      return;
+    }
+
+    final List<PlaybackTrackModel> pagedTracks =
+        PublicTracksPagingService.shared.tracks;
+
+    if (pagedTracks.isEmpty) {
+      return;
+    }
+
+    final int currentIndexInPagedTracks =
+        pagedTracks.indexWhere((item) => item.id == currentTrack.id);
+
+    if (currentIndexInPagedTracks < 0) {
+      return;
+    }
+
+    _activeQueue = List<PlaybackTrackModel>.from(pagedTracks);
+    _currentQueueIndex = currentIndexInPagedTracks;
   }
 
   void _bindPlayerStreams() {
@@ -380,8 +461,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
-    if (hasNextInQueue) {
-      await playNextTrack();
+    final bool advancedToNextTrack = await playNextTrack();
+    if (advancedToNextTrack) {
       return;
     }
 
@@ -442,7 +523,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         return;
       }
 
-      final String url = '${ApiServices().baseUrl}/api/tracks/v1/played/$trackId';
+      final String url =
+          '${ApiServices().baseUrl}/api/tracks/v1/played/$trackId';
 
       final response = await _httpClient.post(
         Uri.parse(url),
@@ -467,38 +549,37 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
   }
 
-
-Future<void> _applyCurrentOutputLevel() async {
-  await _audioPlayerClient.setVolume(_state.isMuted ? 0.0 : _state.volume);
-}
-
-Future<void> _enforceCurrentOutputLevelForTrack(String trackId) async {
-  final int requestId = ++_outputLevelRequestId;
-
-  Future<void> applyIfStillCurrent() async {
-    if (_outputLevelRequestId != requestId) return;
-    if (_state.currentTrack?.id != trackId) return;
-    await _applyCurrentOutputLevel();
+  Future<void> _applyCurrentOutputLevel() async {
+    await _audioPlayerClient.setVolume(_state.isMuted ? 0.0 : _state.volume);
   }
 
-  await applyIfStillCurrent();
+  Future<void> _enforceCurrentOutputLevelForTrack(String trackId) async {
+    final int requestId = ++_outputLevelRequestId;
 
-  unawaited(Future<void>.delayed(const Duration(milliseconds: 20), () async {
-    await applyIfStillCurrent();
-  }));
+    Future<void> applyIfStillCurrent() async {
+      if (_outputLevelRequestId != requestId) return;
+      if (_state.currentTrack?.id != trackId) return;
+      await _applyCurrentOutputLevel();
+    }
 
-  unawaited(Future<void>.delayed(const Duration(milliseconds: 80), () async {
     await applyIfStillCurrent();
-  }));
 
-  unawaited(Future<void>.delayed(const Duration(milliseconds: 180), () async {
-    await applyIfStillCurrent();
-  }));
+    unawaited(Future<void>.delayed(const Duration(milliseconds: 20), () async {
+      await applyIfStillCurrent();
+    }));
 
-  unawaited(Future<void>.delayed(const Duration(milliseconds: 320), () async {
-    await applyIfStillCurrent();
-  }));
-}
+    unawaited(Future<void>.delayed(const Duration(milliseconds: 80), () async {
+      await applyIfStillCurrent();
+    }));
+
+    unawaited(Future<void>.delayed(const Duration(milliseconds: 180), () async {
+      await applyIfStillCurrent();
+    }));
+
+    unawaited(Future<void>.delayed(const Duration(milliseconds: 320), () async {
+      await applyIfStillCurrent();
+    }));
+  }
 
   void _updateState(PlaybackStateModel nextState) {
     _state = nextState;

@@ -11,7 +11,7 @@ import 'package:cross_team5/features/audio_upload_track_management/audio_upload_
 import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
-import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,19 +22,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PublicTracksApiService _publicTracksApiService = PublicTracksApiService();
-  late Future<List<PlaybackTrackModel>> _publicTracksFuture;
+  final PublicTracksPagingService _publicTracksPagingService =
+      PublicTracksPagingService.shared;
 
   @override
   void initState() {
     super.initState();
-    _publicTracksFuture = _publicTracksApiService.getAllPublicTracks();
-  }
-
-  @override
-  void dispose() {
-    _publicTracksApiService.dispose();
-    super.dispose();
+    _publicTracksPagingService.loadInitial(limit: 2);
   }
 
   void _handleUpload(BuildContext context) async {
@@ -170,20 +164,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       showSeeAll: true,
                     ),
                     const SizedBox(height: 14),
-                    FutureBuilder<List<PlaybackTrackModel>>(
-                      future: _publicTracksFuture,
-                      builder: (context, snapshot) {
-                        final bool isLoading =
-                            snapshot.connectionState == ConnectionState.waiting;
-                        final List<PlaybackTrackModel> tracks =
-                            snapshot.data ?? const <PlaybackTrackModel>[];
-                        final String? errorMessage =
-                            snapshot.hasError ? snapshot.error.toString() : null;
-
+                    AnimatedBuilder(
+                      animation: _publicTracksPagingService,
+                      builder: (context, _) {
                         return _HomePublicTracksSection(
-                          tracks: tracks,
-                          isLoading: isLoading,
-                          errorMessage: errorMessage,
+                          tracks: _publicTracksPagingService.tracks,
+                          isLoading: _publicTracksPagingService.isInitialLoading,
+                          errorMessage: _publicTracksPagingService.errorMessage,
+                          ensureNextTrackAvailable: _publicTracksPagingService
+                              .ensureNextTrackAvailableForPlayer,
                         );
                       },
                     ),
@@ -286,11 +275,13 @@ class _HomePublicTracksSection extends StatelessWidget {
   final List<PlaybackTrackModel> tracks;
   final bool isLoading;
   final String? errorMessage;
+  final Future<bool> Function()? ensureNextTrackAvailable;
 
   const _HomePublicTracksSection({
     required this.tracks,
     required this.isLoading,
     required this.errorMessage,
+    this.ensureNextTrackAvailable,
   });
 
   Future<void> _handleTrackTap(
@@ -322,6 +313,7 @@ class _HomePublicTracksSection extends StatelessWidget {
       track,
       queue: tracks,
       startIndex: index,
+      ensureNextTrackAvailable: ensureNextTrackAvailable,
     );
   }
 
@@ -360,7 +352,7 @@ class _HomePublicTracksSection extends StatelessWidget {
       );
     }
 
-    final List<PlaybackTrackModel> visibleTracks = tracks.take(6).toList();
+    final List<PlaybackTrackModel> visibleTracks = tracks;
 
     return SizedBox(
       height: 255,

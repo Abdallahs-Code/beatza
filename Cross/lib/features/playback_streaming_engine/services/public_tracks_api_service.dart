@@ -6,6 +6,22 @@ import 'package:http/http.dart' as http;
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 
+class PublicTracksPageResult {
+  final List<PlaybackTrackModel> tracks;
+  final int page;
+  final int totalPages;
+  final bool hasNext;
+  final int totalNumTracks;
+
+  const PublicTracksPageResult({
+    required this.tracks,
+    required this.page,
+    required this.totalPages,
+    required this.hasNext,
+    required this.totalNumTracks,
+  });
+}
+
 class PublicTracksApiService {
   final ApiServices _apiServices;
   final http.Client _client;
@@ -19,7 +35,7 @@ class PublicTracksApiService {
     _servicePath = '${_apiServices.baseUrl}/api/public/tracks/v1';
   }
 
-  Future<List<PlaybackTrackModel>> getPublicTracks({
+  Future<PublicTracksPageResult> fetchPublicTracksPage({
     int page = 1,
     int limit = 10,
   }) async {
@@ -66,13 +82,32 @@ class PublicTracksApiService {
       );
     }
 
-    return tracks
-        .whereType<Map<String, dynamic>>()
-        .map(PlaybackTrackModel.fromApiJson)
-        .toList();
+    final Map<String, dynamic> paginationInfo =
+        (data['paginationInfo'] as Map<String, dynamic>?) ??
+        <String, dynamic>{};
+
+    return PublicTracksPageResult(
+      tracks: tracks
+          .whereType<Map<String, dynamic>>()
+          .map(PlaybackTrackModel.fromApiJson)
+          .toList(),
+      page: paginationInfo['page'] as int? ?? page,
+      totalPages: paginationInfo['totalPages'] as int? ?? 1,
+      hasNext: paginationInfo['hasNext'] == true,
+      totalNumTracks: paginationInfo['totalNumTracks'] as int? ?? 0,
+    );
   }
 
-
+  Future<List<PlaybackTrackModel>> getPublicTracks({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    final PublicTracksPageResult result = await fetchPublicTracksPage(
+      page: page,
+      limit: limit,
+    );
+    return result.tracks;
+  }
 
   Future<List<PlaybackTrackModel>> getAllPublicTracks({
     int limit = 10,
@@ -80,55 +115,22 @@ class PublicTracksApiService {
     int page = 1;
     bool hasNext = true;
 
-    final List<PlaybackTrackModel> allTracks = [];
+    final List<PlaybackTrackModel> allTracks = <PlaybackTrackModel>[];
 
     while (hasNext) {
-      final uri = Uri.parse(_servicePath).replace(
-        queryParameters: {
-          'page': page.toString(),
-          'limit': limit.toString(),
-        },
+      final PublicTracksPageResult result = await fetchPublicTracksPage(
+        page: page,
+        limit: limit,
       );
 
-      final response = await _client.get(
-        uri,
-        headers: const {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Android',
-        },
-      );
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception(
-          'Failed to fetch tracks page $page. '
-          'Status code: ${response.statusCode}',
-        );
-      }
-
-      final decoded = jsonDecode(response.body);
-
-      final tracks = decoded['data']['tracks'] as List;
-      final pagination = decoded['data']['paginationInfo'];
-
-      final parsedTracks = tracks
-          .whereType<Map<String, dynamic>>()
-          .map(PlaybackTrackModel.fromApiJson)
-          .toList();
-
-      allTracks.addAll(parsedTracks);
-
-      hasNext = pagination['hasNext'] == true;
-      page++;
+      allTracks.addAll(result.tracks);
+      hasNext = result.hasNext;
+      page = result.page + 1;
     }
-
-    print('TOTAL TRACKS FETCHED: ${allTracks.length}');
 
     return allTracks;
   }
 
-  /// Fetches the single-track detail endpoint and extracts the uploader's
-  /// userId. Returns null if the endpoint doesn't include it.
-  /// Used as a fallback when PlaybackTrackModel.artistId is null.
   Future<String?> getTrackArtistId(String trackId) async {
     if (trackId.trim().isEmpty) return null;
     try {
@@ -142,7 +144,6 @@ class PublicTracksApiService {
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
 
       final dynamic decoded = jsonDecode(response.body);
-      // Response may be wrapped in { "data": {...} } or be the track directly.
       final Map<String, dynamic> raw =
           decoded is Map<String, dynamic>
               ? ((decoded['data'] as Map<String, dynamic>?) ?? decoded)
@@ -150,8 +151,6 @@ class PublicTracksApiService {
       final Map<String, dynamic> basic =
           (raw['basicInfo'] as Map<String, dynamic>?) ?? {};
 
-      // Try every known path the backend might use for the uploader userId.
-      // Also handle nested objects: raw['user'] or raw['uploader'] may be a Map.
       final Map<String, dynamic> userObj =
           (raw['user'] as Map<String, dynamic>?) ??
           (raw['uploader'] as Map<String, dynamic>?) ??
@@ -165,7 +164,7 @@ class PublicTracksApiService {
         raw['createdBy'],
         raw['created_by'],
         raw['uploaderId'],
-        raw['uploader'],  // might be a plain string
+        raw['uploader'],
         userObj['userId'],
         userObj['_id'],
         userObj['id'],
@@ -177,7 +176,7 @@ class PublicTracksApiService {
         basic['createdBy'],
         basic['uploaderId'],
       ]) {
-        if (candidate is Map) continue; // skip nested objects
+        if (candidate is Map) continue;
         final String val = (candidate ?? '').toString().trim();
         if (val.isNotEmpty) return val;
       }
