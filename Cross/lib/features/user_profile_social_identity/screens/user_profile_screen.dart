@@ -998,9 +998,19 @@ class _SoundCloudProfileView extends StatefulWidget {
 
 class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
   List<SpotlightItemModel?> spotlightItems = List.filled(5, null);
-  bool get _hasProfilePhoto => widget.profile.profileImgLink.trim().isNotEmpty;
   bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
-  bool get _hasBanner => widget.profile.bannerImgLink.trim().isNotEmpty;
+  static const String _defaultImageUrl =
+    "https://res.cloudinary.com/dr1sqiouu/image/upload/v1776357570/profile/file_ud25rn.png";
+
+bool get _hasProfilePhoto {
+  final url = widget.profile.profileImgLink.trim();
+  return url.isNotEmpty && url != _defaultImageUrl;
+}
+
+bool get _hasBanner {
+  final url = widget.profile.bannerImgLink.trim();
+  return url.isNotEmpty && url != _defaultImageUrl;
+}
   int get _completedStepsCount {
     int count = 2;
     if (_hasProfilePhoto) count++;
@@ -1035,54 +1045,44 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
     }
   }
   List<_ProfileCompletionCardData> _buildCompletionCards() {
-    final cards = <_ProfileCompletionCardData>[
-      const _ProfileCompletionCardData(
-        title: 'Verify email',
-        subtitle: 'Go to your inbox and verify\nyour account',
-        buttonText: '',
-        icon: Icons.inventory_2_outlined,
-        isComplete: true,
-      ),
-      const _ProfileCompletionCardData(
-        title: 'Add your name',
-        subtitle: 'Add your name so your friends know it\'s you',
-        buttonText: 'Edit name',
-        icon: Icons.person_outline,
-        isComplete: true,
-      ),
-    ];
-    if (!_hasProfilePhoto) {
-      cards.add(
-        const _ProfileCompletionCardData(
-          title: 'Add a profile photo',
-          subtitle: 'Choose a photo to represent\nyourself on SoundCloud',
-          buttonText: 'Add photo',
-          icon: Icons.camera_alt_outlined,
-        ),
-      );
-    }
-    if (!_hasBio) {
-      cards.add(
-        const _ProfileCompletionCardData(
-          title: 'Add a bio',
-          subtitle: 'What should people know\nabout you?',
-          buttonText: 'Add bio',
-          icon: Icons.chat_bubble_outline,
-        ),
-      );
-    }
-    if (!_hasBanner) {
-      cards.add(
-        const _ProfileCompletionCardData(
-          title: 'Add a profile banner',
-          subtitle: 'Choose a banner to further\npersonalize your profile',
-          buttonText: 'Add banner',
-          icon: Icons.image_outlined,
-        ),
-      );
-    }
-    return cards;
-  }
+  return <_ProfileCompletionCardData>[
+    const _ProfileCompletionCardData(
+      title: 'Verify email',
+      subtitle: 'Go to your inbox and verify\nyour account',
+      buttonText: '',
+      icon: Icons.inventory_2_outlined,
+      isComplete: true,
+    ),
+    const _ProfileCompletionCardData(
+      title: 'Add your name',
+      subtitle: 'Add your name so your friends know it\'s you',
+      buttonText: 'Edit name',
+      icon: Icons.person_outline,
+      isComplete: true,
+    ),
+    _ProfileCompletionCardData(
+      title: 'Add a profile photo',
+      subtitle: 'Choose a photo to represent\nyourself on SoundCloud',
+      buttonText: _hasProfilePhoto ? '' : 'Add photo',
+      icon: Icons.camera_alt_outlined,
+      isComplete: _hasProfilePhoto,
+    ),
+    _ProfileCompletionCardData(
+      title: 'Add a bio',
+      subtitle: 'What should people know\nabout you?',
+      buttonText: _hasBio ? '' : 'Add bio',
+      icon: Icons.chat_bubble_outline,
+      isComplete: _hasBio,
+    ),
+    _ProfileCompletionCardData(
+      title: 'Add a profile banner',
+      subtitle: 'Choose a banner to further\npersonalize your profile',
+      buttonText: _hasBanner ? '' : 'Add banner',
+      icon: Icons.image_outlined,
+      isComplete: _hasBanner,
+    ),
+  ];
+}
   Future<void> _openEditProfile(BuildContext context) async {
     if (!widget.isOwner) return;
     final updated = await Navigator.push<bool>(
@@ -1278,6 +1278,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
               valueListenable: AudioUploadService.globalMockTracksNotifier,
               builder: (context, tracks, child) {
                 final bool hasTracks = tracks.isNotEmpty;
+final bool shouldShowSpotlight =
+    widget.profile.trackCount > 0 && (widget.showArtistSections || widget.isOwner);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1377,6 +1379,18 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       ),
                     ),
                     const SizedBox(height: 18),
+                    if (widget.profile.bio.trim().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(
+                          widget.profile.bio.trim(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Row(
@@ -1460,18 +1474,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    if (widget.profile.bio.trim().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Text(
-                          widget.profile.bio.trim(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
                     if (widget.profile.favoriteGenres.isNotEmpty)
                       const SizedBox(height: 12),
                     if (widget.profile.favoriteGenres.isNotEmpty)
@@ -1611,7 +1613,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         ),
                       ),
                     ],
-                    if (widget.showArtistSections || widget.isOwner) ...[
+                    
+                    if (shouldShowSpotlight) ...[
                       const SizedBox(height: 28),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 14),

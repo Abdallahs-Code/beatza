@@ -51,32 +51,23 @@ class LibraryHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (Platform.isAndroid) const QrCodeScanButton(),
-          if (Platform.isAndroid) const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const SettingsScreen(),
-                ),
-              );
-            },
-            child: const Icon(
-              Icons.settings_outlined,
-              color: AppColors.whiteSmoke,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, HomeRoutes.home);
-            },
-            child: const CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.tileDark,
-            ),
-          ),
+if (Platform.isAndroid) const SizedBox(width: 10),
+GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
+      ),
+    );
+  },
+  child: const Icon(
+    Icons.settings_outlined,
+    color: AppColors.whiteSmoke,
+    size: 28,
+  ),
+),
+const SizedBox(width: 48),
         ],
       ),
     );
