@@ -8,6 +8,7 @@ import "package:cross_team5/core/services/api_services.dart";
 import "package:cross_team5/features/authentication_user_management/models/user.dart"
     as user_model;
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 
 class AuthApiService {
   final ApiServices _apiServices;
@@ -89,6 +90,8 @@ class AuthApiService {
             await _storage.write(key: 'user_id', value: userId);
           }
 
+          await ActivityNotificationsController.shared.initialize();
+
           return (200, data["message"] ?? "Login successful");
         } else {
           return (
@@ -159,6 +162,7 @@ class AuthApiService {
       }
     } catch (_) {
     } finally {
+      ActivityNotificationsController.shared.resetForLogout();
       await _clearTokens();
       await PlaybackStreamingEngineService.shared.clearSessionState();
     }
@@ -196,6 +200,7 @@ class AuthApiService {
           if (userId != null && userId.trim().isNotEmpty) {
             await _storage.write(key: 'user_id', value: userId);
           }
+          await ActivityNotificationsController.shared.initialize();
           return (200, "Token refreshed successfully");
         } else {
           return (
@@ -426,6 +431,8 @@ class AuthApiService {
             refreshToken: refreshTokenValue,
           );
 
+          await ActivityNotificationsController.shared.initialize();
+
           await refreshToken();
         }
 
@@ -484,6 +491,7 @@ class AuthApiService {
             accessToken: accessToken,
             refreshToken: refreshTokenValue,
           );
+          await ActivityNotificationsController.shared.initialize();
 
           await refreshToken();
           return (200, responseData ?? "Authenticated successfully");
