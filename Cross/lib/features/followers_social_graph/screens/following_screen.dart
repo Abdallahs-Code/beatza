@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
@@ -27,6 +28,8 @@ class FollowingScreen extends StatefulWidget {
 class _FollowingScreenState extends State<FollowingScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   final SocialApiService _socialApiService = SocialApiService();
+  final AuthApiService _authApiService = AuthApiService();
+
   late TabController _tabController;
 
   List<Follower> _following = [];
@@ -36,6 +39,10 @@ class _FollowingScreenState extends State<FollowingScreen>
   bool _isLoadingSuggested = true;
   String? _followingError;
   String? _suggestedError;
+
+  String? _currentUserId;
+  String? _accessToken;
+  Set<String> _blockedUserIds = {};
 
   static final RouteObserver<ModalRoute<void>> routeObserver =
       RouteObserver<ModalRoute<void>>();
@@ -87,7 +94,39 @@ class _FollowingScreenState extends State<FollowingScreen>
     _loadAll();
   }
 
+  void _applyBlockedState(List<Follower> users) {
+    for (final user in users) {
+      user.isBlocked = _blockedUserIds.contains(user.userId);
+      if (user.isBlocked) {
+        user.isFollowing = false;
+      }
+    }
+  }
+
+  Future<Set<String>> _loadBlockedUserIds() async {
+    final blockedResult = await _socialApiService.getBlockedUsers();
+    if (blockedResult.$1 == 200) {
+      final blockedUsers = List<Follower>.from(
+        blockedResult.$2 as List<Follower>,
+      );
+      return blockedUsers.map((u) => u.userId).toSet();
+    }
+    return <String>{};
+  }
+
   Future<void> _loadAll() async {
+    final storedCurrentUserId = await _authApiService.getStoredUserId();
+    final storedAccessToken = await _authApiService.getStoredAccessToken();
+    final blockedUserIds = await _loadBlockedUserIds();
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentUserId = storedCurrentUserId;
+      _accessToken = storedAccessToken;
+      _blockedUserIds = blockedUserIds;
+    });
+
     await Future.wait([_loadFollowing(), _loadSuggested()]);
   }
 
@@ -97,6 +136,7 @@ class _FollowingScreenState extends State<FollowingScreen>
     setState(() {
       _isLoadingFollowing = true;
       _followingError = null;
+      _following = [];
     });
 
     final result = await _socialApiService.getFollowing(userId: widget.userId);
@@ -106,7 +146,8 @@ class _FollowingScreenState extends State<FollowingScreen>
     setState(() {
       _isLoadingFollowing = false;
       if (result.$1 == 200) {
-        _following = result.$2 as List<Follower>;
+        _following = List<Follower>.from(result.$2 as List<Follower>);
+        _applyBlockedState(_following);
       } else {
         _followingError = result.$2.toString();
       }
@@ -119,6 +160,7 @@ class _FollowingScreenState extends State<FollowingScreen>
     setState(() {
       _isLoadingSuggested = true;
       _suggestedError = null;
+      _suggested = [];
     });
 
     final result = await _socialApiService.getSuggestedUsers();
@@ -128,7 +170,8 @@ class _FollowingScreenState extends State<FollowingScreen>
     setState(() {
       _isLoadingSuggested = false;
       if (result.$1 == 200) {
-        _suggested = result.$2 as List<Follower>;
+        _suggested = List<Follower>.from(result.$2 as List<Follower>);
+        _applyBlockedState(_suggested);
       } else {
         _suggestedError = result.$2.toString();
       }
@@ -136,6 +179,9 @@ class _FollowingScreenState extends State<FollowingScreen>
   }
 
   Future<void> _followUser(String targetUserId) async {
+    final blocked = _blockedUserIds.contains(targetUserId);
+    if (blocked) return;
+
     _updateFollowState(targetUserId, isFollowing: true);
 
     final result = await _socialApiService.followUser(
@@ -144,13 +190,17 @@ class _FollowingScreenState extends State<FollowingScreen>
 
     if (!mounted) return;
 
-    if (result.$1 != 200) {
+    if (result.$1 < 200 || result.$1 >= 300) {
       _updateFollowState(targetUserId, isFollowing: false);
       _showSnackbar(result.$2.toString());
+      return;
     }
   }
 
   Future<void> _unfollowUser(String targetUserId) async {
+    final blocked = _blockedUserIds.contains(targetUserId);
+    if (blocked) return;
+
     _updateFollowState(targetUserId, isFollowing: false);
 
     final result = await _socialApiService.unfollowUser(
@@ -159,11 +209,7 @@ class _FollowingScreenState extends State<FollowingScreen>
 
     if (!mounted) return;
 
-    if (result.$1 == 200) {
-      setState(() {
-        _following.removeWhere((f) => f.userId == targetUserId);
-      });
-    } else {
+    if (result.$1 < 200 || result.$1 >= 300) {
       _updateFollowState(targetUserId, isFollowing: true);
       _showSnackbar(result.$2.toString());
     }
@@ -176,10 +222,23 @@ class _FollowingScreenState extends State<FollowingScreen>
 
     if (!mounted) return;
 
-    if (result.$1 == 200) {
+    if (result.$1 >= 200 && result.$1 < 300) {
       setState(() {
-        _following.removeWhere((f) => f.userId == targetUserId);
-        _suggested.removeWhere((f) => f.userId == targetUserId);
+        _blockedUserIds.add(targetUserId);
+
+        for (final f in _following) {
+          if (f.userId == targetUserId) {
+            f.isBlocked = true;
+            f.isFollowing = false;
+          }
+        }
+
+        for (final f in _suggested) {
+          if (f.userId == targetUserId) {
+            f.isBlocked = true;
+            f.isFollowing = false;
+          }
+        }
       });
       _showSnackbar('User blocked successfully');
     } else {
@@ -187,15 +246,46 @@ class _FollowingScreenState extends State<FollowingScreen>
     }
   }
 
+  Future<void> _unblockUser(String targetUserId) async {
+    final result = await _socialApiService.unblockUser(
+      targetUserId: targetUserId,
+    );
+
+    if (!mounted) return;
+
+    if (result.$1 >= 200 && result.$1 < 300) {
+      setState(() {
+        _blockedUserIds.remove(targetUserId);
+
+        for (final f in _following) {
+          if (f.userId == targetUserId) {
+            f.isBlocked = false;
+          }
+        }
+
+        for (final f in _suggested) {
+          if (f.userId == targetUserId) {
+            f.isBlocked = false;
+          }
+        }
+      });
+      _showSnackbar('User unblocked successfully');
+    } else {
+      _showSnackbar(result.$2.toString());
+    }
+  }
+
   void _updateFollowState(String userId, {required bool isFollowing}) {
+    if (!mounted) return;
+
     setState(() {
       for (final f in _following) {
-        if (f.userId == userId) {
+        if (f.userId == userId && !f.isBlocked) {
           f.isFollowing = isFollowing;
         }
       }
       for (final f in _suggested) {
-        if (f.userId == userId) {
+        if (f.userId == userId && !f.isBlocked) {
           f.isFollowing = isFollowing;
         }
       }
@@ -203,6 +293,7 @@ class _FollowingScreenState extends State<FollowingScreen>
   }
 
   void _showSnackbar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
@@ -279,13 +370,21 @@ class _FollowingScreenState extends State<FollowingScreen>
                 final follower = _following[index];
                 return UserTile(
                   follower: follower,
-                  currentUserId: widget.currentUserId,
-                  showBlockOption: true,
-                  showUnblockOption: false,
-                  onFollowTap: () => follower.isFollowing
-                      ? _unfollowUser(follower.userId)
-                      : _followUser(follower.userId),
-                  onBlockTap: () => _confirmBlock(follower),
+                  currentUserId: _currentUserId,
+                  accessToken: _accessToken,
+                  showBlockOption: !follower.isBlocked,
+                  showUnblockOption: follower.isBlocked,
+                  onFollowTap: follower.isBlocked
+                      ? null
+                      : () => follower.isFollowing
+                            ? _unfollowUser(follower.userId)
+                            : _followUser(follower.userId),
+                  onBlockTap: follower.isBlocked
+                      ? null
+                      : () => _confirmBlock(follower),
+                  onUnblockTap: follower.isBlocked
+                      ? () => _unblockUser(follower.userId)
+                      : null,
                 );
               },
             ),
@@ -334,12 +433,21 @@ class _FollowingScreenState extends State<FollowingScreen>
                 final follower = _suggested[index];
                 return UserTile(
                   follower: follower,
-                  currentUserId: widget.currentUserId,
-                  showBlockOption: false,
-                  showUnblockOption: false,
-                  onFollowTap: () => follower.isFollowing
-                      ? _unfollowUser(follower.userId)
-                      : _followUser(follower.userId),
+                  currentUserId: _currentUserId,
+                  accessToken: _accessToken,
+                  showBlockOption: !follower.isBlocked,
+                  showUnblockOption: follower.isBlocked,
+                  onFollowTap: follower.isBlocked
+                      ? null
+                      : () => follower.isFollowing
+                            ? _unfollowUser(follower.userId)
+                            : _followUser(follower.userId),
+                  onBlockTap: follower.isBlocked
+                      ? null
+                      : () => _confirmBlock(follower),
+                  onUnblockTap: follower.isBlocked
+                      ? () => _unblockUser(follower.userId)
+                      : null,
                 );
               },
             ),
