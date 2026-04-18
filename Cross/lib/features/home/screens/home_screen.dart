@@ -12,6 +12,8 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
+import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
+import 'package:cross_team5/features/activity/screens/activity_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,14 +22,36 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final PublicTracksPagingService _publicTracksPagingService =
       PublicTracksPagingService.shared;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ActivityNotificationsController.shared.initialize();
+    ActivityNotificationsController.shared.reconnectIfNeeded();
     _publicTracksPagingService.loadInitial(limit: 2);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ActivityNotificationsController.shared.reconnectIfNeeded();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ActivityNotificationsController.shared.onAppResumed();
+    }
   }
 
   void _handleUpload(BuildContext context) async {
@@ -86,9 +110,56 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
             onPressed: () => _handleUpload(context),
           ),
-          IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.white),
-            onPressed: () {},
+          AnimatedBuilder(
+            animation: ActivityNotificationsController.shared,
+            builder: (context, _) {
+              return IconButton(
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: Colors.white,
+                    ),
+                    if (ActivityNotificationsController.shared.unreadCount > 0)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            ActivityNotificationsController.shared.unreadCount > 9
+                                ? '9+'
+                                : ActivityNotificationsController.shared.unreadCount
+                                    .toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ActivityScreen(),
+                    ),
+                  );
+                },
+              );
+            },
           ),
           const SizedBox(width: 8),
         ],
