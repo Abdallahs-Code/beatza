@@ -26,9 +26,7 @@ class WaveformExtractor {
     final inputFile = File(
       p.join(tempDir.path, 'waveform_input_$timestamp$ext'),
     );
-    final pcmFile = File(
-      p.join(tempDir.path, 'waveform_pcm_$timestamp.pcm'),
-    );
+    final pcmFile = File(p.join(tempDir.path, 'waveform_pcm_$timestamp.pcm'));
 
     await _downloadFile(audioUrl, inputFile);
     await _decodeToPcm16Mono16k(inputFile.path, pcmFile.path);
@@ -74,22 +72,19 @@ class WaveformExtractor {
     }
 
     if (Platform.isWindows) {
-      final result = await Process.run(
-        'ffmpeg',
-        [
-          '-y',
-          '-i',
-          inputPath,
-          '-vn',
-          '-ac',
-          '1',
-          '-ar',
-          '16000',
-          '-f',
-          's16le',
-          outputPath,
-        ],
-      );
+      final result = await Process.run('ffmpeg', [
+        '-y',
+        '-i',
+        inputPath,
+        '-vn',
+        '-ac',
+        '1',
+        '-ar',
+        '16000',
+        '-f',
+        's16le',
+        outputPath,
+      ]);
 
       if (result.exitCode != 0) {
         throw Exception(
@@ -154,10 +149,9 @@ class WaveformExtractor {
     final out = List<double>.from(values);
 
     for (int i = 1; i < values.length - 1; i++) {
-      out[i] = ((values[i - 1] * 0.25) +
-              (values[i] * 0.5) +
-              (values[i + 1] * 0.25))
-          .clamp(0.0, 1.0);
+      out[i] =
+          ((values[i - 1] * 0.25) + (values[i] * 0.5) + (values[i + 1] * 0.25))
+              .clamp(0.0, 1.0);
     }
 
     return out;

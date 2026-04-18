@@ -19,9 +19,9 @@ class SocialApiService {
     ApiServices? apiServices,
     http.Client? client,
     FlutterSecureStorage? storage,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage() {
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _client = client ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage() {
     _servicePath = "${_apiServices.baseUrl}/api/social/v1";
   }
 
@@ -47,9 +47,7 @@ class SocialApiService {
       final map = item as Map<String, dynamic>;
 
       return Follower(
-        map['userId']?.toString() ??
-            map['user_id']?.toString() ??
-            '',
+        map['userId']?.toString() ?? map['user_id']?.toString() ?? '',
         map['displayName']?.toString() ??
             map['display_name']?.toString() ??
             'Unknown User',
@@ -102,7 +100,9 @@ class SocialApiService {
 
       if (response.statusCode == 200) {
         final followers = _parseUserList(response.body);
-        LoggerService.logger.i("Fetched ${followers.length} followers for userId: $userId response: ${response.body}");
+        LoggerService.logger.i(
+          "Fetched ${followers.length} followers for userId: $userId response: ${response.body}",
+        );
         return (200, followers);
       }
 
@@ -135,14 +135,14 @@ class SocialApiService {
       );
 
       if (response.statusCode == 200) {
-  final following = _parseUserList(response.body);
+        final following = _parseUserList(response.body);
 
-  for (final user in following) {
-    user.isFollowing = true;
-  }
+        for (final user in following) {
+          user.isFollowing = true;
+        }
 
-  return (200, following);
-}
+        return (200, following);
+      }
 
       final data = jsonDecode(response.body);
       return (

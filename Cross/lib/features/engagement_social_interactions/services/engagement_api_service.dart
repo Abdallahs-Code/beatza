@@ -20,9 +20,9 @@ class EngagementApiService {
     ApiServices? apiServices,
     http.Client? client,
     FlutterSecureStorage? storage,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage() {
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _client = client ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage() {
     _basePath = "${_apiServices.baseUrl}/api/engagement";
     _publicBasePath = "${_apiServices.baseUrl}/api/public/engagement";
   }
@@ -44,9 +44,9 @@ class EngagementApiService {
 
   // Public endpoints need no auth token.
   Map<String, String> get _publicHeaders => {
-        "Content-Type": "application/json",
-        "User-Agent": "Android",
-      };
+    "Content-Type": "application/json",
+    "User-Agent": "Android",
+  };
 
   // Returns auth headers when token is available, otherwise public headers.
   // Used by comment endpoints so isLikedByUser/isOwnComment populate correctly.
@@ -82,9 +82,7 @@ class EngagementApiService {
   //
   // Returns (200, {"liked": bool, "numOfLikes": int}) on success.
   // ─────────────────────────────────────────────
-  Future<(int, dynamic)> toggleTrackLike({
-    required String trackId,
-  }) async {
+  Future<(int, dynamic)> toggleTrackLike({required String trackId}) async {
     if (trackId.trim().isEmpty) return (400, "Invalid track ID");
 
     try {
@@ -165,12 +163,13 @@ class EngagementApiService {
     if (trackId.trim().isEmpty) return (400, "Invalid track ID");
 
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/tracks/v1/$trackId/likes",
-      ).replace(queryParameters: {
-        "offset": offset.toString(),
-        "limit": limit.toString(),
-      });
+      final uri = Uri.parse("$_publicBasePath/tracks/v1/$trackId/likes")
+          .replace(
+            queryParameters: {
+              "offset": offset.toString(),
+              "limit": limit.toString(),
+            },
+          );
 
       final response = await _client.get(uri, headers: _publicHeaders);
       final data = jsonDecode(response.body);
@@ -203,12 +202,13 @@ class EngagementApiService {
     if (playlistId.trim().isEmpty) return (400, "Invalid playlist ID");
 
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/playlists/v1/$playlistId/likes",
-      ).replace(queryParameters: {
-        "offset": offset.toString(),
-        "limit": limit.toString(),
-      });
+      final uri = Uri.parse("$_publicBasePath/playlists/v1/$playlistId/likes")
+          .replace(
+            queryParameters: {
+              "offset": offset.toString(),
+              "limit": limit.toString(),
+            },
+          );
 
       final response = await _client.get(uri, headers: _publicHeaders);
       final data = jsonDecode(response.body);
@@ -338,9 +338,7 @@ class EngagementApiService {
   //
   // Returns (200, RepostStatus) on success.
   // ─────────────────────────────────────────────
-  Future<(int, dynamic)> getTrackRepostStatus({
-    required String trackId,
-  }) async {
+  Future<(int, dynamic)> getTrackRepostStatus({required String trackId}) async {
     if (trackId.trim().isEmpty) return (400, "Invalid track ID");
 
     try {
@@ -433,12 +431,13 @@ class EngagementApiService {
     if (trackId.trim().isEmpty) return (400, "Invalid track ID");
 
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/tracks/v1/$trackId/reposts",
-      ).replace(queryParameters: {
-        "offset": offset.toString(),
-        "limit": limit.toString(),
-      });
+      final uri = Uri.parse("$_publicBasePath/tracks/v1/$trackId/reposts")
+          .replace(
+            queryParameters: {
+              "offset": offset.toString(),
+              "limit": limit.toString(),
+            },
+          );
 
       final response = await _client.get(uri, headers: _publicHeaders);
       final data = jsonDecode(response.body);
@@ -471,12 +470,13 @@ class EngagementApiService {
     if (playlistId.trim().isEmpty) return (400, "Invalid playlist ID");
 
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/playlists/v1/$playlistId/reposts",
-      ).replace(queryParameters: {
-        "offset": offset.toString(),
-        "limit": limit.toString(),
-      });
+      final uri = Uri.parse("$_publicBasePath/playlists/v1/$playlistId/reposts")
+          .replace(
+            queryParameters: {
+              "offset": offset.toString(),
+              "limit": limit.toString(),
+            },
+          );
 
       final response = await _client.get(uri, headers: _publicHeaders);
       final data = jsonDecode(response.body);
@@ -526,21 +526,21 @@ class EngagementApiService {
   Future<int> getTrackCommentCount(String trackId) async {
     if (trackId.trim().isEmpty) return 0;
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/tracks/v1/$trackId/comments",
-      ).replace(queryParameters: {
-        "offset": "1",
-        "limit": "1",
-        "sortBy": "newest",
-      });
-      final response = await _client.get(uri, headers: await _optionalAuthHeaders());
+      final uri = Uri.parse("$_publicBasePath/tracks/v1/$trackId/comments")
+          .replace(
+            queryParameters: {"offset": "1", "limit": "1", "sortBy": "newest"},
+          );
+      final response = await _client.get(
+        uri,
+        headers: await _optionalAuthHeaders(),
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['total'] as num?)?.toInt() ??
-               (data['totalComments'] as num?)?.toInt() ??
-               (data['count'] as num?)?.toInt() ??
-               (data['commentCount'] as num?)?.toInt() ??
-               0;
+            (data['totalComments'] as num?)?.toInt() ??
+            (data['count'] as num?)?.toInt() ??
+            (data['commentCount'] as num?)?.toInt() ??
+            0;
       }
     } catch (_) {}
     return 0;
@@ -555,15 +555,19 @@ class EngagementApiService {
     if (trackId.trim().isEmpty) return (400, "Invalid track ID");
 
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/tracks/v1/$trackId/comments",
-      ).replace(queryParameters: {
-        "offset": offset.toString(),
-        "limit": limit.toString(),
-        "sortBy": sortBy,
-      });
+      final uri = Uri.parse("$_publicBasePath/tracks/v1/$trackId/comments")
+          .replace(
+            queryParameters: {
+              "offset": offset.toString(),
+              "limit": limit.toString(),
+              "sortBy": sortBy,
+            },
+          );
 
-      final response = await _client.get(uri, headers: await _optionalAuthHeaders());
+      final response = await _client.get(
+        uri,
+        headers: await _optionalAuthHeaders(),
+      );
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -598,14 +602,18 @@ class EngagementApiService {
     if (commentId.trim().isEmpty) return (400, "Invalid comment ID");
 
     try {
-      final uri = Uri.parse(
-        "$_publicBasePath/comments/v1/$commentId/replies",
-      ).replace(queryParameters: {
-        "offset": offset.toString(),
-        "limit": limit.toString(),
-      });
+      final uri = Uri.parse("$_publicBasePath/comments/v1/$commentId/replies")
+          .replace(
+            queryParameters: {
+              "offset": offset.toString(),
+              "limit": limit.toString(),
+            },
+          );
 
-      final response = await _client.get(uri, headers: await _optionalAuthHeaders());
+      final response = await _client.get(
+        uri,
+        headers: await _optionalAuthHeaders(),
+      );
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -674,10 +682,7 @@ class EngagementApiService {
       if (response.statusCode == 201) {
         return (201, Comment.fromJson(data));
       }
-      return (
-        response.statusCode,
-        data["message"] ?? "Failed to post comment",
-      );
+      return (response.statusCode, data["message"] ?? "Failed to post comment");
     } catch (err) {
       return (500, "Network error: $err");
     }
@@ -697,9 +702,7 @@ class EngagementApiService {
   //
   // Returns (200, String message) on success.
   // ─────────────────────────────────────────────
-  Future<(int, dynamic)> deleteComment({
-    required String commentId,
-  }) async {
+  Future<(int, dynamic)> deleteComment({required String commentId}) async {
     if (commentId.trim().isEmpty) return (400, "Invalid comment ID");
 
     try {
@@ -746,9 +749,7 @@ class EngagementApiService {
   //   - on tap: flip Comment.isLikedByUser + adjust Comment.numLikes locally
   //   - on failure: revert both fields and show snackbar
   // ─────────────────────────────────────────────
-  Future<(int, dynamic)> toggleCommentLike({
-    required String commentId,
-  }) async {
+  Future<(int, dynamic)> toggleCommentLike({required String commentId}) async {
     if (commentId.trim().isEmpty) return (400, "Invalid comment ID");
 
     try {

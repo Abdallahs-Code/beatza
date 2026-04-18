@@ -1,13 +1,14 @@
 // Dart imports
-import 'dart:io' show Platform;
 import 'dart:async';
+import 'dart:io' show Platform;
+
 import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Package imports
 import 'package:cross_team5/core/services/api_services.dart';
@@ -18,16 +19,14 @@ import 'package:cross_team5/features/authentication_user_management/screens/emai
 import 'package:cross_team5/features/authentication_user_management/screens/user_info_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/verify_code_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/authentication_user_management/services/qr_polling_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
-import 'package:cross_team5/features/authentication_user_management/services/qr_polling_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  // In LoginScreen class
   Future<void> _showQrDialog(BuildContext context) async {
-    // Show initial loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -40,21 +39,34 @@ class LoginScreen extends StatelessWidget {
       final authApi = AuthApiService();
       final String qrData = await authApi.getQrCodeToken();
 
-      if (context.mounted) Navigator.pop(context); // Close loading
+      if (!context.mounted) {
+        return;
+      }
 
-      if (context.mounted) {
-        _buildQrPollingDialog(context, authApi, qrData);
+      Navigator.pop(context);
+
+      if (!context.mounted) {
+        return;
       }
+
+      _buildQrPollingDialog(context, authApi, qrData);
     } catch (e) {
-      if (context.mounted) Navigator.pop(context);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load QR Code: $e"),
-            backgroundColor: AppColors.anger,
-          ),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      Navigator.pop(context);
+
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to load QR Code: $e"),
+          backgroundColor: AppColors.anger,
+        ),
+      );
     }
   }
 
@@ -65,7 +77,7 @@ class LoginScreen extends StatelessWidget {
   ) {
     String currentQrData = initialQrData;
     bool isLoading = false;
-    String pollingStatus = 'waiting'; // waiting, success, error, timeout
+    String pollingStatus = 'waiting';
     QrPollingService? pollingService;
 
     showDialog(
@@ -84,7 +96,6 @@ class LoginScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -107,8 +118,6 @@ class LoginScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    // QR Code Display
                     if (pollingStatus == 'waiting') ...[
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -130,7 +139,6 @@ class LoginScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                     ] else ...[
-                      // Status icon for non-waiting states
                       Icon(
                         pollingStatus == 'success'
                             ? Icons.check_circle
@@ -146,8 +154,6 @@ class LoginScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                     ],
-
-                    // Status message + loading indicator
                     const SizedBox(height: 20),
                     if (pollingStatus == 'waiting')
                       Row(
@@ -182,8 +188,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                       ),
-
-                    // Refresh button (only when waiting)
                     if (pollingStatus == 'waiting') ...[
                       const SizedBox(height: 16),
                       TextButton.icon(
@@ -194,11 +198,13 @@ class LoginScreen extends StatelessWidget {
                                 try {
                                   final newToken = await authApi
                                       .getQrCodeToken();
+
+                                  if (!dialogContext.mounted) return;
+
                                   setDialogState(() {
                                     currentQrData = newToken;
                                     isLoading = false;
                                   });
-                                  // Restart polling with new QR
                                   pollingService?.stopPolling();
                                   _startPolling(
                                     dialogContext,
@@ -213,15 +219,16 @@ class LoginScreen extends StatelessWidget {
                                   );
                                 } catch (e) {
                                   setDialogState(() => isLoading = false);
-                                  if (dialogContext.mounted) {
-                                    ScaffoldMessenger.of(
-                                      dialogContext,
-                                    ).showSnackBar(
-                                      SnackBar(
-                                        content: Text("Refresh failed: $e"),
-                                      ),
-                                    );
+                                  if (!dialogContext.mounted) {
+                                    return;
                                   }
+                                  ScaffoldMessenger.of(
+                                    dialogContext,
+                                  ).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Refresh failed: $e"),
+                                    ),
+                                  );
                                 }
                               },
                         icon: isLoading
@@ -241,8 +248,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ),
                     ],
-
-                    // Retry/Close buttons for error/timeout
                     if (pollingStatus == 'error' ||
                         pollingStatus == 'timeout') ...[
                       const SizedBox(height: 20),
@@ -252,8 +257,8 @@ class LoginScreen extends StatelessWidget {
                           ElevatedButton(
                             onPressed: () {
                               pollingService?.stopPolling();
-                              Navigator.pop(context); // Close dialog
-                              _showQrDialog(context); // Restart flow
+                              Navigator.pop(context);
+                              _showQrDialog(context);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.orangeQrCode,
@@ -284,28 +289,22 @@ class LoginScreen extends StatelessWidget {
         );
       },
     ).then((_) {
-      // Cleanup when dialog closes
       pollingService?.dispose();
     });
 
-    // Start polling immediately after dialog is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startPolling(
         context,
         authApi,
         currentQrData,
-        (newState) {}, // We use setDialogState directly in callbacks
+        (newState) {},
         (service) => pollingService = service,
         () => pollingStatus,
-        (newStatus) {
-          // This runs inside StatefulBuilder, so we need to trigger rebuild
-          // We'll handle this via a different approach - see note below
-        },
+        (newStatus) {},
       );
     });
   }
 
-  /// Start polling for QR authentication status (Desktop flow)
   void _startPolling(
     BuildContext context,
     AuthApiService authApi,
@@ -335,18 +334,30 @@ class LoginScreen extends StatelessWidget {
             setStateFn(() {
               onStatusChange('error');
             });
+
+            if (!context.mounted) {
+              return;
+            }
+
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
           },
         )
         .then((result) {
-          // SUCCESS: Handle login
-          if (context.mounted && result['status'] == 'success') {
+          if (!context.mounted) {
+            return;
+          }
+
+          if (result['status'] == 'success') {
             _handleDesktopLoginSuccess(context, result);
           }
         })
         .catchError((error) {
+          if (!context.mounted) {
+            return;
+          }
+
           if (error is TimeoutException) {
             setStateFn(() {
               onStatusChange('timeout');
@@ -367,7 +378,6 @@ class LoginScreen extends StatelessWidget {
         });
   }
 
-  /// Handle successful desktop login — saves tokens and navigates
   Future<void> _handleDesktopLoginSuccess(
     BuildContext context,
     Map<String, dynamic> userData,
@@ -379,7 +389,6 @@ class LoginScreen extends StatelessWidget {
       if (data != null) {
         final accessToken = data['accessToken'];
         final refreshToken = data['refreshToken'];
-
         final userId = data['user']?['id']?.toString();
 
         if (accessToken != null && refreshToken != null) {
@@ -388,33 +397,36 @@ class LoginScreen extends StatelessWidget {
             refreshToken: refreshToken,
           );
 
-          // Save user_id to storage
           if (userId != null && userId.trim().isNotEmpty) {
             await FlutterSecureStorage().write(key: 'user_id', value: userId);
           }
         }
       }
 
-      if (context.mounted) {
-        Navigator.pop(context);
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          HomeRoutes.home,
-          (route) => false,
-          arguments: {'loginMethod': 'qr_desktop'},
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      Navigator.pop(context);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        HomeRoutes.home,
+        (route) => false,
+        arguments: {'loginMethod': 'qr_desktop'},
+      );
     } catch (e) {
       LoggerService.logger.e('Desktop login success handler error: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login completed but navigation failed: $e')),
-        );
+
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login completed but navigation failed: $e')),
+      );
     }
   }
 
-  /// User-friendly status messages for UI
   String _getStatusMessage(String status) {
     switch (status) {
       case 'waiting':
@@ -442,7 +454,6 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// BACK BUTTON
               IconButton(
                 onPressed: () {
                   Navigator.pushReplacementNamed(
@@ -453,10 +464,7 @@ class LoginScreen extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
               ),
-
               const SizedBox(height: 40),
-
-              /// TITLE
               const Text(
                 AppText.signInOrCreateAccount,
                 style: TextStyle(
@@ -465,10 +473,7 @@ class LoginScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              /// SUBTITLE WITH HYPERLINKS
               RichText(
                 text: TextSpan(
                   style: const TextStyle(
@@ -510,142 +515,146 @@ class LoginScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              /// GOOGLE LOGIN BUTTON
               SizedBox(
-  width: double.infinity,
-  height: 32,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black87,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-    ),
-    onPressed: () async {
-      final authApiService = AuthApiService();
-      final authUrl =
-          "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
+                width: double.infinity,
+                height: 32,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black87,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final authApiService = AuthApiService();
+                    final authUrl =
+                        "${ApiServices().baseUrl}/api/auth/v1/google?client=Android";
 
-      try {
-        final result = await FlutterWebAuth2.authenticate(
-          url: authUrl,
-          callbackUrlScheme: "beatza",
-          options: const FlutterWebAuth2Options(useWebview: true),
-        );
+                    try {
+                      final result = await FlutterWebAuth2.authenticate(
+                        url: authUrl,
+                        callbackUrlScheme: "beatza",
+                        options: const FlutterWebAuth2Options(useWebview: true),
+                      );
 
-        final uri = Uri.parse(result);
+                      if (!context.mounted) {
+                        return;
+                      }
 
-        final accessToken = uri.queryParameters["accessToken"];
-        final refreshToken = uri.queryParameters["refreshToken"];
-        final pendingToken = uri.queryParameters["pendingToken"];
-        final incompleteToken = uri.queryParameters["incompleteToken"];
-        final displayName = uri.queryParameters["displayName"];
+                      final uri = Uri.parse(result);
 
-        if (accessToken != null &&
-            accessToken.isNotEmpty &&
-            refreshToken != null &&
-            refreshToken.isNotEmpty) {
-          LoggerService.logger.i(
-            "Case 3: Returning Google user logged in successfully",
-          );
+                      final accessToken = uri.queryParameters["accessToken"];
+                      final refreshToken = uri.queryParameters["refreshToken"];
+                      final pendingToken = uri.queryParameters["pendingToken"];
+                      final incompleteToken =
+                          uri.queryParameters["incompleteToken"];
+                      final displayName = uri.queryParameters["displayName"];
 
-          await authApiService.saveTokens(
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-          );
+                      if (accessToken != null &&
+                          accessToken.isNotEmpty &&
+                          refreshToken != null &&
+                          refreshToken.isNotEmpty) {
+                        LoggerService.logger.i(
+                          "Case 3: Returning Google user logged in successfully",
+                        );
 
-          await authApiService.refreshToken();
+                        await authApiService.saveTokens(
+                          accessToken: accessToken,
+                          refreshToken: refreshToken,
+                        );
 
-          if (context.mounted) {
-            Navigator.pushReplacementNamed(context, HomeRoutes.home);
-          }
-          return;
-        }
+                        await authApiService.refreshToken();
 
-        if (pendingToken != null && pendingToken.isNotEmpty) {
-          LoggerService.logger.i(
-            "Case 2: Existing user, first Google login",
-          );
+                        if (!context.mounted) {
+                          return;
+                        }
 
-          if (context.mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => VerifyCodeScreen(pendingToken: pendingToken),
-              ),
-            );
-          }
-          return;
-        }
+                        Navigator.pushReplacementNamed(
+                          context,
+                          HomeRoutes.home,
+                        );
+                        return;
+                      }
 
-        if (incompleteToken != null && incompleteToken.isNotEmpty) {
-          LoggerService.logger.i("Case 1: New Google user");
+                      if (pendingToken != null && pendingToken.isNotEmpty) {
+                        LoggerService.logger.i(
+                          "Case 2: Existing user, first Google login",
+                        );
 
-          if (context.mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => UserInfoScreen(
-                  incompleteToken: incompleteToken,
-                  initialDisplayName: displayName ?? "",
-                  isGoogleFlow: true,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                VerifyCodeScreen(pendingToken: pendingToken),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (incompleteToken != null &&
+                          incompleteToken.isNotEmpty) {
+                        LoggerService.logger.i("Case 1: New Google user");
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserInfoScreen(
+                              incompleteToken: incompleteToken,
+                              initialDisplayName: displayName ?? "",
+                              isGoogleFlow: true,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Google sign-in returned no usable data",
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      LoggerService.logger.i("Google sign-in failed: $e");
+
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Google sign-in failed: $e"),
+                          backgroundColor: AppColors.anger,
+                        ),
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/googlelogo.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            );
-          }
-          return;
-        }
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Google sign-in returned no usable data"),
-            ),
-          );
-        }
-      } catch (e) {
-        LoggerService.logger.i("Google sign-in failed: $e");
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Google sign-in failed: $e"),
-              backgroundColor: AppColors.anger,
-            ),
-          );
-        }
-      }
-    },
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Image.asset(
-          'assets/images/googlelogo.png',
-          height: 20,
-          width: 20,
-        ),
-        const SizedBox(width: 12),
-        const Text(
-          'Continue with Google',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
               if (Platform.isWindows) ...[
                 const SizedBox(height: 5),
-
-                /// QR CODE LOGIN BUTTON
                 LoginButton(
                   text: AppText.continueWithQrCode,
                   icon: Icons.qr_code,
@@ -655,16 +664,12 @@ class LoginScreen extends StatelessWidget {
                   },
                 ),
               ],
-
               const SizedBox(height: 10),
-
-              /// TEXT
               const Text(
                 AppText.orWithEmail,
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 14, color: Colors.white70),
               ),
-
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -679,17 +684,12 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              /// CONTINUE BUTTON
               LoginButton(
                 text: AppText.continueButtonText,
                 color: AppColors.silver,
                 onPressed: () {},
               ),
-
-              /// NEED HELP?
               RichText(
                 text: TextSpan(
                   text: AppText.needHelp,

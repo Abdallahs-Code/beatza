@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
+//import 'package:flutter/foundation.dart';
 
 class TrackApiService {
   final ApiServices _apiServices;
@@ -47,9 +48,9 @@ class TrackApiService {
     return token;
   }
 
-  Future<String?> _getUserId() async {
-    return await _storage.read(key: 'user_id');
-  }
+  // Future<String?> _getUserId() async {
+  //   return await _storage.read(key: 'user_id');
+  // }
 
   Map<String, String> _authHeaders(String token) => {
     'Authorization': 'Bearer $token',
@@ -187,31 +188,31 @@ class TrackApiService {
   }
 
   // Generate a valid ISRC in format: CC-XXX-YY-NNNNN
-  String _generateValidISRC() {
-    final now = DateTime.now();
-    final year = now.year.toString().substring(2); // Last 2 digits
-    final unique = (DateTime.now().millisecondsSinceEpoch % 100000)
-        .toString()
-        .padLeft(5, '0');
+  // String _generateValidISRC() {
+  //   final now = DateTime.now();
+  //   final year = now.year.toString().substring(2); // Last 2 digits
+  //   final unique = (DateTime.now().millisecondsSinceEpoch % 100000)
+  //       .toString()
+  //       .padLeft(5, '0');
 
-    // Format: US-SCL-YY-NNNNN (valid ISRC structure)
-    return 'US-SCL-$year-$unique';
-  }
+  //   // Format: US-SCL-YY-NNNNN (valid ISRC structure)
+  //   return 'US-SCL-$year-$unique';
+  // }
 
   // Helper to generate a temporary ISRC
-  String _generateTemporaryISRC() {
-    // Format: CC-XXX-YY-NNNNN
-    // CC = Country Code (US for example)
-    // XXX = Registrant Code (placeholder)
-    // YY = Year (last 2 digits)
-    // NNNNN = Unique number
-    final now = DateTime.now();
-    final year = now.year.toString().substring(2);
-    final random = (DateTime.now().millisecondsSinceEpoch % 100000)
-        .toString()
-        .padLeft(5, '0');
-    return 'US-SCL-$year-$random';
-  }
+  // String _generateTemporaryISRC() {
+  //   // Format: CC-XXX-YY-NNNNN
+  //   // CC = Country Code (US for example)
+  //   // XXX = Registrant Code (placeholder)
+  //   // YY = Year (last 2 digits)
+  //   // NNNNN = Unique number
+  //   final now = DateTime.now();
+  //   final year = now.year.toString().substring(2);
+  //   final random = (DateTime.now().millisecondsSinceEpoch % 100000)
+  //       .toString()
+  //       .padLeft(5, '0');
+  //   return 'US-SCL-$year-$random';
+  // }
 
   // ─────────────────────────────────────────────
   // Update track metadata / cover image
@@ -262,16 +263,18 @@ class TrackApiService {
           caption != null;
 
       if (hasUpdate) {
-        request.fields['basicInfo'] = jsonEncode({
-          if (title != null) 'title': title,
-          if (permalink != null) 'permalink': permalink,
-          if (mainArtists != null) 'mainArtists': mainArtists,
-          if (genre != null) 'genre': genre,
-          if (tags != null) 'tags': tags,
-          if (description != null) 'description': description,
-          if (isPrivate != null) 'isPrivate': isPrivate,
-          if (caption != null) 'caption': caption,
-        });
+        request.fields['basicInfo'] = jsonEncode(
+          {
+            'title': title,
+            'permalink': permalink,
+            'mainArtists': mainArtists,
+            'genre': genre,
+            'tags': tags,
+            'description': description,
+            'isPrivate': isPrivate,
+            'caption': caption,
+          }..removeWhere((key, value) => value == null),
+        );
       }
 
       final streamed = await _client.send(request);
@@ -341,21 +344,26 @@ class TrackApiService {
       final response = await _client.get(uri, headers: _authHeaders(token));
       final data = jsonDecode(response.body);
 
-/// Testing
-      print('getAllTracksPaginated response: $data'); // Debug log
-      
+      /// Testing
+      // debugPrint('getAllTracksPaginated response: $data');// Debug log
+
       if (response.statusCode == 200) {
         final tracks = Track.listFromPaginatedResponse(data);
         final paginationInfo =
             (data['data'] as Map<String, dynamic>?)?['paginationInfo']
                 as Map<String, dynamic>?;
+
+        final hasNext = paginationInfo?['hasNext'] as bool? ?? false;
+        final currentPage = paginationInfo?['page'] as int? ?? page;
+        final totalPages = paginationInfo?['totalPages'] as int? ?? 1;
+
         return (
           200,
           {
             'tracks': tracks,
-            'hasNext': paginationInfo?['hasNext'] as bool? ?? false,
-            'page': paginationInfo?['page'] as int? ?? page,
-            'totalPages': paginationInfo?['totalPages'] as int? ?? 1,
+            'hasNext': hasNext,
+            'page': currentPage,
+            'totalPages': totalPages,
           },
         );
       }

@@ -59,12 +59,12 @@ class WelcomeScreen extends StatelessWidget {
   }
 
   void _handleAuth(BuildContext context) {
-  if (isCrossPlatFlow) {
-    Navigator.pushNamed(context, AuthenticationRoutes.login);
-  } else {
-    _openAuthFlow(context);
+    if (isCrossPlatFlow) {
+      Navigator.pushNamed(context, AuthenticationRoutes.login);
+    } else {
+      _openAuthFlow(context);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {

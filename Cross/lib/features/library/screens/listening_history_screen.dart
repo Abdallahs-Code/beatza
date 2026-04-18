@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 // Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
-import 'package:cross_team5/core/widgets/common_widgets.dart';
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
@@ -12,10 +11,7 @@ import 'package:cross_team5/features/playback_streaming_engine/services/playback
 class ListeningHistoryScreen extends StatefulWidget {
   final List<PlaybackTrackModel> initialTracks;
 
-  const ListeningHistoryScreen({
-    super.key,
-    required this.initialTracks,
-  });
+  const ListeningHistoryScreen({super.key, required this.initialTracks});
 
   @override
   State<ListeningHistoryScreen> createState() => _ListeningHistoryScreenState();
@@ -29,7 +25,6 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
     super.initState();
     _tracks = List<PlaybackTrackModel>.from(widget.initialTracks);
   }
-
 
   Future<void> _playTrack(PlaybackTrackModel track, int index) async {
     await PlaybackStreamingEngineService.shared.playTrack(
@@ -59,10 +54,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
           content: const Text(
             'This will permanently clear your listening history.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.white60,
-              height: 1.45,
-            ),
+            style: TextStyle(color: AppColors.white60, height: 1.45),
           ),
           actionsPadding: EdgeInsets.zero,
           actions: [
@@ -184,7 +176,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 170),
                       itemCount: _tracks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 18),
+                      separatorBuilder: (_, _) => const SizedBox(height: 18),
                       itemBuilder: (context, index) {
                         return HistoryTrackTile(
                           track: _tracks[index],

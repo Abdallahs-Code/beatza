@@ -105,7 +105,7 @@ class TextInputField extends StatelessWidget {
 
 class QrCodeLoginDialog extends StatelessWidget {
   final String qrData;
-  final VoidCallback? onRefresh; 
+  final VoidCallback? onRefresh;
   final bool isLoading;
 
   const QrCodeLoginDialog({
@@ -118,14 +118,14 @@ class QrCodeLoginDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppColors.transparent, 
+      backgroundColor: AppColors.transparent,
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 500), 
+        constraints: const BoxConstraints(maxWidth: 500),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.chineseBlack, 
+          color: AppColors.chineseBlack,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.white10, width: 1), 
+          border: Border.all(color: AppColors.white10, width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -145,10 +145,7 @@ class QrCodeLoginDialog extends StatelessWidget {
             /// Description
             const Text(
               AppText.qrCodeLoginDesc,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.white70),
             ),
             const SizedBox(height: 24),
 
@@ -164,22 +161,22 @@ class QrCodeLoginDialog extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.pureBlack, 
+                color: AppColors.pureBlack,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.white10, width: 1),
               ),
               child: Center(
-                child: 
-                isLoading ? // CONDITIONAL RENDERING
-                    const CircularProgressIndicator(
+                child: isLoading
+                    ? // CONDITIONAL RENDERING
+                      const CircularProgressIndicator(
                         color: AppColors.orangeQrCode,
                       )
-                  : QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: 220.0,
-                  backgroundColor: AppColors.white70,
-                ),
+                    : QrImageView(
+                        data: qrData,
+                        version: QrVersions.auto,
+                        size: 220.0,
+                        backgroundColor: AppColors.white70,
+                      ),
               ),
             ),
 
@@ -192,10 +189,7 @@ class QrCodeLoginDialog extends StatelessWidget {
                 /// Status Text
                 const Text(
                   AppText.qrCodeLoginStatus,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
 
                 /// Refresh Button
@@ -204,9 +198,12 @@ class QrCodeLoginDialog extends StatelessWidget {
                   icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Refresh'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.orangeQrCode, 
+                    backgroundColor: AppColors.orangeQrCode,
                     foregroundColor: AppColors.white70,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

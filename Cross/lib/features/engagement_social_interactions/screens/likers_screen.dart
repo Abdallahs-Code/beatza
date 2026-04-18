@@ -23,11 +23,7 @@ class LikersScreen extends StatefulWidget {
   final String trackId;
   final int initialTab; // 0 = Likers, 1 = Reposters
 
-  const LikersScreen({
-    super.key,
-    required this.trackId,
-    this.initialTab = 0,
-  });
+  const LikersScreen({super.key, required this.trackId, this.initialTab = 0});
 
   @override
   State<LikersScreen> createState() => _LikersScreenState();
@@ -299,10 +295,7 @@ class _LikersScreenState extends State<LikersScreen>
 
     return ListView.separated(
       itemCount: users.length + 1, // +1 for load more button
-      separatorBuilder: (_, __) => Divider(
-        height: 1,
-        color: Colors.grey[900],
-      ),
+      separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey[900]),
       itemBuilder: (context, index) {
         if (index == users.length) {
           // Load more button at the bottom
@@ -312,7 +305,9 @@ class _LikersScreenState extends State<LikersScreen>
             child: Center(
               child: isLoadingMore
                   ? const CircularProgressIndicator(
-                      color: Colors.orange, strokeWidth: 2)
+                      color: Colors.orange,
+                      strokeWidth: 2,
+                    )
                   : TextButton(
                       onPressed: onLoadMore,
                       child: const Text(

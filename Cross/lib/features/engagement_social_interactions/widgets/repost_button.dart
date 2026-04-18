@@ -44,10 +44,8 @@ class RepostButton extends StatelessWidget {
           // ── Repost icon ──────────────────────
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) => ScaleTransition(
-              scale: animation,
-              child: child,
-            ),
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
             child: Icon(
               Icons.repeat,
               key: ValueKey(isReposted),

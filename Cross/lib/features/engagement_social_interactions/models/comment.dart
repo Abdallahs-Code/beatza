@@ -37,9 +37,9 @@ class Comment {
   final String? _avatarUrl;
   final String _content;
   final int _timestamp; // seconds in the track timeline
-  int _numLikes; // mutable — toggled locally on comment like
+  int numLikes; // mutable — toggled locally on comment like
   final int _replyCount;
-  bool _isLikedByUser; // mutable — toggled locally on comment like
+  bool isLikedByUser; // mutable — toggled locally on comment like
   final bool _isOwnComment; // drives delete option in UI
   final String _createdAt;
 
@@ -50,9 +50,9 @@ class Comment {
     this._avatarUrl,
     this._content,
     this._timestamp,
-    this._numLikes,
+    this.numLikes,
     this._replyCount,
-    this._isLikedByUser,
+    this.isLikedByUser,
     this._isOwnComment,
     this._createdAt,
   );
@@ -64,16 +64,9 @@ class Comment {
   String? get avatarUrl => _avatarUrl;
   String get content => _content;
   int get timestamp => _timestamp;
-  int get numLikes => _numLikes;
   int get replyCount => _replyCount;
-  bool get isLikedByUser => _isLikedByUser;
   bool get isOwnComment => _isOwnComment;
   String get createdAt => _createdAt;
-
-  // ── Mutable setters (optimistic UI updates) ──
-  // Called by CommentsScreen after toggleCommentLike API call.
-  set isLikedByUser(bool value) => _isLikedByUser = value;
-  set numLikes(int value) => _numLikes = value;
 
   // ─────────────────────────────────────────────
   // Helper: formats timestamp int (seconds) into
@@ -106,7 +99,9 @@ class Comment {
           0,
       json['numLikes'] as int? ?? 0,
       json['replyCount'] as int? ?? 0,
-      json['isLikedByUser'] is bool ? json['isLikedByUser'] as bool : json['isLikedByUser'] == 1 || json['isLikedByUser'] == 'true',
+      json['isLikedByUser'] is bool
+          ? json['isLikedByUser'] as bool
+          : json['isLikedByUser'] == 1 || json['isLikedByUser'] == 'true',
       json['isOwnComment'] as bool? ?? false,
       json['createdAt']?.toString() ?? '',
     );

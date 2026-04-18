@@ -8,8 +8,7 @@ class ConnectivityService {
 
   final Connectivity _connectivity = Connectivity();
 
-  final StreamController<bool> _controller =
-      StreamController<bool>.broadcast();
+  final StreamController<bool> _controller = StreamController<bool>.broadcast();
 
   Stream<bool> get stream => _controller.stream;
 

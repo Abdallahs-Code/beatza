@@ -30,7 +30,8 @@ final ValueNotifier<bool> _isTransientSheetOpening = ValueNotifier<bool>(false);
 // Set to the trackId of the commented track, reset to null after consumption.
 final ValueNotifier<String?> _trackCommentPosted = ValueNotifier<String?>(null);
 
-final Map<String, List<double>> _expandedWaveformCache = <String, List<double>>{};
+final Map<String, List<double>> _expandedWaveformCache =
+    <String, List<double>>{};
 
 class GlobalPlaybackOverlay extends StatelessWidget {
   const GlobalPlaybackOverlay({super.key});
@@ -47,10 +48,10 @@ class GlobalPlaybackOverlay extends StatelessWidget {
         builder: (context, isExpanded, _) {
           return ValueListenableBuilder<AppOverlayVisibilityState>(
             valueListenable: globalOverlayVisibility,
-            builder: (context, overlayVisibility, __) {
+            builder: (context, overlayVisibility, _) {
               return AnimatedBuilder(
                 animation: globalPlayer,
-                builder: (context, ___) {
+                builder: (context, _) {
                   final PlaybackStateModel state = globalPlayer.state;
                   final bool shouldHideMiniPlayer =
                       !state.hasTrack ||
@@ -211,66 +212,6 @@ class _MiniPlayerCard extends StatelessWidget {
   }
 }
 
-class _MiniTrackWaveformPainter extends CustomPainter {
-  final List<double> peaks;
-  final double progress;
-
-  _MiniTrackWaveformPainter({
-    required this.peaks,
-    required this.progress,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (peaks.isEmpty) return;
-
-    const double barWidth = 2.0;
-    const double gap = 1.5;
-    final double step = barWidth + gap;
-    final int visibleBars = (size.width / step).floor();
-
-    if (visibleBars <= 0) return;
-
-    final Paint playedPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = barWidth
-      ..strokeCap = StrokeCap.round;
-
-    final Paint unplayedPaint = Paint()
-      ..color = Colors.white24
-      ..strokeWidth = barWidth
-      ..strokeCap = StrokeCap.round;
-
-    final double centerY = size.height / 2;
-    final double playedThreshold = size.width * progress;
-
-    for (int i = 0; i < visibleBars; i++) {
-      final int peakIndex =
-          ((i / visibleBars) * peaks.length).floor().clamp(0, peaks.length - 1);
-
-      final double normalized = peaks[peakIndex].clamp(0.08, 1.0);
-      final double barHeight = normalized * size.height;
-      final double x = i * step + barWidth / 2;
-
-      final double top = centerY - barHeight / 2;
-      final double bottom = centerY + barHeight / 2;
-
-      final Paint paint = x <= playedThreshold ? playedPaint : unplayedPaint;
-
-      canvas.drawLine(
-        Offset(x, top),
-        Offset(x, bottom),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _MiniTrackWaveformPainter oldDelegate) {
-    return oldDelegate.peaks != peaks || oldDelegate.progress != progress;
-  }
-}
-
 // ─────────────────────────────────────────────────────────
 //  EXPANDED PLAYER — matches SoundCloud's now-playing screen
 // ─────────────────────────────────────────────────────────
@@ -353,26 +294,35 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                                   GestureDetector(
                                     onTap: () async {
                                       final artistId = track.artistId;
-                                      final navCtx = appNavigatorKey.currentContext;
+                                      final navCtx =
+                                          appNavigatorKey.currentContext;
                                       if (navCtx == null) return;
-                                      if (artistId == null || artistId.isEmpty) {
-                                        ScaffoldMessenger.of(navCtx).showSnackBar(
+                                      if (artistId == null ||
+                                          artistId.isEmpty) {
+                                        ScaffoldMessenger.of(
+                                          navCtx,
+                                        ).showSnackBar(
                                           const SnackBar(
-                                            content: Text('Artist profile not available'),
+                                            content: Text(
+                                              'Artist profile not available',
+                                            ),
                                           ),
                                         );
                                         return;
                                       }
-                                      final token = await AuthApiService()
+                                      final token =
+                                          await AuthApiService()
                                               .getStoredAccessToken() ??
                                           '';
                                       final currentUserId =
-                                          await AuthApiService().getStoredUserId() ??
-                                              '';
+                                          await AuthApiService()
+                                              .getStoredUserId() ??
+                                          '';
                                       if (!navCtx.mounted) return;
                                       Navigator.pushNamed(
                                         navCtx,
-                                        UserProfileSocialIdentityRoutes.userProfileRoute,
+                                        UserProfileSocialIdentityRoutes
+                                            .userProfileRoute,
                                         arguments: {
                                           'userId': artistId,
                                           'token': token,
@@ -441,7 +391,9 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.42),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.42,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -470,8 +422,9 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                       ),
                       Builder(
                         builder: (bCtx) {
-                          final double keyboardOffset =
-                              MediaQuery.of(bCtx).viewInsets.bottom;
+                          final double keyboardOffset = MediaQuery.of(
+                            bCtx,
+                          ).viewInsets.bottom;
                           return Positioned(
                             left: 16,
                             right: 16,
@@ -508,7 +461,8 @@ class _ExpandedPlayerSheet extends StatelessWidget {
 }
 
 class _CurrentTrackListener extends StatefulWidget {
-  final Widget Function(BuildContext context, PlaybackTrackModel? track) builder;
+  final Widget Function(BuildContext context, PlaybackTrackModel? track)
+  builder;
 
   const _CurrentTrackListener({required this.builder});
 
@@ -610,10 +564,7 @@ class _ExpandedArtworkLayerState extends State<_ExpandedArtworkLayer> {
 
   @override
   Widget build(BuildContext context) {
-    return _ExpandedArtworkBackground(
-      track: widget.track,
-      isPaused: _isPaused,
-    );
+    return _ExpandedArtworkBackground(track: widget.track, isPaused: _isPaused);
   }
 }
 
@@ -724,7 +675,10 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
     if (oldWidget.track.id != widget.track.id ||
         oldWidget.track.playbackUrl != widget.track.playbackUrl) {
       _position = _globalPlayer.state.currentPosition;
-      _totalDuration = _effectiveTotalDuration(_globalPlayer.state, widget.track);
+      _totalDuration = _effectiveTotalDuration(
+        _globalPlayer.state,
+        widget.track,
+      );
       _commentMarkers = [];
       _waveformPeaks = const [];
       _loadCommentMarkers();
@@ -740,8 +694,10 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
 
   void _handlePlayerUpdate() {
     final Duration nextPosition = _globalPlayer.state.currentPosition;
-    final Duration nextTotalDuration =
-        _effectiveTotalDuration(_globalPlayer.state, widget.track);
+    final Duration nextTotalDuration = _effectiveTotalDuration(
+      _globalPlayer.state,
+      widget.track,
+    );
 
     if (_position != nextPosition || _totalDuration != nextTotalDuration) {
       setState(() {
@@ -822,11 +778,10 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
     if (_totalDuration <= Duration.zero || width <= 0) return;
 
     final double ratio = (localDx / width).clamp(0.0, 1.0);
-    final int targetMs =
-        (_totalDuration.inMilliseconds * ratio).round().clamp(
-              0,
-              _totalDuration.inMilliseconds,
-            );
+    final int targetMs = (_totalDuration.inMilliseconds * ratio).round().clamp(
+      0,
+      _totalDuration.inMilliseconds,
+    );
 
     _globalPlayer.seek(Duration(milliseconds: targetMs));
   }
@@ -835,31 +790,33 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
   Widget build(BuildContext context) {
     final double progress = _totalDuration.inMilliseconds <= 0
         ? 0
-        : (_position.inMilliseconds / _totalDuration.inMilliseconds)
-            .clamp(0.0, 1.0);
+        : (_position.inMilliseconds / _totalDuration.inMilliseconds).clamp(
+            0.0,
+            1.0,
+          );
 
     final List<double> peaks = _waveformPeaks.isNotEmpty
         ? _waveformPeaks
         : widget.track.waveformPeaks.isNotEmpty
-            ? widget.track.waveformPeaks
-            : const [
-                0.18,
-                0.32,
-                0.24,
-                0.52,
-                0.28,
-                0.40,
-                0.22,
-                0.36,
-                0.20,
-                0.44,
-                0.30,
-                0.56,
-                0.26,
-                0.34,
-                0.48,
-                0.24,
-              ];
+        ? widget.track.waveformPeaks
+        : const [
+            0.18,
+            0.32,
+            0.24,
+            0.52,
+            0.28,
+            0.40,
+            0.22,
+            0.36,
+            0.20,
+            0.44,
+            0.30,
+            0.56,
+            0.26,
+            0.34,
+            0.48,
+            0.24,
+          ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -877,10 +834,7 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
             const SizedBox(width: 8),
             Text(
               _formatDuration(_totalDuration),
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
           ],
         ),
@@ -909,7 +863,9 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
                               child: SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             )
                           : _ExpandedTrackWaveform(
@@ -923,9 +879,10 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
                         child: IgnorePointer(
                           child: Stack(
                             children: _commentMarkers.take(20).map((c) {
-                              final double ratio = ((c.timestamp * 1000.0) /
-                                      _totalDuration.inMilliseconds)
-                                  .clamp(0.0, 1.0);
+                              final double ratio =
+                                  ((c.timestamp * 1000.0) /
+                                          _totalDuration.inMilliseconds)
+                                      .clamp(0.0, 1.0);
                               final double left = ratio * width;
                               return Positioned(
                                 left: left - 2,
@@ -958,10 +915,7 @@ class _ExpandedTrackWaveform extends StatelessWidget {
   final List<double> peaks;
   final double progress;
 
-  const _ExpandedTrackWaveform({
-    required this.peaks,
-    required this.progress,
-  });
+  const _ExpandedTrackWaveform({required this.peaks, required this.progress});
 
   @override
   Widget build(BuildContext context) {
@@ -978,10 +932,7 @@ class _ExpandedTrackWaveformPainter extends CustomPainter {
   final List<double> peaks;
   final double progress;
 
-  _ExpandedTrackWaveformPainter({
-    required this.peaks,
-    required this.progress,
-  });
+  _ExpandedTrackWaveformPainter({required this.peaks, required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -994,10 +945,10 @@ class _ExpandedTrackWaveformPainter extends CustomPainter {
 
     if (visibleBars <= 0) return;
 
-  final Paint playedPaint = Paint()
-    ..color = const Color(0xFFFF5500)
-    ..strokeWidth = barWidth
-    ..strokeCap = StrokeCap.round;
+    final Paint playedPaint = Paint()
+      ..color = const Color(0xFFFF5500)
+      ..strokeWidth = barWidth
+      ..strokeCap = StrokeCap.round;
 
     final Paint unplayedPaint = Paint()
       ..color = Colors.white30
@@ -1008,8 +959,10 @@ class _ExpandedTrackWaveformPainter extends CustomPainter {
     final double playedThreshold = size.width * progress;
 
     for (int i = 0; i < visibleBars; i++) {
-      final int peakIndex =
-          ((i / visibleBars) * peaks.length).floor().clamp(0, peaks.length - 1);
+      final int peakIndex = ((i / visibleBars) * peaks.length).floor().clamp(
+        0,
+        peaks.length - 1,
+      );
 
       final double normalized = peaks[peakIndex].clamp(0.08, 1.0);
       final double barHeight = normalized * size.height;
@@ -1020,11 +973,7 @@ class _ExpandedTrackWaveformPainter extends CustomPainter {
 
       final Paint paint = x <= playedThreshold ? playedPaint : unplayedPaint;
 
-      canvas.drawLine(
-        Offset(x, top),
-        Offset(x, bottom),
-        paint,
-      );
+      canvas.drawLine(Offset(x, top), Offset(x, bottom), paint);
     }
   }
 
@@ -1094,8 +1043,8 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
                 _isMuted || _volume <= 0.01
                     ? Icons.volume_off_rounded
                     : _volume < 0.5
-                        ? Icons.volume_down_rounded
-                        : Icons.volume_up_rounded,
+                    ? Icons.volume_down_rounded
+                    : Icons.volume_up_rounded,
                 color: Colors.white,
                 size: 20,
               ),
@@ -1109,9 +1058,7 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
                 activeTrackColor: Colors.white,
                 inactiveTrackColor: Colors.white30,
                 overlayShape: SliderComponentShape.noOverlay,
-                thumbShape: const RoundSliderThumbShape(
-                  enabledThumbRadius: 5,
-                ),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
               ),
               child: Slider(
                 value: _isMuted ? 0.0 : _volume.clamp(0.0, 1.0),
@@ -1143,7 +1090,7 @@ class _ExpandedArtworkBackground extends StatelessWidget {
       return Image.network(
         track.artworkUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _ArtworkFallback(track: track),
+        errorBuilder: (_, _, _) => _ArtworkFallback(track: track),
       );
     }
 
@@ -1166,9 +1113,7 @@ class _ExpandedArtworkBackground extends StatelessWidget {
           ),
         ),
         Positioned.fill(
-          child: Container(
-            color: Colors.white.withValues(alpha: 0.20),
-          ),
+          child: Container(color: Colors.white.withValues(alpha: 0.20)),
         ),
       ],
     );
@@ -1249,11 +1194,7 @@ class _PlayerActionButton extends StatelessWidget {
           color: Colors.black,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: isPrimary ? 40 : 28,
-        ),
+        child: Icon(icon, color: Colors.white, size: isPrimary ? 40 : 28),
       ),
     );
   }
@@ -1264,11 +1205,7 @@ class _BottomMetric extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _BottomMetric({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _BottomMetric({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1308,7 +1245,6 @@ Duration _effectiveTotalDuration(
   if (state.totalDuration > Duration.zero) return state.totalDuration;
   return track.duration ?? const Duration(minutes: 4, seconds: 3);
 }
-
 
 String _formatDuration(Duration duration) {
   final int minutes = duration.inMinutes;
@@ -1451,12 +1387,13 @@ Future<void> _showShareSheet(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: track.artworkUrl != null &&
+                          child:
+                              track.artworkUrl != null &&
                                   track.artworkUrl!.trim().isNotEmpty
                               ? Image.network(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(
+                                  errorBuilder: (_, _, _) => const Icon(
                                     Icons.album_rounded,
                                     color: Colors.black54,
                                     size: 34,
@@ -1514,7 +1451,10 @@ Future<void> _showShareSheet(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _ShareAction(icon: Icons.send_outlined, label: 'Message'),
+                        _ShareAction(
+                          icon: Icons.send_outlined,
+                          label: 'Message',
+                        ),
                         _ShareAction(
                           icon: Icons.copy_outlined,
                           label: 'Copy link',
@@ -1599,9 +1539,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                     child: SizedBox(
                       width: 42,
                       height: 74,
-                      child: CustomPaint(
-                        painter: _VinylPainter(),
-                      ),
+                      child: CustomPaint(painter: _VinylPainter()),
                     ),
                   ),
                   Positioned(
@@ -1615,12 +1553,13 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: track.artworkUrl != null &&
+                      child:
+                          track.artworkUrl != null &&
                               track.artworkUrl!.trim().isNotEmpty
                           ? Image.network(
                               track.artworkUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
+                              errorBuilder: (_, _, _) => const Icon(
                                 Icons.album_rounded,
                                 color: Colors.black54,
                                 size: 34,
@@ -1657,10 +1596,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                     track.artistName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 15,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 15),
                   ),
                 ],
               ),
@@ -1788,8 +1724,9 @@ class _MiniLikeButtonState extends State<_MiniLikeButton> {
       _isLiked = !_isLiked;
       _isLoading = true;
     });
-    final result =
-        await _engagementService.toggleTrackLike(trackId: widget.trackId);
+    final result = await _engagementService.toggleTrackLike(
+      trackId: widget.trackId,
+    );
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
       final data = result.$2 as Map<String, dynamic>;
@@ -1901,8 +1838,9 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
       _likeCount = _isLiked ? wasCount + 1 : wasCount - 1;
       _isLikeLoading = true;
     });
-    final result =
-        await _engagementService.toggleTrackLike(trackId: widget.track.id);
+    final result = await _engagementService.toggleTrackLike(
+      trackId: widget.track.id,
+    );
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
       final data = result.$2 as Map<String, dynamic>;
@@ -1922,10 +1860,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
   void _openLikersScreen() {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (_) => LikersScreen(
-          trackId: widget.track.id,
-          initialTab: 0,
-        ),
+        builder: (_) => LikersScreen(trackId: widget.track.id, initialTab: 0),
       ),
     );
   }
@@ -1978,7 +1913,9 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                _isLiked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 color: _isLiked ? Colors.orange : Colors.white,
                 size: 26,
               ),
@@ -2005,7 +1942,11 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.mode_comment_outlined, color: Colors.white, size: 26),
+              const Icon(
+                Icons.mode_comment_outlined,
+                color: Colors.white,
+                size: 26,
+              ),
               if (_commentCount > 0) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -2025,10 +1966,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
           label: '',
           onTap: widget.onShareTap,
         ),
-        const _BottomMetric(
-          icon: Icons.playlist_play_rounded,
-          label: '',
-        ),
+        const _BottomMetric(icon: Icons.playlist_play_rounded, label: ''),
         _BottomMetric(
           icon: Icons.more_horiz_rounded,
           label: '',
@@ -2113,8 +2051,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       _isLiked = !_isLiked;
       _isLikeLoading = true;
     });
-    final result =
-        await _engagementService.toggleTrackLike(trackId: widget.track.id);
+    final result = await _engagementService.toggleTrackLike(
+      trackId: widget.track.id,
+    );
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
       final data = result.$2 as Map<String, dynamic>;
@@ -2246,8 +2185,14 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   child: Row(
                     children: [
                       _ShareAction(icon: Icons.send_outlined, label: 'Message'),
-                      _ShareAction(icon: Icons.copy_outlined, label: 'Copy link'),
-                      _ShareAction(icon: Icons.qr_code_2_outlined, label: 'QR code'),
+                      _ShareAction(
+                        icon: Icons.copy_outlined,
+                        label: 'Copy link',
+                      ),
+                      _ShareAction(
+                        icon: Icons.qr_code_2_outlined,
+                        label: 'QR code',
+                      ),
                       _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
                       _ShareAction(
                         icon: Icons.chat_bubble_outline,
@@ -2343,10 +2288,7 @@ class _SheetOptionRow extends StatelessWidget {
       children: [
         Icon(icon, color: iconColor, size: 28),
         const SizedBox(width: 16),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white, fontSize: 16)),
       ],
     );
   }

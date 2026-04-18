@@ -35,8 +35,8 @@ class _SplashScreenState extends State<SplashScreen> {
       _isChecking = true;
     });
 
-    final bool hasInternet =
-        await ConnectivityService.instance.hasInternetConnection();
+    final bool hasInternet = await ConnectivityService.instance
+        .hasInternetConnection();
 
     if (!mounted) return;
 
@@ -78,10 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (isLoggedIn) {
       Navigator.pushReplacementNamed(context, HomeRoutes.home);
     } else {
-      Navigator.pushReplacementNamed(
-        context,
-        AuthenticationRoutes.welcome,
-      );
+      Navigator.pushReplacementNamed(context, AuthenticationRoutes.welcome);
     }
   }
 
@@ -94,57 +91,48 @@ class _SplashScreenState extends State<SplashScreen> {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    "assets/images/whitelogo.png",
-                    width: 175,
-                  ),
+                  Image.asset("assets/images/whitelogo.png", width: 175),
                   const SizedBox(height: 20),
                   const CircularProgressIndicator(color: Colors.white),
                 ],
               )
             : !_hasInternet
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/whitelogo.png",
-                        width: 175,
-                      ),
-                      const SizedBox(height: 20),
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset("assets/images/whitelogo.png", width: 175),
+                  const SizedBox(height: 20),
 
-                      const Text(
-                        "No Internet Connection",
-                        style: TextStyle(
-                          color: Colors.redAccent,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  const Text(
+                    "No Internet Connection",
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
 
-                      const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                      const Text(
-                        "Please connect to the internet and try again",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                  const Text(
+                    "Please connect to the internet and try again",
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
 
-                      const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                      ElevatedButton(
-                        onPressed: _startApp,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                        ),
-                        child: const Text("Retry"),
-                      ),
-                    ],
-                  )
-                : const SizedBox(),
+                  ElevatedButton(
+                    onPressed: _startApp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: const Text("Retry"),
+                  ),
+                ],
+              )
+            : const SizedBox(),
       ),
     );
   }

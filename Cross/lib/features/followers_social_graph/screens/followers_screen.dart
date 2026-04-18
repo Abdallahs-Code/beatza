@@ -10,17 +10,13 @@ import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.da
 class FollowersScreen extends StatefulWidget {
   final String userId;
 
-  const FollowersScreen({
-    super.key,
-    required this.userId,
-  });
+  const FollowersScreen({super.key, required this.userId});
 
   @override
   State<FollowersScreen> createState() => _FollowersScreenState();
 }
 
-class _FollowersScreenState extends State<FollowersScreen>
-    with RouteAware {
+class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
   final SocialApiService _socialApiService = SocialApiService();
   final AuthApiService _authApiService = AuthApiService();
 
@@ -157,8 +153,9 @@ class _FollowersScreenState extends State<FollowersScreen>
   }
 
   void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _confirmBlock(Follower follower) {
@@ -197,42 +194,42 @@ class _FollowersScreenState extends State<FollowersScreen>
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(_errorMessage!),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _loadFollowers,
-                        child: const Text('Retry'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_errorMessage!),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _loadFollowers,
+                    child: const Text('Retry'),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadFollowers,
-                  child: _followers.isEmpty
-                      ? const Center(child: Text('No followers yet.'))
-                      : ListView.separated(
-                          itemCount: _followers.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final follower = _followers[index];
-                            return UserTile(
-                              follower: follower,
-                              currentUserId: _currentUserId,
-                              showBlockOption: true,
-                              showUnblockOption: false,
-                              onFollowTap: () => follower.isFollowing
-                                  ? _unfollowUser(follower.userId)
-                                  : _followUser(follower.userId),
-                              onBlockTap: () => _confirmBlock(follower),
-                            );
-                          },
-                        ),
-                ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadFollowers,
+              child: _followers.isEmpty
+                  ? const Center(child: Text('No followers yet.'))
+                  : ListView.separated(
+                      itemCount: _followers.length,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final follower = _followers[index];
+                        return UserTile(
+                          follower: follower,
+                          currentUserId: _currentUserId,
+                          showBlockOption: true,
+                          showUnblockOption: false,
+                          onFollowTap: () => follower.isFollowing
+                              ? _unfollowUser(follower.userId)
+                              : _followUser(follower.userId),
+                          onBlockTap: () => _confirmBlock(follower),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

@@ -1,13 +1,6 @@
-enum PlaybackAccessState {
-  playable,
-  preview,
-  blocked,
-}
+enum PlaybackAccessState { playable, preview, blocked }
 
-enum PlaybackSourceType {
-  network,
-  deviceFile,
-}
+enum PlaybackSourceType { network, deviceFile }
 
 class PlaybackTrackModel {
   final String id;
@@ -141,10 +134,12 @@ class PlaybackTrackModel {
         .map((tag) => tag.toString())
         .toList();
 
-    final bool canPlay =
-        permissions.isEmpty ? true : permissions['enableAppPlayback'] == true;
+    final bool canPlay = permissions.isEmpty
+        ? true
+        : permissions['enableAppPlayback'] == true;
 
-    final String? audioUrl = _nullableString(audio['audioLink']) ??
+    final String? audioUrl =
+        _nullableString(audio['audioLink']) ??
         _nullableString(json['audio_url']) ??
         _nullableString(json['audioUrl']) ??
         _nullableString(json['stream_url']) ??
@@ -155,15 +150,17 @@ class PlaybackTrackModel {
     return PlaybackTrackModel(
       id: (json['_id'] ?? '').toString(),
       title: (basicInfo['title'] ?? 'Unknown title').toString(),
-      artistName:
-          mainArtists.isEmpty ? 'Unknown artist' : mainArtists.join(', '),
+      artistName: mainArtists.isEmpty
+          ? 'Unknown artist'
+          : mainArtists.join(', '),
       audioUrl: audioUrl,
       artworkUrl:
-          _nullableString(json['image_url']) ?? _nullableString(image['imgLink']),
-      accessState:
-          canPlay ? PlaybackAccessState.playable : PlaybackAccessState.blocked,
-      blockedReason:
-          canPlay ? null : 'Playback is disabled for this track.',
+          _nullableString(json['image_url']) ??
+          _nullableString(image['imgLink']),
+      accessState: canPlay
+          ? PlaybackAccessState.playable
+          : PlaybackAccessState.blocked,
+      blockedReason: canPlay ? null : 'Playback is disabled for this track.',
       permalink: _nullableString(basicInfo['permalink']),
       genre: _nullableString(basicInfo['genre']),
       tags: tags,
@@ -179,7 +176,8 @@ class PlaybackTrackModel {
       includeInRssFeed: permissions['includeInRssFeed'] == true,
       displayedEmbedCode: permissions['displayedEmbedCode'] == true,
       enableAppPlayback: canPlay,
-      artistId: _nullableString(json['userId']) ??
+      artistId:
+          _nullableString(json['userId']) ??
           _nullableString(json['user_id']) ??
           _nullableString(basicInfo['userId']) ??
           _nullableString(basicInfo['user_id']) ??

@@ -17,10 +17,7 @@ import 'package:cross_team5/features/home/home_routes.dart';
 class PasswordScreen extends StatefulWidget {
   final String email;
 
-  const PasswordScreen({
-    super.key,
-    required this.email,
-  });
+  const PasswordScreen({super.key, required this.email});
 
   @override
   State<PasswordScreen> createState() => _PasswordScreenState();
@@ -42,9 +39,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
     if (password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter your password"),
-        ),
+        const SnackBar(content: Text("Please enter your password")),
       );
       return;
     }
@@ -56,13 +51,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
     final authApiService = AuthApiService();
 
     final result = await authApiService.login(
-      user: user_model.User(
-        widget.email,
-        password,
-        "",
-        "",
-        "",
-      ),
+      user: user_model.User(widget.email, password, "", "", ""),
     );
 
     if (!mounted) return;
@@ -119,17 +108,11 @@ class _PasswordScreenState extends State<PasswordScreen> {
               const AuthBackButton(),
               const SizedBox(height: 20),
 
-              const Center(
-                child: AuthTitleText(
-                  text: "Welcome back!",
-                ),
-              ),
+              const Center(child: AuthTitleText(text: "Welcome back!")),
 
               const SizedBox(height: 36),
 
-              const AuthSubtitleText(
-                text: "Your email address or profile URL",
-              ),
+              const AuthSubtitleText(text: "Your email address or profile URL"),
               const SizedBox(height: 6),
 
               Text(

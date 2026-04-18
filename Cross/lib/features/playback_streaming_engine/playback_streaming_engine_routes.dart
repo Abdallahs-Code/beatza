@@ -8,6 +8,6 @@ class PlaybackStreamingEngineRoutes {
   static const String debug = '/playbackDebug';
 
   static Map<String, WidgetBuilder> get routes => {
-        debug: (context) => const PlaybackDebugScreen(),
-      };
+    debug: (context) => const PlaybackDebugScreen(),
+  };
 }

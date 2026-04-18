@@ -11,8 +11,8 @@ import '../widgets/playback_debug_track_tile.dart';
 import '../widgets/playback_mini_player_bar.dart';
 import '../widgets/playback_now_playing_card.dart';
 
-const bool USE_PLAYBACK_API_MODE = false;
-const String PLAYBACK_API_TEST_TRACK_ID = '69d81d4f7206c582e61862ab';
+const bool usePlayBackApiMode = false;
+const String playbackApiTestTrackId = '69d81d4f7206c582e61862ab';
 
 class PlaybackDebugScreen extends StatefulWidget {
   const PlaybackDebugScreen({super.key});
@@ -108,7 +108,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
   List<PlaybackTrackModel> get _testTracks {
     final List<PlaybackTrackModel> tracks = [];
 
-    if (USE_PLAYBACK_API_MODE) {
+    if (usePlayBackApiMode) {
       if (_apiTrack != null) {
         tracks.add(_apiTrack!);
       }
@@ -128,14 +128,12 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
     }
 
     if (_localPreviewTrack != null) {
-      tracks.insert(
-        _localPlayableTrack != null ? 1 : 0,
-        _localPreviewTrack!,
-      );
+      tracks.insert(_localPlayableTrack != null ? 1 : 0, _localPreviewTrack!);
     }
 
     if (_localBlockedTrack != null) {
-      final int insertIndex = (_localPlayableTrack != null ? 1 : 0) +
+      final int insertIndex =
+          (_localPlayableTrack != null ? 1 : 0) +
           (_localPreviewTrack != null ? 1 : 0);
       tracks.insert(insertIndex, _localBlockedTrack!);
     }
@@ -151,9 +149,9 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
     });
 
     try {
-      if (USE_PLAYBACK_API_MODE) {
+      if (usePlayBackApiMode) {
         _apiTrack = await _trackApiService.getSingleTrackById(
-          PLAYBACK_API_TEST_TRACK_ID,
+          playbackApiTestTrackId,
         );
       }
 
@@ -260,9 +258,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
               child: PlaybackNowPlayingCard(
                 state: _playbackService.state,
                 onSeekChanged: (value) {
-                  _playbackService.seek(
-                    Duration(milliseconds: value.round()),
-                  );
+                  _playbackService.seek(Duration(milliseconds: value.round()));
                 },
                 onVolumeChanged: (value) {
                   _playbackService.setVolume(value);
@@ -282,9 +278,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
   Widget _buildBody() {
     if (_isLoadingTracks) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.brilliantOrange,
-        ),
+        child: CircularProgressIndicator(color: AppColors.brilliantOrange),
       );
     }
 
@@ -295,11 +289,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_outline,
-                color: AppColors.anger,
-                size: 42,
-              ),
+              const Icon(Icons.error_outline, color: AppColors.anger, size: 42),
               const SizedBox(height: 12),
               const Text(
                 'Failed to load playback tracks',
@@ -313,10 +303,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
               Text(
                 _loadTracksError!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.white60,
-                  height: 1.45,
-                ),
+                style: const TextStyle(color: AppColors.white60, height: 1.45),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -369,7 +356,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    USE_PLAYBACK_API_MODE
+                    usePlayBackApiMode
                         ? 'Tap any track below to test the engine in API mode'
                         : 'Tap any track below to test the engine in mock mode',
                     style: const TextStyle(
@@ -408,10 +395,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
-      body: SafeArea(
-        bottom: false,
-        child: _buildBody(),
-      ),
+      body: SafeArea(bottom: false, child: _buildBody()),
     );
   }
 }
@@ -464,9 +448,9 @@ class _ModeCard extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              USE_PLAYBACK_API_MODE
-                  ? 'Current mode: API mode\nTrack ID: $PLAYBACK_API_TEST_TRACK_ID'
-                  : 'Current mode: Mock mode\nToggle USE_PLAYBACK_API_MODE to switch.',
+              usePlayBackApiMode
+                  ? 'Current mode: API mode\nTrack ID: $playbackApiTestTrackId'
+                  : 'Current mode: Mock mode\nToggle usePlayBackApiMode to switch.',
               style: const TextStyle(
                 color: AppColors.whiteSmoke,
                 fontSize: 14,
@@ -497,7 +481,7 @@ class _InstructionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> steps = USE_PLAYBACK_API_MODE
+    final List<String> steps = usePlayBackApiMode
         ? const [
             '1. The first track comes from the backend API and maps enableAppPlayback into playable or blocked.',
             '2. The preview and blocked demo tracks remain available so you can still test preview-only behavior even though the current API does not expose preview metadata.',
@@ -535,10 +519,7 @@ class _InstructionsCard extends StatelessWidget {
           for (int index = 0; index < steps.length; index++) ...[
             Text(
               steps[index],
-              style: const TextStyle(
-                color: AppColors.white60,
-                height: 1.5,
-              ),
+              style: const TextStyle(color: AppColors.white60, height: 1.5),
             ),
             if (index != steps.length - 1) const SizedBox(height: 8),
           ],

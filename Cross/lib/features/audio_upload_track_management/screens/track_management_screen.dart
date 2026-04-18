@@ -17,12 +17,10 @@ class TrackManagementScreen extends StatefulWidget {
   const TrackManagementScreen({super.key});
 
   @override
-  State<TrackManagementScreen> createState() =>
-      _TrackManagementScreenState();
+  State<TrackManagementScreen> createState() => _TrackManagementScreenState();
 }
 
-class _TrackManagementScreenState
-    extends State<TrackManagementScreen> {
+class _TrackManagementScreenState extends State<TrackManagementScreen> {
   final TrackApiService _apiService = TrackApiService();
 
   List<Track> _tracks = [];
@@ -50,8 +48,7 @@ class _TrackManagementScreenState
       _errorMessage = null;
     });
 
-    final result = await _apiService.getAllTracksPaginated(
-        page: 1, limit: 20);
+    final result = await _apiService.getAllTracksPaginated(page: 1, limit: 20);
 
     setState(() {
       _isLoading = false;
@@ -74,7 +71,9 @@ class _TrackManagementScreenState
     setState(() => _isLoadingMore = true);
 
     final result = await _apiService.getAllTracksPaginated(
-        page: _currentPage + 1, limit: 20);
+      page: _currentPage + 1,
+      limit: 20,
+    );
 
     setState(() {
       _isLoadingMore = false;
@@ -121,29 +120,44 @@ class _TrackManagementScreenState
           _tracks[idx] = _rebuildTrack(_tracks[idx], wasPrivate);
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(result.$2.toString()),
-        backgroundColor: Colors.red[800],
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.$2.toString()),
+          backgroundColor: Colors.red[800],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(nowPrivate
-            ? 'Track set to private'
-            : 'Track set to public'),
-        backgroundColor: const Color(0xFF2A2A2A),
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            nowPrivate ? 'Track set to private' : 'Track set to public',
+          ),
+          backgroundColor: const Color(0xFF2A2A2A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   // Rebuild Track with flipped isPrivate (Track fields are final)
   Track _rebuildTrack(Track t, bool isPrivate) => Track(
-        t.id, t.title, t.permalink, t.mainArtists,
-        t.genre, t.tags, t.description, isPrivate,
-        t.audioLink, t.imageUrl, t.numLikes, t.numPlays,
-        t.numReposts, t.numComments, t.releaseDate,
-      );
+    t.id,
+    t.title,
+    t.permalink,
+    t.mainArtists,
+    t.genre,
+    t.tags,
+    t.description,
+    isPrivate,
+    t.audioLink,
+    t.imageUrl,
+    t.numLikes,
+    t.numPlays,
+    t.numReposts,
+    t.numComments,
+    t.releaseDate,
+  );
 
   // ─────────────────────────────────────────────
   // Delete — optimistic
@@ -153,8 +167,10 @@ class _TrackManagementScreenState
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Delete track',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Delete track',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Delete "${track.title}"? This cannot be undone.',
           style: const TextStyle(color: Colors.grey),
@@ -162,13 +178,11 @@ class _TrackManagementScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.grey)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -178,13 +192,10 @@ class _TrackManagementScreenState
 
     // Optimistic removal
     final removed = track;
-    final removedIdx =
-        _tracks.indexWhere((t) => t.id == track.id);
-    setState(
-        () => _tracks.removeWhere((t) => t.id == track.id));
+    final removedIdx = _tracks.indexWhere((t) => t.id == track.id);
+    setState(() => _tracks.removeWhere((t) => t.id == track.id));
 
-    final result =
-        await _apiService.deleteTrack(trackId: track.id);
+    final result = await _apiService.deleteTrack(trackId: track.id);
 
     if (!mounted) return;
 
@@ -197,11 +208,13 @@ class _TrackManagementScreenState
           _tracks.add(removed);
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(result.$2.toString()),
-        backgroundColor: Colors.red[800],
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.$2.toString()),
+          backgroundColor: Colors.red[800],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -223,39 +236,36 @@ class _TrackManagementScreenState
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A0A0A),
         elevation: 0,
-        title: const Text('Your Tracks',
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Your Tracks',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.cloud_upload_outlined,
-                color: Color(0xFFFF5500)),
-            onPressed: () => Navigator.pushNamed(
-                context, AudioUploadRoutes.uploadTrack),
+            icon: const Icon(
+              Icons.cloud_upload_outlined,
+              color: Color(0xFFFF5500),
+            ),
+            onPressed: () =>
+                Navigator.pushNamed(context, AudioUploadRoutes.uploadTrack),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh,
-                color: Colors.white54),
+            icon: const Icon(Icons.refresh, color: Colors.white54),
             onPressed: _loadTracks,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                  color: Colors.orange))
+          ? const Center(child: CircularProgressIndicator(color: Colors.orange))
           : _errorMessage != null
-              ? _errorState()
-              : RefreshIndicator(
-                  onRefresh: _loadTracks,
-                  color: Colors.orange,
-                  backgroundColor: const Color(0xFF1A1A1A),
-                  child: _tracks.isEmpty
-                      ? _emptyState()
-                      : _trackList(),
-                ),
+          ? _errorState()
+          : RefreshIndicator(
+              onRefresh: _loadTracks,
+              color: Colors.orange,
+              backgroundColor: const Color(0xFF1A1A1A),
+              child: _tracks.isEmpty ? _emptyState() : _trackList(),
+            ),
     );
   }
 
@@ -263,7 +273,7 @@ class _TrackManagementScreenState
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _tracks.length + (_hasNext ? 1 : 0),
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         // Load more row
         if (index == _tracks.length) {
@@ -272,15 +282,18 @@ class _TrackManagementScreenState
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: CircularProgressIndicator(
-                        color: Colors.orange, strokeWidth: 2),
+                      color: Colors.orange,
+                      strokeWidth: 2,
+                    ),
                   ),
                 )
               : Center(
                   child: TextButton(
                     onPressed: _loadMore,
-                    child: const Text('Load more',
-                        style: TextStyle(
-                            color: Colors.orange)),
+                    child: const Text(
+                      'Load more',
+                      style: TextStyle(color: Colors.orange),
+                    ),
                   ),
                 );
         }
@@ -295,117 +308,140 @@ class _TrackManagementScreenState
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white10),
           ),
-          child: Row(children: [
-            // Thumbnail
-            Container(
-              width: 50, height: 50,
-              decoration: BoxDecoration(
+          child: Row(
+            children: [
+              // Thumbnail
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
                   color: const Color(0xFF1C1C1C),
-                  borderRadius: BorderRadius.circular(8)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: track.imageUrl != null
-                    ? Image.network(track.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.music_note,
-                                color: Colors.white54))
-                    : const Icon(Icons.music_note,
-                        color: Colors.white54),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: track.imageUrl != null
+                      ? Image.network(
+                          track.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.music_note,
+                            color: Colors.white54,
+                          ),
+                        )
+                      : const Icon(Icons.music_note, color: Colors.white54),
+                ),
               ),
-            ),
-            const SizedBox(width: 14),
+              const SizedBox(width: 14),
 
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  Text(track.title,
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      track.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
-                  Row(children: [
-                    Icon(
-                        track.isPrivate
-                            ? Icons.lock_outline
-                            : Icons.public,
-                        color: const Color(0xFF9A9A9A),
-                        size: 12),
-                    const SizedBox(width: 4),
-                    Text(
-                        track.isPrivate
-                            ? 'Private'
-                            : 'Public',
-                        style: const TextStyle(
-                            color: Color(0xFF9A9A9A),
-                            fontSize: 12)),
-                    if (track.numPlays > 0) ...[
-                      const Text(' · ',
-                          style: TextStyle(
-                              color: Color(0xFF9A9A9A),
-                              fontSize: 12)),
-                      Text('${_fmt(track.numPlays)} plays',
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          track.isPrivate ? Icons.lock_outline : Icons.public,
+                          color: const Color(0xFF9A9A9A),
+                          size: 12,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          track.isPrivate ? 'Private' : 'Public',
                           style: const TextStyle(
+                            color: Color(0xFF9A9A9A),
+                            fontSize: 12,
+                          ),
+                        ),
+                        if (track.numPlays > 0) ...[
+                          const Text(
+                            ' · ',
+                            style: TextStyle(
                               color: Color(0xFF9A9A9A),
-                              fontSize: 12)),
-                    ],
-                  ]),
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            '${_fmt(track.numPlays)} plays',
+                            style: const TextStyle(
+                              color: Color(0xFF9A9A9A),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Visibility toggle
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (toggling)
+                    const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.orange,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  else
+                    Switch(
+                      value: !track.isPrivate,
+                      activeThumbColor: const Color(0xFFFF5500),
+                      onChanged: (_) => _toggleVisibility(track),
+                    ),
+                  Text(
+                    track.isPrivate ? 'Private' : 'Public',
+                    style: const TextStyle(
+                      color: Color(0xFF9A9A9A),
+                      fontSize: 10,
+                    ),
+                  ),
                 ],
               ),
-            ),
 
-            // Visibility toggle
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (toggling)
-                  const SizedBox(
-                    width: 24, height: 24,
-                    child: CircularProgressIndicator(
-                        color: Colors.orange, strokeWidth: 2),
-                  )
-                else
-                  Switch(
-                    value: !track.isPrivate,
-                    activeColor: const Color(0xFFFF5500),
-                    onChanged: (_) => _toggleVisibility(track),
-                  ),
-                Text(track.isPrivate ? 'Private' : 'Public',
-                    style: const TextStyle(
-                        color: Color(0xFF9A9A9A),
-                        fontSize: 10)),
-              ],
-            ),
-
-            // More options
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert,
-                  color: Color(0xFF9A9A9A), size: 20),
-              color: const Color(0xFF1A1A1A),
-              onSelected: (v) {
-                if (v == 'delete') _deleteTrack(track);
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(children: [
-                    Icon(Icons.delete_outline,
-                        color: Colors.red, size: 18),
-                    SizedBox(width: 8),
-                    Text('Delete',
-                        style: TextStyle(
-                            color: Colors.red)),
-                  ]),
+              // More options
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Color(0xFF9A9A9A),
+                  size: 20,
                 ),
-              ],
-            ),
-          ]),
+                color: const Color(0xFF1A1A1A),
+                onSelected: (v) {
+                  if (v == 'delete') _deleteTrack(track);
+                },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                        SizedBox(width: 8),
+                        Text('Delete', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );
@@ -418,20 +454,22 @@ class _TrackManagementScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off,
-                color: Colors.grey[700], size: 60),
+            Icon(Icons.cloud_off, color: Colors.grey[700], size: 60),
             const SizedBox(height: 16),
-            Text(_errorMessage!,
-                style: TextStyle(color: Colors.grey[400]),
-                textAlign: TextAlign.center),
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.grey[400]),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _loadTracks,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white),
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
@@ -444,21 +482,22 @@ class _TrackManagementScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_upload_outlined,
-              color: Colors.grey[700], size: 60),
+          Icon(Icons.cloud_upload_outlined, color: Colors.grey[700], size: 60),
           const SizedBox(height: 16),
-          Text('No tracks yet',
-              style: TextStyle(
-                  color: Colors.grey[500], fontSize: 16)),
+          Text(
+            'No tracks yet',
+            style: TextStyle(color: Colors.grey[500], fontSize: 16),
+          ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(
-                context, AudioUploadRoutes.uploadTrack),
+            onPressed: () =>
+                Navigator.pushNamed(context, AudioUploadRoutes.uploadTrack),
             icon: const Icon(Icons.cloud_upload_outlined),
             label: const Text('Upload first track'),
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white),
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),

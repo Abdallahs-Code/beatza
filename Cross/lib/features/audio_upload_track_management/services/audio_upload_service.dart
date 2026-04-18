@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart';
 import '../models/track_model.dart';
 
 class AudioUploadService {
-  static ValueNotifier<List<TrackModel>> globalMockTracksNotifier = ValueNotifier<List<TrackModel>>([]);
+  static ValueNotifier<List<TrackModel>> globalMockTracksNotifier =
+      ValueNotifier<List<TrackModel>>([]);
   Future<PlatformFile?> pickAudioFile() async {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -30,18 +31,31 @@ class AudioUploadService {
     }
   }
 
-  Future<bool> saveTrackData(PlatformFile file, Map<String, dynamic> metadata) async {
+  Future<bool> saveTrackData(
+    PlatformFile file,
+    Map<String, dynamic> metadata,
+  ) async {
     await Future.delayed(const Duration(seconds: 1));
 
     TrackVisibility visibility = TrackVisibility.public;
-    if (metadata['visibility'] == 'private') visibility = TrackVisibility.private;
-    if (metadata['visibility'] == 'unlisted') visibility = TrackVisibility.unlisted;
-
+    if (metadata['visibility'] == 'private'){
+      visibility = TrackVisibility.private;
+    }
+      
+    if (metadata['visibility'] == 'unlisted'){
+      visibility = TrackVisibility.unlisted;
+    }
+      
     final newTrack = TrackModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: metadata['title'] != null && metadata['title'].toString().isNotEmpty ? metadata['title'] : file.name,
+      title:
+          metadata['title'] != null && metadata['title'].toString().isNotEmpty
+          ? metadata['title']
+          : file.name,
       genre: metadata['genre'] ?? '',
-      descriptiveTags: metadata['tags'] != null ? metadata['tags'].toString().split(',') : [],
+      descriptiveTags: metadata['tags'] != null
+          ? metadata['tags'].toString().split(',')
+          : [],
       releaseDate: DateTime.now(),
       fileFormat: file.extension?.toUpperCase() ?? 'AUDIO',
       audioUrl: file.path ?? '',

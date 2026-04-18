@@ -26,19 +26,20 @@ class AppOverlayVisibilityState {
   }) {
     return AppOverlayVisibilityState(
       isPopupRouteVisible: isPopupRouteVisible ?? this.isPopupRouteVisible,
-      currentRouteName:
-          clearCurrentRouteName ? null : (currentRouteName ?? this.currentRouteName),
+      currentRouteName: clearCurrentRouteName
+          ? null
+          : (currentRouteName ?? this.currentRouteName),
     );
   }
 }
 
 final ValueNotifier<AppOverlayVisibilityState> globalOverlayVisibility =
     ValueNotifier<AppOverlayVisibilityState>(
-  const AppOverlayVisibilityState(
-    isPopupRouteVisible: false,
-    currentRouteName: '/',
-  ),
-);
+      const AppOverlayVisibilityState(
+        isPopupRouteVisible: false,
+        currentRouteName: '/',
+      ),
+    );
 
 class AppOverlayRouteObserver extends NavigatorObserver {
   int _popupRouteDepth = 0;
@@ -65,8 +66,14 @@ class AppOverlayRouteObserver extends NavigatorObserver {
     return null;
   }
 
-  void _updateCurrentRouteFrom(Route<dynamic>? route, Route<dynamic>? fallbackRoute) {
-    _currentRouteName = _readRouteName(route) ?? _readRouteName(fallbackRoute) ?? _currentRouteName;
+  void _updateCurrentRouteFrom(
+    Route<dynamic>? route,
+    Route<dynamic>? fallbackRoute,
+  ) {
+    _currentRouteName =
+        _readRouteName(route) ??
+        _readRouteName(fallbackRoute) ??
+        _currentRouteName;
     _syncNotifier();
   }
 

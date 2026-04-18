@@ -11,11 +11,9 @@ class LibraryHistoryApiService {
   final http.Client _client;
   late final String _servicePath;
 
-  LibraryHistoryApiService({
-    ApiServices? apiServices,
-    http.Client? client,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client() {
+  LibraryHistoryApiService({ApiServices? apiServices, http.Client? client})
+    : _apiServices = apiServices ?? ApiServices(),
+      _client = client ?? http.Client() {
     _servicePath = '${_apiServices.baseUrl}/api/playback/v1';
   }
 
@@ -147,7 +145,6 @@ class LibraryHistoryApiService {
   //      (authenticated) to check whether the current user reposted it.
   //   3. Return tracks whose repost status is { "reposted": true }.
   //
-  // TODO: Replace this with GET /api/public/tracks/v1/reposted/{userId}
   //       once the backend endpoint is available.
   // ─────────────────────────────────────────────────────────────────────────
   Future<List<PlaybackTrackModel>> getUserRepostedTracks(
@@ -156,14 +153,12 @@ class LibraryHistoryApiService {
   ) async {
     try {
       // Step 1 — collect every track in the database (paginated).
-      final List<PlaybackTrackModel> allTracks =
-          await _fetchAllPublicTracks();
+      final List<PlaybackTrackModel> allTracks = await _fetchAllPublicTracks();
       if (allTracks.isEmpty) return [];
 
       // Step 2 — check repost status for each track in parallel.
       final List<PlaybackTrackModel?> results = await Future.wait(
-        allTracks
-            .map((t) => _checkRepostStatus(t, accessToken)),
+        allTracks.map((t) => _checkRepostStatus(t, accessToken)),
       );
 
       // Step 3 — keep only tracks the user has reposted.
@@ -182,10 +177,7 @@ class LibraryHistoryApiService {
       try {
         final uri = Uri.parse(
           '${_apiServices.baseUrl}/api/public/tracks/v1/',
-        ).replace(queryParameters: {
-          'page': page.toString(),
-          'limit': '50',
-        });
+        ).replace(queryParameters: {'page': page.toString(), 'limit': '50'});
 
         final response = await _client.get(
           uri,
@@ -198,16 +190,16 @@ class LibraryHistoryApiService {
         if (response.statusCode < 200 || response.statusCode >= 300) break;
 
         final dynamic decoded = jsonDecode(response.body);
-        final dynamic data =
-            decoded is Map<String, dynamic> ? decoded['data'] : null;
+        final dynamic data = decoded is Map<String, dynamic>
+            ? decoded['data']
+            : null;
         if (data == null) break;
 
-        final List<dynamic> tracks =
-            (data['tracks'] as List<dynamic>?) ?? [];
+        final List<dynamic> tracks = (data['tracks'] as List<dynamic>?) ?? [];
         all.addAll(
-          tracks
-              .whereType<Map<String, dynamic>>()
-              .map(PlaybackTrackModel.fromApiJson),
+          tracks.whereType<Map<String, dynamic>>().map(
+            PlaybackTrackModel.fromApiJson,
+          ),
         );
 
         hasNext = data['paginationInfo']?['hasNext'] == true;
@@ -244,7 +236,4 @@ class LibraryHistoryApiService {
     } catch (_) {}
     return null;
   }
-
 }
-
-

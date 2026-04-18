@@ -40,7 +40,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             onDetect: (capture) {
               // Only handle first valid scan
               if (_isProcessing) return;
-              
+
               final barcodes = capture.barcodes;
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
@@ -50,7 +50,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               }
             },
           ),
-          
+
           // Scanning frame overlay
           Positioned.fill(
             child: IgnorePointer(
@@ -66,12 +66,12 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               ),
             ),
           ),
-          
+
           // Processing status overlay
           if (_isProcessing)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -91,16 +91,16 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                           color: Colors.red,
                           size: 80,
                         ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Status message
                       Text(
-                        _status == 'approving' 
-                          ? 'Approving login...'
-                          : _status == 'success'
-                          ? '✓ Login approved!'
-                          : 'Approval failed',
+                        _status == 'approving'
+                            ? 'Approving login...'
+                            : _status == 'success'
+                            ? '✓ Login approved!'
+                            : 'Approval failed',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -108,7 +108,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      
+
                       // Subtext for success
                       if (_status == 'success') ...[
                         const SizedBox(height: 8),
@@ -117,7 +117,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                           style: TextStyle(color: Colors.white70),
                         ),
                       ],
-                      
+
                       // Retry button for error
                       if (_status == 'error') ...[
                         const SizedBox(height: 24),
@@ -160,10 +160,10 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
       if (success && mounted) {
         setState(() => _status = 'success');
-        
+
         // Show success briefly, then return
         await Future.delayed(const Duration(seconds: 2));
-        
+
         if (mounted) {
           Navigator.pop(context); // Return to Library screen
           ScaffoldMessenger.of(context).showSnackBar(

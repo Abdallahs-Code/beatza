@@ -11,11 +11,9 @@ class PlaybackTrackApiService {
   final http.Client _client;
   final FlutterSecureStorage _storage;
 
-  PlaybackTrackApiService({
-    http.Client? client,
-    FlutterSecureStorage? storage,
-  })  : _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage();
+  PlaybackTrackApiService({http.Client? client, FlutterSecureStorage? storage})
+    : _client = client ?? http.Client(),
+      _storage = storage ?? const FlutterSecureStorage();
 
   String get _baseUrl => ApiServices().baseUrl;
 
@@ -27,7 +25,6 @@ class PlaybackTrackApiService {
     }
 
     final String url = '$_baseUrl/api/public/tracks/v1/$trackId';
-    print('Playback track URL: $url');
 
     final response = await _client.get(
       Uri.parse(url),
@@ -37,8 +34,6 @@ class PlaybackTrackApiService {
         'Authorization': 'Bearer $accessToken',
       },
     );
-
-    print('Playback track response: ${response.body}');
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(

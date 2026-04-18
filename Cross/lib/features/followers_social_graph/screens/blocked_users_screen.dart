@@ -86,8 +86,9 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
   }
 
   void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -101,42 +102,40 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(_errorMessage!),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _loadBlockedUsers,
-                        child: const Text('Retry'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_errorMessage!),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _loadBlockedUsers,
+                    child: const Text('Retry'),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadBlockedUsers,
-                  child: _blockedUsers.isEmpty
-                      ? const Center(
-                          child: Text('You have not blocked anyone.'),
-                        )
-                      : ListView.separated(
-                          itemCount: _blockedUsers.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final user = _blockedUsers[index];
-                            return UserTile(
-                              follower: user,
-                              currentUserId: _currentUserId,
-                              onFollowTap: null,
-                              showBlockOption: false,
-                              showUnblockOption: true,
-                              onUnblockTap: () => _unblockUser(user.userId),
-                            );
-                          },
-                        ),
-                ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadBlockedUsers,
+              child: _blockedUsers.isEmpty
+                  ? const Center(child: Text('You have not blocked anyone.'))
+                  : ListView.separated(
+                      itemCount: _blockedUsers.length,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final user = _blockedUsers[index];
+                        return UserTile(
+                          follower: user,
+                          currentUserId: _currentUserId,
+                          onFollowTap: null,
+                          showBlockOption: false,
+                          showUnblockOption: true,
+                          onUnblockTap: () => _unblockUser(user.userId),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 }

@@ -47,7 +47,10 @@ class PlaybackDebugTrackTile extends StatelessWidget {
         border: Border.all(color: AppColors.borderDark),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 10,
+        ),
         leading: Container(
           width: 52,
           height: 52,
@@ -59,10 +62,7 @@ class PlaybackDebugTrackTile extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
           ),
-          child: Icon(
-            _buildLeadingIcon(),
-            color: AppColors.whiteSmoke,
-          ),
+          child: Icon(_buildLeadingIcon(), color: AppColors.whiteSmoke),
         ),
         title: Text(
           track.title,
@@ -83,10 +83,7 @@ class PlaybackDebugTrackTile extends StatelessWidget {
                 track.artistName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.white60,
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: AppColors.white60, fontSize: 13),
               ),
               const SizedBox(height: 4),
               Text(

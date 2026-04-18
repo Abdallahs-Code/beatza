@@ -66,9 +66,9 @@ class RepostBottomSheet extends StatefulWidget {
     required this.currentRepostCount,
     required this.onRepostToggled,
   }) : assert(
-          (trackId != null) != (playlistId != null),
-          'Provide exactly one of trackId or playlistId.',
-        );
+         (trackId != null) != (playlistId != null),
+         'Provide exactly one of trackId or playlistId.',
+       );
 
   @override
   State<RepostBottomSheet> createState() => _RepostBottomSheetState();
@@ -174,7 +174,8 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
 
       if (responseData is Map<String, dynamic>) {
         isNowReposted = responseData['reposted'] as bool? ?? !_alreadyReposted;
-        newCount = responseData['numberOfReposts'] as int? ??
+        newCount =
+            responseData['numberOfReposts'] as int? ??
             widget.currentRepostCount;
       } else {
         // PATCH caption update — repost state unchanged, count unchanged.
@@ -202,9 +203,9 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
   }
 
   void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -237,8 +238,10 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
 
               // ── Header row: × + title ────────
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     GestureDetector(
@@ -288,24 +291,27 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Add a caption (optional)',
-                                hintStyle:
-                                    TextStyle(color: Colors.grey[600]),
-                                counterStyle:
-                                    TextStyle(color: Colors.grey[600]),
+                                hintStyle: TextStyle(color: Colors.grey[600]),
+                                counterStyle: TextStyle(
+                                  color: Colors.grey[600],
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                      color: Colors.grey[800]!),
+                                    color: Colors.grey[800]!,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                      color: Colors.grey[800]!),
+                                    color: Colors.grey[800]!,
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: const BorderSide(
-                                      color: Colors.orange),
+                                    color: Colors.orange,
+                                  ),
                                 ),
                                 filled: true,
                                 fillColor: const Color(0xFF252525),
@@ -333,7 +339,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                                     width: 50,
                                     height: 50,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
+                                    errorBuilder: (_, _, _) =>
                                         _placeholderThumb(),
                                   )
                                 : _placeholderThumb(),
@@ -385,8 +391,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                           foregroundColor: _alreadyReposted
                               ? Colors.white
                               : Colors.black,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -402,9 +407,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                                 ),
                               )
                             : Text(
-                                _alreadyReposted
-                                    ? 'Remove Repost'
-                                    : 'Repost',
+                                _alreadyReposted ? 'Remove Repost' : 'Repost',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,

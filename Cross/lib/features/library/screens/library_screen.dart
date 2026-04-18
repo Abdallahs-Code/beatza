@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 // Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
-import 'package:cross_team5/core/widgets/common_widgets.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/library/screens/listening_history_screen.dart';
@@ -13,9 +12,9 @@ import 'package:cross_team5/features/library/services/library_history_api_servic
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
-import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
-import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart' hide YourUploadsScreen;
+//import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
+//import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 // Relative imports
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
@@ -31,7 +30,8 @@ class LibraryScreen extends StatefulWidget {
 class _LibraryScreenState extends State<LibraryScreen> {
   final AuthApiService _authApiService = AuthApiService();
   final UserProfileService _userProfileService = UserProfileService();
-  final LibraryHistoryApiService _historyApiService = LibraryHistoryApiService();
+  final LibraryHistoryApiService _historyApiService =
+      LibraryHistoryApiService();
 
   late Future<UserProfileModel?> _profileFuture;
 
@@ -97,8 +97,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         throw Exception('No access token found.');
       }
 
-      final List<PlaybackTrackModel> tracks =
-          await _historyApiService.getUserHistoryTracks(token);
+      final List<PlaybackTrackModel> tracks = await _historyApiService
+          .getUserHistoryTracks(token);
 
       if (!mounted) {
         return;
@@ -125,10 +125,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final token = await _authApiService.getStoredAccessToken();
       final userId = await _authApiService.getStoredUserId();
 
-      final safeToken =
-          (token == null || token.trim().isEmpty) ? 'mock_token' : token;
-      final safeUserId =
-          (userId == null || userId.trim().isEmpty) ? 'mock_user_id' : userId;
+      final safeToken = (token == null || token.trim().isEmpty)
+          ? 'mock_token'
+          : token;
+      final safeUserId = (userId == null || userId.trim().isEmpty)
+          ? 'mock_user_id'
+          : userId;
 
       if (!context.mounted) {
         return;
@@ -149,9 +151,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
       });
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to open profile: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to open profile: $e')));
       }
     }
   }
@@ -159,13 +161,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Future<void> _openListeningHistoryPage() async {
     final List<PlaybackTrackModel>? updatedTracks =
         await Navigator.push<List<PlaybackTrackModel>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ListeningHistoryScreen(
-          initialTracks: _historyTracks,
-        ),
-      ),
-    );
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ListeningHistoryScreen(initialTracks: _historyTracks),
+          ),
+        );
 
     if (updatedTracks != null && mounted) {
       setState(() {
@@ -186,9 +187,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const RecentlyPlayedScreen(
-          items: _mockRecentlyPlayedItems,
-        ),
+        builder: (context) =>
+            const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
       ),
     );
   }
@@ -199,7 +199,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: _LibraryEmptyStateCard(
           title: 'No recently played items yet',
-          subtitle: 'Profiles and playlists you interact with will show up here.',
+          subtitle:
+              'Profiles and playlists you interact with will show up here.',
         ),
       );
     }
@@ -263,10 +264,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Please try again.',
-                style: TextStyle(
-                  color: AppColors.white60,
-                  height: 1.45,
-                ),
+                style: TextStyle(color: AppColors.white60, height: 1.45),
               ),
               const SizedBox(height: 14),
               ElevatedButton(
@@ -293,16 +291,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
     }
 
-    final List<PlaybackTrackModel> previewTracks =
-        _historyTracks.take(4).toList();
+    final List<PlaybackTrackModel> previewTracks = _historyTracks
+        .take(4)
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: List.generate(previewTracks.length, (index) {
           return Padding(
-            padding:
-                EdgeInsets.only(bottom: index == previewTracks.length - 1 ? 0 : 16),
+            padding: EdgeInsets.only(
+              bottom: index == previewTracks.length - 1 ? 0 : 16,
+            ),
             child: HistoryTrackTile(
               track: previewTracks[index],
               onTap: () => _playHistoryTrack(previewTracks[index], index),
@@ -420,10 +420,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         ),
                         child: CircleAvatar(
                           radius: 20,
-                          backgroundColor:
-                              Colors.white.withValues(alpha: 0.08),
-                          backgroundImage:
-                              imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                          backgroundColor: Colors.white.withValues(alpha: 0.08),
+                          backgroundImage: imageUrl.isNotEmpty
+                              ? NetworkImage(imageUrl)
+                              : null,
                           child: imageUrl.isEmpty
                               ? const Icon(
                                   Icons.person,
@@ -516,10 +516,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _LibraryEmptyStateCard({
-    required this.title,
-    required this.subtitle,
-  });
+  const _LibraryEmptyStateCard({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {

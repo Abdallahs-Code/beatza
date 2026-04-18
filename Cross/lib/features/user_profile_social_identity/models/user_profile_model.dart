@@ -58,27 +58,27 @@ class UserProfileModel {
       city: (json['city'] ?? '').toString(),
       country: (json['country'] ?? '').toString(),
       links:
-      (json['links'] as List?)
-          ?.map(
-            (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
-      )
-          .toList() ??
+          (json['links'] as List?)
+              ?.map(
+                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList() ??
           const [],
       bannerLinks:
-      (json['bannerLinks'] as List?)
-          ?.map(
-            (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
-      )
-          .toList() ??
+          (json['bannerLinks'] as List?)
+              ?.map(
+                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList() ??
           const [],
       supportLink: (json['supportLink'] ?? '').toString(),
       role: _normalizeRole((json['role'] ?? '').toString()),
       isPaid: json['isPaid'] == true,
       favoriteGenres:
-      (json['favoriteGenres'] as List?)
-          ?.map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty)
-          .toList() ??
+          (json['favoriteGenres'] as List?)
+              ?.map((e) => e.toString().trim())
+              .where((e) => e.isNotEmpty)
+              .toList() ??
           const [],
       followersCount: _readInt(json['followersCount']),
       followingsCount: _readInt(
@@ -114,61 +114,61 @@ class UserProfileModel {
     };
   }
 
- Map<String, dynamic> toUpdatePayload() {
-  final Map<String, dynamic> payload = {};
+  Map<String, dynamic> toUpdatePayload() {
+    final Map<String, dynamic> payload = {};
 
-  payload['displayName'] = displayName.trim();
-  payload['isPrivate'] = isPrivate;
-  payload['favoriteGenres'] = favoriteGenres;
+    payload['displayName'] = displayName.trim();
+    payload['isPrivate'] = isPrivate;
+    payload['favoriteGenres'] = favoriteGenres;
 
-  if (firstName.trim().isNotEmpty) {
-    payload['firstName'] = firstName.trim();
-  }
-
-  if (lastName.trim().isNotEmpty) {
-    payload['lastName'] = lastName.trim();
-  }
-
-  if (profileUrl.trim().isNotEmpty) {
-    final normalizedProfileUrl = _normalizeUrl(profileUrl);
-    if (normalizedProfileUrl != null) {
-      payload['profileLink'] = normalizedProfileUrl;
+    if (firstName.trim().isNotEmpty) {
+      payload['firstName'] = firstName.trim();
     }
+
+    if (lastName.trim().isNotEmpty) {
+      payload['lastName'] = lastName.trim();
+    }
+
+    if (profileUrl.trim().isNotEmpty) {
+      final normalizedProfileUrl = _normalizeUrl(profileUrl);
+      if (normalizedProfileUrl != null) {
+        payload['profileLink'] = normalizedProfileUrl;
+      }
+    }
+
+    if (bio.trim().isNotEmpty) {
+      payload['bio'] = bio.trim();
+    }
+
+    if (city.trim().isNotEmpty) {
+      payload['city'] = city.trim();
+    }
+
+    if (country.trim().isNotEmpty) {
+      payload['country'] = country.trim();
+    }
+
+    final validLinks = links
+        .where((e) => e.link.trim().isNotEmpty)
+        .map((e) => e.toJson())
+        .toList();
+    payload['links'] = validLinks;
+
+    final validBannerLinks = bannerLinks
+        .where((e) => e.link.trim().isNotEmpty)
+        .map((e) => e.toJson())
+        .toList();
+    if (validBannerLinks.isNotEmpty) {
+      payload['bannerLinks'] = validBannerLinks;
+    }
+
+    final normalizedSupportLink = _normalizeUrl(supportLink);
+    if (normalizedSupportLink != null) {
+      payload['supportLink'] = normalizedSupportLink;
+    }
+
+    return payload;
   }
-
-  if (bio.trim().isNotEmpty) {
-    payload['bio'] = bio.trim();
-  }
-
-  if (city.trim().isNotEmpty) {
-    payload['city'] = city.trim();
-  }
-
-  if (country.trim().isNotEmpty) {
-    payload['country'] = country.trim();
-  }
-
-  final validLinks = links
-      .where((e) => e.link.trim().isNotEmpty)
-      .map((e) => e.toJson())
-      .toList();
-  payload['links'] = validLinks;
-
-  final validBannerLinks = bannerLinks
-      .where((e) => e.link.trim().isNotEmpty)
-      .map((e) => e.toJson())
-      .toList();
-  if (validBannerLinks.isNotEmpty) {
-    payload['bannerLinks'] = validBannerLinks;
-  }
-
-  final normalizedSupportLink = _normalizeUrl(supportLink);
-  if (normalizedSupportLink != null) {
-    payload['supportLink'] = normalizedSupportLink;
-  }
-
-  return payload;
-}
 
   UserProfileModel copyWith({
     String? userId,
@@ -238,23 +238,23 @@ class UserProfileModel {
     return bio.trim().isEmpty ? 'No bio added yet.' : bio.trim();
   }
 
- List<ProfileLinkModel> get visibleLinks {
-  final combined = [...links, ...bannerLinks];
+  List<ProfileLinkModel> get visibleLinks {
+    final combined = [...links, ...bannerLinks];
 
-  final seen = <String>{};
-  final result = <ProfileLinkModel>[];
+    final seen = <String>{};
+    final result = <ProfileLinkModel>[];
 
-  for (final item in combined) {
-    final normalized = item.normalizedUrl.trim();
-    if (normalized.isEmpty) continue;
-    if (seen.contains(normalized)) continue;
+    for (final item in combined) {
+      final normalized = item.normalizedUrl.trim();
+      if (normalized.isEmpty) continue;
+      if (seen.contains(normalized)) continue;
 
-    seen.add(normalized);
-    result.add(item);
+      seen.add(normalized);
+      result.add(item);
+    }
+
+    return result;
   }
-
-  return result;
-}
 
   static int _readInt(dynamic value) {
     if (value is int) return value;
@@ -275,7 +275,7 @@ class UserProfileModel {
     if (trimmed.isEmpty) return null;
 
     final normalized =
-    trimmed.startsWith('http://') || trimmed.startsWith('https://')
+        trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 

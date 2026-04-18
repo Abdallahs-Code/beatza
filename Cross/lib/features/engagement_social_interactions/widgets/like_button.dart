@@ -50,10 +50,8 @@ class LikeButton extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) => ScaleTransition(
-              scale: animation,
-              child: child,
-            ),
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
             child: Icon(
               isLiked ? Icons.favorite : Icons.favorite_border,
               key: ValueKey(isLiked),

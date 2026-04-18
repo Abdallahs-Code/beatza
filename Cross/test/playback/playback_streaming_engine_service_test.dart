@@ -134,33 +134,42 @@ void main() {
       service.dispose();
     });
 
-    test('plays a playable track and updates state from player streams', () async {
-      await service.playTrack(playableTrack);
+    test(
+      'plays a playable track and updates state from player streams',
+      () async {
+        await service.playTrack(playableTrack);
 
-      expect(service.state.currentTrack?.id, '1');
-      expect(service.state.status, PlaybackStatus.loading);
-      expect(fakeAudioPlayerClient.playCallCount, 1);
-      expect(fakeAudioPlayerClient.playedTrack?.playbackUrl, playableTrack.audioUrl);
+        expect(service.state.currentTrack?.id, '1');
+        expect(service.state.status, PlaybackStatus.loading);
+        expect(fakeAudioPlayerClient.playCallCount, 1);
+        expect(
+          fakeAudioPlayerClient.playedTrack?.playbackUrl,
+          playableTrack.audioUrl,
+        );
 
-      fakeAudioPlayerClient.emitDuration(const Duration(minutes: 4));
-      fakeAudioPlayerClient.emitPlayerState(PlayerState.playing);
-      fakeAudioPlayerClient.emitPosition(const Duration(seconds: 12));
+        fakeAudioPlayerClient.emitDuration(const Duration(minutes: 4));
+        fakeAudioPlayerClient.emitPlayerState(PlayerState.playing);
+        fakeAudioPlayerClient.emitPosition(const Duration(seconds: 12));
 
-      await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(service.state.status, PlaybackStatus.playing);
-      expect(service.state.totalDuration, const Duration(minutes: 4));
-      expect(service.state.currentPosition, const Duration(seconds: 12));
-    });
+        expect(service.state.status, PlaybackStatus.playing);
+        expect(service.state.totalDuration, const Duration(minutes: 4));
+        expect(service.state.currentPosition, const Duration(seconds: 12));
+      },
+    );
 
-    test('does not play blocked tracks and exposes the blocked reason', () async {
-      await service.playTrack(blockedTrack);
+    test(
+      'does not play blocked tracks and exposes the blocked reason',
+      () async {
+        await service.playTrack(blockedTrack);
 
-      expect(fakeAudioPlayerClient.playCallCount, 0);
-      expect(service.state.status, PlaybackStatus.blocked);
-      expect(service.state.message, 'Premium only.');
-      expect(service.state.currentTrack?.id, '3');
-    });
+        expect(fakeAudioPlayerClient.playCallCount, 0);
+        expect(service.state.status, PlaybackStatus.blocked);
+        expect(service.state.message, 'Premium only.');
+        expect(service.state.currentTrack?.id, '3');
+      },
+    );
 
     test('stops previous playback before switching tracks', () async {
       await service.playTrack(playableTrack);
@@ -188,7 +197,10 @@ void main() {
       await service.playTrack(previewTrack);
       await service.seek(const Duration(seconds: 45));
 
-      expect(fakeAudioPlayerClient.lastSeekPosition, const Duration(seconds: 30));
+      expect(
+        fakeAudioPlayerClient.lastSeekPosition,
+        const Duration(seconds: 30),
+      );
       expect(service.state.currentPosition, const Duration(seconds: 30));
     });
 

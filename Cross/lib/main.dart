@@ -1,5 +1,4 @@
 // Dart imports
-import 'package:cross_team5/features/authentication_user_management/authentication_user_management.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -11,7 +10,7 @@ import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/core/widgets/global_connectivity_overlay.dart';
 import 'core/services/connectivity_service.dart';
 
-const bool OPEN_PLAYBACK_DEBUG_ON_START = false;
+const bool openPlaybackDebugOnStart = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

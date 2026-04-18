@@ -38,7 +38,8 @@ class CommentTile extends StatelessWidget {
   final VoidCallback onLikeTap; // optimistic like toggle
   final VoidCallback onReplyTap; // pre-fills reply input in parent
   final VoidCallback? onTimestampTap; // seeks player to comment timestamp
-  final VoidCallback? onDeleteTap; // non-null only when parent verified ownership
+  final VoidCallback?
+  onDeleteTap; // non-null only when parent verified ownership
   final VoidCallback? onGoToProfileTap; // navigates to commenter's profile
 
   const CommentTile({
@@ -141,10 +142,7 @@ class CommentTile extends StatelessWidget {
                     // Relative age
                     Text(
                       _formatAge(comment.createdAt),
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 11,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
                     ),
                   ],
                 ),
@@ -202,8 +200,7 @@ class CommentTile extends StatelessWidget {
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 180),
                             transitionBuilder: (child, animation) =>
-                                ScaleTransition(
-                                    scale: animation, child: child),
+                                ScaleTransition(scale: animation, child: child),
                             child: Icon(
                               comment.isLikedByUser
                                   ? Icons.favorite
@@ -271,7 +268,10 @@ class CommentTile extends StatelessWidget {
             // Play from timestamp — hidden for replies where server stores 0.
             if (comment.timestamp > 0)
               ListTile(
-                leading: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                leading: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                ),
                 title: Text(
                   'Play from ${comment.formattedTimestamp}',
                   style: const TextStyle(color: Colors.white),
@@ -285,8 +285,7 @@ class CommentTile extends StatelessWidget {
             // Go to profile
             if (onGoToProfileTap != null)
               ListTile(
-                leading:
-                    const Icon(Icons.person_outline, color: Colors.white),
+                leading: const Icon(Icons.person_outline, color: Colors.white),
                 title: const Text(
                   'Go to profile',
                   style: TextStyle(color: Colors.white),
@@ -300,10 +299,7 @@ class CommentTile extends StatelessWidget {
             // Copy text
             ListTile(
               leading: const Icon(Icons.copy_outlined, color: Colors.white),
-              title: const Text(
-                'Copy',
-                style: TextStyle(color: Colors.white),
-              ),
+              title: const Text('Copy', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(sheetContext);
                 Clipboard.setData(ClipboardData(text: comment.content));
@@ -313,8 +309,7 @@ class CommentTile extends StatelessWidget {
             // ── Own comment: Delete ───────────────
             if (isOwn)
               ListTile(
-                leading:
-                    const Icon(Icons.delete_outline, color: Colors.red),
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
                 title: const Text(
                   'Delete comment',
                   style: TextStyle(color: Colors.red),
@@ -328,8 +323,10 @@ class CommentTile extends StatelessWidget {
             // ── Other user's comment: Report / Block ──
             if (!isOwn && comment.userId.isNotEmpty) ...[
               ListTile(
-                leading: const Icon(Icons.outlined_flag_rounded,
-                    color: Colors.white),
+                leading: const Icon(
+                  Icons.outlined_flag_rounded,
+                  color: Colors.white,
+                ),
                 title: const Text(
                   'Report',
                   style: TextStyle(color: Colors.white),
@@ -363,12 +360,8 @@ class CommentTile extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.block_outlined, color: Colors.red),
-                title: const Text(
-                  'Block',
-                  style: TextStyle(color: Colors.red),
-                ),
+                leading: const Icon(Icons.block_outlined, color: Colors.red),
+                title: const Text('Block', style: TextStyle(color: Colors.red)),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _confirmBlock(context);
@@ -388,7 +381,8 @@ class CommentTile extends StatelessWidget {
   // Matches real SoundCloud's "Block user?" dialog.
   // ─────────────────────────────────────────────
   Future<void> _confirmBlock(BuildContext context) async {
-    final bool confirmed = await showDialog<bool>(
+    final bool confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (dialogCtx) => AlertDialog(
             backgroundColor: const Color(0xFF1A1A1A),
@@ -427,8 +421,9 @@ class CommentTile extends StatelessWidget {
     if (!confirmed) return;
     if (!context.mounted) return;
 
-    final result = await SocialApiService()
-        .blockUser(targetUserId: comment.userId);
+    final result = await SocialApiService().blockUser(
+      targetUserId: comment.userId,
+    );
 
     if (!context.mounted) return;
 

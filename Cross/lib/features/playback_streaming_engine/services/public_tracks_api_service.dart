@@ -27,11 +27,9 @@ class PublicTracksApiService {
   final http.Client _client;
   late final String _servicePath;
 
-  PublicTracksApiService({
-    ApiServices? apiServices,
-    http.Client? client,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client() {
+  PublicTracksApiService({ApiServices? apiServices, http.Client? client})
+    : _apiServices = apiServices ?? ApiServices(),
+      _client = client ?? http.Client() {
     _servicePath = '${_apiServices.baseUrl}/api/public/tracks/v1';
   }
 
@@ -40,10 +38,7 @@ class PublicTracksApiService {
     int limit = 10,
   }) async {
     final uri = Uri.parse(_servicePath).replace(
-      queryParameters: {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      },
+      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
     );
 
     final response = await _client.get(
@@ -109,9 +104,7 @@ class PublicTracksApiService {
     return result.tracks;
   }
 
-  Future<List<PlaybackTrackModel>> getAllPublicTracks({
-    int limit = 10,
-  }) async {
+  Future<List<PlaybackTrackModel>> getAllPublicTracks({int limit = 10}) async {
     int page = 1;
     bool hasNext = true;
 
@@ -144,10 +137,9 @@ class PublicTracksApiService {
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
 
       final dynamic decoded = jsonDecode(response.body);
-      final Map<String, dynamic> raw =
-          decoded is Map<String, dynamic>
-              ? ((decoded['data'] as Map<String, dynamic>?) ?? decoded)
-              : {};
+      final Map<String, dynamic> raw = decoded is Map<String, dynamic>
+          ? ((decoded['data'] as Map<String, dynamic>?) ?? decoded)
+          : {};
       final Map<String, dynamic> basic =
           (raw['basicInfo'] as Map<String, dynamic>?) ?? {};
 

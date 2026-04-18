@@ -10,8 +10,7 @@ class GlobalConnectivityOverlay extends StatefulWidget {
       _GlobalConnectivityOverlayState();
 }
 
-class _GlobalConnectivityOverlayState
-    extends State<GlobalConnectivityOverlay> {
+class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
   StreamSubscription<bool>? _subscription;
   bool _isConnected = true;
   bool _isRetrying = false;
@@ -40,8 +39,8 @@ class _GlobalConnectivityOverlayState
       _isRetrying = true;
     });
 
-    final hasInternet =
-        await ConnectivityService.instance.hasInternetConnection();
+    final hasInternet = await ConnectivityService.instance
+        .hasInternetConnection();
 
     if (!mounted) return;
 
@@ -86,10 +85,7 @@ class _GlobalConnectivityOverlayState
                   const Text(
                     'Please connect to the internet and try again.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 22),
                   ElevatedButton(

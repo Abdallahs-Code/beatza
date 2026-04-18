@@ -2,10 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/playback_track_model.dart';
 
-enum MockPlaybackUserTier {
-  free,
-  goPlus,
-}
+enum MockPlaybackUserTier { free, goPlus }
 
 class MockPlaybackAccessService extends ChangeNotifier {
   static final MockPlaybackAccessService shared =
@@ -45,7 +42,8 @@ class MockPlaybackAccessService extends ChangeNotifier {
       return template.track.copyWith(
         accessState: PlaybackAccessState.blocked,
         blockedReason: 'Not available in $_currentCountry.',
-        previewAudioUrl: template.track.previewAudioUrl ?? template.track.audioUrl,
+        previewAudioUrl:
+            template.track.previewAudioUrl ?? template.track.audioUrl,
         previewDuration: template.previewDuration,
       );
     }
@@ -54,7 +52,8 @@ class MockPlaybackAccessService extends ChangeNotifier {
       return template.track.copyWith(
         accessState: PlaybackAccessState.blocked,
         blockedReason: 'Not available in your country.',
-        previewAudioUrl: template.track.previewAudioUrl ?? template.track.audioUrl,
+        previewAudioUrl:
+            template.track.previewAudioUrl ?? template.track.audioUrl,
         previewDuration: template.previewDuration,
       );
     }
@@ -63,7 +62,8 @@ class MockPlaybackAccessService extends ChangeNotifier {
       return template.track.copyWith(
         accessState: PlaybackAccessState.playable,
         blockedReason: null,
-        previewAudioUrl: template.track.previewAudioUrl ?? template.track.audioUrl,
+        previewAudioUrl:
+            template.track.previewAudioUrl ?? template.track.audioUrl,
         previewDuration: template.previewDuration,
       );
     }
@@ -72,7 +72,8 @@ class MockPlaybackAccessService extends ChangeNotifier {
       return template.track.copyWith(
         accessState: PlaybackAccessState.preview,
         blockedReason: null,
-        previewAudioUrl: template.track.previewAudioUrl ?? template.track.audioUrl,
+        previewAudioUrl:
+            template.track.previewAudioUrl ?? template.track.audioUrl,
         previewDuration: template.previewDuration,
       );
     }
@@ -80,7 +81,8 @@ class MockPlaybackAccessService extends ChangeNotifier {
     return template.track.copyWith(
       accessState: PlaybackAccessState.playable,
       blockedReason: null,
-      previewAudioUrl: template.track.previewAudioUrl ?? template.track.audioUrl,
+      previewAudioUrl:
+          template.track.previewAudioUrl ?? template.track.audioUrl,
       previewDuration: template.previewDuration,
     );
   }
@@ -147,8 +149,8 @@ class MockPlaybackAccessService extends ChangeNotifier {
   static const String _demoAudioUrl =
       'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
-  static final List<_DemoTrackTemplate> _demoTrackTemplates =
-      <_DemoTrackTemplate>[
+  static final List<_DemoTrackTemplate>
+  _demoTrackTemplates = <_DemoTrackTemplate>[
     _DemoTrackTemplate(
       track: PlaybackTrackModel(
         id: 'demo_playable_all',

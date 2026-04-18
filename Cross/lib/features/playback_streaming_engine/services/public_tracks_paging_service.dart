@@ -18,7 +18,7 @@ class PublicTracksPagingService extends ChangeNotifier {
   String? _errorMessage;
 
   PublicTracksPagingService._shared({PublicTracksApiService? apiService})
-      : _apiService = apiService ?? PublicTracksApiService();
+    : _apiService = apiService ?? PublicTracksApiService();
 
   List<PlaybackTrackModel> get tracks =>
       List<PlaybackTrackModel>.unmodifiable(_tracks);
@@ -45,10 +45,8 @@ class PublicTracksPagingService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final PublicTracksPageResult result = await _apiService.fetchPublicTracksPage(
-        page: 1,
-        limit: _limit,
-      );
+      final PublicTracksPageResult result = await _apiService
+          .fetchPublicTracksPage(page: 1, limit: _limit);
 
       _tracks
         ..clear()
@@ -56,7 +54,9 @@ class PublicTracksPagingService extends ChangeNotifier {
       _page = result.page;
       _hasNext = result.hasNext;
       _errorMessage = null;
-      debugPrint('PublicTracksPagingService.loadInitial -> page=1 limit=$_limit');
+      debugPrint(
+        'PublicTracksPagingService.loadInitial -> page=1 limit=$_limit',
+      );
     } catch (error) {
       _errorMessage = error.toString();
     } finally {
@@ -72,21 +72,23 @@ class PublicTracksPagingService extends ChangeNotifier {
 
     _isLoadingMore = true;
     _errorMessage = null;
-    debugPrint('PublicTracksPagingService.loadMore -> page=${_page + 1} limit=$_limit');
+    debugPrint(
+      'PublicTracksPagingService.loadMore -> page=${_page + 1} limit=$_limit',
+    );
     notifyListeners();
 
     try {
-      final PublicTracksPageResult result = await _apiService.fetchPublicTracksPage(
-        page: _page + 1,
-        limit: _limit,
-      );
+      final PublicTracksPageResult result = await _apiService
+          .fetchPublicTracksPage(page: _page + 1, limit: _limit);
 
       final int beforeCount = _tracks.length;
       _tracks.addAll(_dedupe(result.tracks, existing: _tracks));
       _page = result.page;
       _hasNext = result.hasNext;
       _errorMessage = null;
-      debugPrint('PublicTracksPagingService.loadMore success -> added=${_tracks.length - beforeCount} total=${_tracks.length} page=$_page hasNext=$_hasNext');
+      debugPrint(
+        'PublicTracksPagingService.loadMore success -> added=${_tracks.length - beforeCount} total=${_tracks.length} page=$_page hasNext=$_hasNext',
+      );
       return _tracks.length > beforeCount;
     } catch (error) {
       _errorMessage = error.toString();

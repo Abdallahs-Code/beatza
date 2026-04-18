@@ -1,6 +1,5 @@
 // Dart imports
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 
 // Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -52,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ArtistStudioScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const ArtistStudioScreen(),
+                ),
               );
             },
             borderRadius: BorderRadius.circular(20),
@@ -67,7 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(Icons.bar_chart, color: Colors.white, size: 16),
                   SizedBox(width: 6),
-                  Text('Artist Studio', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Artist Studio',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -169,7 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       builder: (context, _) {
                         return _HomePublicTracksSection(
                           tracks: _publicTracksPagingService.tracks,
-                          isLoading: _publicTracksPagingService.isInitialLoading,
+                          isLoading:
+                              _publicTracksPagingService.isInitialLoading,
                           errorMessage: _publicTracksPagingService.errorMessage,
                           ensureNextTrackAvailable: _publicTracksPagingService
                               .ensureNextTrackAvailableForPlayer,
@@ -292,7 +301,9 @@ class _HomePublicTracksSection extends StatelessWidget {
     if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('This track does not have a playable audio source yet.'),
+          content: Text(
+            'This track does not have a playable audio source yet.',
+          ),
         ),
       );
       return;
@@ -326,8 +337,8 @@ class _HomePublicTracksSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           scrollDirection: Axis.horizontal,
           itemCount: 3,
-          separatorBuilder: (_, __) => const SizedBox(width: 16),
-          itemBuilder: (_, __) => const _HomePublicTrackPosterPlaceholder(),
+          separatorBuilder: (_, _) => const SizedBox(width: 16),
+          itemBuilder: (_, _) => const _HomePublicTrackPosterPlaceholder(),
         ),
       );
     }
@@ -360,7 +371,7 @@ class _HomePublicTracksSection extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: visibleTracks.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        separatorBuilder: (_, _) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           return _HomePublicTrackPosterCard(
             track: visibleTracks[index],
@@ -376,10 +387,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
   final PlaybackTrackModel track;
   final VoidCallback? onTap;
 
-  const _HomePublicTrackPosterCard({
-    required this.track,
-    this.onTap,
-  });
+  const _HomePublicTrackPosterCard({required this.track, this.onTap});
 
   bool get _isBlocked => track.accessState == PlaybackAccessState.blocked;
   bool get _isPreview => track.accessState == PlaybackAccessState.preview;
@@ -389,8 +397,8 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
     final String? accessLabel = _isBlocked
         ? 'Not available'
         : _isPreview
-            ? 'Preview · ${track.effectivePreviewDuration.inSeconds}s'
-            : null;
+        ? 'Preview · ${track.effectivePreviewDuration.inSeconds}s'
+        : null;
 
     return SizedBox(
       width: 170,
@@ -425,7 +433,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                           : Image.network(
                               track.artworkUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) {
+                              errorBuilder: (_, _, _) {
                                 return const Center(
                                   child: Icon(
                                     Icons.image_outlined,
@@ -448,7 +456,9 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: _isBlocked
                                 ? Colors.black.withValues(alpha: 0.78)
-                                : AppColors.brilliantOrange.withValues(alpha: 0.92),
+                                : AppColors.brilliantOrange.withValues(
+                                    alpha: 0.92,
+                                  ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
@@ -469,7 +479,9 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: _isBlocked ? AppColors.white54 : AppColors.whiteSmoke,
+                    color: _isBlocked
+                        ? AppColors.white54
+                        : AppColors.whiteSmoke,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -542,10 +554,7 @@ class _HomeTracksMessageCard extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _HomeTracksMessageCard({
-    required this.title,
-    required this.subtitle,
-  });
+  const _HomeTracksMessageCard({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -663,20 +672,20 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
     final String subtitle = _isBlocked
         ? (track.blockedReason ?? 'Not available in your country')
         : _isPreview
-            ? 'Preview only · ${track.effectivePreviewDuration.inSeconds}s'
-            : 'Fully playable';
+        ? 'Preview only · ${track.effectivePreviewDuration.inSeconds}s'
+        : 'Fully playable';
 
     final Color chipBg = _isBlocked
         ? Colors.black.withValues(alpha: 0.78)
         : _isPreview
-            ? AppColors.brilliantOrange.withValues(alpha: 0.92)
-            : const Color(0xFF1C7C43);
+        ? AppColors.brilliantOrange.withValues(alpha: 0.92)
+        : const Color(0xFF1C7C43);
 
     final String chipText = _isBlocked
         ? 'Blocked'
         : _isPreview
-            ? 'Preview'
-            : 'Playable';
+        ? 'Preview'
+        : 'Playable';
 
     return Opacity(
       opacity: _isBlocked ? 0.58 : 1,
@@ -711,7 +720,7 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
                     : Image.network(
                         track.artworkUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.music_note_rounded,
                           color: AppColors.white54,
                         ),
@@ -727,8 +736,9 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color:
-                            _isBlocked ? AppColors.white60 : AppColors.whiteSmoke,
+                        color: _isBlocked
+                            ? AppColors.white60
+                            : AppColors.whiteSmoke,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),

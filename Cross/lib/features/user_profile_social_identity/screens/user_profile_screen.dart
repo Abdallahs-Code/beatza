@@ -9,7 +9,6 @@ import 'package:cross_team5/features/user_profile_social_identity/models/user_pr
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/screens/edit_profile_screen.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
-import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
@@ -80,8 +79,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _playLikedTrack(PlaybackTrackModel track, int index) async {
-    final List<PlaybackTrackModel> likedTracks =
-        await _publicTracksFuture.catchError((_) => <PlaybackTrackModel>[]);
+    final List<PlaybackTrackModel> likedTracks = await _publicTracksFuture
+        .catchError((_) => <PlaybackTrackModel>[]);
     if (likedTracks.isEmpty) {
       return;
     }
@@ -94,8 +93,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<List<PlaybackTrackModel>> _loadRepostedTracks() async {
     try {
-      return await LibraryHistoryApiService()
-          .getUserRepostedTracks(widget.userId, widget.token);
+      return await LibraryHistoryApiService().getUserRepostedTracks(
+        widget.userId,
+        widget.token,
+      );
     } catch (e) {
       return [];
     }
@@ -117,9 +118,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _isFollowing = previousValue;
         _isFollowActionLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.$2.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.$2.toString())));
       return;
     }
     setState(() {
@@ -159,7 +160,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       color: Colors.grey[800],
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: track.coverImagePath != null &&
+                    child:
+                        track.coverImagePath != null &&
                             track.coverImagePath!.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(4),
@@ -235,10 +237,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _showEditDialog(TrackModel track) {
-    final TextEditingController titleCtrl =
-        TextEditingController(text: track.title);
-    final TextEditingController genreCtrl =
-        TextEditingController(text: track.genre);
+    final TextEditingController titleCtrl = TextEditingController(
+      text: track.title,
+    );
+    final TextEditingController genreCtrl = TextEditingController(
+      text: track.genre,
+    );
     showDialog(
       context: context,
       builder: (context) {
@@ -292,10 +296,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _updateTrackData(track.id, titleCtrl.text, genreCtrl.text);
                 Navigator.pop(context);
               },
-              child: const Text(
-                'Save',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Save', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -304,8 +305,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _updateTrackData(String id, String newTitle, String newGenre) {
-    final currentList =
-        List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+    final currentList = List<TrackModel>.from(
+      AudioUploadService.globalMockTracksNotifier.value,
+    );
     final index = currentList.indexWhere((t) => t.id == id);
     if (index != -1) {
       final oldTrack = currentList[index];
@@ -351,8 +353,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _deleteTrack(TrackModel track) {
-    final currentList =
-        List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+    final currentList = List<TrackModel>.from(
+      AudioUploadService.globalMockTracksNotifier.value,
+    );
     currentList.removeWhere((t) => t.id == track.id);
     AudioUploadService.globalMockTracksNotifier.value = currentList;
     if (_currentlyPlayingTrack?.id == track.id) {
@@ -376,8 +379,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       widget.userId,
       widget.token,
     );
-    MockPlaybackAccessService.shared
-        .syncCountryFromProfileLocation(profile.resolvedLocation);
+    MockPlaybackAccessService.shared.syncCountryFromProfileLocation(
+      profile.resolvedLocation,
+    );
     final currentUserId = widget.currentUserId?.trim() ?? '';
     final isOwner = currentUserId.isNotEmpty && currentUserId == profile.userId;
     return _ProfileViewState(profile: profile, isOwner: isOwner);
@@ -423,8 +427,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> _openUrl(String rawUrl) async {
     final trimmed = rawUrl.trim();
     if (trimmed.isEmpty) return;
-    final normalized = trimmed.startsWith('http://') ||
-            trimmed.startsWith('https://')
+    final normalized =
+        trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
     final uri = Uri.tryParse(normalized);
@@ -895,8 +899,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         onEdited: () {
                           setState(() {
                             _loadProfile();
-                            _publicTracksFuture =
-                                _publicTracksApiService.getPublicTracks(limit: 10);
+                            _publicTracksFuture = _publicTracksApiService
+                                .getPublicTracks(limit: 10);
                           });
                         },
                         onMorePressed: () =>
@@ -909,11 +913,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         likedTracks: likedTracks,
                         repostedTracks: repostedTracks,
                         isLoadingLikedTracks:
-                            tracksSnapshot.connectionState == ConnectionState.waiting,
+                            tracksSnapshot.connectionState ==
+                            ConnectionState.waiting,
                         likedTracksError: tracksSnapshot.hasError
                             ? tracksSnapshot.error.toString()
                             : null,
-                        onFollowersTap: () => _openFollowersScreen(profile.userId),
+                        onFollowersTap: () =>
+                            _openFollowersScreen(profile.userId),
                         onFollowingTap: () =>
                             _openFollowingScreen(profile.userId, tabIndex: 1),
                         isFollowing: _isFollowing,
@@ -934,7 +940,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        child: CommonBottomNavBar(currentItem: AppNavItem.library),
+                        child: CommonBottomNavBar(
+                          currentItem: AppNavItem.library,
+                        ),
                       ),
                     ],
                   );
@@ -958,7 +966,7 @@ class _SoundCloudProfileView extends StatefulWidget {
   final Function(TrackModel) onTrackTap;
   final Function(TrackModel) onTrackOptionsTap;
   final Future<void> Function(PlaybackTrackModel track, int index)
-      onLikedTrackTap;
+  onLikedTrackTap;
   final String? currentlyPlayingTrackId;
   final List<PlaybackTrackModel> likedTracks;
   final List<PlaybackTrackModel> repostedTracks;
@@ -1000,17 +1008,18 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
   List<SpotlightItemModel?> spotlightItems = List.filled(5, null);
   bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
   static const String _defaultImageUrl =
-    "https://res.cloudinary.com/dr1sqiouu/image/upload/v1776357570/profile/file_ud25rn.png";
+      "https://res.cloudinary.com/dr1sqiouu/image/upload/v1776357570/profile/file_ud25rn.png";
 
-bool get _hasProfilePhoto {
-  final url = widget.profile.profileImgLink.trim();
-  return url.isNotEmpty && url != _defaultImageUrl;
-}
+  bool get _hasProfilePhoto {
+    final url = widget.profile.profileImgLink.trim();
+    return url.isNotEmpty && url != _defaultImageUrl;
+  }
 
-bool get _hasBanner {
-  final url = widget.profile.bannerImgLink.trim();
-  return url.isNotEmpty && url != _defaultImageUrl;
-}
+  bool get _hasBanner {
+    final url = widget.profile.bannerImgLink.trim();
+    return url.isNotEmpty && url != _defaultImageUrl;
+  }
+
   int get _completedStepsCount {
     int count = 2;
     if (_hasProfilePhoto) count++;
@@ -1018,9 +1027,11 @@ bool get _hasBanner {
     if (_hasBanner) count++;
     return count;
   }
+
   bool get _shouldShowCompleteProfile {
     return !_hasProfilePhoto || !_hasBio || !_hasBanner;
   }
+
   void _openEditSpotlight() async {
     if (!widget.isOwner) return;
     final updatedSpotlight = await Navigator.push<List<SpotlightItemModel?>>(
@@ -1044,45 +1055,47 @@ bool get _hasBanner {
       });
     }
   }
+
   List<_ProfileCompletionCardData> _buildCompletionCards() {
-  return <_ProfileCompletionCardData>[
-    const _ProfileCompletionCardData(
-      title: 'Verify email',
-      subtitle: 'Go to your inbox and verify\nyour account',
-      buttonText: '',
-      icon: Icons.inventory_2_outlined,
-      isComplete: true,
-    ),
-    const _ProfileCompletionCardData(
-      title: 'Add your name',
-      subtitle: 'Add your name so your friends know it\'s you',
-      buttonText: 'Edit name',
-      icon: Icons.person_outline,
-      isComplete: true,
-    ),
-    _ProfileCompletionCardData(
-      title: 'Add a profile photo',
-      subtitle: 'Choose a photo to represent\nyourself on SoundCloud',
-      buttonText: _hasProfilePhoto ? '' : 'Add photo',
-      icon: Icons.camera_alt_outlined,
-      isComplete: _hasProfilePhoto,
-    ),
-    _ProfileCompletionCardData(
-      title: 'Add a bio',
-      subtitle: 'What should people know\nabout you?',
-      buttonText: _hasBio ? '' : 'Add bio',
-      icon: Icons.chat_bubble_outline,
-      isComplete: _hasBio,
-    ),
-    _ProfileCompletionCardData(
-      title: 'Add a profile banner',
-      subtitle: 'Choose a banner to further\npersonalize your profile',
-      buttonText: _hasBanner ? '' : 'Add banner',
-      icon: Icons.image_outlined,
-      isComplete: _hasBanner,
-    ),
-  ];
-}
+    return <_ProfileCompletionCardData>[
+      const _ProfileCompletionCardData(
+        title: 'Verify email',
+        subtitle: 'Go to your inbox and verify\nyour account',
+        buttonText: '',
+        icon: Icons.inventory_2_outlined,
+        isComplete: true,
+      ),
+      const _ProfileCompletionCardData(
+        title: 'Add your name',
+        subtitle: 'Add your name so your friends know it\'s you',
+        buttonText: 'Edit name',
+        icon: Icons.person_outline,
+        isComplete: true,
+      ),
+      _ProfileCompletionCardData(
+        title: 'Add a profile photo',
+        subtitle: 'Choose a photo to represent\nyourself on SoundCloud',
+        buttonText: _hasProfilePhoto ? '' : 'Add photo',
+        icon: Icons.camera_alt_outlined,
+        isComplete: _hasProfilePhoto,
+      ),
+      _ProfileCompletionCardData(
+        title: 'Add a bio',
+        subtitle: 'What should people know\nabout you?',
+        buttonText: _hasBio ? '' : 'Add bio',
+        icon: Icons.chat_bubble_outline,
+        isComplete: _hasBio,
+      ),
+      _ProfileCompletionCardData(
+        title: 'Add a profile banner',
+        subtitle: 'Choose a banner to further\npersonalize your profile',
+        buttonText: _hasBanner ? '' : 'Add banner',
+        icon: Icons.image_outlined,
+        isComplete: _hasBanner,
+      ),
+    ];
+  }
+
   Future<void> _openEditProfile(BuildContext context) async {
     if (!widget.isOwner) return;
     final updated = await Navigator.push<bool>(
@@ -1099,19 +1112,23 @@ bool get _hasBanner {
       widget.onEdited();
     }
   }
+
   Widget _buildSpotlightSlot(int index) {
     return GestureDetector(
       onTap: _openEditSpotlight,
       child: DragTarget<TrackModel>(
-        onWillAccept: (track) {
-          if (track == null || !widget.isOwner) return false;
+        onWillAcceptWithDetails: (details) {
+          final track = details.data;
+          if (!widget.isOwner) return false;
           final String visibility = track.visibility.toString().toLowerCase();
-          if (visibility.contains('private') || visibility.contains('unlisted')) {
+          if (visibility.contains('private') ||
+              visibility.contains('unlisted')) {
             return false;
           }
           return true;
         },
-        onAccept: (track) {
+        onAcceptWithDetails: (details) {
+          final track = details.data;
           setState(() {
             spotlightItems[index] = SpotlightItemModel.fromTrack(
               track,
@@ -1137,17 +1154,18 @@ bool get _hasBanner {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(14),
-                            child: item.imageUrl != null &&
+                            child:
+                                item.imageUrl != null &&
                                     item.imageUrl!.isNotEmpty
                                 ? (item.imageUrl!.startsWith('http')
-                                    ? Image.network(
-                                        item.imageUrl!,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.file(
-                                        File(item.imageUrl!),
-                                        fit: BoxFit.cover,
-                                      ))
+                                      ? Image.network(
+                                          item.imageUrl!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(item.imageUrl!),
+                                          fit: BoxFit.cover,
+                                        ))
                                 : Container(
                                     color: Colors.grey[800],
                                     child: const Icon(
@@ -1193,6 +1211,7 @@ bool get _hasBanner {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -1278,8 +1297,9 @@ bool get _hasBanner {
               valueListenable: AudioUploadService.globalMockTracksNotifier,
               builder: (context, tracks, child) {
                 final bool hasTracks = tracks.isNotEmpty;
-final bool shouldShowSpotlight =
-    widget.profile.trackCount > 0 && (widget.showArtistSections || widget.isOwner);
+                final bool shouldShowSpotlight =
+                    widget.profile.trackCount > 0 &&
+                    (widget.showArtistSections || widget.isOwner);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1298,8 +1318,8 @@ final bool shouldShowSpotlight =
                           backgroundColor: const Color(0xFF1C1C1C),
                           backgroundImage:
                               widget.profile.profileImgLink.trim().isNotEmpty
-                                  ? NetworkImage(widget.profile.profileImgLink)
-                                  : null,
+                              ? NetworkImage(widget.profile.profileImgLink)
+                              : null,
                           child: widget.profile.profileImgLink.trim().isEmpty
                               ? const Icon(
                                   Icons.person,
@@ -1562,8 +1582,7 @@ final bool shouldShowSpotlight =
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           scrollDirection: Axis.horizontal,
                           itemCount: completionCards.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(width: 14),
+                          separatorBuilder: (_, _) => const SizedBox(width: 14),
                           itemBuilder: (context, index) {
                             final card = completionCards[index];
                             return _CompleteProfileCard(
@@ -1613,7 +1632,7 @@ final bool shouldShowSpotlight =
                         ),
                       ),
                     ],
-                    
+
                     if (shouldShowSpotlight) ...[
                       const SizedBox(height: 28),
                       const Padding(
@@ -1645,8 +1664,9 @@ final bool shouldShowSpotlight =
                         child: Row(
                           children: List.generate(5, (index) {
                             return Padding(
-                              padding:
-                                  EdgeInsets.only(right: index < 4 ? 14 : 0),
+                              padding: EdgeInsets.only(
+                                right: index < 4 ? 14 : 0,
+                              ),
                               child: SizedBox(
                                 width: 110,
                                 height: 110,
@@ -1669,7 +1689,8 @@ final bool shouldShowSpotlight =
                             track: tracks.first,
                             artistName: widget.profile.resolvedDisplayName,
                             isPlaying:
-                                widget.currentlyPlayingTrackId == tracks.first.id,
+                                widget.currentlyPlayingTrackId ==
+                                tracks.first.id,
                             onMoreTap: () =>
                                 widget.onTrackOptionsTap(tracks.first),
                           ),
@@ -1683,8 +1704,9 @@ final bool shouldShowSpotlight =
                       ...tracks.map((track) {
                         final bool isPlaying =
                             widget.currentlyPlayingTrackId == track.id;
-                        final String vis =
-                            track.visibility.toString().toLowerCase();
+                        final String vis = track.visibility
+                            .toString()
+                            .toLowerCase();
                         final bool isPrivate =
                             vis.contains('private') || vis.contains('unlisted');
                         final Widget trackRow = InkWell(
@@ -1698,8 +1720,7 @@ final bool shouldShowSpotlight =
                               track: track,
                               artistName: widget.profile.resolvedDisplayName,
                               isPlaying: isPlaying,
-                              onMoreTap: () =>
-                                  widget.onTrackOptionsTap(track),
+                              onMoreTap: () => widget.onTrackOptionsTap(track),
                             ),
                           ),
                         );
@@ -1718,7 +1739,8 @@ final bool shouldShowSpotlight =
                                 ),
                                 child: _LocalTrackRow(
                                   track: track,
-                                  artistName: widget.profile.resolvedDisplayName,
+                                  artistName:
+                                      widget.profile.resolvedDisplayName,
                                   isPlaying: isPlaying,
                                   onMoreTap: () {},
                                 ),
@@ -1731,7 +1753,7 @@ final bool shouldShowSpotlight =
                           ),
                           child: trackRow,
                         );
-                      }).toList(),
+                      }),
                     ],
                     const SizedBox(height: 28),
                     const _SectionHeader(title: 'Playlists', actionText: ''),
@@ -1766,13 +1788,13 @@ final bool shouldShowSpotlight =
                       onActionTap: widget.repostedTracks.isEmpty
                           ? null
                           : () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => _AllRepostsScreen(
-                                    tracks: widget.repostedTracks,
-                                  ),
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => _AllRepostsScreen(
+                                  tracks: widget.repostedTracks,
                                 ),
                               ),
+                            ),
                     ),
                     const SizedBox(height: 10),
                     Padding(
@@ -1855,10 +1877,7 @@ class _ProfileCompletionCardData {
 class _CompleteProfileCard extends StatelessWidget {
   final _ProfileCompletionCardData data;
   final VoidCallback? onPressed;
-  const _CompleteProfileCard({
-    required this.data,
-    required this.onPressed,
-  });
+  const _CompleteProfileCard({required this.data, required this.onPressed});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2084,52 +2103,6 @@ class _PlaylistCard extends StatelessWidget {
   }
 }
 
-class _UserMusicRow extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String subtitle;
-  final String meta;
-  const _UserMusicRow({
-    required this.imageUrl,
-    required this.title,
-    required this.subtitle,
-    required this.meta,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _SquareImage(imageUrl: imageUrl),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '♥ $meta',
-                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-        const Icon(Icons.more_horiz, color: Colors.white54),
-      ],
-    );
-  }
-}
-
 class _ProfileRepostsTracksSection extends StatelessWidget {
   final List<PlaybackTrackModel> tracks;
   final bool isLoading;
@@ -2160,11 +2133,7 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
         ),
         child: const Text(
           'Could not load reposted tracks right now.',
-          style: TextStyle(
-            color: Color(0xFFB3B3B3),
-            fontSize: 13,
-            height: 1.4,
-          ),
+          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
         ),
       );
     }
@@ -2178,11 +2147,7 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
         ),
         child: const Text(
           'No reposts yet.',
-          style: TextStyle(
-            color: Color(0xFFB3B3B3),
-            fontSize: 13,
-            height: 1.4,
-          ),
+          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
         ),
       );
     }
@@ -2269,11 +2234,7 @@ class _ProfileLikesTracksSection extends StatelessWidget {
         ),
         child: const Text(
           'Could not load liked tracks right now.',
-          style: TextStyle(
-            color: Color(0xFFB3B3B3),
-            fontSize: 13,
-            height: 1.4,
-          ),
+          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
         ),
       );
     }
@@ -2287,11 +2248,7 @@ class _ProfileLikesTracksSection extends StatelessWidget {
         ),
         child: const Text(
           'No tracks available yet.',
-          style: TextStyle(
-            color: Color(0xFFB3B3B3),
-            fontSize: 13,
-            height: 1.4,
-          ),
+          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
         ),
       );
     }
@@ -2304,7 +2261,8 @@ class _ProfileLikesTracksSection extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: index == visibleTracks.length - 1 ? 0 : 16,
           ),
-          child: track.accessState == PlaybackAccessState.blocked ||
+          child:
+              track.accessState == PlaybackAccessState.blocked ||
                   onTrackTap == null
               ? row
               : GestureDetector(
@@ -2375,9 +2333,7 @@ class _ProfileLikeTrackPlaceholder extends StatelessWidget {
 
 class _TrackRow extends StatelessWidget {
   final PlaybackTrackModel track;
-  const _TrackRow({
-    required this.track,
-  });
+  const _TrackRow({required this.track});
   bool get _isBlocked => track.accessState == PlaybackAccessState.blocked;
   bool get _isPreview => track.accessState == PlaybackAccessState.preview;
   @override
@@ -2426,6 +2382,7 @@ class _TrackRow extends StatelessWidget {
       ),
     );
   }
+
   String _buildMeta() {
     if (_isBlocked) {
       return '✖ ${track.blockedReason ?? 'Not available'}';
@@ -2440,6 +2397,7 @@ class _TrackRow extends StatelessWidget {
     }
     return '▶ $plays';
   }
+
   String _formatPlays(int plays) {
     if (plays >= 1000000) {
       final double value = plays / 1000000;
@@ -2502,16 +2460,18 @@ class _LocalTrackRow extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: track.coverImagePath != null &&
-                    track.coverImagePath!.isNotEmpty
+            child:
+                track.coverImagePath != null && track.coverImagePath!.isNotEmpty
                 ? (track.coverImagePath!.startsWith('http')
-                    ? Image.network(track.coverImagePath!, fit: BoxFit.cover)
-                    : Image.file(
-                        File(track.coverImagePath!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.music_note, color: Colors.white24),
-                      ))
+                      ? Image.network(track.coverImagePath!, fit: BoxFit.cover)
+                      : Image.file(
+                          File(track.coverImagePath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.music_note,
+                            color: Colors.white24,
+                          ),
+                        ))
                 : const Icon(Icons.music_note, color: Colors.white24),
           ),
         ),
@@ -2527,17 +2487,13 @@ class _LocalTrackRow extends StatelessWidget {
                 style: TextStyle(
                   color: isPlaying ? const Color(0xFFFF5500) : Colors.white,
                   fontSize: 14,
-                  fontWeight:
-                      isPlaying ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 artistName,
-                style: const TextStyle(
-                  color: Color(0xFFB3B3B3),
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
               ),
               const SizedBox(height: 2),
               const Text(
@@ -2559,10 +2515,7 @@ class _LocalTrackRow extends StatelessWidget {
 class _RoundIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _RoundIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _RoundIconButton({required this.icon, required this.onTap});
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -2589,8 +2542,9 @@ class _SmallAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 10,
       backgroundColor: const Color(0xFF1C1C1C),
-      backgroundImage:
-          imageUrl.trim().isNotEmpty ? NetworkImage(imageUrl) : null,
+      backgroundImage: imageUrl.trim().isNotEmpty
+          ? NetworkImage(imageUrl)
+          : null,
     );
   }
 }
@@ -2659,8 +2613,7 @@ class _PrivateProfileView extends StatelessWidget {
                         ? Image.network(
                             profile.bannerImgLink,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const SizedBox.shrink(),
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
                           )
                         : null,
                   ),
@@ -2700,8 +2653,8 @@ class _PrivateProfileView extends StatelessWidget {
                         backgroundColor: const Color(0xFF1C1C1C),
                         backgroundImage:
                             profile.profileImgLink.trim().isNotEmpty
-                                ? NetworkImage(profile.profileImgLink)
-                                : null,
+                            ? NetworkImage(profile.profileImgLink)
+                            : null,
                         child: profile.profileImgLink.trim().isEmpty
                             ? const Icon(
                                 Icons.person,
@@ -2764,8 +2717,9 @@ class _PrivateProfileView extends StatelessWidget {
                         width: double.infinity,
                         height: 46,
                         child: ElevatedButton(
-                          onPressed:
-                              isFollowActionLoading ? null : onFollowToggle,
+                          onPressed: isFollowActionLoading
+                              ? null
+                              : onFollowToggle,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isFollowing
                                 ? const Color(0xFF2A2A2A)
@@ -2860,10 +2814,7 @@ class _ShareActionItem extends StatelessWidget {
             Container(
               width: 52,
               height: 52,
-              decoration: BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
               child: Icon(action.icon, color: iconColor, size: 24),
             ),
             const SizedBox(height: 8),
@@ -2898,8 +2849,5 @@ class _SheetAction {
 class _ProfileViewState {
   final UserProfileModel profile;
   final bool isOwner;
-  const _ProfileViewState({
-    required this.profile,
-    required this.isOwner,
-  });
+  const _ProfileViewState({required this.profile, required this.isOwner});
 }

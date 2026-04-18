@@ -4,16 +4,12 @@ import 'package:flutter/material.dart';
 // Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
-import 'package:cross_team5/core/widgets/common_widgets.dart';
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 
 class RecentlyPlayedScreen extends StatelessWidget {
   final List<RecentlyPlayedMockItem> items;
 
-  const RecentlyPlayedScreen({
-    super.key,
-    required this.items,
-  });
+  const RecentlyPlayedScreen({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +57,7 @@ class RecentlyPlayedScreen extends StatelessWidget {
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 150),
                       itemCount: items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 22),
+                      separatorBuilder: (_, _) => const SizedBox(height: 22),
                       itemBuilder: (context, index) {
                         return RecentlyPlayedListTile(item: items[index]);
                       },

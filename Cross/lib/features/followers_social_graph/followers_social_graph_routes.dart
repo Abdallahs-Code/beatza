@@ -16,9 +16,7 @@ class FollowersSocialGraphRoutes {
       final args =
           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-      return FollowersScreen(
-        userId: args['userId'] as String,
-      );
+      return FollowersScreen(userId: args['userId'] as String);
     },
 
     following: (context) {

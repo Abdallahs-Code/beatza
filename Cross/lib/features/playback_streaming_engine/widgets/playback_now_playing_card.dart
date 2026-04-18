@@ -31,7 +31,8 @@ class PlaybackNowPlayingCard extends StatefulWidget {
 }
 
 class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
-  static final Map<String, List<double>> _waveformCache = <String, List<double>>{};
+  static final Map<String, List<double>> _waveformCache =
+      <String, List<double>>{};
 
   bool _isLoadingWaveform = false;
   List<double> _waveformPeaks = const [];
@@ -113,7 +114,9 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
         .clamp(0, maxSeek.toInt())
         .toDouble();
 
-    final double progress = maxSeek <= 0 ? 0 : (currentSeek / maxSeek).clamp(0.0, 1.0);
+    final double progress = maxSeek <= 0
+        ? 0
+        : (currentSeek / maxSeek).clamp(0.0, 1.0);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -161,10 +164,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             track?.artistName ?? 'Choose one of the test tracks below',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.white60,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.white60, fontSize: 14),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -192,64 +192,57 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                     ),
                   )
                 : _waveformPeaks.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Waveform unavailable',
-                          style: TextStyle(
-                            color: AppColors.white60,
-                            fontSize: 12,
-                          ),
+                ? const Center(
+                    child: Text(
+                      'Waveform unavailable',
+                      style: TextStyle(color: AppColors.white60, fontSize: 12),
+                    ),
+                  )
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: track == null
+                            ? null
+                            : (details) {
+                                final double ratio =
+                                    (details.localPosition.dx /
+                                            constraints.maxWidth)
+                                        .clamp(0.0, 1.0);
+                                widget.onSeekChanged(maxSeek * ratio);
+                              },
+                        onHorizontalDragUpdate: track == null
+                            ? null
+                            : (details) {
+                                final double ratio =
+                                    (details.localPosition.dx /
+                                            constraints.maxWidth)
+                                        .clamp(0.0, 1.0);
+                                widget.onSeekChanged(maxSeek * ratio);
+                              },
+                        child: SoundCloudWaveform(
+                          peaks: _waveformPeaks,
+                          progress: progress,
+                          height: 96,
+                          barWidth: 3,
+                          gap: 2,
+                          activeColor: const Color(0xFFFF5500),
+                          inactiveColor: const Color(0xFFBDBDBD),
                         ),
-                      )
-                    : LayoutBuilder(
-                        builder: (context, constraints) {
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTapDown: track == null
-                                ? null
-                                : (details) {
-                                    final double ratio =
-                                        (details.localPosition.dx / constraints.maxWidth)
-                                            .clamp(0.0, 1.0);
-                                    widget.onSeekChanged(maxSeek * ratio);
-                                  },
-                            onHorizontalDragUpdate: track == null
-                                ? null
-                                : (details) {
-                                    final double ratio =
-                                        (details.localPosition.dx / constraints.maxWidth)
-                                            .clamp(0.0, 1.0);
-                                    widget.onSeekChanged(maxSeek * ratio);
-                                  },
-                            child: SoundCloudWaveform(
-                              peaks: _waveformPeaks,
-                              progress: progress,
-                              height: 96,
-                              barWidth: 3,
-                              gap: 2,
-                              activeColor: const Color(0xFFFF5500),
-                              inactiveColor: const Color(0xFFBDBDBD),
-                            ),
-                          );
-                        },
-                      ),
+                      );
+                    },
+                  ),
           ),
           Row(
             children: [
               Text(
                 _formatDuration(widget.state.currentPosition),
-                style: const TextStyle(
-                  color: AppColors.white60,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: AppColors.white60, fontSize: 12),
               ),
               const Spacer(),
               Text(
                 _formatDuration(Duration(milliseconds: maxSeek.toInt())),
-                style: const TextStyle(
-                  color: AppColors.white60,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: AppColors.white60, fontSize: 12),
               ),
             ],
           ),
@@ -347,8 +340,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
       return totalDuration.inMilliseconds.toDouble();
     }
 
-    return (track.duration ?? const Duration(seconds: 1))
-        .inMilliseconds
+    return (track.duration ?? const Duration(seconds: 1)).inMilliseconds
         .toDouble();
   }
 
@@ -436,8 +428,10 @@ class _SoundCloudWaveformPainter extends CustomPainter {
     if (maxBars <= 0) return;
 
     for (int i = 0; i < maxBars; i++) {
-      final peakIndex =
-          ((i / maxBars) * peaks.length).floor().clamp(0, peaks.length - 1);
+      final peakIndex = ((i / maxBars) * peaks.length).floor().clamp(
+        0,
+        peaks.length - 1,
+      );
 
       final normalized = peaks[peakIndex].clamp(0.03, 1.0);
       final barHeight = normalized * size.height;
@@ -468,10 +462,7 @@ class _StatusChip extends StatelessWidget {
   final String label;
   final bool highlighted;
 
-  const _StatusChip({
-    required this.label,
-    this.highlighted = false,
-  });
+  const _StatusChip({required this.label, this.highlighted = false});
 
   @override
   Widget build(BuildContext context) {

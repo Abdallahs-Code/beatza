@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 // Package imports
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart'
-    hide YourUploadsScreen;
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class UserTile extends StatelessWidget {
   final Follower follower;
@@ -40,8 +39,9 @@ class UserTile extends StatelessWidget {
         final token = await authService.getStoredAccessToken();
         final currentUserIdFromStorage = await authService.getStoredUserId();
 
-        final safeToken =
-            (token == null || token.trim().isEmpty) ? 'mock_token' : token;
+        final safeToken = (token == null || token.trim().isEmpty)
+            ? 'mock_token'
+            : token;
 
         final safeViewedUserId = follower.userId.trim().isEmpty
             ? 'mock_user_id'
@@ -49,9 +49,9 @@ class UserTile extends StatelessWidget {
 
         final safeCurrentUserId =
             (currentUserIdFromStorage == null ||
-                    currentUserIdFromStorage.trim().isEmpty)
-                ? null
-                : currentUserIdFromStorage;
+                currentUserIdFromStorage.trim().isEmpty)
+            ? null
+            : currentUserIdFromStorage;
 
         if (!context.mounted) return;
 
@@ -99,10 +99,7 @@ class UserTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     '${follower.trackCount} tracks',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -159,10 +156,7 @@ class UserTile extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'unblock',
-                    child: Text('Unblock'),
-                  ),
+                  const PopupMenuItem(value: 'unblock', child: Text('Unblock')),
                 ],
               ),
           ],

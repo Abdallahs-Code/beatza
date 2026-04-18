@@ -12,11 +12,7 @@ class VerifyCodeScreen extends StatefulWidget {
   // If you later have the email from backend/callback, pass it here.
   final String? email;
 
-  const VerifyCodeScreen({
-    super.key,
-    required this.pendingToken,
-    this.email,
-  });
+  const VerifyCodeScreen({super.key, required this.pendingToken, this.email});
 
   @override
   State<VerifyCodeScreen> createState() => _VerifyCodeScreenState();
@@ -51,18 +47,14 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter the verification code"),
-        ),
+        const SnackBar(content: Text("Please enter the verification code")),
       );
       return;
     }
 
     if (code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("The verification code must be 6 digits"),
-        ),
+        const SnackBar(content: Text("The verification code must be 6 digits")),
       );
       return;
     }
@@ -102,41 +94,42 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     }
   }
 
-Future<void> _handleSendAgain() async {
-  setState(() {
-    _isSendingAgain = true;
-  });
+  Future<void> _handleSendAgain() async {
+    setState(() {
+      _isSendingAgain = true;
+    });
 
-  final authApiService = AuthApiService();
+    final authApiService = AuthApiService();
 
-  final result = await authApiService.resendGoogleVerificationCode(
-    pendingToken: widget.pendingToken,
-  );
+    final result = await authApiService.resendGoogleVerificationCode(
+      pendingToken: widget.pendingToken,
+    );
 
-  LoggerService.logger.i(
-    "Resend Google code result: ${result.$1}, ${result.$2}",
-  );
+    LoggerService.logger.i(
+      "Resend Google code result: ${result.$1}, ${result.$2}",
+    );
 
-  if (!mounted) return;
+    if (!mounted) return;
 
-  setState(() {
-    _isSendingAgain = false;
-  });
+    setState(() {
+      _isSendingAgain = false;
+    });
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(result.$2.toString()),
-      backgroundColor:
-          (result.$1 >= 200 && result.$1 < 300)
-              ? Colors.green
-              : AppColors.anger,
-    ),
-  );
-}
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.$2.toString()),
+        backgroundColor: (result.$1 >= 200 && result.$1 < 300)
+            ? Colors.green
+            : AppColors.anger,
+      ),
+    );
+  }
 
   void _onCodeChanged(String value) {
     final digitsOnly = value.replaceAll(RegExp(r'[^0-9]'), '');
-    final limited = digitsOnly.length > 6 ? digitsOnly.substring(0, 6) : digitsOnly;
+    final limited = digitsOnly.length > 6
+        ? digitsOnly.substring(0, 6)
+        : digitsOnly;
 
     if (limited != _codeController.text) {
       _codeController.value = TextEditingValue(
@@ -178,10 +171,10 @@ Future<void> _handleSendAgain() async {
 
   @override
   Widget build(BuildContext context) {
-    final displayedEmail =
-        (widget.email != null && widget.email!.trim().isNotEmpty)
-            ? widget.email!.trim()
-            : "your email";
+    // final displayedEmail =
+    //     (widget.email != null && widget.email!.trim().isNotEmpty)
+    //         ? widget.email!.trim()
+    //         : "your email";
 
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,

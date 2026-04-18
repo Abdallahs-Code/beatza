@@ -160,8 +160,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   void _onPlayerUpdate() {
-    final int pos = PlaybackStreamingEngineService.shared
-        .state.currentPosition.inSeconds;
+    final int pos =
+        PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
     if (_currentPositionSeconds != pos) {
       setState(() => _currentPositionSeconds = pos);
     }
@@ -173,8 +173,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       final userId = await _authService.getStoredUserId();
       if (token == null || userId == null) return;
       if (mounted) setState(() => _currentUserId = userId);
-      final profile =
-          await UserProfileService().getUserProfile(userId, token);
+      final profile = await UserProfileService().getUserProfile(userId, token);
       if (!mounted) return;
       setState(() {
         _currentUserDisplayName = profile.resolvedDisplayName;
@@ -305,7 +304,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     if (result.$1 == 201) {
       if (replyingToId != null) {
         // Reload replies for the parent comment to get fresh server data.
-        final repliesResult = await _service.getCommentReplies(commentId: replyingToId);
+        final repliesResult = await _service.getCommentReplies(
+          commentId: replyingToId,
+        );
         if (!mounted) return;
         if (repliesResult.$1 == 200) {
           final fresh = repliesResult.$2 as List<Comment>;
@@ -315,7 +316,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
           // Fallback: just replace optimistic with real.
           final real = result.$2 as Comment;
           final replies = _expandedReplies[replyingToId] ?? [];
-          final idx = replies.indexWhere((c) => c.commentId == optimistic.commentId);
+          final idx = replies.indexWhere(
+            (c) => c.commentId == optimistic.commentId,
+          );
           if (idx != -1) replies[idx] = real;
           setState(() => _expandedReplies[replyingToId] = replies);
         }
@@ -346,9 +349,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final wasLiked = comment.isLikedByUser;
     setState(() {
       comment.isLikedByUser = !wasLiked;
-      comment.numLikes = wasLiked
-          ? comment.numLikes - 1
-          : comment.numLikes + 1;
+      comment.numLikes = wasLiked ? comment.numLikes - 1 : comment.numLikes + 1;
     });
 
     final result = await _service.toggleCommentLike(
@@ -404,9 +405,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       if (replyParentId == null) return; // comment not found anywhere
     }
 
-    final result = await _service.deleteComment(
-      commentId: comment.commentId,
-    );
+    final result = await _service.deleteComment(commentId: comment.commentId);
 
     if (!mounted) return;
 
@@ -415,7 +414,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
       setState(() {
         if (replyParentId != null) {
           final replies = List<Comment>.from(
-              _expandedReplies[replyParentId] ?? <Comment>[]);
+            _expandedReplies[replyParentId] ?? <Comment>[],
+          );
           if (replyIdx >= 0 && replyIdx <= replies.length) {
             replies.insert(replyIdx, comment);
           } else {
@@ -472,8 +472,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // ─────────────────────────────────────────────
@@ -526,12 +527,13 @@ class _CommentsScreenState extends State<CommentsScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Colors.orange))
+                    child: CircularProgressIndicator(color: Colors.orange),
+                  )
                 : _errorMessage != null
-                    ? _buildErrorState()
-                    : _comments.isEmpty
-                        ? _buildEmptyState()
-                        : _buildCommentsList(),
+                ? _buildErrorState()
+                : _comments.isEmpty
+                ? _buildEmptyState()
+                : _buildCommentsList(),
           ),
 
           // ── Reply-to indicator ─────────────────
@@ -606,30 +608,35 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final List<Widget> items = [];
 
     for (final comment in _comments) {
-      items.add(CommentTile(
-        comment: comment,
-        isReply: false,
-        onLikeTap: () => _toggleCommentLike(comment),
-        onReplyTap: () => _startReply(comment),
-        onTimestampTap: () {
-          PlaybackStreamingEngineService.shared
-              .seek(Duration(seconds: comment.timestamp))
-              .then((_) => PlaybackStreamingEngineService.shared.resume());
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Playing from ${comment.formattedTimestamp}'),
-            duration: const Duration(seconds: 2),
-            backgroundColor: const Color(0xFF1A1A1A),
-          ));
-        },
-        onDeleteTap: (comment.isOwnComment ||
-                (comment.userId.isNotEmpty &&
-                    comment.userId == _currentUserId))
-            ? () => _confirmDelete(comment)
-            : null,
-        onGoToProfileTap: comment.userId.isNotEmpty
-            ? () => _navigateToProfile(comment.userId)
-            : null,
-      ));
+      items.add(
+        CommentTile(
+          comment: comment,
+          isReply: false,
+          onLikeTap: () => _toggleCommentLike(comment),
+          onReplyTap: () => _startReply(comment),
+          onTimestampTap: () {
+            PlaybackStreamingEngineService.shared
+                .seek(Duration(seconds: comment.timestamp))
+                .then((_) => PlaybackStreamingEngineService.shared.resume());
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Playing from ${comment.formattedTimestamp}'),
+                duration: const Duration(seconds: 2),
+                backgroundColor: const Color(0xFF1A1A1A),
+              ),
+            );
+          },
+          onDeleteTap:
+              (comment.isOwnComment ||
+                  (comment.userId.isNotEmpty &&
+                      comment.userId == _currentUserId))
+              ? () => _confirmDelete(comment)
+              : null,
+          onGoToProfileTap: comment.userId.isNotEmpty
+              ? () => _navigateToProfile(comment.userId)
+              : null,
+        ),
+      );
 
       // Show expand/collapse replies button if comment has replies (or
       // if we've already added replies programmatically, e.g. after posting).
@@ -656,7 +663,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       isExpanded
                           ? 'Hide replies'
                           : 'View ${comment.replyCount} '
-                              'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
+                                'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
                       style: const TextStyle(
                         color: Colors.orange,
                         fontSize: 12,
@@ -671,30 +678,35 @@ class _CommentsScreenState extends State<CommentsScreen> {
         if (isExpanded) {
           final replies = _expandedReplies[comment.commentId] ?? [];
           for (final reply in replies) {
-            items.add(CommentTile(
-              comment: reply,
-              isReply: true,
-              onLikeTap: () => _toggleCommentLike(reply),
-              onReplyTap: () => _startReply(comment), // reply to parent
-              onTimestampTap: () {
-                PlaybackStreamingEngineService.shared.seek(
-                  Duration(seconds: reply.timestamp),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Playing from ${reply.formattedTimestamp}'),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: const Color(0xFF1A1A1A),
-                ));
-              },
-              onDeleteTap: (reply.isOwnComment ||
-                      (reply.userId.isNotEmpty &&
-                          reply.userId == _currentUserId))
-                  ? () => _confirmDelete(reply)
-                  : null,
-              onGoToProfileTap: reply.userId.isNotEmpty
-                  ? () => _navigateToProfile(reply.userId)
-                  : null,
-            ));
+            items.add(
+              CommentTile(
+                comment: reply,
+                isReply: true,
+                onLikeTap: () => _toggleCommentLike(reply),
+                onReplyTap: () => _startReply(comment), // reply to parent
+                onTimestampTap: () {
+                  PlaybackStreamingEngineService.shared.seek(
+                    Duration(seconds: reply.timestamp),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Playing from ${reply.formattedTimestamp}'),
+                      duration: const Duration(seconds: 2),
+                      backgroundColor: const Color(0xFF1A1A1A),
+                    ),
+                  );
+                },
+                onDeleteTap:
+                    (reply.isOwnComment ||
+                        (reply.userId.isNotEmpty &&
+                            reply.userId == _currentUserId))
+                    ? () => _confirmDelete(reply)
+                    : null,
+                onGoToProfileTap: reply.userId.isNotEmpty
+                    ? () => _navigateToProfile(reply.userId)
+                    : null,
+              ),
+            );
           }
         }
       }
@@ -710,22 +722,24 @@ class _CommentsScreenState extends State<CommentsScreen> {
           child: _isLoadingMore
               ? const Center(
                   child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.orange))
+                    strokeWidth: 2,
+                    color: Colors.orange,
+                  ),
+                )
               : Center(
                   child: TextButton(
                     onPressed: _loadMore,
-                    child: const Text('Load more',
-                        style: TextStyle(color: Colors.orange)),
+                    child: const Text(
+                      'Load more',
+                      style: TextStyle(color: Colors.orange),
+                    ),
                   ),
                 ),
         ),
       );
     }
 
-    return ListView(
-      controller: _scrollController,
-      children: items,
-    );
+    return ListView(controller: _scrollController, children: items);
   }
 
   Widget _buildErrorState() {
@@ -733,8 +747,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(_errorMessage!,
-              style: TextStyle(color: Colors.grey[400])),
+          Text(_errorMessage!, style: TextStyle(color: Colors.grey[400])),
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: _loadComments,
@@ -754,8 +767,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline,
-              color: Colors.grey[700], size: 48),
+          Icon(Icons.chat_bubble_outline, color: Colors.grey[700], size: 48),
           const SizedBox(height: 12),
           Text(
             'No comments yet.\nBe the first to comment!',
@@ -776,8 +788,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         children: [
           Text(
             'Replying to ${_replyingTo!.displayName}',
-            style:
-                const TextStyle(color: Colors.orange, fontSize: 12),
+            style: const TextStyle(color: Colors.orange, fontSize: 12),
           ),
           const Spacer(),
           GestureDetector(
@@ -840,7 +851,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 filled: true,
                 fillColor: const Color(0xFF222222),
                 contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
@@ -859,7 +872,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     height: 22,
                     width: 22,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.orange),
+                      strokeWidth: 2,
+                      color: Colors.orange,
+                    ),
                   )
                 : const Icon(Icons.send, color: Colors.orange, size: 22),
           ),
@@ -885,8 +900,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                  color: Colors.grey[700],
-                  borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey[700],
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -895,26 +911,31 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 child: Text(
                   'Sort by',
                   style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ),
-            ..._sortLabels.entries.map((entry) => ListTile(
-                  title: Text(entry.value,
-                      style: const TextStyle(color: Colors.white)),
-                  trailing: _sortBy == entry.key
-                      ? const Icon(Icons.check, color: Colors.orange)
-                      : null,
-                  onTap: () {
-                    Navigator.pop(context);
-                    if (_sortBy != entry.key) {
-                      setState(() => _sortBy = entry.key);
-                      _loadComments();
-                    }
-                  },
-                )),
+            ..._sortLabels.entries.map(
+              (entry) => ListTile(
+                title: Text(
+                  entry.value,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                trailing: _sortBy == entry.key
+                    ? const Icon(Icons.check, color: Colors.orange)
+                    : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  if (_sortBy != entry.key) {
+                    setState(() => _sortBy = entry.key);
+                    _loadComments();
+                  }
+                },
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ),
@@ -928,8 +949,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Delete comment',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Delete comment',
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
           'Are you sure you want to delete this comment?',
           style: TextStyle(color: Colors.grey),
@@ -937,16 +960,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.grey)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteComment(comment);
             },
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

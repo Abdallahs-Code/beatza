@@ -10,44 +10,43 @@ class TopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Row(
-        children: [
-          const Spacer(),
-          const Text(
-            AppText.homeTitle,
-            style: TextStyle(
-              color: AppColors.whiteSmoke,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-            ),
+    return Row(
+      children: [
+        const Spacer(),
+        const Text(
+          AppText.homeTitle,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
           ),
-          const Spacer(),
-          HeaderIcon(
-            Icons.cloud_upload_outlined,
-            onTap: () async {
-              final AudioUploadService audioService = AudioUploadService();
-              final file = await audioService.pickAudioFile();
-              if (file != null) {
-                if (!context.mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const UploadTrackScreen(),
-                    settings: RouteSettings(arguments: file),
-                  ),
-                );
-              }
-            },
-          ),
-
-          const SizedBox(width: 10),
-          const HeaderIcon(Icons.more_horiz),
-        ],
-      ),
+        ),
+        const Spacer(),
+        HeaderIcon(
+          Icons.cloud_upload_outlined,
+          onTap: () async {
+            final AudioUploadService audioService = AudioUploadService();
+            final file = await audioService.pickAudioFile();
+            if (file != null) {
+              if (!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UploadTrackScreen(),
+                  settings: RouteSettings(arguments: file),
+                ),
+              );
+            }
+          },
+        ),
+        const SizedBox(width: 10),
+        const HeaderIcon(Icons.more_horiz),
+      ],
     );
   }
-}class HeaderIcon extends StatelessWidget {
+}
+
+class HeaderIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
@@ -69,6 +68,7 @@ class TopHeader extends StatelessWidget {
     );
   }
 }
+
 class YourLikesCard extends StatelessWidget {
   const YourLikesCard({super.key});
 

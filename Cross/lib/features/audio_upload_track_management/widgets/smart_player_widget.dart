@@ -58,7 +58,12 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
       if (mounted) setState(() => _position = p);
     });
     _audioPlayer.onPlayerComplete.listen((_) {
-      if (mounted) setState(() { _isPlaying = false; _position = Duration.zero; });
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+          _position = Duration.zero;
+        });
+      }
     });
   }
 
@@ -68,7 +73,10 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Audio file not found!'), backgroundColor: Colors.red)
+          const SnackBar(
+            content: Text('Audio file not found!'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -97,7 +105,9 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
     setState(() => _isAddedToPlaylist = !_isAddedToPlaylist);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isAddedToPlaylist ? 'Added to Next up' : 'Removed from Next up'),
+        content: Text(
+          _isAddedToPlaylist ? 'Added to Next up' : 'Removed from Next up',
+        ),
         duration: const Duration(seconds: 2),
         backgroundColor: const Color(0xFF2A2A2A),
         behavior: SnackBarBehavior.floating,
@@ -118,171 +128,287 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
 
   void _showDevicesModal() {
     showModalBottomSheet(
-        context: context,
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-        builder: (context) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)))),
-                  const SizedBox(height: 24),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text('Current Device', style: TextStyle(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.bold)),
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    leading: const Icon(Icons.speaker_phone, color: Color(0xFFFF5500)),
-                    title: const Text('Speaker', style: TextStyle(color: Colors.white, fontSize: 16)),
-                    onTap: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Current Device',
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const Divider(color: Colors.white10, height: 24),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text('Other Devices', style: TextStyle(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: const Icon(
+                    Icons.speaker_phone,
+                    color: Color(0xFFFF5500),
                   ),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    leading: const Icon(Icons.airplay, color: Colors.white),
-                    title: const Text('AirPlay or Bluetooth', style: TextStyle(color: Colors.white, fontSize: 16)),
-                    onTap: () => Navigator.pop(context),
+                  title: const Text(
+                    'Speaker',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.cast, color: Colors.white),
-                    title: const Text('Google Cast', style: TextStyle(color: Colors.white, fontSize: 16)),
-                    onTap: () => Navigator.pop(context),
+                  onTap: () => Navigator.pop(context),
+                ),
+                const Divider(color: Colors.white10, height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Other Devices',
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: const Icon(Icons.airplay, color: Colors.white),
+                  title: const Text(
+                    'AirPlay or Bluetooth',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  onTap: () => Navigator.pop(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.cast, color: Colors.white),
+                  title: const Text(
+                    'Google Cast',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  onTap: () => Navigator.pop(context),
+                ),
+              ],
             ),
-          );
-        }
+          ),
+        );
+      },
     );
   }
 
   void _showFullPlayer() {
     showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.black,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        builder: (context) {
-          return StatefulBuilder(
-              builder: (context, setModalState) {
-                return Container(
-                  height: MediaQuery.of(context).size.height * 0.9,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                    image: widget.track.coverImagePath != null
-                        ? DecorationImage(
-                      image: FileImage(File(widget.track.coverImagePath!)),
-                      fit: BoxFit.cover,
-                      colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
-                    )
-                        : null,
-                    color: const Color(0xFF121212),
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white54, borderRadius: BorderRadius.circular(2)))),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 32), onPressed: () => Navigator.pop(context)),
-                            const Icon(Icons.more_horiz, color: Colors.white, size: 28),
-                          ],
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.9,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                image: widget.track.coverImagePath != null
+                    ? DecorationImage(
+                        image: FileImage(File(widget.track.coverImagePath!)),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withValues(alpha: 0.7),
+                          BlendMode.darken,
                         ),
+                      )
+                    : null,
+                color: const Color(0xFF121212),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white54,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      const Spacer(),
-                      StreamBuilder<Duration>(
-                          stream: _audioPlayer.onPositionChanged,
-                          builder: (context, snapshot) {
-                            double progress = _duration.inMilliseconds > 0 ? _position.inMilliseconds / _duration.inMilliseconds : 0.0;
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: SizedBox(
-                                height: 60,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: List.generate(_waveformHeights.length, (index) {
-                                    bool isPlayed = (index / _waveformHeights.length) <= progress;
-                                    return Expanded(
-                                      child: Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                                        height: _waveformHeights[index],
-                                        decoration: BoxDecoration(
-                                          color: isPlayed ? const Color(0xFFFF5500) : Colors.white54,
-                                          borderRadius: BorderRadius.circular(2),
-                                        ),
-                                      ),
-                                    );
-                                  }),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const Icon(
+                          Icons.more_horiz,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  StreamBuilder<Duration>(
+                    stream: _audioPlayer.onPositionChanged,
+                    builder: (context, snapshot) {
+                      double progress = _duration.inMilliseconds > 0
+                          ? _position.inMilliseconds / _duration.inMilliseconds
+                          : 0.0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SizedBox(
+                          height: 60,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: List.generate(_waveformHeights.length, (
+                              index,
+                            ) {
+                              bool isPlayed =
+                                  (index / _waveformHeights.length) <= progress;
+                              return Expanded(
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 1,
+                                  ),
+                                  height: _waveformHeights[index],
+                                  decoration: BoxDecoration(
+                                    color: isPlayed
+                                        ? const Color(0xFFFF5500)
+                                        : Colors.white54,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.transparent, Colors.black87],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            _mockLikeAction();
+                            setModalState(() {});
+                          },
+                          child: Row(
+                            children: [
+                              Icon(
+                                _isLiked
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: _isLiked
+                                    ? const Color(0xFFFF5500)
+                                    : Colors.white,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$_likeCount',
+                                style: TextStyle(
+                                  color: _isLiked
+                                      ? const Color(0xFFFF5500)
+                                      : Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
-                            );
-                          }
-                      ),
-                      const SizedBox(height: 30),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(colors: [Colors.transparent, Colors.black87], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        const Row(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                _mockLikeAction();
-                                setModalState((){});
-                              },
-                              child: Row(
-                                children: [
-                                  Icon(_isLiked ? Icons.favorite : Icons.favorite_border, color: _isLiked ? const Color(0xFFFF5500) : Colors.white, size: 28),
-                                  const SizedBox(width: 8),
-                                  Text('$_likeCount', style: TextStyle(color: _isLiked ? const Color(0xFFFF5500) : Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                                ],
-                              ),
+                            Icon(
+                              Icons.chat_bubble_outline,
+                              color: Colors.white,
+                              size: 26,
                             ),
-                            const Row(
-                              children: [
-                                Icon(Icons.chat_bubble_outline, color: Colors.white, size: 26),
-                                SizedBox(width: 8),
-                                Text('13', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                              ],
-                            ),
-                            IconButton(
-                              onPressed: () => _mockShareAction(context),
-                              icon: const Icon(Icons.ios_share, color: Colors.white, size: 28),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                _mockAddToPlaylist(context);
-                                setModalState((){});
-                              },
-                              icon: Icon(
-                                _isAddedToPlaylist ? Icons.playlist_add_check : Icons.playlist_add,
-                                color: _isAddedToPlaylist ? const Color(0xFFFF5500) : Colors.white,
-                                size: 30,
+                            SizedBox(width: 8),
+                            Text(
+                              '13',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        IconButton(
+                          onPressed: () => _mockShareAction(context),
+                          icon: const Icon(
+                            Icons.ios_share,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            _mockAddToPlaylist(context);
+                            setModalState(() {});
+                          },
+                          icon: Icon(
+                            _isAddedToPlaylist
+                                ? Icons.playlist_add_check
+                                : Icons.playlist_add,
+                            color: _isAddedToPlaylist
+                                ? const Color(0xFFFF5500)
+                                : Colors.white,
+                            size: 30,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              }
-          );
-        }
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -294,7 +420,9 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    double progress = _duration.inMilliseconds > 0 ? _position.inMilliseconds / _duration.inMilliseconds : 0.0;
+    double progress = _duration.inMilliseconds > 0
+        ? _position.inMilliseconds / _duration.inMilliseconds
+        : 0.0;
 
     return Padding(
       padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
@@ -305,14 +433,21 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
           decoration: BoxDecoration(
             color: const Color(0xFF2A2A2A),
             borderRadius: BorderRadius.circular(40),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 5))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
           child: Row(
             children: [
               GestureDetector(
                 onTap: _togglePlay,
                 child: SizedBox(
-                  width: 44, height: 44,
+                  width: 44,
+                  height: 44,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
@@ -323,9 +458,17 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
                         strokeWidth: 3,
                       ),
                       Container(
-                        width: 36, height: 36,
-                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        child: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black, size: 22),
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.black,
+                          size: 22,
+                        ),
                       ),
                     ],
                   ),
@@ -337,9 +480,23 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(widget.track.title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      widget.track.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 2),
-                    const Text('Belal Elseddik', style: TextStyle(color: Colors.white54, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const Text(
+                      'Belal Elseddik',
+                      style: TextStyle(color: Colors.white54, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -348,14 +505,22 @@ class _SmartWaveformPlayerState extends State<SmartWaveformPlayer> {
                 onTap: _showDevicesModal,
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Icon(Icons.devices, color: Color(0xFFFF5500), size: 24),
+                  child: Icon(
+                    Icons.devices,
+                    color: Color(0xFFFF5500),
+                    size: 24,
+                  ),
                 ),
               ),
               GestureDetector(
                 onTap: _mockLikeAction,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4.0),
-                  child: Icon(_isLiked ? Icons.favorite : Icons.favorite_border, color: _isLiked ? const Color(0xFFFF5500) : Colors.white, size: 26),
+                  child: Icon(
+                    _isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: _isLiked ? const Color(0xFFFF5500) : Colors.white,
+                    size: 26,
+                  ),
                 ),
               ),
               if (widget.onClose != null)

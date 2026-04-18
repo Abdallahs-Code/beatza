@@ -33,11 +33,7 @@ class RepostStatus {
   final String? _caption;
   final String? _repostedAt;
 
-  RepostStatus(
-    this._reposted,
-    this._caption,
-    this._repostedAt,
-  );
+  RepostStatus(this._reposted, this._caption, this._repostedAt);
 
   bool get reposted => _reposted;
   String? get caption => _caption;

@@ -25,6 +25,7 @@ import 'package:cross_team5/features/audio_upload_track_management/widgets/smart
 import 'package:cross_team5/features/audio_upload_track_management/screens/upload_track_screen.dart';
 
 enum _Sort { recentlyAdded, trackName }
+
 enum _Filter { all, public, private }
 
 class YourUploadsScreen extends StatefulWidget {
@@ -37,8 +38,7 @@ class YourUploadsScreen extends StatefulWidget {
 class _YourUploadsScreenState extends State<YourUploadsScreen> {
   final TrackApiService _apiService = TrackApiService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final TextEditingController _searchController =
-      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   // ── Server tracks ─────────────────────────────
   List<Track> _serverTracks = [];
@@ -84,8 +84,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       return;
     }
 
-    final result =
-        await _apiService.getUserPostedTracks(userId: userId);
+    final result = await _apiService.getUserPostedTracks(userId: userId);
 
     setState(() {
       _isLoadingServer = false;
@@ -102,19 +101,15 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   // ─────────────────────────────────────────────
   List<TrackModel> _filterLocal(List<TrackModel> all) {
     var list = all
-        .where((t) => t.title
-            .toLowerCase()
-            .contains(_searchQuery.toLowerCase()))
+        .where(
+          (t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
         .toList();
 
     if (_filter == _Filter.public) {
-      list = list
-          .where((t) => t.visibility == TrackVisibility.public)
-          .toList();
+      list = list.where((t) => t.visibility == TrackVisibility.public).toList();
     } else if (_filter == _Filter.private) {
-      list = list
-          .where((t) => t.visibility != TrackVisibility.public)
-          .toList();
+      list = list.where((t) => t.visibility != TrackVisibility.public).toList();
     }
 
     if (_sort == _Sort.recentlyAdded) {
@@ -131,9 +126,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   List<Track> _filterServer() {
     if (_searchQuery.isEmpty) return _serverTracks;
     return _serverTracks
-        .where((t) => t.title
-            .toLowerCase()
-            .contains(_searchQuery.toLowerCase()))
+        .where(
+          (t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
         .toList();
   }
 
@@ -142,22 +137,17 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   // ─────────────────────────────────────────────
   void _showFilterMenu(BuildContext context) async {
     final box = context.findRenderObject() as RenderBox;
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final pos = box.localToGlobal(Offset.zero, ancestor: overlay);
 
     final result = await showMenu<String>(
       context: context,
-      position:
-          RelativeRect.fromLTRB(pos.dx, pos.dy + 50, 16, 0),
+      position: RelativeRect.fromLTRB(pos.dx, pos.dy + 50, 16, 0),
       color: const Color(0xFF2A2A2A),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       items: [
-        _menuItem('recent', 'Recently added',
-            _sort == _Sort.recentlyAdded),
-        _menuItem(
-            'name', 'Track name', _sort == _Sort.trackName),
+        _menuItem('recent', 'Recently added', _sort == _Sort.recentlyAdded),
+        _menuItem('name', 'Track name', _sort == _Sort.trackName),
         const PopupMenuDivider(height: 1),
         _menuItem('all', 'All', _filter == _Filter.all),
         _menuItem('pub', 'Public', _filter == _Filter.public),
@@ -176,21 +166,23 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     }
   }
 
-  PopupMenuItem<String> _menuItem(
-      String value, String label, bool selected) {
+  PopupMenuItem<String> _menuItem(String value, String label, bool selected) {
     return PopupMenuItem(
       value: value,
-      child: Row(children: [
-        SizedBox(
+      child: Row(
+        children: [
+          SizedBox(
             width: 24,
             child: selected
-                ? const Icon(Icons.check,
-                    color: Colors.white, size: 18)
-                : null),
-        Text(label,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 15)),
-      ]),
+                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                : null,
+          ),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+          ),
+        ],
+      ),
     );
   }
 
@@ -208,7 +200,8 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-            '"${track.title}" — playback available after Module 5 integration'),
+          '"${track.title}" — playback available after Module 5 integration',
+        ),
         backgroundColor: const Color(0xFF2A2A2A),
         behavior: SnackBarBehavior.floating,
       ),
@@ -224,8 +217,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
         child: Stack(
           children: [
             ValueListenableBuilder<List<TrackModel>>(
-              valueListenable:
-                  AudioUploadService.globalMockTracksNotifier,
+              valueListenable: AudioUploadService.globalMockTracksNotifier,
               builder: (context, allLocal, _) {
                 final localTracks = _filterLocal(allLocal);
                 final serverTracks = _filterServer();
@@ -235,77 +227,84 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                   slivers: [
                     // ── AppBar ───────────────────
                     SliverAppBar(
-                      backgroundColor:
-                          const Color(0xFF0A0A0A),
+                      backgroundColor: const Color(0xFF0A0A0A),
                       expandedHeight: 120,
                       pinned: true,
                       leading: IconButton(
                         icon: const Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.white, size: 20),
-                        onPressed: () =>
-                            Navigator.pop(context),
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.pop(context),
                       ),
                       flexibleSpace: FlexibleSpaceBar(
-                        background: Stack(children: [
-                          Positioned(
-                            top: -80, right: -50,
-                            child: Container(
-                              width: 300, height: 300,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                    colors: [
-                                      const Color(0xFF8A2BE2)
-                                          .withOpacity(0.4),
-                                      Colors.transparent,
-                                    ]),
-                              ),
-                            ),
-                          ),
-                        ]),
-                      ),
-                      bottom: PreferredSize(
-                        preferredSize:
-                            const Size.fromHeight(60),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: Row(children: [
-                            Expanded(
+                        background: Stack(
+                          children: [
+                            Positioned(
+                              top: -80,
+                              right: -50,
                               child: Container(
-                                height: 40,
+                                width: 300,
+                                height: 300,
                                 decoration: BoxDecoration(
-                                    color: Colors.white10,
-                                    borderRadius:
-                                        BorderRadius.circular(
-                                            8)),
-                                child: TextField(
-                                  controller:
-                                      _searchController,
-                                  onChanged: (v) => setState(
-                                      () => _searchQuery = v),
-                                  style: const TextStyle(
-                                      color: Colors.white),
-                                  decoration:
-                                      const InputDecoration(
-                                    hintText: 'Search tracks',
-                                    prefixIcon: Icon(
-                                        Icons.search,
-                                        color: Colors.white54),
-                                    border: InputBorder.none,
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      const Color(
+                                        0xFF8A2BE2,
+                                      ).withValues(alpha: 0.4),
+                                      Colors.transparent,
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: () =>
-                                  _showFilterMenu(context),
-                              child: const Icon(Icons.tune,
-                                  color: Colors.white),
-                            ),
-                          ]),
+                          ],
+                        ),
+                      ),
+                      bottom: PreferredSize(
+                        preferredSize: const Size.fromHeight(60),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white10,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: (v) =>
+                                        setState(() => _searchQuery = v),
+                                    style: const TextStyle(color: Colors.white),
+                                    decoration: const InputDecoration(
+                                      hintText: 'Search tracks',
+                                      prefixIcon: Icon(
+                                        Icons.search,
+                                        color: Colors.white54,
+                                      ),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () => _showFilterMenu(context),
+                                child: const Icon(
+                                  Icons.tune,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -313,57 +312,53 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                     // ── Header ────────────────────
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            16, 16, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Your uploads',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontWeight:
-                                        FontWeight.bold)),
+                            const Text(
+                              'Your uploads',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 20),
                             Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 IconButton(
                                   icon: const Icon(
-                                      Icons
-                                          .cloud_upload_outlined,
-                                      color: Colors.white),
-                                  onPressed: () =>
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const UploadTrackScreen())),
+                                    Icons.cloud_upload_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const UploadTrackScreen(),
+                                    ),
+                                  ),
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    if (localTracks
-                                        .isNotEmpty) {
-                                      _playLocal(
-                                          localTracks.first);
-                                    } else if (serverTracks
-                                        .isNotEmpty) {
-                                      _onServerTrackTap(
-                                          serverTracks.first);
+                                    if (localTracks.isNotEmpty) {
+                                      _playLocal(localTracks.first);
+                                    } else if (serverTracks.isNotEmpty) {
+                                      _onServerTrackTap(serverTracks.first);
                                     }
                                   },
                                   child: Container(
-                                    width: 44, height: 44,
-                                    decoration:
-                                        const BoxDecoration(
-                                            color: Colors.white,
-                                            shape:
-                                                BoxShape.circle),
+                                    width: 44,
+                                    height: 44,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
                                     child: const Icon(
-                                        Icons.play_arrow,
-                                        color: Colors.black),
+                                      Icons.play_arrow,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -381,35 +376,41 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.orange
-                                  .withOpacity(0.1),
-                              borderRadius:
-                                  BorderRadius.circular(8),
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                  color: Colors.orange
-                                      .withOpacity(0.3)),
+                                color: Colors.orange.withValues(alpha: 0.3),
+                              ),
                             ),
-                            child: Row(children: [
-                              const Icon(Icons.warning_amber,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber,
                                   color: Colors.orange,
-                                  size: 16),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
                                     'Could not load server tracks.',
                                     style: TextStyle(
-                                        color: Colors
-                                            .orange[300],
-                                        fontSize: 12)),
-                              ),
-                              TextButton(
-                                onPressed: _loadServerTracks,
-                                child: const Text('Retry',
+                                      color: Colors.orange[300],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: _loadServerTracks,
+                                  child: const Text(
+                                    'Retry',
                                     style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 12)),
-                              ),
-                            ]),
+                                      color: Colors.orange,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -421,10 +422,12 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                           padding: EdgeInsets.all(16),
                           child: Center(
                             child: SizedBox(
-                              width: 20, height: 20,
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
-                                  color: Colors.orange,
-                                  strokeWidth: 2),
+                                color: Colors.orange,
+                                strokeWidth: 2,
+                              ),
                             ),
                           ),
                         ),
@@ -435,66 +438,63 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.only(
-                              left: 16, top: 12, bottom: 4),
-                          child: Text('Just uploaded',
-                              style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 12,
-                                  fontWeight:
-                                      FontWeight.w500)),
+                            left: 16,
+                            top: 12,
+                            bottom: 4,
+                          ),
+                          child: Text(
+                            'Just uploaded',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                       SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, i) {
-                            final t = localTracks[i];
-                            final isPlaying =
-                                _playingLocalTrack?.id ==
-                                    t.id;
-                            return ListTile(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 4),
-                              leading: _thumb(
-                                  localPath:
-                                      t.coverImagePath),
-                              title: Text(t.title,
-                                  style: TextStyle(
-                                      color: isPlaying
-                                          ? Colors.orange
-                                          : Colors.white,
-                                      fontWeight:
-                                          FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow:
-                                      TextOverflow.ellipsis),
-                              subtitle: Text(
-                                t.processingState ==
-                                        TrackProcessingState
-                                            .processing
-                                    ? 'Processing...'
-                                    : t.visibility.name,
-                                style: TextStyle(
-                                    color: t.processingState ==
-                                            TrackProcessingState
-                                                .processing
-                                        ? Colors.orange
-                                        : Colors.grey[500],
-                                    fontSize: 12),
+                        delegate: SliverChildBuilderDelegate((ctx, i) {
+                          final t = localTracks[i];
+                          final isPlaying = _playingLocalTrack?.id == t.id;
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            leading: _thumb(localPath: t.coverImagePath),
+                            title: Text(
+                              t.title,
+                              style: TextStyle(
+                                color: isPlaying ? Colors.orange : Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                    Icons.more_horiz,
-                                    color: Colors.white54),
-                                onPressed: () =>
-                                    _localOptions(ctx, t),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              t.processingState ==
+                                      TrackProcessingState.processing
+                                  ? 'Processing...'
+                                  : t.visibility.name,
+                              style: TextStyle(
+                                color:
+                                    t.processingState ==
+                                        TrackProcessingState.processing
+                                    ? Colors.orange
+                                    : Colors.grey[500],
+                                fontSize: 12,
                               ),
-                              onTap: () => _playLocal(t),
-                            );
-                          },
-                          childCount: localTracks.length,
-                        ),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.more_horiz,
+                                color: Colors.white54,
+                              ),
+                              onPressed: () => _localOptions(ctx, t),
+                            ),
+                            onTap: () => _playLocal(t),
+                          );
+                        }, childCount: localTracks.length),
                       ),
                     ],
 
@@ -503,70 +503,75 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.only(
-                              left: 16, top: 12, bottom: 4),
-                          child: Text('On SoundCloud',
-                              style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 12,
-                                  fontWeight:
-                                      FontWeight.w500)),
+                            left: 16,
+                            top: 12,
+                            bottom: 4,
+                          ),
+                          child: Text(
+                            'On SoundCloud',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                       SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, i) {
-                            final t = serverTracks[i];
-                            return ListTile(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 4),
-                              leading: _thumb(
-                                  networkUrl: t.imageUrl),
-                              title: Text(t.title,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight:
-                                          FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow:
-                                      TextOverflow.ellipsis),
-                              subtitle: Row(children: [
-                                Text(
-                                    t.isPrivate
-                                        ? 'Private'
-                                        : 'Public',
-                                    style: TextStyle(
-                                        color:
-                                            Colors.grey[500],
-                                        fontSize: 12)),
-                                if (t.numPlays > 0) ...[
-                                  Text(' · ',
-                                      style: TextStyle(
-                                          color:
-                                              Colors.grey[700],
-                                          fontSize: 12)),
-                                  Text(
-                                      '${_fmt(t.numPlays)} plays',
-                                      style: TextStyle(
-                                          color:
-                                              Colors.grey[500],
-                                          fontSize: 12)),
-                                ],
-                              ]),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                    Icons.more_horiz,
-                                    color: Colors.white54),
-                                onPressed: () =>
-                                    _serverOptions(ctx, t),
+                        delegate: SliverChildBuilderDelegate((ctx, i) {
+                          final t = serverTracks[i];
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            leading: _thumb(networkUrl: t.imageUrl),
+                            title: Text(
+                              t.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
-                              onTap: () =>
-                                  _onServerTrackTap(t),
-                            );
-                          },
-                          childCount: serverTracks.length,
-                        ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Row(
+                              children: [
+                                Text(
+                                  t.isPrivate ? 'Private' : 'Public',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                if (t.numPlays > 0) ...[
+                                  Text(
+                                    ' · ',
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_fmt(t.numPlays)} plays',
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.more_horiz,
+                                color: Colors.white54,
+                              ),
+                              onPressed: () => _serverOptions(ctx, t),
+                            ),
+                            onTap: () => _onServerTrackTap(t),
+                          );
+                        }, childCount: serverTracks.length),
                       ),
                     ],
 
@@ -577,36 +582,34 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       SliverFillRemaining(
                         child: Center(
                           child: Column(
-                            mainAxisAlignment:
-                                MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                  Icons
-                                      .cloud_upload_outlined,
-                                  color: Colors.grey[700],
-                                  size: 60),
+                                Icons.cloud_upload_outlined,
+                                color: Colors.grey[700],
+                                size: 60,
+                              ),
                               const SizedBox(height: 16),
-                              Text('No uploads yet',
-                                  style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 16)),
+                              Text(
+                                'No uploads yet',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 16,
+                                ),
+                              ),
                               const SizedBox(height: 12),
                               ElevatedButton.icon(
-                                onPressed: () =>
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const UploadTrackScreen())),
-                                icon: const Icon(Icons
-                                    .cloud_upload_outlined),
-                                label: const Text(
-                                    'Upload your first track'),
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const UploadTrackScreen(),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.cloud_upload_outlined),
+                                label: const Text('Upload your first track'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.orange,
-                                  foregroundColor:
-                                      Colors.white,
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
                                 ),
                               ),
                             ],
@@ -615,8 +618,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
 
                     // Bottom padding for player bar
-                    const SliverToBoxAdapter(
-                        child: SizedBox(height: 120)),
+                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
                   ],
                 );
               },
@@ -625,12 +627,13 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
             // ── Local preview player ──────────────
             if (_playingLocalTrack != null)
               Positioned(
-                left: 0, right: 0, bottom: 16,
+                left: 0,
+                right: 0,
+                bottom: 16,
                 child: SafeArea(
                   child: SmartWaveformPlayer(
                     track: _playingLocalTrack!,
-                    onClose: () => setState(
-                        () => _playingLocalTrack = null),
+                    onClose: () => setState(() => _playingLocalTrack = null),
                   ),
                 ),
               ),
@@ -645,22 +648,24 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   // ─────────────────────────────────────────────
   Widget _thumb({String? localPath, String? networkUrl}) {
     return Container(
-      width: 50, height: 50,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
-          color: const Color(0xFF1C1C1C),
-          borderRadius: BorderRadius.circular(4)),
+        color: const Color(0xFF1C1C1C),
+        borderRadius: BorderRadius.circular(4),
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: localPath != null
             ? Image.file(File(localPath), fit: BoxFit.cover)
             : networkUrl != null
-                ? Image.network(networkUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                        const Icon(Icons.music_note,
-                            color: Colors.white24))
-                : const Icon(Icons.music_note,
-                    color: Colors.white24),
+            ? Image.network(
+                networkUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    const Icon(Icons.music_note, color: Colors.white24),
+              )
+            : const Icon(Icons.music_note, color: Colors.white24),
       ),
     );
   }
@@ -670,41 +675,41 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       context: ctx,
       backgroundColor: const Color(0xFF141414),
       shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(16))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-                margin: const EdgeInsets.only(
-                    top: 10, bottom: 8),
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey[700],
-                    borderRadius: BorderRadius.circular(2))),
+              margin: const EdgeInsets.only(top: 10, bottom: 8),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[700],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             ListTile(
-              leading: const Icon(Icons.play_arrow,
-                  color: Colors.white),
-              title: const Text('Play',
-                  style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.play_arrow, color: Colors.white),
+              title: const Text('Play', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
                 _playLocal(track);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.edit_outlined,
-                  color: Colors.white),
-              title: const Text('Edit track',
-                  style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.edit_outlined, color: Colors.white),
+              title: const Text(
+                'Edit track',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) =>
-                            const UploadTrackScreen()));
+                  context,
+                  MaterialPageRoute(builder: (_) => const UploadTrackScreen()),
+                );
               },
             ),
           ],
@@ -718,32 +723,36 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       context: ctx,
       backgroundColor: const Color(0xFF141414),
       shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(16))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-                margin: const EdgeInsets.only(
-                    top: 10, bottom: 8),
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey[700],
-                    borderRadius: BorderRadius.circular(2))),
+              margin: const EdgeInsets.only(top: 10, bottom: 8),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[700],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             ListTile(
-              leading: const Icon(Icons.info_outline,
-                  color: Colors.white),
-              title: Text(track.title,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+              leading: const Icon(Icons.info_outline, color: Colors.white),
+              title: Text(
+                track.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               subtitle: Text(
-                  '${_fmt(track.numPlays)} plays · ${track.isPrivate ? "Private" : "Public"}',
-                  style: const TextStyle(
-                      color: Colors.white54, fontSize: 12)),
+                '${_fmt(track.numPlays)} plays · ${track.isPrivate ? "Private" : "Public"}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
             ),
           ],
         ),

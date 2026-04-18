@@ -30,9 +30,9 @@ class Track {
   final bool _isPrivate;
   final String? _audioLink;
   final String? _imageUrl;
-  int _numLikes;
+  int numLikes;
   final int _numPlays;
-  int _numReposts;
+  int numReposts;
   final int _numComments;
   final String _releaseDate;
 
@@ -47,9 +47,9 @@ class Track {
     this._isPrivate,
     this._audioLink,
     this._imageUrl,
-    this._numLikes,
+    this.numLikes,
     this._numPlays,
-    this._numReposts,
+    this.numReposts,
     this._numComments,
     this._releaseDate,
   );
@@ -67,15 +67,9 @@ class Track {
   bool get isPrivate => _isPrivate;
   String? get audioLink => _audioLink;
   String? get imageUrl => _imageUrl;
-  int get numLikes => _numLikes;
   int get numPlays => _numPlays;
-  int get numReposts => _numReposts;
   int get numComments => _numComments;
   String get releaseDate => _releaseDate;
-
-  // ── Mutable setters (for optimistic UI in future integration) ──
-  set numLikes(int value) => _numLikes = value;
-  set numReposts(int value) => _numReposts = value;
 
   // ─────────────────────────────────────────────
   // Factory: SHAPE B — nested (history, detail, posted, liked)
@@ -121,16 +115,12 @@ class Track {
       json['track_id']?.toString() ?? '',
       json['title']?.toString() ?? '',
       '',
-      mainArtist != null
-          ? [mainArtist['displayName']?.toString() ?? '']
-          : [],
+      mainArtist != null ? [mainArtist['displayName']?.toString() ?? ''] : [],
       json['genre']?.toString() ?? '',
-      (json['tags'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
+      (json['tags'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
       '',
       (json['privacy']?.toString() ?? 'Public') != 'Public',
-      null, // no audioLink in flat shape
+      null,
       json['image_url']?.toString(),
       json['num_of_likes'] as int? ?? 0,
       json['num_of_plays'] as int? ?? 0,

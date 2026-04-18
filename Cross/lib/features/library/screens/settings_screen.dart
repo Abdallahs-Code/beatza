@@ -184,7 +184,7 @@ class _SettingsTileState extends State<_SettingsTile> {
                     _switchValue = value;
                   });
                 },
-                activeColor: Colors.white,
+                activeThumbColor: Colors.white,
                 activeTrackColor: AppColors.brilliantOrange,
                 inactiveThumbColor: Colors.white,
                 inactiveTrackColor: AppColors.tileDark3,
@@ -297,9 +297,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: const Color(0xFF111111),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -308,11 +306,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
           children: [
             const Row(
               children: [
-                Icon(
-                  Icons.warning_rounded,
-                  color: Colors.redAccent,
-                  size: 28,
-                ),
+                Icon(Icons.warning_rounded, color: Colors.redAccent, size: 28),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -336,7 +330,9 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            const _BulletPoint(text: 'Your profile and all account information'),
+            const _BulletPoint(
+              text: 'Your profile and all account information',
+            ),
             const _BulletPoint(text: 'All uploaded tracks and audio content'),
             const _BulletPoint(text: 'All comments, likes, and reposts'),
             const _BulletPoint(text: 'Your followers and following lists'),

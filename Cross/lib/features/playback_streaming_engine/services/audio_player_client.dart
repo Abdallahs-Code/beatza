@@ -21,7 +21,7 @@ class AudioplayersClient implements AudioPlayerClient {
   final AudioPlayer _audioPlayer;
 
   AudioplayersClient({AudioPlayer? audioPlayer})
-      : _audioPlayer = audioPlayer ?? AudioPlayer() {
+    : _audioPlayer = audioPlayer ?? AudioPlayer() {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
   }
 
@@ -56,6 +56,7 @@ class AudioplayersClient implements AudioPlayerClient {
 
     await _audioPlayer.resume();
   }
+
   @override
   Future<void> pause() => _audioPlayer.pause();
 

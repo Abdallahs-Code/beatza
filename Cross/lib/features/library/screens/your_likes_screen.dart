@@ -92,8 +92,8 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
                 IconButton(
                   icon: const Icon(Icons.shuffle_rounded, color: Colors.white),
                   onPressed: () {
-                    final shuffled =
-                        List<PlaybackTrackModel>.from(_likedTracks)..shuffle();
+                    final shuffled = List<PlaybackTrackModel>.from(_likedTracks)
+                      ..shuffle();
                     PlaybackStreamingEngineService.shared.playTrack(
                       shuffled.first,
                       queue: shuffled,

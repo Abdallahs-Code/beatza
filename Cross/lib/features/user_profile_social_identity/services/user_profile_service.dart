@@ -31,9 +31,9 @@ class UserProfileService {
     if (data.containsKey("errors") && data["errors"] != null) {
       if (data["errors"] is List) {
         msg +=
-            ": " + (data["errors"] as List).map((e) => e.toString()).join(", ");
+            ": ${(data["errors"] as List).map((e) => e.toString()).join(", ")}";
       } else {
-        msg += ": " + data["errors"].toString();
+        msg += ": ${data["errors"]}";
       }
     }
     return msg;
@@ -78,35 +78,26 @@ class UserProfileService {
       throw ApiException(500, "Network error: $err");
     }
   }
+
   Future<UserProfileModel> updateUserProfile(
-      UserProfileModel updatedProfile,
-      String token,
-      ) async {
+    UserProfileModel updatedProfile,
+    String token,
+  ) async {
     try {
       final payload = updatedProfile.toUpdatePayload();
 
-      print('========== API REQUEST ==========');
-      print('URL: $_servicePath');
-      print('PAYLOAD: ${jsonEncode(payload)}');
-      print('==================================');
-
       final response = await http
           .patch(
-        Uri.parse(_servicePath!),
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": "Bearer $token",
-          "User-Agent": "Android",
-        },
-        body: jsonEncode(payload),
-      )
+            Uri.parse(_servicePath!),
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "Authorization": "Bearer $token",
+              "User-Agent": "Android",
+            },
+            body: jsonEncode(payload),
+          )
           .timeout(const Duration(seconds: 10));
-
-      print('========== API RESPONSE ==========');
-      print('Status: ${response.statusCode}');
-      print('Body: ${response.body}');
-      print('==================================');
 
       final body = response.body.trim();
       final data = body.isNotEmpty ? jsonDecode(body) : {};

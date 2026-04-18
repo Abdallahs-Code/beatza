@@ -11,7 +11,6 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/playback_streaming_engine/playback_streaming_engine.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 
-
 class AppRouter {
   static Map<String, WidgetBuilder> routes = {
     "/": (context) => const SplashScreen(),
@@ -22,7 +21,7 @@ class AppRouter {
     ...UserProfileSocialIdentityRoutes.routes,
     ...FollowersSocialGraphRoutes.routes,
     ...PlaybackStreamingEngineRoutes.routes,
-     // Module 6 — Engagement & Social Interactions
+    // Module 6 — Engagement & Social Interactions
     ...EngagementSocialInteractionsRoutes.routes,
   };
 }

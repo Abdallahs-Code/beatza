@@ -35,9 +35,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   Future<bool> Function()? _ensureNextTrackAvailable;
 
   PlaybackStreamingEngineService._shared()
-      : _audioPlayerClient = AudioplayersClient(),
-        _storage = const FlutterSecureStorage(),
-        _httpClient = http.Client() {
+    : _audioPlayerClient = AudioplayersClient(),
+      _storage = const FlutterSecureStorage(),
+      _httpClient = http.Client() {
     _bindPlayerStreams();
   }
 
@@ -45,9 +45,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     AudioPlayerClient? audioPlayerClient,
     FlutterSecureStorage? storage,
     http.Client? httpClient,
-  })  : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
-        _storage = storage ?? const FlutterSecureStorage(),
-        _httpClient = httpClient ?? http.Client() {
+  }) : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
+       _storage = storage ?? const FlutterSecureStorage(),
+       _httpClient = httpClient ?? http.Client() {
     _bindPlayerStreams();
   }
 
@@ -79,8 +79,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         preferredIndex: 0,
       );
     } else {
-      final int existingIndex =
-          _activeQueue.indexWhere((item) => item.id == track.id);
+      final int existingIndex = _activeQueue.indexWhere(
+        (item) => item.id == track.id,
+      );
       if (existingIndex >= 0) {
         _currentQueueIndex = existingIndex;
       }
@@ -98,7 +99,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         _state.copyWith(
           currentTrack: track,
           status: PlaybackStatus.blocked,
-          message: track.blockedReason ?? 'This track is currently unavailable.',
+          message:
+              track.blockedReason ?? 'This track is currently unavailable.',
           currentPosition: Duration.zero,
           totalDuration: track.duration ?? Duration.zero,
         ),
@@ -188,10 +190,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     await _audioPlayerClient.resume();
     _updateState(
-      _state.copyWith(
-        status: PlaybackStatus.playing,
-        clearMessage: true,
-      ),
+      _state.copyWith(status: PlaybackStatus.playing, clearMessage: true),
     );
   }
 
@@ -281,10 +280,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _previewLimitReached = false;
 
     _updateState(
-      _state.copyWith(
-        currentPosition: targetPosition,
-        clearMessage: true,
-      ),
+      _state.copyWith(currentPosition: targetPosition, clearMessage: true),
     );
   }
 
@@ -355,8 +351,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     if (!loadedMore) {
-      loadedMore =
-          await PublicTracksPagingService.shared.ensureNextTrackAvailableForPlayer();
+      loadedMore = await PublicTracksPagingService.shared
+          .ensureNextTrackAvailableForPlayer();
     }
 
     if (loadedMore) {
@@ -379,8 +375,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       return;
     }
 
-    final int currentIndexInPagedTracks =
-        pagedTracks.indexWhere((item) => item.id == currentTrack.id);
+    final int currentIndexInPagedTracks = pagedTracks.indexWhere(
+      (item) => item.id == currentTrack.id,
+    );
 
     if (currentIndexInPagedTracks < 0) {
       return;
@@ -400,22 +397,22 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _positionSubscription = _audioPlayerClient.onPositionChanged.listen(
       _handlePositionChanged,
     );
-    _completionSubscription = _audioPlayerClient.onPlayerComplete.listen(
-      (_) {
-        unawaited(_handlePlaybackCompleted());
-      },
-    );
+    _completionSubscription = _audioPlayerClient.onPlayerComplete.listen((_) {
+      unawaited(_handlePlaybackCompleted());
+    });
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {
     final PlaybackStatus nextStatus = switch (playerState) {
       PlayerState.playing => PlaybackStatus.playing,
-      PlayerState.paused => _previewLimitReached
-          ? PlaybackStatus.previewEnded
-          : PlaybackStatus.paused,
-      PlayerState.stopped => _previewLimitReached
-          ? PlaybackStatus.previewEnded
-          : PlaybackStatus.stopped,
+      PlayerState.paused =>
+        _previewLimitReached
+            ? PlaybackStatus.previewEnded
+            : PlaybackStatus.paused,
+      PlayerState.stopped =>
+        _previewLimitReached
+            ? PlaybackStatus.previewEnded
+            : PlaybackStatus.stopped,
       PlayerState.completed => PlaybackStatus.completed,
       PlayerState.disposed => PlaybackStatus.stopped,
     };
@@ -450,10 +447,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     _updateState(
-      _state.copyWith(
-        currentPosition: position,
-        clearMessage: true,
-      ),
+      _state.copyWith(currentPosition: position, clearMessage: true),
     );
   }
 
@@ -564,21 +558,29 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     await applyIfStillCurrent();
 
-    unawaited(Future<void>.delayed(const Duration(milliseconds: 20), () async {
-      await applyIfStillCurrent();
-    }));
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 20), () async {
+        await applyIfStillCurrent();
+      }),
+    );
 
-    unawaited(Future<void>.delayed(const Duration(milliseconds: 80), () async {
-      await applyIfStillCurrent();
-    }));
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 80), () async {
+        await applyIfStillCurrent();
+      }),
+    );
 
-    unawaited(Future<void>.delayed(const Duration(milliseconds: 180), () async {
-      await applyIfStillCurrent();
-    }));
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 180), () async {
+        await applyIfStillCurrent();
+      }),
+    );
 
-    unawaited(Future<void>.delayed(const Duration(milliseconds: 320), () async {
-      await applyIfStillCurrent();
-    }));
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 320), () async {
+        await applyIfStillCurrent();
+      }),
+    );
   }
 
   void _updateState(PlaybackStateModel nextState) {

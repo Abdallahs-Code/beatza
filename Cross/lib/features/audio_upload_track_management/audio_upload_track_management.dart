@@ -2,15 +2,13 @@
 // Import this to access all Module 4 exports.
 // Zero dependency on Module 5 or Module 6.
 
-library audio_upload_track_management;
-
 // Models
 export 'models/track_model.dart'; // local upload model
-export 'models/track.dart';       // API Track model
+export 'models/track.dart'; // API Track model
 
 // Services
 export 'services/audio_upload_service.dart'; // local file + ValueNotifier
-export 'services/track_api_service.dart';    // all 13 API methods
+export 'services/track_api_service.dart'; // all 13 API methods
 
 // Widgets (teammate's — unchanged)
 export 'widgets/waveform_widget.dart';

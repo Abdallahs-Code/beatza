@@ -14,11 +14,7 @@ class EngagementUserTile extends StatelessWidget {
   final EngagementUser user;
   final VoidCallback? onTap; // navigates to user profile (Module 2 hook)
 
-  const EngagementUserTile({
-    super.key,
-    required this.user,
-    this.onTap,
-  });
+  const EngagementUserTile({super.key, required this.user, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -60,18 +56,11 @@ class EngagementUserTile extends StatelessWidget {
       ),
       subtitle: Text(
         _formatFollowerCount(user.followersCount),
-        style: TextStyle(
-          color: Colors.grey[400],
-          fontSize: 12,
-        ),
+        style: TextStyle(color: Colors.grey[400], fontSize: 12),
       ),
 
       // ── Chevron ──────────────────────────────
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey[600],
-        size: 20,
-      ),
+      trailing: Icon(Icons.chevron_right, color: Colors.grey[600], size: 20),
     );
   }
 

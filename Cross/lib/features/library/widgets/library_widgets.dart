@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
-import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/library/screens/settings_screen.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
@@ -24,10 +23,7 @@ class LibraryHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  AppColors.chipPink,
-                  AppColors.inferno,
-                ],
+                colors: [AppColors.chipPink, AppColors.inferno],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
@@ -51,23 +47,21 @@ class LibraryHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (Platform.isAndroid) const QrCodeScanButton(),
-if (Platform.isAndroid) const SizedBox(width: 10),
-GestureDetector(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const SettingsScreen(),
-      ),
-    );
-  },
-  child: const Icon(
-    Icons.settings_outlined,
-    color: AppColors.whiteSmoke,
-    size: 28,
-  ),
-),
-const SizedBox(width: 48),
+          if (Platform.isAndroid) const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+            child: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.whiteSmoke,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 48),
         ],
       ),
     );
@@ -77,10 +71,7 @@ const SizedBox(width: 48),
 class LibraryMenuItem extends StatelessWidget {
   final String title;
 
-  const LibraryMenuItem({
-    super.key,
-    required this.title,
-  });
+  const LibraryMenuItem({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -91,17 +82,10 @@ class LibraryMenuItem extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: AppColors.whiteSmoke,
-                fontSize: 18,
-              ),
+              style: const TextStyle(color: AppColors.whiteSmoke, fontSize: 18),
             ),
           ),
-          const Icon(
-            Icons.chevron_right,
-            color: AppColors.white60,
-            size: 28,
-          ),
+          const Icon(Icons.chevron_right, color: AppColors.white60, size: 28),
         ],
       ),
     );
@@ -147,10 +131,7 @@ class SectionHeader extends StatelessWidget {
           ),
           onActionTap == null
               ? action
-              : GestureDetector(
-                  onTap: onActionTap,
-                  child: action,
-                ),
+              : GestureDetector(onTap: onActionTap, child: action),
         ],
       ),
     );
@@ -223,10 +204,7 @@ class TrackPlaceholder extends StatelessWidget {
   }
 }
 
-enum RecentlyPlayedMockItemType {
-  playlist,
-  profile,
-}
+enum RecentlyPlayedMockItemType { playlist, profile }
 
 class RecentlyPlayedMockItem {
   final RecentlyPlayedMockItemType type;
@@ -249,10 +227,7 @@ class RecentlyPlayedMockItem {
 class RecentlyPlayedPreviewCard extends StatelessWidget {
   final RecentlyPlayedMockItem item;
 
-  const RecentlyPlayedPreviewCard({
-    super.key,
-    required this.item,
-  });
+  const RecentlyPlayedPreviewCard({super.key, required this.item});
 
   bool get _isProfile => item.type == RecentlyPlayedMockItemType.profile;
 
@@ -300,20 +275,14 @@ class RecentlyPlayedPreviewCard extends StatelessWidget {
             item.subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.white60,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.white60, fontSize: 14),
           ),
           const SizedBox(height: 4),
           Text(
             item.metadata,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.white60,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.white60, fontSize: 14),
           ),
         ],
       ),
@@ -324,10 +293,7 @@ class RecentlyPlayedPreviewCard extends StatelessWidget {
 class RecentlyPlayedListTile extends StatelessWidget {
   final RecentlyPlayedMockItem item;
 
-  const RecentlyPlayedListTile({
-    super.key,
-    required this.item,
-  });
+  const RecentlyPlayedListTile({super.key, required this.item});
 
   bool get _isProfile => item.type == RecentlyPlayedMockItemType.profile;
 
@@ -387,7 +353,9 @@ class RecentlyPlayedListTile extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      _isProfile ? Icons.person_rounded : Icons.favorite_rounded,
+                      _isProfile
+                          ? Icons.person_rounded
+                          : Icons.favorite_rounded,
                       size: 18,
                       color: AppColors.white60,
                     ),
@@ -418,11 +386,7 @@ class HistoryTrackTile extends StatelessWidget {
   final PlaybackTrackModel track;
   final VoidCallback? onTap;
 
-  const HistoryTrackTile({
-    super.key,
-    required this.track,
-    this.onTap,
-  });
+  const HistoryTrackTile({super.key, required this.track, this.onTap});
 
   bool get _isBlocked => track.accessState == PlaybackAccessState.blocked;
   bool get _isPreview => track.accessState == PlaybackAccessState.preview;
@@ -482,8 +446,8 @@ class HistoryTrackTile extends StatelessWidget {
                           _isBlocked
                               ? Icons.location_off_rounded
                               : _isPreview
-                                  ? Icons.lock_clock_rounded
-                                  : Icons.play_arrow_rounded,
+                              ? Icons.lock_clock_rounded
+                              : Icons.play_arrow_rounded,
                           color: AppColors.white60,
                           size: 20,
                         ),
@@ -583,7 +547,7 @@ class ArtworkImage extends StatelessWidget {
           : Image.network(
               imageUrl!,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _fallback(),
+              errorBuilder: (_, _, _) => _fallback(),
             ),
     );
   }
@@ -594,11 +558,7 @@ class ArtworkImage extends StatelessWidget {
         color: AppColors.tileDark,
         borderRadius: BorderRadius.circular(isCircular ? size / 2 : 12),
       ),
-      child: Icon(
-        fallbackIcon,
-        color: AppColors.white60,
-        size: size * 0.36,
-      ),
+      child: Icon(fallbackIcon, color: AppColors.white60, size: size * 0.36),
     );
   }
 }
@@ -619,10 +579,7 @@ class ImportCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Text(
-              '💎',
-              style: TextStyle(fontSize: 22),
-            ),
+            const Text('💎', style: TextStyle(fontSize: 22)),
             const SizedBox(width: 10),
             const SizedBox(width: 2),
             const Expanded(
@@ -720,20 +677,14 @@ class MiniPlayer extends StatelessWidget {
                   'Pagan',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.white60,
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(color: AppColors.white60, fontSize: 15),
                 ),
                 SizedBox(height: 2),
                 Text(
                   AppText.nowPlaying,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.whiteSmoke,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
                 ),
               ],
             ),
@@ -761,9 +712,7 @@ class LibraryBottomArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CommonBottomNavBar(
-      currentItem: AppNavItem.library,
-    );
+    return const CommonBottomNavBar(currentItem: AppNavItem.library);
   }
 }
 
@@ -790,11 +739,7 @@ class CircularIconButton extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.white10),
         ),
-        child: Icon(
-          icon,
-          color: AppColors.whiteSmoke,
-          size: 22,
-        ),
+        child: Icon(icon, color: AppColors.whiteSmoke, size: 22),
       ),
     );
   }

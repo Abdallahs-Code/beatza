@@ -125,8 +125,8 @@ class AuthApiService {
 
       final data = jsonDecode(response.body);
       LoggerService.logger.i(
-      "signup statusCode: ${response.statusCode}, body: ${response.body}",
-    );
+        "signup statusCode: ${response.statusCode}, body: ${response.body}",
+      );
       return (
         response.statusCode,
         data["message"] ?? "Signup request processed",
@@ -243,8 +243,7 @@ class AuthApiService {
 
   Future<bool> approveQrCode(String qrData) async {
     final accessToken = await _storage.read(key: "access_token");
-    try 
-    {
+    try {
       final response = await _client.post(
         Uri.parse("$_servicePath/cross/mobile"),
         headers: {
@@ -255,33 +254,31 @@ class AuthApiService {
         body: jsonEncode({"qrCode": qrData}),
       );
 
-      if (response.statusCode == 200)
-      {
+      if (response.statusCode == 200) {
         return true;
       }
       return false;
-    }
-    catch(e)
-    {
+    } catch (e) {
       LoggerService.logger.i('Approve Qr code Func: $e');
       return false;
     }
-    
   }
 
   Future<Map<String, dynamic>> checkQrStatus(String qrData) async {
     try {
-      final response = await _client.post(
-        Uri.parse('$_servicePath/cross/desktop/poll'),
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Android',
-        },
-        body: jsonEncode({'qrCode': qrData}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _client
+          .post(
+            Uri.parse('$_servicePath/cross/desktop/poll'),
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'Android',
+            },
+            body: jsonEncode({'qrCode': qrData}),
+          )
+          .timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(response.body);
-      
+
       switch (response.statusCode) {
         case 200:
           if (data.containsKey('data')) {
@@ -293,19 +290,21 @@ class AuthApiService {
           } else {
             return {
               'status': 'waiting',
-              'message': data['message'] ?? 'QR code not scanned, waiting for approval.',
+              'message':
+                  data['message'] ??
+                  'QR code not scanned, waiting for approval.',
             };
           }
-        
+
         case 400:
           throw Exception(data['message'] ?? 'Bad request');
-        
+
         case 401:
           throw Exception(data['message'] ?? 'Session expired');
-        
+
         case 500:
           throw Exception(data['message'] ?? 'Internal server error');
-        
+
         default:
           throw Exception('Failed to check QR status: ${response.statusCode}');
       }
@@ -315,7 +314,7 @@ class AuthApiService {
     }
   }
 
-    Future<bool> checkUserExists({required String email}) async {
+  Future<bool> checkUserExists({required String email}) async {
     if (!_isValidEmail(email)) {
       LoggerService.logger.i("checkUserExists: Invalid email format");
       throw Exception("Invalid email format");
@@ -324,13 +323,8 @@ class AuthApiService {
     try {
       final response = await _client.post(
         Uri.parse("$_servicePath/find-email"),
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Android",
-        },
-        body: jsonEncode({
-          "email": email.trim(),
-        }),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+        body: jsonEncode({"email": email.trim()}),
       );
 
       final data = jsonDecode(response.body);
@@ -359,13 +353,8 @@ class AuthApiService {
     try {
       final response = await _client.post(
         Uri.parse("$_servicePath/forgot-password"),
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Android",
-        },
-        body: jsonEncode({
-          "email": email.trim(),
-        }),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+        body: jsonEncode({"email": email.trim()}),
       );
 
       final data = jsonDecode(response.body);
@@ -402,13 +391,8 @@ class AuthApiService {
     try {
       final response = await _client.post(
         Uri.parse("$_servicePath/resend-verification-email"),
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Android",
-        },
-        body: jsonEncode({
-          "email": email.trim(),
-        }),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+        body: jsonEncode({"email": email.trim()}),
       );
 
       final data = jsonDecode(response.body);
@@ -435,130 +419,121 @@ class AuthApiService {
   }
 
   Future<(int, dynamic)> verifyGoogleCode({
-  required String pendingToken,
-  required String code,
-}) async {
-  if (pendingToken.trim().isEmpty) {
-    return (400, "Pending token is required");
-  }
-
-  if (code.trim().isEmpty) {
-    return (400, "Verification code is required");
-  }
-
-  try {
-    final response = await _client.post(
-      Uri.parse("$_servicePath/google/verify-code?client=Android"),
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Android",
-      },
-      body: jsonEncode({
-        "pendingToken": pendingToken,
-        "code": code.trim(),
-      }),
-    );
-
-    final data = jsonDecode(response.body);
-
-    LoggerService.logger.i(
-      "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
-    );
-
-    if (response.statusCode == 200) {
-      final responseData = data["data"];
-      final accessToken = responseData?["accessToken"];
-      final refreshTokenValue = responseData?["refreshToken"];
-
-      if (accessToken != null && refreshTokenValue != null) {
-        await saveTokens(
-          accessToken: accessToken,
-          refreshToken: refreshTokenValue,
-        );
-
-        await refreshToken();
-      }
-
-      return (200, data["message"] ?? "Authenticated successfully");
+    required String pendingToken,
+    required String code,
+  }) async {
+    if (pendingToken.trim().isEmpty) {
+      return (400, "Pending token is required");
     }
 
-    return (
-      response.statusCode,
-      data["message"] ?? "Google code verification failed",
-    );
-  } catch (err) {
-    LoggerService.logger.i("verifyGoogleCode error: $err");
-    return (500, "Network error: $err");
-  }
-}
-
-Future<(int, dynamic)> completeGoogleSignup({
-  required String incompleteToken,
-  required String dateOfBirth,
-  required String gender,
-  String? displayName,
-}) async {
-  if (incompleteToken.trim().isEmpty) {
-    return (400, "Incomplete token is required");
-  }
-
-  if (dateOfBirth.trim().isEmpty) {
-    return (400, "Date of birth is required");
-  }
-
-  if (gender.trim().isEmpty) {
-    return (400, "Gender is required");
-  }
-
-  try {
-    final response = await _client.post(
-      Uri.parse("$_servicePath/google/complete?client=Android"),
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Android",
-      },
-      body: jsonEncode({
-        "incompleteToken": incompleteToken,
-        "dateOfBirth": dateOfBirth,
-        "gender": gender,
-        if (displayName != null && displayName.trim().isNotEmpty)
-          "displayName": displayName.trim(),
-      }),
-    );
-
-    final data = jsonDecode(response.body);
-
-    LoggerService.logger.i(
-      "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
-    );
-
-    if (response.statusCode == 200) {
-      final responseData = data["data"];
-      final accessToken = responseData?["accessToken"];
-      final refreshTokenValue = responseData?["refreshToken"];
-
-      if (accessToken != null && refreshTokenValue != null) {
-        await saveTokens(
-          accessToken: accessToken,
-          refreshToken: refreshTokenValue,
-        );
-
-        await refreshToken();
-        return (200, responseData ?? "Authenticated successfully");
-      }
-
-      return (200, data["message"] ?? "Authenticated successfully");
+    if (code.trim().isEmpty) {
+      return (400, "Verification code is required");
     }
 
-    return (
-      response.statusCode,
-      data["message"] ?? "Google signup completion failed",
-    );
-  } catch (err) {
-    LoggerService.logger.i("completeGoogleSignup error: $err");
-    return (500, "Network error: $err");
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/google/verify-code?client=Android"),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+        body: jsonEncode({"pendingToken": pendingToken, "code": code.trim()}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = data["data"];
+        final accessToken = responseData?["accessToken"];
+        final refreshTokenValue = responseData?["refreshToken"];
+
+        if (accessToken != null && refreshTokenValue != null) {
+          await saveTokens(
+            accessToken: accessToken,
+            refreshToken: refreshTokenValue,
+          );
+
+          await refreshToken();
+        }
+
+        return (200, data["message"] ?? "Authenticated successfully");
+      }
+
+      return (
+        response.statusCode,
+        data["message"] ?? "Google code verification failed",
+      );
+    } catch (err) {
+      LoggerService.logger.i("verifyGoogleCode error: $err");
+      return (500, "Network error: $err");
+    }
   }
-}
+
+  Future<(int, dynamic)> completeGoogleSignup({
+    required String incompleteToken,
+    required String dateOfBirth,
+    required String gender,
+    String? displayName,
+  }) async {
+    if (incompleteToken.trim().isEmpty) {
+      return (400, "Incomplete token is required");
+    }
+
+    if (dateOfBirth.trim().isEmpty) {
+      return (400, "Date of birth is required");
+    }
+
+    if (gender.trim().isEmpty) {
+      return (400, "Gender is required");
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/google/complete?client=Android"),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+        body: jsonEncode({
+          "incompleteToken": incompleteToken,
+          "dateOfBirth": dateOfBirth,
+          "gender": gender,
+          if (displayName != null && displayName.trim().isNotEmpty)
+            "displayName": displayName.trim(),
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      LoggerService.logger.i(
+        "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = data["data"];
+        final accessToken = responseData?["accessToken"];
+        final refreshTokenValue = responseData?["refreshToken"];
+
+        if (accessToken != null && refreshTokenValue != null) {
+          await saveTokens(
+            accessToken: accessToken,
+            refreshToken: refreshTokenValue,
+          );
+
+          await refreshToken();
+          return (200, responseData ?? "Authenticated successfully");
+        }
+
+        return (200, data["message"] ?? "Authenticated successfully");
+      }
+
+      return (
+        response.statusCode,
+        data["message"] ?? "Google signup completion failed",
+      );
+    } catch (err) {
+      LoggerService.logger.i("completeGoogleSignup error: $err");
+      return (500, "Network error: $err");
+    }
+  }
 
   Future<(int, dynamic)> deleteAccount() async {
     final accessToken = await _storage.read(key: "access_token");
@@ -587,7 +562,10 @@ Future<(int, dynamic)> completeGoogleSignup({
       if (response.statusCode == 200 || response.statusCode == 204) {
         await _clearTokens();
         await PlaybackStreamingEngineService.shared.clearSessionState();
-        return (response.statusCode, data?["message"] ?? "Account deleted successfully");
+        return (
+          response.statusCode,
+          data?["message"] ?? "Account deleted successfully",
+        );
       }
 
       return (
@@ -600,51 +578,47 @@ Future<(int, dynamic)> completeGoogleSignup({
   }
 
   Future<(int, dynamic)> resendGoogleVerificationCode({
-  required String pendingToken,
-}) async {
-  if (pendingToken.trim().isEmpty) {
-    return (400, "Pending token is required");
-  }
+    required String pendingToken,
+  }) async {
+    if (pendingToken.trim().isEmpty) {
+      return (400, "Pending token is required");
+    }
 
-  try {
-    final response = await _client.post(
-      Uri.parse("$_servicePath/google/resend-code"),
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Android",
-      },
-      body: jsonEncode({
-        "pendingToken": pendingToken.trim(),
-      }),
-    );
+    try {
+      final response = await _client.post(
+        Uri.parse("$_servicePath/google/resend-code"),
+        headers: {"Content-Type": "application/json", "User-Agent": "Android"},
+        body: jsonEncode({"pendingToken": pendingToken.trim()}),
+      );
 
-    dynamic message = "Failed to resend Google verification code";
+      dynamic message = "Failed to resend Google verification code";
 
-    if (response.body.trim().isNotEmpty) {
-      try {
-        final data = jsonDecode(response.body);
-        message = data["message"] ?? message;
-      } catch (_) {
-        message = response.body;
+      if (response.body.trim().isNotEmpty) {
+        try {
+          final data = jsonDecode(response.body);
+          message = data["message"] ?? message;
+        } catch (_) {
+          message = response.body;
+        }
       }
+
+      LoggerService.logger.i(
+        "resendGoogleVerificationCode statusCode: ${response.statusCode}, body: ${response.body}",
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return (
+          response.statusCode,
+          message == "Failed to resend Google verification code"
+              ? "Verification code resent"
+              : message,
+        );
+      }
+
+      return (response.statusCode, message);
+    } catch (err) {
+      LoggerService.logger.i("resendGoogleVerificationCode error: $err");
+      return (500, "Network error: $err");
     }
-
-    LoggerService.logger.i(
-      "resendGoogleVerificationCode statusCode: ${response.statusCode}, body: ${response.body}",
-    );
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return (response.statusCode, message == "Failed to resend Google verification code"
-          ? "Verification code resent"
-          : message);
-    }
-
-    return (response.statusCode, message);
-  } catch (err) {
-    LoggerService.logger.i("resendGoogleVerificationCode error: $err");
-    return (500, "Network error: $err");
   }
-}
-
-
 }

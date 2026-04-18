@@ -4,6 +4,7 @@
 // This is the in-memory representation of a locally uploaded track.
 
 enum TrackProcessingState { processing, finished }
+
 enum TrackVisibility { public, private, unlisted }
 
 class TrackModel {

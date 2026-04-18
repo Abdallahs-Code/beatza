@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ProRadioTile extends StatelessWidget {
@@ -25,10 +23,7 @@ class ProRadioTile extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
             Container(
               width: 24,
@@ -38,21 +33,17 @@ class ProRadioTile extends StatelessWidget {
                 border: Border.all(
                   color: selected
                       ? Colors.white24
-                      : Colors.white.withOpacity(0.3),
+                      : Colors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),
                 color: selected
-                    ? Colors.white.withOpacity(0.1)
+                    ? Colors.white.withValues(alpha: 0.1)
                     : Colors.transparent,
               ),
               child: selected
                   ? const Center(
-                child: Icon(
-                  Icons.check,
-                  size: 16,
-                  color: Colors.white24,
-                ),
-              )
+                      child: Icon(Icons.check, size: 16, color: Colors.white24),
+                    )
                   : null,
             ),
           ],

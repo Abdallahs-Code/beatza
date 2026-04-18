@@ -33,8 +33,8 @@ class EngagementSocialInteractionsRoutes {
     //     arguments: {'trackId': 'trk_456', 'initialTab': 0},
     //   );
     likers: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments
-          as Map<String, dynamic>;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return LikersScreen(
         trackId: args['trackId'] as String,
         initialTab: args['initialTab'] as int? ?? 0,
@@ -63,8 +63,8 @@ class EngagementSocialInteractionsRoutes {
     //     },
     //   );
     comments: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments
-          as Map<String, dynamic>;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return CommentsScreen(
         trackId: args['trackId'] as String,
         trackTitle: args['trackTitle'] as String,
@@ -75,4 +75,3 @@ class EngagementSocialInteractionsRoutes {
     },
   };
 }
-

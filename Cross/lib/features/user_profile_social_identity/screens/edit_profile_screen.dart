@@ -82,56 +82,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Fujairah',
       'Umm Al Quwain',
     ],
-    'Qatar': [
-      'Doha',
-      'Al Rayyan',
-      'Al Wakrah',
-      'Al Khor',
-      'Lusail',
-    ],
-    'Kuwait': [
-      'Kuwait City',
-      'Hawalli',
-      'Farwaniya',
-      'Ahmadi',
-      'Jahra',
-    ],
-    'Bahrain': [
-      'Manama',
-      'Muharraq',
-      'Riffa',
-      'Hamad Town',
-      'A’ali',
-    ],
-    'Oman': [
-      'Muscat',
-      'Salalah',
-      'Sohar',
-      'Nizwa',
-      'Sur',
-    ],
-    'Jordan': [
-      'Amman',
-      'Irbid',
-      'Zarqa',
-      'Aqaba',
-      'Madaba',
-    ],
-    'Lebanon': [
-      'Beirut',
-      'Tripoli',
-      'Sidon',
-      'Tyre',
-      'Jounieh',
-    ],
-    'Iraq': [
-      'Baghdad',
-      'Basra',
-      'Mosul',
-      'Erbil',
-      'Najaf',
-      'Karbala',
-    ],
+    'Qatar': ['Doha', 'Al Rayyan', 'Al Wakrah', 'Al Khor', 'Lusail'],
+    'Kuwait': ['Kuwait City', 'Hawalli', 'Farwaniya', 'Ahmadi', 'Jahra'],
+    'Bahrain': ['Manama', 'Muharraq', 'Riffa', 'Hamad Town', 'A’ali'],
+    'Oman': ['Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Sur'],
+    'Jordan': ['Amman', 'Irbid', 'Zarqa', 'Aqaba', 'Madaba'],
+    'Lebanon': ['Beirut', 'Tripoli', 'Sidon', 'Tyre', 'Jounieh'],
+    'Iraq': ['Baghdad', 'Basra', 'Mosul', 'Erbil', 'Najaf', 'Karbala'],
     'Palestine': [
       'Jerusalem',
       'Ramallah',
@@ -140,42 +97,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Gaza',
       'Bethlehem',
     ],
-    'Morocco': [
-      'Casablanca',
-      'Rabat',
-      'Marrakesh',
-      'Fez',
-      'Tangier',
-      'Agadir',
-    ],
-    'Algeria': [
-      'Algiers',
-      'Oran',
-      'Constantine',
-      'Annaba',
-      'Blida',
-    ],
-    'Tunisia': [
-      'Tunis',
-      'Sfax',
-      'Sousse',
-      'Kairouan',
-      'Bizerte',
-    ],
-    'Libya': [
-      'Tripoli',
-      'Benghazi',
-      'Misrata',
-      'Zawiya',
-      'Sabha',
-    ],
-    'Sudan': [
-      'Khartoum',
-      'Omdurman',
-      'Port Sudan',
-      'Nyala',
-      'Kassala',
-    ],
+    'Morocco': ['Casablanca', 'Rabat', 'Marrakesh', 'Fez', 'Tangier', 'Agadir'],
+    'Algeria': ['Algiers', 'Oran', 'Constantine', 'Annaba', 'Blida'],
+    'Tunisia': ['Tunis', 'Sfax', 'Sousse', 'Kairouan', 'Bizerte'],
+    'Libya': ['Tripoli', 'Benghazi', 'Misrata', 'Zawiya', 'Sabha'],
+    'Sudan': ['Khartoum', 'Omdurman', 'Port Sudan', 'Nyala', 'Kassala'],
     'United States': [
       'New York',
       'Los Angeles',
@@ -209,27 +135,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Cologne',
       'Stuttgart',
     ],
-    'France': [
-      'Paris',
-      'Marseille',
-      'Lyon',
-      'Toulouse',
-      'Nice',
-    ],
-    'Italy': [
-      'Rome',
-      'Milan',
-      'Naples',
-      'Turin',
-      'Florence',
-    ],
-    'Spain': [
-      'Madrid',
-      'Barcelona',
-      'Valencia',
-      'Seville',
-      'Malaga',
-    ],
+    'France': ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice'],
+    'Italy': ['Rome', 'Milan', 'Naples', 'Turin', 'Florence'],
+    'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Malaga'],
     'Netherlands': [
       'Amsterdam',
       'Rotterdam',
@@ -237,13 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Utrecht',
       'Eindhoven',
     ],
-    'Turkey': [
-      'Istanbul',
-      'Ankara',
-      'Izmir',
-      'Bursa',
-      'Antalya',
-    ],
+    'Turkey': ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Antalya'],
     'India': [
       'Mumbai',
       'Delhi',
@@ -252,34 +154,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Chennai',
       'Kolkata',
     ],
-    'Pakistan': [
-      'Karachi',
-      'Lahore',
-      'Islamabad',
-      'Rawalpindi',
-      'Faisalabad',
-    ],
-    'Japan': [
-      'Tokyo',
-      'Osaka',
-      'Kyoto',
-      'Nagoya',
-      'Yokohama',
-    ],
-    'China': [
-      'Beijing',
-      'Shanghai',
-      'Guangzhou',
-      'Shenzhen',
-      'Chengdu',
-    ],
-    'Australia': [
-      'Sydney',
-      'Melbourne',
-      'Brisbane',
-      'Perth',
-      'Adelaide',
-    ],
+    'Pakistan': ['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad'],
+    'Japan': ['Tokyo', 'Osaka', 'Kyoto', 'Nagoya', 'Yokohama'],
+    'China': ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu'],
+    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide'],
   };
 
   List<String> get _countryOptions => _countryCityMap.keys.toList();
@@ -339,17 +217,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
         title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white70),
-        ),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
-              style: TextStyle(color: Colors.blueAccent),
-            ),
+            child: const Text('OK', style: TextStyle(color: Colors.blueAccent)),
           ),
         ],
       ),
@@ -428,10 +300,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
       );
     }
   }
@@ -556,7 +425,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   itemCount: _countryOptions.length,
                   itemBuilder: (context, index) {
                     final country = _countryOptions[index];
-                    final isSelected = _countryController.text.trim() == country;
+                    final isSelected =
+                        _countryController.text.trim() == country;
 
                     return ListTile(
                       onTap: () => Navigator.pop(context, country),
@@ -1008,297 +878,311 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Focus(
-  autofocus: true,
-  child: Shortcuts(
-    shortcuts: {
-      LogicalKeySet(LogicalKeyboardKey.enter): const ActivateIntent(),
-      LogicalKeySet(LogicalKeyboardKey.numpadEnter): const ActivateIntent(),
-    },
-    child: Actions(
-      actions: {
-        ActivateIntent: CallbackAction<ActivateIntent>(
-          onInvoke: (e) {
-            final focusedContext =
-                FocusManager.instance.primaryFocus?.context;
-
-            final isTyping = focusedContext?.widget is EditableText;
-
-            if (!isTyping && !_saving) {
-              _save();
-            }
-            return null;
+        autofocus: true,
+        child: Shortcuts(
+          shortcuts: {
+            LogicalKeySet(LogicalKeyboardKey.enter): const ActivateIntent(),
+            LogicalKeySet(LogicalKeyboardKey.numpadEnter):
+                const ActivateIntent(),
           },
-        ),
-      },
-      child: Column(
-        children: [
-              Container(
-                padding: EdgeInsets.only(top: top),
-                color: Colors.black,
-                child: SizedBox(
-                  height: 56,
-                  child: Row(
-                    children: [
-                      TextButton(
-                        onPressed: _saving
-                            ? null
-                            : () => Navigator.pop(context),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+          child: Actions(
+            actions: {
+              ActivateIntent: CallbackAction<ActivateIntent>(
+                onInvoke: (e) {
+                  final focusedContext =
+                      FocusManager.instance.primaryFocus?.context;
+
+                  final isTyping = focusedContext?.widget is EditableText;
+
+                  if (!isTyping && !_saving) {
+                    _save();
+                  }
+                  return null;
+                },
+              ),
+            },
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: top),
+                  color: Colors.black,
+                  child: SizedBox(
+                    height: 56,
+                    child: Row(
+                      children: [
+                        TextButton(
+                          onPressed: _saving
+                              ? null
+                              : () => Navigator.pop(context),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
                         ),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            'Edit Profile',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
+                        const Expanded(
+                          child: Center(
+                            child: Text(
+                              'Edit Profile',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: _saving ? null : _save,
-                        child: _saving
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text(
-                                'Save',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
+                        TextButton(
+                          onPressed: _saving ? null : _save,
+                          child: _saving
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Save',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: ListView(
-                  children: [
-                    const SizedBox(height: 12),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0B0B0B),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              GestureDetector(
-                                onTap: () =>
-                                    _showImageOptions(_bannerController, 'Banner'),
-                                child: Container(
-                                  height: 104,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF090909),
-                                    image:
-                                        _bannerController.text.trim().isNotEmpty
-                                        ? DecorationImage(
-                                            image:
-                                                _bannerController.text
-                                                    .startsWith('http')
-                                                ? NetworkImage(
-                                                    _bannerController.text,
-                                                  )
-                                                : FileImage(
-                                                    File(
-                                                      _bannerController.text,
-                                                    ),
-                                                  )
-                                                      as ImageProvider,
-                                            fit: BoxFit.cover,
-                                            onError: (_, __) {},
-                                          )
-                                        : null,
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(16),
-                                    ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0B0B0B),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _showImageOptions(
+                                    _bannerController,
+                                    'Banner',
                                   ),
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: _CameraBadge(
-                                    onTap: () => _showImageOptions(
-                                      _bannerController,
-                                      'Banner',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 18,
-                                bottom: -34,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => _showImageOptions(
-                                        _avatarController,
-                                        'Profile Picture',
-                                      ),
-                                      child: CircleAvatar(
-                                        radius: 34,
-                                        backgroundColor: const Color(
-                                          0xFF1A1A1A,
-                                        ),
-                                        backgroundImage: _avatarController.text
-                                                .trim()
-                                                .isNotEmpty
-                                            ? (_avatarController.text
+                                  child: Container(
+                                    height: 104,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF090909),
+                                      image:
+                                          _bannerController.text
+                                              .trim()
+                                              .isNotEmpty
+                                          ? DecorationImage(
+                                              image:
+                                                  _bannerController.text
                                                       .startsWith('http')
                                                   ? NetworkImage(
-                                                      _avatarController.text,
+                                                      _bannerController.text,
                                                     )
                                                   : FileImage(
                                                           File(
-                                                            _avatarController
+                                                            _bannerController
                                                                 .text,
                                                           ),
                                                         )
-                                                        as ImageProvider)
-                                            : null,
-                                        child:
-                                            _avatarController.text
-                                                .trim()
-                                                .isEmpty
-                                            ? const Icon(
-                                                Icons.person,
-                                                color: Colors.white38,
-                                                size: 32,
-                                              )
-                                            : null,
+                                                        as ImageProvider,
+                                              fit: BoxFit.cover,
+                                              onError: (_, _) {},
+                                            )
+                                          : null,
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(16),
                                       ),
                                     ),
-                                    _CameraBadge(
-                                      small: true,
-                                      onTap: () => _showImageOptions(
-                                        _avatarController,
-                                        'Profile Picture',
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
+                                Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: _CameraBadge(
+                                      onTap: () => _showImageOptions(
+                                        _bannerController,
+                                        'Banner',
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 18,
+                                  bottom: -34,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => _showImageOptions(
+                                          _avatarController,
+                                          'Profile Picture',
+                                        ),
+                                        child: CircleAvatar(
+                                          radius: 34,
+                                          backgroundColor: const Color(
+                                            0xFF1A1A1A,
+                                          ),
+                                          backgroundImage:
+                                              _avatarController.text
+                                                  .trim()
+                                                  .isNotEmpty
+                                              ? (_avatarController.text
+                                                        .startsWith('http')
+                                                    ? NetworkImage(
+                                                        _avatarController.text,
+                                                      )
+                                                    : FileImage(
+                                                            File(
+                                                              _avatarController
+                                                                  .text,
+                                                            ),
+                                                          )
+                                                          as ImageProvider)
+                                              : null,
+                                          child:
+                                              _avatarController.text
+                                                  .trim()
+                                                  .isEmpty
+                                              ? const Icon(
+                                                  Icons.person,
+                                                  color: Colors.white38,
+                                                  size: 32,
+                                                )
+                                              : null,
+                                        ),
+                                      ),
+                                      _CameraBadge(
+                                        small: true,
+                                        onTap: () => _showImageOptions(
+                                          _avatarController,
+                                          'Profile Picture',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 44),
+                            _EditRow(
+                              label: 'Display name',
+                              value: _displayNameController.text.isEmpty
+                                  ? 'Not set'
+                                  : _displayNameController.text,
+                              onTap: () => _editField(
+                                title: 'Display name',
+                                controller: _displayNameController,
+                                hint: 'Enter display name',
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 44),
-                          _EditRow(
-                            label: 'Display name',
-                            value: _displayNameController.text.isEmpty
-                                ? 'Not set'
-                                : _displayNameController.text,
-                            onTap: () => _editField(
-                              title: 'Display name',
-                              controller: _displayNameController,
-                              hint: 'Enter display name',
                             ),
-                          ),
-                          _EditRow(
-                            label: 'City',
-                            value: _cityController.text.isEmpty
-                                ? (_countryController.text.trim().isEmpty
-                                      ? 'Select your country first'
-                                      : 'Select your city')
-                                : _cityController.text,
-                            chevron: true,
-                            enabled: _countryController.text.trim().isNotEmpty,
-                            onTap: _pickCity,
-                          ),
-                          _EditRow(
-                            label: 'Country',
-                            value: _countryController.text.isEmpty
-                                ? 'Select your country'
-                                : _countryController.text,
-                            chevron: true,
-                            onTap: _pickCountry,
-                          ),
-                          _EditRow(
-                            label: 'Bio',
-                            value: _bioController.text.isEmpty
-                                ? 'Tell the world a bit about yourself'
-                                : _bioController.text,
-                            chevron: true,
-                            onTap: () => _editField(
-                              title: 'Bio',
-                              controller: _bioController,
-                              hint: 'Write your bio',
-                              maxLines: 5,
+                            _EditRow(
+                              label: 'City',
+                              value: _cityController.text.isEmpty
+                                  ? (_countryController.text.trim().isEmpty
+                                        ? 'Select your country first'
+                                        : 'Select your city')
+                                  : _cityController.text,
+                              chevron: true,
+                              enabled: _countryController.text
+                                  .trim()
+                                  .isNotEmpty,
+                              onTap: _pickCity,
                             ),
-                          ),
-                        ],
+                            _EditRow(
+                              label: 'Country',
+                              value: _countryController.text.isEmpty
+                                  ? 'Select your country'
+                                  : _countryController.text,
+                              chevron: true,
+                              onTap: _pickCountry,
+                            ),
+                            _EditRow(
+                              label: 'Bio',
+                              value: _bioController.text.isEmpty
+                                  ? 'Tell the world a bit about yourself'
+                                  : _bioController.text,
+                              chevron: true,
+                              onTap: () => _editField(
+                                title: 'Bio',
+                                controller: _bioController,
+                                hint: 'Write your bio',
+                                maxLines: 5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    _EditSection(
-                      title: 'Linked Profiles',
-                      child: Column(
-                        children: [
-                          ..._editableLinks.asMap().entries.map(
-                            (entry) => _LinkedProfileRow(
-                              label: entry.value.title.trim().isEmpty
-                                  ? 'Link'
-                                  : entry.value.title,
-                              value: entry.value.link,
-                              onTap: () => _editLink(
-                                existing: entry.value,
-                                index: entry.key,
-                                isBannerLink: false,
+                      const SizedBox(height: 18),
+                      _EditSection(
+                        title: 'Linked Profiles',
+                        child: Column(
+                          children: [
+                            ..._editableLinks.asMap().entries.map(
+                              (entry) => _LinkedProfileRow(
+                                label: entry.value.title.trim().isEmpty
+                                    ? 'Link'
+                                    : entry.value.title,
+                                value: entry.value.link,
+                                onTap: () => _editLink(
+                                  existing: entry.value,
+                                  index: entry.key,
+                                  isBannerLink: false,
+                                ),
+                                onDelete: () => setState(() {
+                                  _editableLinks.removeAt(entry.key);
+                                }),
                               ),
-                              onDelete: () => setState(() {
-                                _editableLinks.removeAt(entry.key);
-                              }),
                             ),
-                          ),
-                          ..._editableBannerLinks.asMap().entries.map(
-                            (entry) => _LinkedProfileRow(
-                              label: entry.value.title.trim().isEmpty
-                                  ? 'Link'
-                                  : entry.value.title,
-                              value: entry.value.link,
-                              onTap: () => _editLink(
-                                existing: entry.value,
-                                index: entry.key,
-                                isBannerLink: true,
+                            ..._editableBannerLinks.asMap().entries.map(
+                              (entry) => _LinkedProfileRow(
+                                label: entry.value.title.trim().isEmpty
+                                    ? 'Link'
+                                    : entry.value.title,
+                                value: entry.value.link,
+                                onTap: () => _editLink(
+                                  existing: entry.value,
+                                  index: entry.key,
+                                  isBannerLink: true,
+                                ),
+                                onDelete: () => setState(() {
+                                  _editableBannerLinks.removeAt(entry.key);
+                                }),
                               ),
-                              onDelete: () => setState(() {
-                                _editableBannerLinks.removeAt(entry.key);
-                              }),
                             ),
-                          ),
-                          ListTile(
-                            dense: true,
-                            onTap: () => _editLink(),
-                            leading: const Icon(Icons.add, color: Colors.white),
-                            title: const Text(
-                              'Add link',
-                              style: TextStyle(color: Colors.white),
+                            ListTile(
+                              dense: true,
+                              onTap: () => _editLink(),
+                              leading: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                              ),
+                              title: const Text(
+                                'Add link',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                  ],
+                      const SizedBox(height: 30),
+                    ],
+                  ),
                 ),
-              ),
-                   ],
+              ],
+            ),
+          ),
+        ),
       ),
-    ),
-  ),
-),
     );
   }
 }
@@ -1307,10 +1191,7 @@ class _EditSection extends StatelessWidget {
   final String title;
   final Widget child;
 
-  const _EditSection({
-    required this.title,
-    required this.child,
-  });
+  const _EditSection({required this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -1472,10 +1353,7 @@ class _CameraBadge extends StatelessWidget {
   final VoidCallback onTap;
   final bool small;
 
-  const _CameraBadge({
-    required this.onTap,
-    this.small = false,
-  });
+  const _CameraBadge({required this.onTap, this.small = false});
 
   @override
   Widget build(BuildContext context) {

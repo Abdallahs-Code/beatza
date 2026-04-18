@@ -1,5 +1,3 @@
-library playback_streaming_engine;
-
 export 'models/playback_state_model.dart';
 export 'models/playback_track_model.dart';
 export 'screens/playback_debug_screen.dart';

@@ -95,7 +95,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   final _captionController = TextEditingController();
   final _tagsController = TextEditingController();
   final _artistInputController = TextEditingController();
-  List<String> _artists = [];
+  final List<String> _artists = [];
 
   // ── Tab / save state ─────────────────────────
   int _currentTabIndex = 0;
@@ -104,16 +104,16 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
   // ── Form values ───────────────────────────────
   String _privacy = 'public';
-  bool _scheduleRelease = false;
-  DateTime _scheduleDate = DateTime.now().add(const Duration(days: 1));
-  TimeOfDay _scheduleTime = TimeOfDay.now();
-  String _recordLabel = '';
+  //final bool _scheduleRelease = false;
+  final DateTime _scheduleDate = DateTime.now().add(const Duration(days: 1));
+  final TimeOfDay _scheduleTime = TimeOfDay.now();
+  //String _recordLabel = '';
   bool _enableReleaseDate = false;
   DateTime _releaseDate = DateTime.now();
-  String _publisher = '';
-  String _isrc = '';
+  //String _publisher = '';
+  //final String _isrc = '';
   bool _containsExplicitContent = false;
-  String _pLine = '';
+  //String _pLine = '';
   bool _enableDirectDownloads = false;
   bool _offlineListening = true;
   bool _includeInRssFeed = true;
@@ -246,40 +246,40 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         .toList();
 
     // FIX: Build advanced parameters with ISRC and other advanced fields
-    final Map<String, dynamic> advancedParams = {
-      'ISRC': 'USRC17607839',//_isrc.trim(), 
-      'recordLabel': _recordLabel.trim(),
-      'publisher': _publisher.trim(),
-      'explicitContent': _containsExplicitContent,
-      'pLine': _pLine.trim(),
-      'buyLink': '', 
-      'releaseDate': _enableReleaseDate ? _releaseDate.toIso8601String() : '',
-      'audioClipStart': 0,
-      'audioClipEnd': 0,
-      'composer': '',
-      'ISWC': '',
-      'albumTitle': '',
-    };
+    // final Map<String, dynamic> advancedParams = {
+    //   'ISRC': 'USRC17607839',//_isrc.trim(),
+    //   'recordLabel': _recordLabel.trim(),
+    //   'publisher': _publisher.trim(),
+    //   'explicitContent': _containsExplicitContent,
+    //   'pLine': _pLine.trim(),
+    //   'buyLink': '',
+    //   'releaseDate': _enableReleaseDate ? _releaseDate.toIso8601String() : '',
+    //   'audioClipStart': 0,
+    //   'audioClipEnd': 0,
+    //   'composer': '',
+    //   'ISWC': '',
+    //   'albumTitle': '',
+    // };
 
     // FIX: Build permissions parameters
-    final Map<String, dynamic> permissionsParams = {
-      'enableDirectDownload': _enableDirectDownloads,
-      'offlineListening': _offlineListening,
-      'includeInRssFeed': _includeInRssFeed,
-      'displayedEmbedCode': _displayEmbedCode,
-      'enableAppPlayback': _enableAppPlayback,
-    };
+    // final Map<String, dynamic> permissionsParams = {
+    //   'enableDirectDownload': _enableDirectDownloads,
+    //   'offlineListening': _offlineListening,
+    //   'includeInRssFeed': _includeInRssFeed,
+    //   'displayedEmbedCode': _displayEmbedCode,
+    //   'enableAppPlayback': _enableAppPlayback,
+    // };
 
     // FIX: Build license parameters
-    final Map<String, dynamic> licenseParams = {
-      'type': _licensing == 'all_rights'
-          ? 'allRightsReserved'
-          : 'creativeCommons',
-      'attribution': false,
-      'nonCommercial': false,
-      'noDerivativeWorks': false,
-      'shareAlike': false,
-    };
+    // final Map<String, dynamic> licenseParams = {
+    //   'type': _licensing == 'all_rights'
+    //       ? 'allRightsReserved'
+    //       : 'creativeCommons',
+    //   'attribution': false,
+    //   'nonCommercial': false,
+    //   'noDerivativeWorks': false,
+    //   'shareAlike': false,
+    // };
 
     // FIX: Pass all parameters to API
     final result = await _trackApiService.uploadTrack(
@@ -297,13 +297,13 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       description: _descriptionController.text.trim(),
       isPrivate: _privacy == 'unlisted',
       caption: _captionController.text.trim(),
-      // advanced: advancedParams, 
-      // permissions: permissionsParams, 
-      // license: licenseParams, 
+      // advanced: advancedParams,
+      // permissions: permissionsParams,
+      // license: licenseParams,
     );
 
-    setState(() => _isSaving = false);
     if (!mounted) return;
+    setState(() => _isSaving = false);
 
     if (result.$1 == 201) {
       // Also save locally for immediate YourUploadsScreen update
@@ -316,6 +316,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         'visibility': _privacy,
         'coverImagePath': _coverImage?.path,
       });
+
+      if (!mounted) return;
 
       final navigator = Navigator.of(context);
       final messenger = ScaffoldMessenger.of(context);
@@ -400,8 +402,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       _snack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
-            : 
-            'Upload failed. Please try again.',
+            : 'Upload failed. Please try again.',
         isError: true,
       );
     }
@@ -1193,7 +1194,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _inputField(
           'Record label',
           hint: 'Add your record label if applicable',
-          onChanged: (v) => _recordLabel = v,
+          //onChanged: (v) => _recordLabel = v,
         ),
         const SizedBox(height: 24),
         const Text(
@@ -1222,7 +1223,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
             CupertinoSwitch(
               value: _enableReleaseDate,
-              activeColor: Colors.green,
+              activeTrackColor: Colors.green,
               onChanged: (v) => setState(() => _enableReleaseDate = v),
             ),
           ],
@@ -1232,7 +1233,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _inputField(
           'Publisher ⓘ',
           hint: 'Add your publisher if you have one',
-          onChanged: (v) => _publisher = v,
+          //onChanged: (v) => _publisher = v,
         ),
         const SizedBox(height: 24),
         _inputField(
@@ -1272,7 +1273,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
             CupertinoSwitch(
               value: _containsExplicitContent,
-              activeColor: Colors.green,
+              activeTrackColor: Colors.green,
               onChanged: (v) => setState(() => _containsExplicitContent = v),
             ),
           ],
@@ -1282,7 +1283,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _inputField(
           'P line ⓘ',
           hint: 'e.g. 2024 [Owner Name]',
-          onChanged: (v) => _pLine = v,
+          //onChanged: (v) => _pLine = v,
         ),
       ],
     );
@@ -1464,7 +1465,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: const Color(0xFF8A2BE2).withOpacity(0.2),
+                color: const Color(0xFF8A2BE2).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1664,8 +1665,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ),
           CupertinoSwitch(
             value: value,
-            activeColor: Colors.green,
-            trackColor: Colors.white24,
+            activeTrackColor: Colors.green,
+            inactiveTrackColor: Colors.white24,
             onChanged: disabled ? null : onChange,
           ),
         ],

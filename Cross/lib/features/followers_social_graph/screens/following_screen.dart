@@ -88,10 +88,7 @@ class _FollowingScreenState extends State<FollowingScreen>
   }
 
   Future<void> _loadAll() async {
-    await Future.wait([
-      _loadFollowing(),
-      _loadSuggested(),
-    ]);
+    await Future.wait([_loadFollowing(), _loadSuggested()]);
   }
 
   Future<void> _loadFollowing() async {
@@ -102,9 +99,7 @@ class _FollowingScreenState extends State<FollowingScreen>
       _followingError = null;
     });
 
-    final result = await _socialApiService.getFollowing(
-      userId: widget.userId,
-    );
+    final result = await _socialApiService.getFollowing(userId: widget.userId);
 
     if (!mounted) return;
 
@@ -231,10 +226,7 @@ class _FollowingScreenState extends State<FollowingScreen>
               Navigator.pop(context);
               _blockUser(follower.userId);
             },
-            child: const Text(
-              'Block',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Block', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -257,49 +249,46 @@ class _FollowingScreenState extends State<FollowingScreen>
               ],
             )
           : _followingError != null
-              ? ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    const SizedBox(height: 250),
-                    Center(child: Text(_followingError!)),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: _loadFollowing,
-                        child: const Text('Retry'),
-                      ),
-                    ),
-                  ],
-                )
-              : _following.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: const [
-                        SizedBox(height: 250),
-                        Center(
-                          child: Text('You are not following anyone yet.'),
-                        ),
-                      ],
-                    )
-                  : ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: _following.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final follower = _following[index];
-                        return UserTile(
-                          follower: follower,
-                          currentUserId: widget.currentUserId,
-                          showBlockOption: true,
-                          showUnblockOption: false,
-                          onFollowTap: () => follower.isFollowing
-                              ? _unfollowUser(follower.userId)
-                              : _followUser(follower.userId),
-                          onBlockTap: () => _confirmBlock(follower),
-                        );
-                      },
-                    ),
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 250),
+                Center(child: Text(_followingError!)),
+                const SizedBox(height: 12),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _loadFollowing,
+                    child: const Text('Retry'),
+                  ),
+                ),
+              ],
+            )
+          : _following.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 250),
+                Center(child: Text('You are not following anyone yet.')),
+              ],
+            )
+          : ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: _following.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final follower = _following[index];
+                return UserTile(
+                  follower: follower,
+                  currentUserId: widget.currentUserId,
+                  showBlockOption: true,
+                  showUnblockOption: false,
+                  onFollowTap: () => follower.isFollowing
+                      ? _unfollowUser(follower.userId)
+                      : _followUser(follower.userId),
+                  onBlockTap: () => _confirmBlock(follower),
+                );
+              },
+            ),
     );
   }
 
@@ -315,55 +304,55 @@ class _FollowingScreenState extends State<FollowingScreen>
               ],
             )
           : _suggestedError != null
-              ? ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    const SizedBox(height: 250),
-                    Center(child: Text(_suggestedError!)),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: _loadSuggested,
-                        child: const Text('Retry'),
-                      ),
-                    ),
-                  ],
-                )
-              : _suggested.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: const [
-                        SizedBox(height: 250),
-                        Center(child: Text('No suggestions yet.')),
-                      ],
-                    )
-                  : ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: _suggested.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final follower = _suggested[index];
-                        return UserTile(
-                          follower: follower,
-                          currentUserId: widget.currentUserId,
-                          showBlockOption: false,
-                          showUnblockOption: false,
-                          onFollowTap: () => follower.isFollowing
-                              ? _unfollowUser(follower.userId)
-                              : _followUser(follower.userId),
-                        );
-                      },
-                    ),
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 250),
+                Center(child: Text(_suggestedError!)),
+                const SizedBox(height: 12),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _loadSuggested,
+                    child: const Text('Retry'),
+                  ),
+                ),
+              ],
+            )
+          : _suggested.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 250),
+                Center(child: Text('No suggestions yet.')),
+              ],
+            )
+          : ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: _suggested.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final follower = _suggested[index];
+                return UserTile(
+                  follower: follower,
+                  currentUserId: widget.currentUserId,
+                  showBlockOption: false,
+                  showUnblockOption: false,
+                  onFollowTap: () => follower.isFollowing
+                      ? _unfollowUser(follower.userId)
+                      : _followUser(follower.userId),
+                );
+              },
+            ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         _goBackToProfile();
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -387,10 +376,7 @@ class _FollowingScreenState extends State<FollowingScreen>
         ),
         body: TabBarView(
           controller: _tabController,
-          children: [
-            _buildFollowingTab(),
-            _buildSuggestedTab(),
-          ],
+          children: [_buildFollowingTab(), _buildSuggestedTab()],
         ),
       ),
     );

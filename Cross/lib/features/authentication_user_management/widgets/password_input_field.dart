@@ -36,7 +36,9 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
             });
           },
           icon: Icon(
-            _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            _obscureText
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
             color: Colors.white54,
           ),
         ),
