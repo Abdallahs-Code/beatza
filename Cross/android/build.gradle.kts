@@ -5,6 +5,18 @@ allprojects {
     }
 }
 
+// Fix for legacy Flutter plugins that don't specify compileSdk
+subprojects {
+    afterEvaluate {
+        if (extensions.findByName("android") != null) {
+            val androidExt = extensions.findByType<com.android.build.gradle.BaseExtension>()
+            if (androidExt != null && androidExt.compileSdkVersion == null) {
+                androidExt.compileSdkVersion(35)
+            }
+        }
+    }
+}
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
