@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 // Package imports
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class QrScannerScreen extends StatefulWidget {
@@ -184,7 +183,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         );
       }
     } catch (e) {
-      LoggerService.logger.e('QR approval failed: $e');
       if (mounted) {
         setState(() => _status = 'error');
         ScaffoldMessenger.of(context).showSnackBar(

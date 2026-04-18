@@ -511,9 +511,6 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
       if (accessToken == null || accessToken.trim().isEmpty) {
         _lastHistoryReportedTrackId = null;
-        debugPrint(
-          'Playback history skipped: no access token found for track $trackId',
-        );
         return;
       }
 
@@ -529,17 +526,11 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         },
       );
 
-      debugPrint(
-        'Playback history response for $trackId: '
-        '${response.statusCode} ${response.body}',
-      );
-
       if (response.statusCode < 200 || response.statusCode >= 300) {
         _lastHistoryReportedTrackId = null;
       }
     } catch (error) {
       _lastHistoryReportedTrackId = null;
-      debugPrint('Playback history request failed for $trackId: $error');
     }
   }
 

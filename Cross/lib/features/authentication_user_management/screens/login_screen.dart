@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -415,7 +414,6 @@ class LoginScreen extends StatelessWidget {
         arguments: {'loginMethod': 'qr_desktop'},
       );
     } catch (e) {
-      LoggerService.logger.e('Desktop login success handler error: $e');
 
       if (!context.mounted) {
         return;
@@ -557,9 +555,6 @@ class LoginScreen extends StatelessWidget {
                           accessToken.isNotEmpty &&
                           refreshToken != null &&
                           refreshToken.isNotEmpty) {
-                        LoggerService.logger.i(
-                          "Case 3: Returning Google user logged in successfully",
-                        );
 
                         await authApiService.saveTokens(
                           accessToken: accessToken,
@@ -580,9 +575,6 @@ class LoginScreen extends StatelessWidget {
                       }
 
                       if (pendingToken != null && pendingToken.isNotEmpty) {
-                        LoggerService.logger.i(
-                          "Case 2: Existing user, first Google login",
-                        );
 
                         Navigator.push(
                           context,
@@ -596,7 +588,6 @@ class LoginScreen extends StatelessWidget {
 
                       if (incompleteToken != null &&
                           incompleteToken.isNotEmpty) {
-                        LoggerService.logger.i("Case 1: New Google user");
 
                         Navigator.push(
                           context,
@@ -619,7 +610,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                       );
                     } catch (e) {
-                      LoggerService.logger.i("Google sign-in failed: $e");
 
                       if (!context.mounted) {
                         return;

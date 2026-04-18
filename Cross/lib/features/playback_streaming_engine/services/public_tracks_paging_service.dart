@@ -54,9 +54,6 @@ class PublicTracksPagingService extends ChangeNotifier {
       _page = result.page;
       _hasNext = result.hasNext;
       _errorMessage = null;
-      debugPrint(
-        'PublicTracksPagingService.loadInitial -> page=1 limit=$_limit',
-      );
     } catch (error) {
       _errorMessage = error.toString();
     } finally {
@@ -72,9 +69,6 @@ class PublicTracksPagingService extends ChangeNotifier {
 
     _isLoadingMore = true;
     _errorMessage = null;
-    debugPrint(
-      'PublicTracksPagingService.loadMore -> page=${_page + 1} limit=$_limit',
-    );
     notifyListeners();
 
     try {
@@ -86,9 +80,6 @@ class PublicTracksPagingService extends ChangeNotifier {
       _page = result.page;
       _hasNext = result.hasNext;
       _errorMessage = null;
-      debugPrint(
-        'PublicTracksPagingService.loadMore success -> added=${_tracks.length - beforeCount} total=${_tracks.length} page=$_page hasNext=$_hasNext',
-      );
       return _tracks.length > beforeCount;
     } catch (error) {
       _errorMessage = error.toString();

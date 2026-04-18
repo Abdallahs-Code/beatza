@@ -72,15 +72,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<UserProfileModel?> _loadUserProfile() async {
-    try {
-      final token = await _authApiService.getStoredAccessToken();
-      final userId = await _authApiService.getStoredUserId();
-      if (token != null && userId != null) {
-        return await _userProfileService.getUserProfile(userId, token);
-      }
-    } catch (e) {
-      debugPrint('Error loading profile image: $e');
+    final token = await _authApiService.getStoredAccessToken();
+    final userId = await _authApiService.getStoredUserId();
+    if (token != null && userId != null) {
+      return await _userProfileService.getUserProfile(userId, token);
     }
+
     return null;
   }
 

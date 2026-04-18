@@ -1,4 +1,3 @@
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -70,8 +69,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       code: code,
     );
 
-    LoggerService.logger.i("Verify code result: ${result.$1}, ${result.$2}");
-
     if (!mounted) return;
 
     setState(() {
@@ -103,10 +100,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
     final result = await authApiService.resendGoogleVerificationCode(
       pendingToken: widget.pendingToken,
-    );
-
-    LoggerService.logger.i(
-      "Resend Google code result: ${result.$1}, ${result.$2}",
     );
 
     if (!mounted) return;

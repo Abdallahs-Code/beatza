@@ -5,7 +5,6 @@ import "package:http/http.dart" as http;
 
 // Package imports
 import "package:cross_team5/core/services/api_services.dart";
-import "package:cross_team5/core/services/logger_service.dart";
 import "package:cross_team5/features/authentication_user_management/models/user.dart"
     as user_model;
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
@@ -124,9 +123,6 @@ class AuthApiService {
       );
 
       final data = jsonDecode(response.body);
-      LoggerService.logger.i(
-        "signup statusCode: ${response.statusCode}, body: ${response.body}",
-      );
       return (
         response.statusCode,
         data["message"] ?? "Signup request processed",
@@ -259,7 +255,6 @@ class AuthApiService {
       }
       return false;
     } catch (e) {
-      LoggerService.logger.i('Approve Qr code Func: $e');
       return false;
     }
   }
@@ -309,14 +304,12 @@ class AuthApiService {
           throw Exception('Failed to check QR status: ${response.statusCode}');
       }
     } catch (e) {
-      LoggerService.logger.i('checkQrStatus error: $e');
       rethrow;
     }
   }
 
   Future<bool> checkUserExists({required String email}) async {
     if (!_isValidEmail(email)) {
-      LoggerService.logger.i("checkUserExists: Invalid email format");
       throw Exception("Invalid email format");
     }
 
@@ -329,24 +322,18 @@ class AuthApiService {
 
       final data = jsonDecode(response.body);
 
-      LoggerService.logger.i(
-        "checkUserExists statusCode: ${response.statusCode}, body: ${response.body}",
-      );
-
       if (response.statusCode == 200) {
         return data["data"]?["exists"] == true;
       }
 
       throw Exception(data["message"] ?? "Failed to check email");
     } catch (err) {
-      LoggerService.logger.i("checkUserExists error: $err");
       throw Exception("Network error: $err");
     }
   }
 
   Future<(int, dynamic)> forgotPassword({required String email}) async {
     if (!_isValidEmail(email)) {
-      LoggerService.logger.i("forgotPassword: Invalid email format");
       return (400, "Invalid email format");
     }
 
@@ -358,10 +345,6 @@ class AuthApiService {
       );
 
       final data = jsonDecode(response.body);
-
-      LoggerService.logger.i(
-        "forgotPassword statusCode: ${response.statusCode}, body: ${response.body}",
-      );
 
       if (response.statusCode == 200) {
         return (
@@ -375,7 +358,6 @@ class AuthApiService {
         data["message"] ?? "Failed to send password reset email",
       );
     } catch (err) {
-      LoggerService.logger.i("forgotPassword error: $err");
       return (500, "Network error: $err");
     }
   }
@@ -384,7 +366,6 @@ class AuthApiService {
     required String email,
   }) async {
     if (!_isValidEmail(email)) {
-      LoggerService.logger.i("resendVerificationEmail: Invalid email format");
       return (400, "Invalid email format");
     }
 
@@ -396,10 +377,6 @@ class AuthApiService {
       );
 
       final data = jsonDecode(response.body);
-
-      LoggerService.logger.i(
-        "resendVerificationEmail statusCode: ${response.statusCode}, body: ${response.body}",
-      );
 
       if (response.statusCode == 200) {
         return (
@@ -413,7 +390,6 @@ class AuthApiService {
         data["message"] ?? "Failed to resend verification email",
       );
     } catch (err) {
-      LoggerService.logger.i("resendVerificationEmail error: $err");
       return (500, "Network error: $err");
     }
   }
@@ -439,10 +415,6 @@ class AuthApiService {
 
       final data = jsonDecode(response.body);
 
-      LoggerService.logger.i(
-        "verifyGoogleCode statusCode: ${response.statusCode}, body: ${response.body}",
-      );
-
       if (response.statusCode == 200) {
         final responseData = data["data"];
         final accessToken = responseData?["accessToken"];
@@ -465,7 +437,6 @@ class AuthApiService {
         data["message"] ?? "Google code verification failed",
       );
     } catch (err) {
-      LoggerService.logger.i("verifyGoogleCode error: $err");
       return (500, "Network error: $err");
     }
   }
@@ -503,10 +474,6 @@ class AuthApiService {
 
       final data = jsonDecode(response.body);
 
-      LoggerService.logger.i(
-        "completeGoogleSignup statusCode: ${response.statusCode}, body: ${response.body}",
-      );
-
       if (response.statusCode == 200) {
         final responseData = data["data"];
         final accessToken = responseData?["accessToken"];
@@ -530,7 +497,6 @@ class AuthApiService {
         data["message"] ?? "Google signup completion failed",
       );
     } catch (err) {
-      LoggerService.logger.i("completeGoogleSignup error: $err");
       return (500, "Network error: $err");
     }
   }
@@ -602,10 +568,6 @@ class AuthApiService {
         }
       }
 
-      LoggerService.logger.i(
-        "resendGoogleVerificationCode statusCode: ${response.statusCode}, body: ${response.body}",
-      );
-
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return (
           response.statusCode,
@@ -617,7 +579,6 @@ class AuthApiService {
 
       return (response.statusCode, message);
     } catch (err) {
-      LoggerService.logger.i("resendGoogleVerificationCode error: $err");
       return (500, "Network error: $err");
     }
   }

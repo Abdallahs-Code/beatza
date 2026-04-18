@@ -344,9 +344,6 @@ class TrackApiService {
       final response = await _client.get(uri, headers: _authHeaders(token));
       final data = jsonDecode(response.body);
 
-      /// Testing
-      // debugPrint('getAllTracksPaginated response: $data');// Debug log
-
       if (response.statusCode == 200) {
         final tracks = Track.listFromPaginatedResponse(data);
         final paginationInfo =

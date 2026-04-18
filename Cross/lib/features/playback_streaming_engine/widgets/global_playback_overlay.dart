@@ -765,7 +765,6 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
         _isLoadingWaveform = false;
       });
     } catch (error) {
-      debugPrint('Expanded waveform extraction failed: $error');
       if (!mounted) return;
       setState(() {
         _waveformPeaks = const [];

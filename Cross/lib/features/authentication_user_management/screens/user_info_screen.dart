@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 // Package imports
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/models/user.dart'
     as user_model;
@@ -153,10 +152,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
           gender: gender,
         );
 
-        LoggerService.logger.i(
-          "UserInfoScreen completeGoogleSignup -> status: ${result.$1}, body: ${result.$2}",
-        );
-
         if (!mounted) return;
 
         if (result.$1 == 200) {
@@ -196,10 +191,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
           ),
         );
 
-        LoggerService.logger.i(
-          "UserInfoScreen signup -> status: ${result.$1}, body: ${result.$2}",
-        );
-
         if (!mounted) return;
 
         if (result.$1 == 200 || result.$1 == 201) {
@@ -218,7 +209,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         );
       }
     } catch (e) {
-      LoggerService.logger.i("UserInfoScreen error: $e");
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
