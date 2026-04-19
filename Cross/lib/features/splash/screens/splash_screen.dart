@@ -10,6 +10,8 @@ import 'package:cross_team5/features/home/home_routes.dart';
 // Your connectivity service
 import 'package:cross_team5/core/services/connectivity_service.dart';
 
+import '../../premium_subscription/services/payment_service.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -35,12 +37,11 @@ class _SplashScreenState extends State<SplashScreen> {
       _isChecking = true;
     });
 
-    final bool hasInternet = await ConnectivityService.instance
-        .hasInternetConnection();
+    final bool hasInternet = await ConnectivityService.instance.hasInternetConnection();
+    final bool isPro = PaymentService.subscriptionSuccessNotifier.value;
 
     if (!mounted) return;
-
-    if (!hasInternet) {
+    if (!hasInternet && !isPro) {
       setState(() {
         _isChecking = false;
         _hasInternet = false;
@@ -48,10 +49,10 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    await checkLoginStatus();
+    await checkLoginStatus(hasInternet);
   }
 
-  Future<void> checkLoginStatus() async {
+  Future<void> checkLoginStatus(bool hasInternet) async {
     bool isLoggedIn = false;
     final tokenTime = await _storage.read(key: 'token_time');
 
@@ -61,12 +62,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (timeDifference < const Duration(days: 7)) {
         isLoggedIn = true;
-
-        try {
-          await authApiService.refreshToken();
-        } catch (_) {
-          isLoggedIn = false;
-          await authApiService.logout();
+        if (hasInternet) {
+          try {
+            await authApiService.refreshToken();
+          } catch (_) {
+            isLoggedIn = false;
+            await authApiService.logout();
+          }
         }
       } else {
         await authApiService.logout();
@@ -81,7 +83,6 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacementNamed(context, AuthenticationRoutes.welcome);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

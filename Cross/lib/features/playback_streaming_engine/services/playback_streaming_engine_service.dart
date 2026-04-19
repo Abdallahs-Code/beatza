@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:cross_team5/core/services/api_services.dart';
+import 'package:cross_team5/features/premium_subscription/services/offline_download_service.dart';
 
 import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
@@ -14,7 +16,7 @@ import 'public_tracks_paging_service.dart';
 
 class PlaybackStreamingEngineService extends ChangeNotifier {
   static final PlaybackStreamingEngineService shared =
-      PlaybackStreamingEngineService._shared();
+  PlaybackStreamingEngineService._shared();
 
   final AudioPlayerClient _audioPlayerClient;
   final FlutterSecureStorage _storage;
@@ -35,9 +37,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   Future<bool> Function()? _ensureNextTrackAvailable;
 
   PlaybackStreamingEngineService._shared()
-    : _audioPlayerClient = AudioplayersClient(),
-      _storage = const FlutterSecureStorage(),
-      _httpClient = http.Client() {
+      : _audioPlayerClient = AudioplayersClient(),
+        _storage = const FlutterSecureStorage(),
+        _httpClient = http.Client() {
     _bindPlayerStreams();
   }
 
@@ -45,9 +47,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     AudioPlayerClient? audioPlayerClient,
     FlutterSecureStorage? storage,
     http.Client? httpClient,
-  }) : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
-       _storage = storage ?? const FlutterSecureStorage(),
-       _httpClient = httpClient ?? http.Client() {
+  })  : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
+        _storage = storage ?? const FlutterSecureStorage(),
+        _httpClient = httpClient ?? http.Client() {
     _bindPlayerStreams();
   }
 
@@ -61,11 +63,11 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length - 1;
 
   Future<void> playTrack(
-    PlaybackTrackModel track, {
-    List<PlaybackTrackModel>? queue,
-    int? startIndex,
-    Future<bool> Function()? ensureNextTrackAvailable,
-  }) async {
+      PlaybackTrackModel track, {
+        List<PlaybackTrackModel>? queue,
+        int? startIndex,
+        Future<bool> Function()? ensureNextTrackAvailable,
+      }) async {
     if (queue != null) {
       _setQueueContext(
         queue,
@@ -80,7 +82,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       );
     } else {
       final int existingIndex = _activeQueue.indexWhere(
-        (item) => item.id == track.id,
+            (item) => item.id == track.id,
       );
       if (existingIndex >= 0) {
         _currentQueueIndex = existingIndex;
@@ -99,8 +101,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         _state.copyWith(
           currentTrack: track,
           status: PlaybackStatus.blocked,
-          message:
-              track.blockedReason ?? 'This track is currently unavailable.',
+          message: track.blockedReason ?? 'This track is currently unavailable.',
           currentPosition: Duration.zero,
           totalDuration: track.duration ?? Duration.zero,
         ),
@@ -141,7 +142,20 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       );
 
       await _applyCurrentOutputLevel();
-      await _audioPlayerClient.play(track);
+
+      PlaybackTrackModel trackToPlay = track;
+      try {
+        final localPath = await OfflineDownloadService.shared.getLocalTrackPath(track.id);
+        if (localPath != null && await File(localPath).exists()) {
+          trackToPlay = track.copyWith(
+            localFilePath: localPath,
+            sourceType: PlaybackSourceType.deviceFile,
+          );
+        }
+      } catch (e) {
+      }
+
+      await _audioPlayerClient.play(trackToPlay);
       await _enforceCurrentOutputLevelForTrack(track.id);
     } catch (error) {
       _updateState(
@@ -322,10 +336,10 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   void _setQueueContext(
-    List<PlaybackTrackModel> queue, {
-    String? preferredTrackId,
-    int? preferredIndex,
-  }) {
+      List<PlaybackTrackModel> queue, {
+        String? preferredTrackId,
+        int? preferredIndex,
+      }) {
     _activeQueue = List<PlaybackTrackModel>.from(queue);
 
     if (_activeQueue.isEmpty) {
@@ -376,7 +390,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     final int currentIndexInPagedTracks = pagedTracks.indexWhere(
-      (item) => item.id == currentTrack.id,
+          (item) => item.id == currentTrack.id,
     );
 
     if (currentIndexInPagedTracks < 0) {
@@ -406,13 +420,13 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     final PlaybackStatus nextStatus = switch (playerState) {
       PlayerState.playing => PlaybackStatus.playing,
       PlayerState.paused =>
-        _previewLimitReached
-            ? PlaybackStatus.previewEnded
-            : PlaybackStatus.paused,
+      _previewLimitReached
+          ? PlaybackStatus.previewEnded
+          : PlaybackStatus.paused,
       PlayerState.stopped =>
-        _previewLimitReached
-            ? PlaybackStatus.previewEnded
-            : PlaybackStatus.stopped,
+      _previewLimitReached
+          ? PlaybackStatus.previewEnded
+          : PlaybackStatus.stopped,
       PlayerState.completed => PlaybackStatus.completed,
       PlayerState.disposed => PlaybackStatus.stopped,
     };
