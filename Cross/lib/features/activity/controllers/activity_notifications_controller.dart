@@ -197,7 +197,9 @@ class ActivityNotificationsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _apiService.markAllAsRead();
+      final serverCount = await _apiService.markAllAsRead();
+      _unreadCount = serverCount;
+      notifyListeners();
     } catch (_) {
       _notifications
         ..clear()
