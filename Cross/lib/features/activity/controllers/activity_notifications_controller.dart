@@ -23,6 +23,7 @@ class ActivityNotificationsController extends ChangeNotifier {
   String? _errorMessage;
   int _unreadCount = 0;
   String? _activeToken;
+  String? _currentUserId;
 
   List<ActivityNotificationModel> get notifications =>
       List<ActivityNotificationModel>.unmodifiable(_notifications);
@@ -46,12 +47,16 @@ class ActivityNotificationsController extends ChangeNotifier {
     return visibleNotifications.where((item) => !_isToday(item)).toList();
   }
 
+  String? get currentUserId => _currentUserId;
+
   Future<void> initialize() async {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || token.trim().isEmpty) {
         return;
       }
+
+      _currentUserId ??= await AuthApiService().getStoredUserId();
 
       final shouldDoInitialLoad =
           !_hasInitialized || _activeToken == null || _activeToken != token;
@@ -77,7 +82,7 @@ class ActivityNotificationsController extends ChangeNotifier {
 
       _notifications
         ..clear()
-        ..addAll(page.notifications);
+        ..addAll(page.notifications.where(_isNotSelfAction));
 
       _notifications.sort(
         (a, b) => b.createdAt.compareTo(a.createdAt),
@@ -110,6 +115,8 @@ class ActivityNotificationsController extends ChangeNotifier {
   }
 
   void _handleIncomingNotification(ActivityNotificationModel notification) {
+    if (!_isNotSelfAction(notification)) return;
+
     final existingIndex = _notifications.indexWhere(
       (item) => item.notificationId == notification.notificationId,
     );
@@ -221,6 +228,11 @@ class ActivityNotificationsController extends ChangeNotifier {
       _unreadCount = _notifications.where((item) => !item.read).length;
       notifyListeners();
     }
+  }
+
+  bool _isNotSelfAction(ActivityNotificationModel notification) {
+    if (_currentUserId == null || _currentUserId!.trim().isEmpty) return true;
+    return notification.actor.userId != _currentUserId;
   }
 
   bool _isToday(ActivityNotificationModel notification) {
