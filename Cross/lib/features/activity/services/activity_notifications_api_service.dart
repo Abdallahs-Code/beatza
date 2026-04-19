@@ -122,7 +122,7 @@ class ActivityNotificationsApiService {
     );
   }
 
-  Future<void> markAllAsRead() async {
+  Future<int> markAllAsRead() async {
     final accessToken = await _requireAccessToken();
 
     final uri = Uri.parse('$_servicePath/read-all');
@@ -132,8 +132,8 @@ class ActivityNotificationsApiService {
     );
     final data = _decodeBody(response);
 
-    if (response.statusCode == 200) {
-      return;
+    if (response.statusCode == 200 && data is Map) {
+      return (data['unreadCount'] as num?)?.toInt() ?? 0;
     }
 
     throw _buildError(

@@ -95,6 +95,7 @@ class ActivityNotificationTarget {
   final String? title;
   final String? trackId;
   final String? commentText;
+  final String? mentionedUserProfileLink;
 
   const ActivityNotificationTarget({
     required this.targetType,
@@ -102,6 +103,7 @@ class ActivityNotificationTarget {
     this.title,
     this.trackId,
     this.commentText,
+    this.mentionedUserProfileLink,
   });
 
   factory ActivityNotificationTarget.fromJson(Map<String, dynamic> json) {
@@ -111,6 +113,7 @@ class ActivityNotificationTarget {
       title: json['title']?.toString(),
       trackId: json['trackId']?.toString(),
       commentText: json['commentText']?.toString(),
+      mentionedUserProfileLink: json['mentionedUserProfileLink']?.toString(),
     );
   }
 }
