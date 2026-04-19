@@ -7,6 +7,7 @@ enum ActivityNotificationFilter {
   comments,
   followings,
   newTracks,
+  mentions,
 }
 
 extension ActivityNotificationFilterX on ActivityNotificationFilter {
@@ -24,6 +25,8 @@ extension ActivityNotificationFilterX on ActivityNotificationFilter {
         return 'Followings';
       case ActivityNotificationFilter.newTracks:
         return 'New tracks';
+      case ActivityNotificationFilter.mentions:
+        return 'Mentions';
     }
   }
 
@@ -41,6 +44,8 @@ extension ActivityNotificationFilterX on ActivityNotificationFilter {
         return Icons.person_add_alt_1_rounded;
       case ActivityNotificationFilter.newTracks:
         return Icons.music_note_rounded;
+      case ActivityNotificationFilter.mentions:
+        return Icons.alternate_email_rounded;
     }
   }
 
@@ -58,6 +63,8 @@ extension ActivityNotificationFilterX on ActivityNotificationFilter {
         return notification.activityType == 'user_followed';
       case ActivityNotificationFilter.newTracks:
         return notification.activityType == 'new_track';
+      case ActivityNotificationFilter.mentions:
+        return notification.activityType == 'user_mentioned';
     }
   }
 }
