@@ -78,7 +78,6 @@ class ActivityNotificationsController extends ChangeNotifier {
 
     try {
       final page = await _apiService.getNotifications(limit: 50);
-      final unreadCount = await _apiService.getUnreadCount();
 
       _notifications
         ..clear()
@@ -88,7 +87,8 @@ class ActivityNotificationsController extends ChangeNotifier {
         (a, b) => b.createdAt.compareTo(a.createdAt),
       );
 
-      _unreadCount = unreadCount;
+      // Use the filtered list count so badge always matches what is visible.
+      _unreadCount = _notifications.where((item) => !item.read).length;
     } catch (error) {
       _errorMessage = error.toString();
     } finally {

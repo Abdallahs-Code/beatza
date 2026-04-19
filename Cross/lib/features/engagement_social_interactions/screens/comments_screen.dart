@@ -38,6 +38,7 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/widgets/comment_tile.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
@@ -64,9 +65,15 @@ class CommentsScreen extends StatefulWidget {
 class _CommentsScreenState extends State<CommentsScreen> {
   final EngagementApiService _service = EngagementApiService();
   final AuthApiService _authService = AuthApiService();
+  final SocialApiService _socialApi = SocialApiService();
   final TextEditingController _inputController = TextEditingController();
   final FocusNode _inputFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+
+  // @ mention state
+  List<Follower> _followingUsers = [];
+  List<Follower> _mentionSuggestions = [];
+  bool _showMentionSuggestions = false;
 
   // ── Local like persistence (shared across screen instances this session) ──
   static const FlutterSecureStorage _likeStorage = FlutterSecureStorage();
@@ -111,6 +118,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
     _loadLocalLikedState().then((_) => _loadComments());
     _loadCurrentUser();
+    _inputController.addListener(_onMentionTextChanged);
   }
 
   // ── Load persisted liked comment IDs from secure storage ──
@@ -153,6 +161,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   @override
   void dispose() {
     PlaybackStreamingEngineService.shared.removeListener(_onPlayerUpdate);
+    _inputController.removeListener(_onMentionTextChanged);
     _inputController.dispose();
     _inputFocusNode.dispose();
     _scrollController.dispose();
@@ -181,7 +190,63 @@ class _CommentsScreenState extends State<CommentsScreen> {
             ? null
             : profile.profileImgLink.trim();
       });
+      // Load following list for @ mention suggestions
+      final followResult = await _socialApi.getFollowing(userId: userId);
+      if (!mounted) return;
+      if (followResult.$1 == 200 && followResult.$2 is List) {
+        setState(() => _followingUsers = followResult.$2 as List<Follower>);
+      }
     } catch (_) {}
+  }
+
+  // Detects @query in the text field and filters following users
+  void _onMentionTextChanged() {
+    final text = _inputController.text;
+    final cursor =
+        _inputController.selection.baseOffset.clamp(0, text.length);
+    final beforeCursor = text.substring(0, cursor);
+    final atIndex = beforeCursor.lastIndexOf('@');
+
+    if (atIndex >= 0) {
+      final query = beforeCursor.substring(atIndex + 1);
+      if (!query.contains(' ')) {
+        final filtered = query.isEmpty
+            ? _followingUsers
+            : _followingUsers
+                .where((u) => u.displayName
+                    .toLowerCase()
+                    .contains(query.toLowerCase()))
+                .toList();
+        if (filtered.isNotEmpty) {
+          setState(() {
+            _mentionSuggestions = filtered.take(5).toList();
+            _showMentionSuggestions = true;
+          });
+          return;
+        }
+      }
+    }
+    if (_showMentionSuggestions) {
+      setState(() => _showMentionSuggestions = false);
+    }
+  }
+
+  // Replaces the current @query with @displayName in the input field
+  void _insertMention(Follower user) {
+    final text = _inputController.text;
+    final cursor =
+        _inputController.selection.baseOffset.clamp(0, text.length);
+    final beforeCursor = text.substring(0, cursor);
+    final afterCursor = text.substring(cursor);
+    final atIndex = beforeCursor.lastIndexOf('@');
+    final newBefore = atIndex >= 0
+        ? '${beforeCursor.substring(0, atIndex)}@${user.displayName} '
+        : beforeCursor;
+    _inputController.value = TextEditingValue(
+      text: '$newBefore$afterCursor',
+      selection: TextSelection.collapsed(offset: newBefore.length),
+    );
+    setState(() => _showMentionSuggestions = false);
   }
 
   Future<void> _navigateToProfile(String userId) async {
@@ -539,6 +604,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
           // ── Reply-to indicator ─────────────────
           if (_replyingTo != null) _buildReplyIndicator(),
 
+          // ── @ mention suggestions ──────────────
+          if (_showMentionSuggestions) _buildMentionSuggestions(),
+
           // ── Comment input bar ──────────────────
           _buildInputBar(),
         ],
@@ -796,6 +864,56 @@ class _CommentsScreenState extends State<CommentsScreen> {
             child: const Icon(Icons.close, color: Colors.grey, size: 16),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── @ mention suggestion panel ─────────────────
+  Widget _buildMentionSuggestions() {
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 160),
+      color: const Color(0xFF1A1A1A),
+      child: ListView.builder(
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        itemCount: _mentionSuggestions.length,
+        itemBuilder: (_, i) {
+          final user = _mentionSuggestions[i];
+          return InkWell(
+            onTap: () => _insertMention(user),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey[800],
+                    backgroundImage: user.profileImgLink?.isNotEmpty == true
+                        ? NetworkImage(user.profileImgLink!)
+                        : null,
+                    child: user.profileImgLink?.isNotEmpty != true
+                        ? Text(
+                            user.displayName.isNotEmpty
+                                ? user.displayName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '@${user.displayName}',
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
