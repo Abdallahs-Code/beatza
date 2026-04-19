@@ -5,9 +5,6 @@ import 'package:cross_team5/core/theme/app_text.dart';
 import '../../audio_upload_track_management/screens/upload_track_screen.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 
-import 'package:cross_team5/features/activity/screens/activity_screen.dart';
-import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
-
 class TopHeader extends StatelessWidget {
   const TopHeader({super.key});
 

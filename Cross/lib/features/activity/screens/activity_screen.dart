@@ -430,7 +430,7 @@ class _ActivityScreenState extends State<ActivityScreen>
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(86, 34),
           side: BorderSide(
-            color: Colors.white.withOpacity(0.28),
+            color: Colors.white.withValues(alpha: 0.28),
             width: 1,
           ),
           shape: RoundedRectangleBorder(
@@ -525,7 +525,7 @@ class _ActivityScreenState extends State<ActivityScreen>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: Colors.white.withOpacity(0.14),
+            color: Colors.white.withValues(alpha: 0.14),
           ),
         ),
         child: Row(
