@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
-
-// ── Quick Reply sheet — shown when tapping Reply on a comment/mention notification
-// Matches the SoundCloud Quick Reply bottom sheet UI:
-//   ↓  Quick Reply              (header row)
-//   [thumb] Title / Artist      (track mini-card)
-//   🔥👏😢 N  · X comments · X reposts
-//   ──────────────────────────
-//   [Comment list]
-//   ──────────────────────────
-//   "i love this 🖤"  "on repeat!!!"  "this is my vibe 🤝"
-//   [○]  Add a comment at...   0:00
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 
 class QuickReplySheet extends StatefulWidget {
   final String trackId;
@@ -36,14 +27,28 @@ class QuickReplySheet extends StatefulWidget {
 }
 
 class _QuickReplySheetState extends State<QuickReplySheet> {
-  final _engagementApi = EngagementApiService();
-  final _inputController = TextEditingController();
-  final _focusNode = FocusNode();
-  final _scrollController = ScrollController();
+  final EngagementApiService _engagementApi = EngagementApiService();
+  final SocialApiService _socialApi = SocialApiService();
+  final AuthApiService _authApi = AuthApiService();
+  final TextEditingController _inputController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
 
   List<Comment> _comments = [];
   bool _loadingComments = true;
   bool _posting = false;
+
+  // Reply state — tracks which comment we are replying to
+  Comment? _replyingTo;
+
+  // Live playback position for the timestamp suffix
+  int _currentPositionSeconds = 0;
+
+  // @ mention state
+  String? _currentUserId;
+  List<Follower> _followingUsers = [];
+  List<Follower> _mentionSuggestions = [];
+  bool _showMentionSuggestions = false;
 
   static const _quickReplies = [
     'i love this 🖤',
@@ -55,14 +60,92 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   void initState() {
     super.initState();
     _loadComments();
+    _loadCurrentUser();
+    // Sync initial playback position
+    _currentPositionSeconds =
+        PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
+    PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
+    _inputController.addListener(_onTextChanged);
   }
 
   @override
   void dispose() {
+    PlaybackStreamingEngineService.shared.removeListener(_onPlayerUpdate);
+    _inputController.removeListener(_onTextChanged);
     _inputController.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onPlayerUpdate() {
+    final pos =
+        PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
+    if (mounted && _currentPositionSeconds != pos) {
+      setState(() => _currentPositionSeconds = pos);
+    }
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final userId = await _authApi.getStoredUserId();
+    if (!mounted || userId == null) return;
+    setState(() => _currentUserId = userId);
+    // Load following list for @ mention suggestions
+    final result = await _socialApi.getFollowing(userId: userId);
+    if (!mounted) return;
+    if (result.$1 == 200 && result.$2 is List) {
+      setState(() => _followingUsers = result.$2 as List<Follower>);
+    }
+  }
+
+  // Detects @ in the text field and filters following users for suggestions
+  void _onTextChanged() {
+    final text = _inputController.text;
+    final cursor =
+        _inputController.selection.baseOffset.clamp(0, text.length);
+    final beforeCursor = text.substring(0, cursor);
+    final atIndex = beforeCursor.lastIndexOf('@');
+
+    if (atIndex >= 0) {
+      final query = beforeCursor.substring(atIndex + 1);
+      if (!query.contains(' ')) {
+        final filtered = query.isEmpty
+            ? _followingUsers
+            : _followingUsers
+                .where((u) => u.displayName
+                    .toLowerCase()
+                    .contains(query.toLowerCase()))
+                .toList();
+        if (filtered.isNotEmpty) {
+          setState(() {
+            _mentionSuggestions = filtered.take(5).toList();
+            _showMentionSuggestions = true;
+          });
+          return;
+        }
+      }
+    }
+    if (_showMentionSuggestions) {
+      setState(() => _showMentionSuggestions = false);
+    }
+  }
+
+  // Inserts @displayName into the text field replacing the current @query
+  void _insertMention(Follower user) {
+    final text = _inputController.text;
+    final cursor =
+        _inputController.selection.baseOffset.clamp(0, text.length);
+    final beforeCursor = text.substring(0, cursor);
+    final afterCursor = text.substring(cursor);
+    final atIndex = beforeCursor.lastIndexOf('@');
+    final newBefore = atIndex >= 0
+        ? '${beforeCursor.substring(0, atIndex)}@${user.displayName} '
+        : beforeCursor;
+    _inputController.value = TextEditingValue(
+      text: '$newBefore$afterCursor',
+      selection: TextSelection.collapsed(offset: newBefore.length),
+    );
+    setState(() => _showMentionSuggestions = false);
   }
 
   Future<void> _loadComments() async {
@@ -79,31 +162,59 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     });
   }
 
+  // Timestamp used when posting: reply uses parent's track timestamp,
+  // otherwise use live playback position.
+  int get _effectiveTimestamp =>
+      _replyingTo?.timestamp ?? _currentPositionSeconds;
+
+  String get _formattedTimestamp {
+    final s = _effectiveTimestamp;
+    return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
+  }
+
   Future<void> _postComment(String content) async {
     if (content.trim().isEmpty || _posting) return;
     setState(() => _posting = true);
     _inputController.clear();
     _focusNode.unfocus();
 
+    final replyingTo = _replyingTo;
+    setState(() {
+      _replyingTo = null;
+      _showMentionSuggestions = false;
+    });
+
+    final userId = await _authApi.getStoredUserId() ?? '';
     final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-    final userId = await AuthApiService().getStoredUserId() ?? '';
-    // Optimistic insert
     final optimistic = Comment(
-      tempId, userId, 'You', null, content, 0, 0, 0, false, false, DateTime.now().toIso8601String(),
+      tempId, userId, 'You', null, content,
+      _effectiveTimestamp, 0, 0, false, false,
+      DateTime.now().toIso8601String(),
     );
-    setState(() => _comments.insert(0, optimistic));
+
+    // Insert optimistic: replies go directly after their parent in the list
+    if (replyingTo != null) {
+      final parentIdx =
+          _comments.indexWhere((c) => c.commentId == replyingTo.commentId);
+      setState(() => _comments.insert(
+          parentIdx >= 0 ? parentIdx + 1 : 0, optimistic));
+    } else {
+      setState(() => _comments.insert(0, optimistic));
+    }
 
     final result = await _engagementApi.postComment(
       trackId: widget.trackId,
       content: content,
-      timestamp: 0,
+      timestamp: _effectiveTimestamp,
+      parentCommentId: replyingTo?.commentId,
     );
     if (!mounted) return;
 
     if (result.$1 == 201 && result.$2 is Comment) {
+      final real = result.$2 as Comment;
       setState(() {
-        final idx = _comments.indexWhere((c) => c.commentId == tempId);
-        if (idx >= 0) _comments[idx] = result.$2 as Comment;
+        final i = _comments.indexWhere((c) => c.commentId == tempId);
+        if (i >= 0) _comments[i] = real;
       });
     } else {
       setState(() => _comments.removeWhere((c) => c.commentId == tempId));
@@ -111,22 +222,44 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     setState(() => _posting = false);
   }
 
+  // Exact same pattern as CommentsScreen._toggleCommentLike
   Future<void> _toggleCommentLike(Comment comment) async {
+    final wasLiked = comment.isLikedByUser;
     setState(() {
-      comment.isLikedByUser = !comment.isLikedByUser;
-      comment.numLikes += comment.isLikedByUser ? 1 : -1;
+      comment.isLikedByUser = !wasLiked;
+      comment.numLikes = wasLiked ? comment.numLikes - 1 : comment.numLikes + 1;
     });
     final result = await _engagementApi.toggleCommentLike(
       commentId: comment.commentId,
     );
     if (!mounted) return;
-    if (result.$1 != 200) {
+    if (result.$1 == 200) {
+      final bool nowLiked = result.$2['liked'] as bool? ?? !wasLiked;
       setState(() {
-        comment.isLikedByUser = !comment.isLikedByUser;
-        comment.numLikes += comment.isLikedByUser ? 1 : -1;
+        comment.isLikedByUser = nowLiked;
+        comment.numLikes = result.$2['numLikes'] as int? ?? comment.numLikes;
+      });
+    } else {
+      setState(() {
+        comment.isLikedByUser = wasLiked;
+        comment.numLikes = wasLiked ? comment.numLikes + 1 : comment.numLikes - 1;
       });
     }
   }
+
+  // Sets _replyingTo, pre-fills @username, focuses input
+  void _startReply(Comment comment) {
+    setState(() {
+      _replyingTo = comment;
+      _showMentionSuggestions = false;
+    });
+    _inputController.text = '@${comment.displayName} ';
+    _inputController.selection =
+        TextSelection.collapsed(offset: _inputController.text.length);
+    _focusNode.requestFocus();
+  }
+
+  // ─── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +277,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
           const Divider(color: Color(0xFF2A2A2A), height: 1),
           Expanded(child: _buildCommentList()),
           const Divider(color: Color(0xFF2A2A2A), height: 1),
+          if (_replyingTo != null) _buildReplyIndicator(),
+          if (_showMentionSuggestions) _buildMentionSuggestions(),
           _buildQuickChips(),
           _buildInputRow(),
           SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
@@ -192,7 +327,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                     width: 52,
                     height: 52,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _thumbPlaceholder(),
+                    errorBuilder: (_, __, ___) => _thumbPlaceholder(),
                   )
                 : _thumbPlaceholder(),
           ),
@@ -201,13 +336,15 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.trackTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  widget.trackTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600),
+                ),
                 if (widget.trackArtist.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(widget.trackArtist,
@@ -238,22 +375,19 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       child: Row(
         children: [
-          // Emoji reactions (static visual — matches SoundCloud)
           const Text('🔥', style: TextStyle(fontSize: 18)),
           const SizedBox(width: 6),
           const Text('👏', style: TextStyle(fontSize: 18)),
           const SizedBox(width: 6),
           const Text('😢', style: TextStyle(fontSize: 18)),
           const SizedBox(width: 6),
-          Text(
-            '${widget.numComments}',
-            style: const TextStyle(color: Color(0xFF888888), fontSize: 13),
-          ),
+          Text('${widget.numComments}',
+              style: const TextStyle(
+                  color: Color(0xFF888888), fontSize: 13)),
           const Spacer(),
           Text(
             '${widget.numComments} comments · ${widget.numReposts} reposts',
-            style:
-                const TextStyle(color: Color(0xFF888888), fontSize: 12),
+            style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
           ),
         ],
       ),
@@ -276,22 +410,18 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: _comments.length,
-      separatorBuilder: (context, index) =>
+      separatorBuilder: (_, __) =>
           const Divider(color: Color(0xFF1E1E1E), height: 1),
-      itemBuilder: (context, i) => _buildCommentRow(_comments[i]),
+      itemBuilder: (_, i) => _buildCommentRow(_comments[i]),
     );
   }
 
   Widget _buildCommentRow(Comment comment) {
-    final age = _formatAge(comment.createdAt);
-    final ts = _formatTimestamp(comment.timestamp);
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
           CircleAvatar(
             radius: 18,
             backgroundColor: const Color(0xFF2A2A2A),
@@ -315,7 +445,6 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name row: displayName | blue timestamp pill | age
                 Row(
                   children: [
                     Flexible(
@@ -323,10 +452,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                         comment.displayName,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -338,7 +466,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        'at $ts',
+                        'at ${comment.formattedTimestamp}',
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -346,33 +474,22 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(age,
-                        style: const TextStyle(
-                            color: Color(0xFF777777), fontSize: 12)),
+                    Text(
+                      _formatAge(comment.createdAt),
+                      style: const TextStyle(
+                          color: Color(0xFF777777), fontSize: 12),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                // Comment text
-                Text(
-                  comment.content,
-                  style: const TextStyle(
-                      color: Color(0xFFDDDDDD), fontSize: 14),
-                ),
+                Text(comment.content,
+                    style: const TextStyle(
+                        color: Color(0xFFDDDDDD), fontSize: 14)),
                 const SizedBox(height: 6),
-                // Actions: Reply · ···
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        _inputController.text =
-                            '@${comment.displayName} ';
-                        _inputController.selection =
-                            TextSelection.fromPosition(
-                          TextPosition(
-                              offset: _inputController.text.length),
-                        );
-                        _focusNode.requestFocus();
-                      },
+                      onTap: () => _startReply(comment),
                       child: const Text('Reply',
                           style: TextStyle(
                               color: Color(0xFF888888),
@@ -388,7 +505,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
               ],
             ),
           ),
-          // Like heart
+          // Like heart — exact same pattern as CommentsScreen comment tile
           GestureDetector(
             onTap: () => _toggleCommentLike(comment),
             behavior: HitTestBehavior.opaque,
@@ -414,6 +531,80 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Shows "Replying to @username" bar with a dismiss X
+  Widget _buildReplyIndicator() {
+    return Container(
+      color: const Color(0xFF1A1A1A),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            'Replying to @${_replyingTo!.displayName}',
+            style: const TextStyle(color: Color(0xFFFF5500), fontSize: 12),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () => setState(() {
+              _replyingTo = null;
+              _inputController.clear();
+            }),
+            child: const Icon(Icons.close, color: Colors.grey, size: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Floating suggestion list shown when user types @query
+  Widget _buildMentionSuggestions() {
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 160),
+      color: const Color(0xFF1A1A1A),
+      child: ListView.builder(
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        itemCount: _mentionSuggestions.length,
+        itemBuilder: (_, i) {
+          final user = _mentionSuggestions[i];
+          return InkWell(
+            onTap: () => _insertMention(user),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: const Color(0xFF2A2A2A),
+                    backgroundImage:
+                        user.profileImgLink?.isNotEmpty == true
+                            ? NetworkImage(user.profileImgLink!)
+                            : null,
+                    child: user.profileImgLink?.isNotEmpty != true
+                        ? Text(
+                            user.displayName.isNotEmpty
+                                ? user.displayName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Text('@${user.displayName}',
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 14)),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -471,12 +662,13 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                 hintStyle: const TextStyle(
                     color: Color(0xFF666666), fontSize: 14),
                 border: InputBorder.none,
-                suffixText: '0:00',
+                // Dynamic timestamp: uses parent comment's timestamp when
+                // replying, otherwise live playback position.
+                suffixText: _formattedTimestamp,
                 suffixStyle: const TextStyle(
                     color: Color(0xFF666666), fontSize: 13),
                 isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 6),
+                contentPadding: const EdgeInsets.symmetric(vertical: 6),
               ),
             ),
           ),
@@ -496,14 +688,6 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
         ],
       ),
     );
-  }
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
-
-  String _formatTimestamp(int seconds) {
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   String _formatAge(String createdAt) {

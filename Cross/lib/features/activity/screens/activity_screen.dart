@@ -371,9 +371,9 @@ class _NotificationTile extends StatefulWidget {
 }
 
 class _NotificationTileState extends State<_NotificationTile> {
-  final _engagementApi = EngagementApiService();
+  // Exact same service instance pattern as _ExpandedEngagementBarState
+  final EngagementApiService _engagementService = EngagementApiService();
 
-  // Like state — fetched from server on init, same pattern as global overlay
   bool _isLiked = false;
   bool _isLikeLoading = false;
 
@@ -392,12 +392,12 @@ class _NotificationTileState extends State<_NotificationTile> {
     }
   }
 
-  // ── Exact same pattern as _ExpandedEngagementBarState._checkLikeStatus ──
+  // Exact copy of _ExpandedEngagementBarState._checkLikeStatus
   Future<void> _checkLikeStatus() async {
     try {
       final userId = await AuthApiService().getStoredUserId();
       if (userId == null || !mounted) return;
-      final result = await _engagementApi.getTrackLikers(
+      final result = await _engagementService.getTrackLikers(
         trackId: _resolvedTrackId,
         limit: 50,
       );
@@ -409,20 +409,18 @@ class _NotificationTileState extends State<_NotificationTile> {
     } catch (_) {}
   }
 
-  // ── Exact same pattern as _ExpandedEngagementBarState._toggleLike ──
+  // Exact copy of _ExpandedEngagementBarState._toggleLike (no likeCount needed here)
   Future<void> _toggleLike() async {
     if (_isLikeLoading) return;
-    final wasLiked = _isLiked;
+    final bool wasLiked = _isLiked;
     setState(() {
       _isLiked = !_isLiked;
       _isLikeLoading = true;
     });
-
-    final result = await _engagementApi.toggleTrackLike(
+    final result = await _engagementService.toggleTrackLike(
       trackId: _resolvedTrackId,
     );
     if (!mounted) return;
-
     if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
       final data = result.$2 as Map<String, dynamic>;
       setState(() => _isLiked = data['liked'] as bool? ?? _isLiked);
@@ -699,7 +697,12 @@ class _NotificationTileState extends State<_NotificationTile> {
       );
     }
 
-    if (n.target.targetType == 'track') {
+    // Show track thumbnail for track notifications AND comment/mention
+    // notifications (targetType == 'comment' but they reference a track).
+    if (n.target.targetType == 'track' ||
+        n.activityType == 'track_commented' ||
+        n.activityType == 'user_mentioned' ||
+        n.activityType == 'new_track') {
       return ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: Container(
