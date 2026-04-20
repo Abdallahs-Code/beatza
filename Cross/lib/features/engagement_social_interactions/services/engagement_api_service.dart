@@ -1,5 +1,6 @@
 // Dart imports
 import 'dart:convert';
+import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -8,6 +9,7 @@ import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/repost_status.dart';
+import 'package:logger/logger.dart';
 
 class EngagementApiService {
   final ApiServices _apiServices;
@@ -809,24 +811,68 @@ class EngagementApiService {
     int limit = 20,
   }) async {
     try {
-      final headers = await _authHeaders();
-      if (headers == null) return (401, "Unauthorized");
-      final uri = Uri.parse("$_basePath/mentions/v1/followers")
-          .replace(queryParameters: {
-        'offset': '$offset',
-        'limit': '$limit',
-      });
-      final response = await _client.get(uri, headers: headers);
+      // final headers = await _authHeaders();
+      // if (headers == null) return (401, "Unauthorized");
+      // final uri = Uri.parse("$_basePath/mentions/v1/followers")
+      //     .replace(queryParameters: {
+      //   'offset': '$offset',
+      //   'limit': '$limit',
+      // });
+      // final response = await _client.get(uri, headers: headers);
+      // final data = jsonDecode(response.body);
+      // print(response.body);
+      final accessToken = await FlutterSecureStorage().read(key: "access_token");
+            final response = await http.Client().get(
+        Uri.parse("https://beatza.me/api/engagement/mentions/v1/followers"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $accessToken",
+          "User-Agent": "Android",
+        },
+      );
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data is List) {
-        final users = data
-            .map((e) => MentionUser(
-                  userId: (e['userId'] ?? '').toString(),
-                  displayName: (e['displayName'] ?? '').toString(),
-                  avatarUrl: e['avatarUrl']?.toString(),
-                ))
-            .where((u) => u.userId.isNotEmpty)
-            .toList();
+      if (response.statusCode == 200) {
+
+        // final users = data
+        //     .map((e) => MentionUser(
+        //           userId: (e['userId'] ?? '').toString(),
+        //           displayName: (e['displayName'] ?? '').toString(),
+        //           avatarUrl: e['avatarUrl']?.toString(),
+        //         ))
+        //     .where((u) => u.userId.isNotEmpty)
+        //     .toList();
+
+
+
+
+
+  
+        // final users = (data as List<dynamic>)
+        //     .whereType<Map<String, dynamic>>()
+        //     .where((e) => (e['userId']?.toString().trim() ?? '').isNotEmpty)
+        //     .map((e) => MentionUser(
+        //           userId: e['userId']!.toString().trim(),
+        //           displayName: (e['displayName']?.toString().trim() ?? ''),
+        //           avatarUrl: e['avatarUrl']?.toString(),
+        //         ))
+        //     .toList();
+        
+
+
+    
+        final users = (data as List<dynamic>)
+    .map((e) {
+      final map = e as Map<String, dynamic>;
+
+      return MentionUser(
+        userId: (map['userId'] ?? '').toString(),
+        displayName: (map['displayName'] ?? '').toString(),
+        avatarUrl: map['avatarUrl']?.toString(),
+      );
+    })
+    .where((u) => u.userId.isNotEmpty)
+    .toList();
+
         return (200, users);
       }
       return (response.statusCode, data is Map ? data['message'] ?? 'Failed' : 'Failed');
