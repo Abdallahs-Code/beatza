@@ -5,6 +5,7 @@ import 'package:cross_team5/features/engagement_social_interactions/engagement_s
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 const _kBg = Color(0xFF111111);
 const _kSurface = Color(0xFF1C1C1C);
@@ -44,10 +45,27 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   late int _likeCount = 0;
   int _commentCount = 0;
 
+  String? _artistCity;
+  String? _artistCountry;
+
+  bool get _isCurrentlyPlaying {
+    final svc = PlaybackStreamingEngineService.shared;
+    return svc.state.currentTrack?.id == _track?.id && svc.state.isPlaying;
+  }
+
   @override
   void initState() {
     super.initState();
+    PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
     _loadTrack();
+  }
+
+  void _onPlayerUpdate() => setState(() {});
+
+  @override
+  void dispose() {
+    PlaybackStreamingEngineService.shared.removeListener(_onPlayerUpdate);
+    super.dispose();
   }
 
   Future<void> _loadTrack() async {
@@ -61,6 +79,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _loading = false;
         });
         _checkLikeStatus();
+        _fetchArtistLocation(track.artistId);
       }
     } catch (e) {
       if (mounted) {
@@ -70,6 +89,22 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         });
       }
     }
+  }
+
+  Future<void> _fetchArtistLocation(String? artistId) async {
+    if (artistId == null || artistId.isEmpty) return;
+    try {
+      final token = await AuthApiService().getStoredAccessToken();
+      if (token == null || !mounted) return;
+      final profile =
+          await UserProfileService().getUserProfile(artistId, token);
+      if (!mounted) return;
+      setState(() {
+        _artistCity = profile.city.trim().isEmpty ? null : profile.city.trim();
+        _artistCountry =
+            profile.country.trim().isEmpty ? null : profile.country.trim();
+      });
+    } catch (_) {}
   }
 
   // ── Exact same pattern as _ExpandedEngagementBarState._checkLikeStatus ──
@@ -173,7 +208,12 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   void _playTrack() {
     final track = _track;
     if (track == null) return;
-    PlaybackStreamingEngineService.shared.playTrack(track);
+    final svc = PlaybackStreamingEngineService.shared;
+    if (svc.state.currentTrack?.id == track.id && svc.state.isPlaying) {
+      svc.pause();
+    } else {
+      svc.playTrack(track);
+    }
   }
 
   void _openTrackOptions() {
@@ -440,8 +480,13 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const Icon(Icons.play_arrow_rounded,
-                  color: Colors.black, size: 30),
+              child: Icon(
+                _isCurrentlyPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+                color: Colors.black,
+                size: 30,
+              ),
             ),
           ),
         ],
@@ -478,10 +523,21 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w600)),
-                if (track.genre != null && track.genre!.isNotEmpty)
-                  Text(track.genre!,
-                      style: const TextStyle(
-                          color: Color(0xFF888888), fontSize: 13)),
+                if (track.genre != null && track.genre!.isNotEmpty ||
+                    _artistCity != null ||
+                    _artistCountry != null)
+                  Text(
+                    [
+                      if (track.genre != null && track.genre!.isNotEmpty)
+                        track.genre!,
+                      if (_artistCity != null || _artistCountry != null)
+                        [_artistCity, _artistCountry]
+                            .whereType<String>()
+                            .join(', '),
+                    ].join(' · '),
+                    style: const TextStyle(
+                        color: Color(0xFF888888), fontSize: 13),
+                  ),
               ],
             ),
             const Spacer(),

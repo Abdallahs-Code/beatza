@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/features/activity/screens/quick_reply_options_menu.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
@@ -46,6 +47,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   bool _loadingComments = true;
   bool _posting = false;
   bool _initialReplySetupDone = false;
+
+  // Expanded replies — commentId → list of reply Comments
+  final Map<String, List<Comment>> _expandedReplies = {};
+  final Set<String> _loadingReplies = {};
 
   // Reply state — tracks which comment we are replying to
   Comment? _replyingTo;
@@ -335,6 +340,84 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     });
   }
 
+  Future<void> _toggleReplies(Comment comment) async {
+    final id = comment.commentId;
+    if (_expandedReplies.containsKey(id)) {
+      setState(() => _expandedReplies.remove(id));
+      return;
+    }
+    setState(() => _loadingReplies.add(id));
+    final result = await _engagementApi.getCommentReplies(commentId: id);
+    setState(() {
+      _loadingReplies.remove(id);
+      if (result.$1 == 200 && result.$2 is List) {
+        _expandedReplies[id] = (result.$2 as List).whereType<Comment>().toList();
+      }
+    });
+  }
+
+  Future<void> _deleteComment(Comment comment) async {
+    final topIdx = _comments.indexWhere((c) => c.commentId == comment.commentId);
+    String? replyParentId;
+    int replyIdx = -1;
+
+    if (topIdx >= 0) {
+      setState(() => _comments.removeAt(topIdx));
+    } else {
+      for (final entry in _expandedReplies.entries) {
+        final i = entry.value.indexWhere((c) => c.commentId == comment.commentId);
+        if (i >= 0) {
+          replyParentId = entry.key;
+          replyIdx = i;
+          final updated = List<Comment>.from(entry.value)..removeAt(i);
+          setState(() => _expandedReplies[replyParentId!] = updated);
+          break;
+        }
+      }
+      if (replyParentId == null) return;
+    }
+
+    final result = await _engagementApi.deleteComment(commentId: comment.commentId);
+    if (!mounted) return;
+    if (result.$1 != 200) {
+      setState(() {
+        if (replyParentId != null) {
+          final replies = List<Comment>.from(_expandedReplies[replyParentId] ?? []);
+          if (replyIdx >= 0) replies.insert(replyIdx, comment);
+          _expandedReplies[replyParentId] = replies;
+        } else if (topIdx >= 0) {
+          _comments.insert(topIdx, comment);
+        }
+      });
+    }
+  }
+
+  void _confirmDelete(Comment comment) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text('Delete comment',
+            style: TextStyle(color: Colors.white)),
+        content: const Text('Are you sure you want to delete this comment?',
+            style: TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteComment(comment);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Sets _replyingTo, pre-fills @username, focuses input
   void _startReply(Comment comment) {
     setState(() {
@@ -485,19 +568,61 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
             style: TextStyle(color: Color(0xFF666666), fontSize: 14)),
       );
     }
-    return ListView.separated(
+
+    final items = <Widget>[];
+    for (final comment in _comments) {
+      items.add(_buildCommentRow(comment, isReply: false));
+      items.add(const Divider(color: Color(0xFF1E1E1E), height: 1));
+
+      if (comment.replyCount > 0 ||
+          _expandedReplies.containsKey(comment.commentId)) {
+        final isExpanded = _expandedReplies.containsKey(comment.commentId);
+        final isLoadingThis = _loadingReplies.contains(comment.commentId);
+
+        items.add(Padding(
+          padding: const EdgeInsets.only(left: 52, bottom: 4),
+          child: isLoadingThis
+              ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Color(0xFFFF5500)),
+                )
+              : GestureDetector(
+                  onTap: () => _toggleReplies(comment),
+                  child: Text(
+                    isExpanded
+                        ? 'Hide replies'
+                        : 'View ${comment.replyCount} '
+                              'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
+                    style: const TextStyle(
+                        color: Color(0xFFFF5500),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+        ));
+
+        if (isExpanded) {
+          for (final reply in _expandedReplies[comment.commentId] ?? []) {
+            items.add(_buildCommentRow(reply, isReply: true));
+            items.add(const Divider(color: Color(0xFF1E1E1E), height: 1));
+          }
+        }
+      }
+    }
+
+    return ListView(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: _comments.length,
-      separatorBuilder: (_, __) =>
-          const Divider(color: Color(0xFF1E1E1E), height: 1),
-      itemBuilder: (_, i) => _buildCommentRow(_comments[i]),
+      children: items,
     );
   }
 
-  Widget _buildCommentRow(Comment comment) {
+  Widget _buildCommentRow(Comment comment, {bool isReply = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: EdgeInsets.only(
+          left: isReply ? 52 : 14, right: 14, top: 10, bottom: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -573,18 +698,34 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
+                    if (!isReply) ...[
+                      GestureDetector(
+                        onTap: () => _startReply(comment),
+                        child: const Text('Reply',
+                            style: TextStyle(
+                                color: Color(0xFF888888),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500)),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
                     GestureDetector(
-                      onTap: () => _startReply(comment),
-                      child: const Text('Reply',
+                      onTap: () => QuickReplyOptionsMenu.show(
+                        context,
+                        comment: comment,
+                        onTimestampTap: () => _seekToTimestamp(comment.timestamp),
+                        onGoToProfileTap: comment.userId.isNotEmpty
+                            ? () => _navigateToProfile(comment.userId)
+                            : null,
+                        onDeleteTap: (comment.isOwnComment ||
+                                comment.userId == _currentUserId)
+                            ? () => _confirmDelete(comment)
+                            : null,
+                      ),
+                      child: const Text('···',
                           style: TextStyle(
-                              color: Color(0xFF888888),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500)),
+                              color: Color(0xFF888888), fontSize: 13)),
                     ),
-                    const SizedBox(width: 12),
-                    const Text('···',
-                        style: TextStyle(
-                            color: Color(0xFF888888), fontSize: 13)),
                   ],
                 ),
               ],

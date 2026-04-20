@@ -40,6 +40,7 @@ import 'package:cross_team5/features/engagement_social_interactions/services/eng
 import 'package:cross_team5/features/engagement_social_interactions/widgets/comment_tile.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class CommentsScreen extends StatefulWidget {
@@ -86,6 +87,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   bool _isPosting = false;
   String? _errorMessage;
   int _offset = 1;
+  int _totalCommentCount = 0;
   static const int _pageSize = 20;
 
   // Sort state — maps to API sortBy param
@@ -118,6 +120,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
     _loadLocalLikedState().then((_) => _loadComments());
     _loadCurrentUser();
+    _fetchTotalCommentCount();
     _inputController.addListener(_onMentionTextChanged);
   }
 
@@ -262,6 +265,15 @@ class _CommentsScreenState extends State<CommentsScreen> {
           'currentUserId': _currentUserId ?? '',
         },
       );
+    } catch (_) {}
+  }
+
+  Future<void> _fetchTotalCommentCount() async {
+    try {
+      final track = await PlaybackTrackApiService()
+          .getSingleTrackById(widget.trackId);
+      if (!mounted) return;
+      setState(() => _totalCommentCount = track.numComments);
     } catch (_) {}
   }
 
@@ -566,7 +578,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         title: Text(
           _isLoading
               ? 'Comments'
-              : '${_comments.length} comment${_comments.length == 1 ? '' : 's'}',
+              : '$_totalCommentCount comment${_totalCommentCount == 1 ? '' : 's'}',
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,

@@ -169,6 +169,9 @@ class PlaybackTrackModel {
       numComments: _toInt(json['numComments']),
       numPlays: _toInt(json['numPlays']),
       numReposts: _toInt(json['numReposts'] ?? json['num_reposts']),
+      duration: _toInt(json['durationInSeconds']) > 0
+          ? Duration(seconds: _toInt(json['durationInSeconds']))
+          : null,
       imagePublicId: _nullableString(image['publicId']),
       releaseDate: _parseDateTime(json['releaseDate']),
       enableDirectDownload: permissions['enableDirectDownload'] == true,
