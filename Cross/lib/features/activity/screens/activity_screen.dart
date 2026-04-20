@@ -392,33 +392,37 @@ class _NotificationTileState extends State<_NotificationTile> {
     }
   }
 
-  // Exact copy of _ExpandedEngagementBarState._checkLikeStatus
   Future<void> _checkLikeStatus() async {
+    final trackId = n.target.trackId;
+    final commentId = n.target.targetId;
+    if (trackId == null || trackId.isEmpty || commentId.isEmpty) return;
     try {
-      final userId = await AuthApiService().getStoredUserId();
-      if (userId == null || !mounted) return;
-      final result = await _engagementService.getTrackLikers(
-        trackId: _resolvedTrackId,
-        limit: 50,
+      final result = await _engagementService.getTrackComments(
+        trackId: trackId,
+        limit: 100,
       );
       if (!mounted) return;
       if (result.$1 == 200 && result.$2 is List) {
-        final likers = result.$2 as List<EngagementUser>;
-        setState(() => _isLiked = likers.any((u) => u.userId == userId));
+        final comments = result.$2 as List<Comment>;
+        final match = comments.cast<Comment?>().firstWhere(
+          (c) => c?.commentId == commentId,
+          orElse: () => null,
+        );
+        if (match != null) setState(() => _isLiked = match.isLikedByUser);
       }
     } catch (_) {}
   }
 
-  // Exact copy of _ExpandedEngagementBarState._toggleLike (no likeCount needed here)
   Future<void> _toggleLike() async {
     if (_isLikeLoading) return;
+    final commentId = n.target.targetId;
     final bool wasLiked = _isLiked;
     setState(() {
       _isLiked = !_isLiked;
       _isLikeLoading = true;
     });
-    final result = await _engagementService.toggleTrackLike(
-      trackId: _resolvedTrackId,
+    final result = await _engagementService.toggleCommentLike(
+      commentId: commentId,
     );
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
