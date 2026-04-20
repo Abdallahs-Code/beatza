@@ -603,25 +603,17 @@ class _NotificationTileState extends State<_NotificationTile> {
     );
   }
 
-  Widget? _buildTrailingPreview(ActivityNotificationModel notification) {
-    if (notification.activityType == 'user_followed') {
-      return OutlinedButton(
-        onPressed: () {},
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(86, 34),
-          side: BorderSide(
-            color: Colors.white.withValues(alpha: 0.28),
-            width: 1,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          foregroundColor: Colors.white,
+  Widget _descriptionText() {
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          color: Color(0xFFAAAAAA),
+          fontSize: 14,
+          height: 1.4,
         ),
         children: _descSpans(),
-      );
-    }
+      ),
+    );
   }
 
   List<TextSpan> _descSpans() {
