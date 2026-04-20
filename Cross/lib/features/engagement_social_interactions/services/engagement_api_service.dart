@@ -8,7 +8,6 @@ import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/repost_status.dart';
-import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class EngagementApiService {
   final ApiServices _apiServices;

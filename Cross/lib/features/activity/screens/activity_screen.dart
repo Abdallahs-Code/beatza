@@ -392,37 +392,33 @@ class _NotificationTileState extends State<_NotificationTile> {
     }
   }
 
+  // Exact copy of _ExpandedEngagementBarState._checkLikeStatus
   Future<void> _checkLikeStatus() async {
-    final trackId = n.target.trackId;
-    final commentId = n.target.targetId;
-    if (trackId == null || trackId.isEmpty || commentId.isEmpty) return;
     try {
-      final result = await _engagementService.getTrackComments(
-        trackId: trackId,
-        limit: 100,
+      final userId = await AuthApiService().getStoredUserId();
+      if (userId == null || !mounted) return;
+      final result = await _engagementService.getTrackLikers(
+        trackId: _resolvedTrackId,
+        limit: 50,
       );
       if (!mounted) return;
       if (result.$1 == 200 && result.$2 is List) {
-        final comments = result.$2 as List<Comment>;
-        final match = comments.cast<Comment?>().firstWhere(
-          (c) => c?.commentId == commentId,
-          orElse: () => null,
-        );
-        if (match != null) setState(() => _isLiked = match.isLikedByUser);
+        final likers = result.$2 as List<EngagementUser>;
+        setState(() => _isLiked = likers.any((u) => u.userId == userId));
       }
     } catch (_) {}
   }
 
+  // Exact copy of _ExpandedEngagementBarState._toggleLike (no likeCount needed here)
   Future<void> _toggleLike() async {
     if (_isLikeLoading) return;
-    final commentId = n.target.targetId;
     final bool wasLiked = _isLiked;
     setState(() {
       _isLiked = !_isLiked;
       _isLikeLoading = true;
     });
-    final result = await _engagementService.toggleCommentLike(
-      commentId: commentId,
+    final result = await _engagementService.toggleTrackLike(
+      trackId: _resolvedTrackId,
     );
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
@@ -607,17 +603,25 @@ class _NotificationTileState extends State<_NotificationTile> {
     );
   }
 
-  Widget _descriptionText() {
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(
-          color: Color(0xFFAAAAAA),
-          fontSize: 14,
-          height: 1.4,
+  Widget? _buildTrailingPreview(ActivityNotificationModel notification) {
+    if (notification.activityType == 'user_followed') {
+      return OutlinedButton(
+        onPressed: () {},
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(86, 34),
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.28),
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          foregroundColor: Colors.white,
         ),
         children: _descSpans(),
-      ),
-    );
+      );
+    }
   }
 
   List<TextSpan> _descSpans() {
