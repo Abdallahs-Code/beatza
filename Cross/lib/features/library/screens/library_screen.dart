@@ -1,7 +1,5 @@
 // Dart imports
 import 'package:flutter/material.dart';
-
-// Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
@@ -12,13 +10,10 @@ import 'package:cross_team5/features/library/services/library_history_api_servic
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
-//import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
-//import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
-
-// Relative imports
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../../audio_upload_track_management/screens/your_uploads_screen.dart';
+import '../../premium_subscription/screens/offline_downloads_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -31,7 +26,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final AuthApiService _authApiService = AuthApiService();
   final UserProfileService _userProfileService = UserProfileService();
   final LibraryHistoryApiService _historyApiService =
-      LibraryHistoryApiService();
+  LibraryHistoryApiService();
 
   late Future<UserProfileModel?> _profileFuture;
 
@@ -46,7 +41,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       subtitle: 'Abdessamad Hamidallah',
       metadata: '0 · 1 track',
       imageUrl:
-          'https://res.cloudinary.com/dr1sqiouu/image/upload/v1775770962/audio/file_owxgue.jpg',
+      'https://res.cloudinary.com/dr1sqiouu/image/upload/v1775770962/audio/file_owxgue.jpg',
     ),
     RecentlyPlayedMockItem(
       type: RecentlyPlayedMockItemType.profile,
@@ -157,13 +152,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _openListeningHistoryPage() async {
     final List<PlaybackTrackModel>? updatedTracks =
-        await Navigator.push<List<PlaybackTrackModel>>(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ListeningHistoryScreen(initialTracks: _historyTracks),
-          ),
-        );
+    await Navigator.push<List<PlaybackTrackModel>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ListeningHistoryScreen(initialTracks: _historyTracks),
+      ),
+    );
 
     if (updatedTracks != null && mounted) {
       setState(() {
@@ -185,7 +180,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
+        const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
       ),
     );
   }
@@ -197,7 +192,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: _LibraryEmptyStateCard(
           title: 'No recently played items yet',
           subtitle:
-              'Profiles and playlists you interact with will show up here.',
+          'Profiles and playlists you interact with will show up here.',
         ),
       );
     }
@@ -210,10 +205,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           children: _mockRecentlyPlayedItems
               .map(
                 (item) => Padding(
-                  padding: const EdgeInsets.only(right: 18),
-                  child: RecentlyPlayedPreviewCard(item: item),
-                ),
-              )
+              padding: const EdgeInsets.only(right: 18),
+              child: RecentlyPlayedPreviewCard(item: item),
+            ),
+          )
               .toList(),
         ),
       ),
@@ -363,6 +358,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     child: const LibraryMenuItem(title: AppText.yourUploads),
                   ),
 
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OfflineDownloadsScreen(),
+                        ),
+                      );
+                    },
+                    child: const LibraryMenuItem(title: 'Downloads'),
+                  ),
+
                   const SizedBox(height: 20),
 
                   /// RECENTLY PLAYED
@@ -423,10 +430,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                               : null,
                           child: imageUrl.isEmpty
                               ? const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 22,
-                                )
+                            Icons.person,
+                            color: Colors.white,
+                            size: 22,
+                          )
                               : null,
                         ),
                       ),

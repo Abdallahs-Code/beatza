@@ -1,12 +1,12 @@
 // Dart imports
 import 'package:flutter/material.dart';
-
-// Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
+import '../../features/premium_subscription/screens/premium_subscription.dart';
 
-enum AppNavItem { home, feed, search, library, upgrade }
+enum AppNavItem { home, feed, search, library, upgrade, upload }
 
 class CommonBottomNavBar extends StatelessWidget {
   final AppNavItem currentItem;
@@ -21,48 +21,82 @@ class CommonBottomNavBar extends StatelessWidget {
         color: AppColors.chineseBlack,
         border: Border(top: BorderSide(color: AppColors.white10)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _NavItem(
-            icon: Icons.home_filled,
-            label: 'Home',
-            active: currentItem == AppNavItem.home,
-            onTap: () {
-              if (currentItem != AppNavItem.home) {
-                Navigator.pushNamed(context, HomeRoutes.home);
-              }
-            },
-          ),
-          _NavItem(
-            icon: Icons.feed_outlined,
-            label: 'Feed',
-            active: currentItem == AppNavItem.feed,
-            onTap: () {},
-          ),
-          _NavItem(
-            icon: Icons.search,
-            label: 'Search',
-            active: currentItem == AppNavItem.search,
-            onTap: () {},
-          ),
-          _NavItem(
-            icon: Icons.library_books_outlined,
-            label: 'Library',
-            active: currentItem == AppNavItem.library,
-            onTap: () {
-              if (currentItem != AppNavItem.library) {
-                Navigator.pushNamed(context, LibraryRoutes.library);
-              }
-            },
-          ),
-          _NavItem(
-            icon: Icons.graphic_eq,
-            label: 'Upgrade',
-            active: currentItem == AppNavItem.upgrade,
-            onTap: () {},
-          ),
-        ],
+      child: ValueListenableBuilder<bool>(
+        valueListenable: PaymentService.subscriptionSuccessNotifier,
+        builder: (context, isPro, _) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavItem(
+                icon: Icons.home_filled,
+                label: 'Home',
+                active: currentItem == AppNavItem.home,
+                onTap: () {
+                  if (currentItem != AppNavItem.home) {
+                    Navigator.pushNamed(context, HomeRoutes.home);
+                  }
+                },
+              ),
+              _NavItem(
+                icon: Icons.feed_outlined,
+                label: 'Feed',
+                active: currentItem == AppNavItem.feed,
+                onTap: () {},
+              ),
+
+              if (isPro) ...[
+                _NavItem(
+                  icon: Icons.add_box_outlined,
+                  label: '',
+                  active: currentItem == AppNavItem.upload,
+                  onTap: () {
+                  },
+                ),
+                _NavItem(
+                  icon: Icons.search,
+                  label: 'Search',
+                  active: currentItem == AppNavItem.search,
+                  onTap: () {},
+                ),
+                _NavItem(
+                  icon: Icons.library_books_outlined,
+                  label: 'Library',
+                  active: currentItem == AppNavItem.library,
+                  onTap: () {
+                    if (currentItem != AppNavItem.library) {
+                      Navigator.pushNamed(context, LibraryRoutes.library);
+                    }
+                  },
+                ),
+              ] else ...[
+                _NavItem(
+                  icon: Icons.search,
+                  label: 'Search',
+                  active: currentItem == AppNavItem.search,
+                  onTap: () {},
+                ),
+                _NavItem(
+                  icon: Icons.library_books_outlined,
+                  label: 'Library',
+                  active: currentItem == AppNavItem.library,
+                  onTap: () {
+                    if (currentItem != AppNavItem.library) {
+                      Navigator.pushNamed(context, LibraryRoutes.library);
+                    }
+                  },
+                ),
+                _NavItem(
+                  icon: Icons.graphic_eq,
+                  label: 'Upgrade',
+                  active: currentItem == AppNavItem.upgrade,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                  },
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }

@@ -1,7 +1,4 @@
-// Dart imports
 import 'package:flutter/material.dart';
-
-// Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
@@ -14,6 +11,10 @@ import 'package:cross_team5/features/playback_streaming_engine/services/public_t
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
+
+import '../../premium_subscription/screens/premium_subscription.dart';
+import '../../premium_subscription/services/offline_download_service.dart';
+import '../../premium_subscription/services/payment_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,10 +56,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _handleUpload(BuildContext context) async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const UploadTrackScreen()),
-    );
+    final isPro = PaymentService.subscriptionSuccessNotifier.value;
+    final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
+
+    if (!isPro && currentUploads >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+      );
+      return;
+    }
+
+    final AudioUploadService audioService = AudioUploadService();
+    final file = await audioService.pickAudioFile();
+    if (file != null) {
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const UploadTrackScreen(),
+          settings: RouteSettings(arguments: file),
+        ),
+      );
+    }
   }
 
   @override
@@ -139,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ActivityNotificationsController.shared.unreadCount > 9
                                 ? '9+'
                                 : ActivityNotificationsController.shared.unreadCount
-                                    .toString(),
+                                .toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -249,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         return _HomePublicTracksSection(
                           tracks: _publicTracksPagingService.tracks,
                           isLoading:
-                              _publicTracksPagingService.isInitialLoading,
+                          _publicTracksPagingService.isInitialLoading,
                           errorMessage: _publicTracksPagingService.errorMessage,
                           ensureNextTrackAvailable: _publicTracksPagingService
                               .ensureNextTrackAvailableForPlayer,
@@ -365,10 +391,10 @@ class _HomePublicTracksSection extends StatelessWidget {
   });
 
   Future<void> _handleTrackTap(
-    BuildContext context,
-    PlaybackTrackModel track,
-    int index,
-  ) async {
+      BuildContext context,
+      PlaybackTrackModel track,
+      int index,
+      ) async {
     if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -495,25 +521,25 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                       clipBehavior: Clip.antiAlias,
                       child: (track.artworkUrl ?? '').trim().isEmpty
                           ? const Center(
-                              child: Icon(
-                                Icons.image_outlined,
-                                color: AppColors.white54,
-                                size: 42,
-                              ),
-                            )
+                        child: Icon(
+                          Icons.image_outlined,
+                          color: AppColors.white54,
+                          size: 42,
+                        ),
+                      )
                           : Image.network(
-                              track.artworkUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) {
-                                return const Center(
-                                  child: Icon(
-                                    Icons.image_outlined,
-                                    color: AppColors.white54,
-                                    size: 42,
-                                  ),
-                                );
-                              },
+                        track.artworkUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) {
+                          return const Center(
+                            child: Icon(
+                              Icons.image_outlined,
+                              color: AppColors.white54,
+                              size: 42,
                             ),
+                          );
+                        },
+                      ),
                     ),
                     if (accessLabel != null)
                       Positioned(
@@ -528,8 +554,8 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                             color: _isBlocked
                                 ? Colors.black.withValues(alpha: 0.78)
                                 : AppColors.brilliantOrange.withValues(
-                                    alpha: 0.92,
-                                  ),
+                              alpha: 0.92,
+                            ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
@@ -752,11 +778,7 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
         ? AppColors.brilliantOrange.withValues(alpha: 0.92)
         : const Color(0xFF1C7C43);
 
-    final String chipText = _isBlocked
-        ? 'Blocked'
-        : _isPreview
-        ? 'Preview'
-        : 'Playable';
+    final String chipText = _isBlocked ? 'Blocked' : _isPreview ? 'Preview' : 'Playable';
 
     return Opacity(
       opacity: _isBlocked ? 0.58 : 1,
@@ -766,12 +788,12 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
           onTap: _isBlocked
               ? null
               : () async {
-                  await PlaybackStreamingEngineService.shared.playTrack(
-                    track,
-                    queue: queue,
-                    startIndex: index,
-                  );
-                },
+            await PlaybackStreamingEngineService.shared.playTrack(
+              track,
+              queue: queue,
+              startIndex: index,
+            );
+          },
           borderRadius: BorderRadius.circular(14),
           child: Row(
             children: [
@@ -785,17 +807,17 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: (track.artworkUrl ?? '').trim().isEmpty
                     ? const Icon(
-                        Icons.music_note_rounded,
-                        color: AppColors.white54,
-                      )
+                  Icons.music_note_rounded,
+                  color: AppColors.white54,
+                )
                     : Image.network(
-                        track.artworkUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.music_note_rounded,
-                          color: AppColors.white54,
-                        ),
-                      ),
+                  track.artworkUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const Icon(
+                    Icons.music_note_rounded,
+                    color: AppColors.white54,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -807,9 +829,7 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: _isBlocked
-                            ? AppColors.white60
-                            : AppColors.whiteSmoke,
+                        color: _isBlocked ? AppColors.white60 : AppColors.whiteSmoke,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -829,11 +849,68 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+
+              ValueListenableBuilder<Map<String, double>>(
+                valueListenable: OfflineDownloadService.shared.downloadProgressNotifier,
+                builder: (context, progressMap, _) {
+                  final double? progress = progressMap[track.id];
+
+                  return ValueListenableBuilder<List<PlaybackTrackModel>>(
+                    valueListenable: OfflineDownloadService.shared.downloadedTracksNotifier,
+                    builder: (context, downloadedTracks, _) {
+                      final isDownloaded = downloadedTracks.any((t) => t.id == track.id);
+                      if (isDownloaded) {
+                        return const Padding(
+                          padding: EdgeInsets.only(right: 8.0),
+                          child: Icon(Icons.download_done_rounded, color: Colors.green, size: 24),
+                        );
+                      }
+                      if (progress != null) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 26,
+                                height: 26,
+                                child: CircularProgressIndicator(
+                                  value: progress,
+                                  strokeWidth: 3,
+                                  color: AppColors.brilliantOrange,
+                                  backgroundColor: AppColors.white10,
+                                ),
+                              ),
+                              Text(
+                                '${(progress * 100).toInt()}%',
+                                style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          ),
+                        );
+                      }
+
+                      return IconButton(
+                        icon: const Icon(Icons.download_rounded, color: AppColors.white60, size: 24),
+                        onPressed: _isBlocked ? null : () {
+                          final isPro = PaymentService.subscriptionSuccessNotifier.value;
+                          if (!isPro) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                            );
+                          } else {
+                            OfflineDownloadService.shared.downloadTrack(track);
+                          }
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: chipBg,
                   borderRadius: BorderRadius.circular(999),

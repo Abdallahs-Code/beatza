@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../premium_subscription/screens/premium_subscription.dart';
+import '../../premium_subscription/services/payment_service.dart';
 import '../services/audio_upload_service.dart';
 import '../models/track_model.dart';
 import 'upload_track_screen.dart';
@@ -202,13 +204,13 @@ class _SmartWaveformPlayerState extends State<YourInsights> {
                 ),
                 image: widget.track.coverImagePath != null
                     ? DecorationImage(
-                        image: FileImage(File(widget.track.coverImagePath!)),
-                        fit: BoxFit.cover,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withValues(alpha: 0.6),
-                          BlendMode.darken,
-                        ),
-                      )
+                  image: FileImage(File(widget.track.coverImagePath!)),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withValues(alpha: 0.6),
+                    BlendMode.darken,
+                  ),
+                )
                     : null,
                 color: const Color(0xFF121212),
               ),
@@ -260,8 +262,8 @@ class _SmartWaveformPlayerState extends State<YourInsights> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: List.generate(_waveformHeights.length, (
-                              index,
-                            ) {
+                                index,
+                                ) {
                               bool isPlayed =
                                   (index / _waveformHeights.length) <= progress;
                               return Expanded(
@@ -346,7 +348,7 @@ class _SmartWaveformPlayerState extends State<YourInsights> {
                             SharePlus.instance.share(
                               ShareParams(
                                 text:
-                                    'Check out ${widget.track.title} on SoundCloud! https://soundcloud.com',
+                                'Check out ${widget.track.title} on SoundCloud! https://soundcloud.com',
                                 subject: 'Listen to ${widget.track.title}',
                               ),
                             );
@@ -493,7 +495,7 @@ class _SmartWaveformPlayerState extends State<YourInsights> {
   }
 }
 
-enum InsightTab { soundcloud, allPlatforms }
+enum InsightTab { soundcloud, allPlatforms, fans }
 
 class YourInsightsScreen extends StatefulWidget {
   const YourInsightsScreen({super.key});
@@ -523,6 +525,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
     'Algorithms',
     'SoundCloud Apps',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    PaymentService.subscriptionSuccessNotifier.checkStatusFromApi();
+  }
 
   String _getDateRangeText() {
     switch (_selectedFilter) {
@@ -752,9 +760,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                          },
                           child: const Text(
-                            'Not available on mobile',
+                            'View Plans',
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 16,
@@ -766,7 +777,10 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                       const SizedBox(height: 24),
                       Center(
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                          },
                           child: const Text(
                             'See all plans',
                             style: TextStyle(
@@ -859,7 +873,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                                 children: [
                                   TextSpan(
                                     text:
-                                        'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
+                                    'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
                                   ),
                                   TextSpan(
                                     text: 'SoundCloud Distribution.',
@@ -933,7 +947,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showFilterDropdown(BuildContext context) async {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
+    Overlay.of(context).context.findRenderObject() as RenderBox;
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -1036,7 +1050,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         reposts,
                       )
                     else if (_activeTab == InsightTab.allPlatforms)
-                      _buildAllPlatformsPromo(),
+                      _buildAllPlatformsPromo()
+                    else if (_activeTab == InsightTab.fans)
+                        _buildFansTabWrapper(),
                   ],
                 ),
               );
@@ -1058,38 +1074,408 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   }
 
   Widget _buildHeaderTabs() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          _buildTabItem('SoundCloud', InsightTab.soundcloud),
-          const SizedBox(width: 24),
-          _buildTabItem('All Platforms', InsightTab.allPlatforms),
-        ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            _buildTabItem('SoundCloud', InsightTab.soundcloud),
+            const SizedBox(width: 24),
+            _buildTabItem('All Platforms', InsightTab.allPlatforms),
+            const SizedBox(width: 24),
+            _buildTabItem('Fans', InsightTab.fans, isNew: true),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTabItem(String title, InsightTab tab) {
+  Widget _buildTabItem(String title, InsightTab tab, {bool isNew = false}) {
     bool isActive = _activeTab == tab;
     return GestureDetector(
       onTap: () => setState(() => _activeTab = tab),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: isActive ? Colors.white : Colors.white54,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+          Row(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: isActive ? Colors.white : Colors.white54,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              if (isNew) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF5500).withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'NEW',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ]
+            ],
           ),
           const SizedBox(height: 8),
           Container(
             height: 2,
-            width: title.length * 8.5,
+            width: isNew ? title.length * 8.5 + 30 : title.length * 8.5,
             color: isActive ? Colors.white : Colors.transparent,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFansTabWrapper() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: PaymentService.subscriptionSuccessNotifier,
+      builder: (context, isPro, _) {
+        if (isPro) {
+          return _buildFansContent();
+        } else {
+          return _buildFansLockedContent();
+        }
+      },
+    );
+  }
+
+  Widget _buildFansContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFilterDropdown(),
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              height: 260,
+              width: double.infinity,
+              color: const Color(0xFF1A1A1A),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=600&auto=format&fit=crop',
+                    fit: BoxFit.cover,
+                    color: Colors.redAccent.withValues(alpha: 0.4),
+                    colorBlendMode: BlendMode.srcOver,
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.8),
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.9),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.people_outline, color: Colors.white, size: 50),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Waiting for data...',
+                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Keep building engagement\nto see your top fans',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Share your tracks and encourage listeners to play, like, comment, repost, or download. Once you build enough activity over 30 days, you\'ll see your most engaged fans here.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              height: 1.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UploadTrackScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              child: const Text(
+                'Upload',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.white, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                backgroundColor: Colors.transparent,
+              ),
+              child: const Text(
+                'Monetize eligible tracks',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 48),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Reasons why you might not be\nseeing fans.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildReasonItem(
+          Icons.bar_chart,
+          'You did not receive a significant amount of plays on your tracks for this reporting period.',
+          'You may have just recently started monetizing your music directly on SoundCloud or with an eligible rightsholder. In order for us to tell you which of your fans are engaged with your music we take some time to collect and analyze the data. Fan data refreshes on the 2nd of every month.',
+        ),
+        _buildReasonItem(
+          Icons.money_off,
+          'Your tracks are not being monetized.',
+          'Only your tracks that are being monetized on SoundCloud or through a participating rightsholder will be eligible to collect Fan Powered Royalties. You must have correctly monetized tracks to see fans on this page.',
+        ),
+        _buildReasonItem(
+          Icons.block,
+          'Your label might not be monetizing...',
+          'Make sure your label or distributor is participating in Fan Powered Royalties to see your fan engagement.',
+        ),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+  Widget _buildFilterDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Builder(
+            builder: (context) {
+              return GestureDetector(
+                onTap: () => _showFilterDropdown(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A2A2A),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _selectedFilter,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildFansLockedContent() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildFilterDropdown(),
+          const SizedBox(height: 40),
+          Center(
+            child: Container(
+              height: 180,
+              width: 180,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.people_alt_outlined,
+                color: Colors.white24,
+                size: 80,
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          const Text(
+            'Unlock Top Fans with\nArtist Pro',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Discover who your biggest fans are, what tracks they listen to the most, and connect with them directly.',
+            style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              child: const Text(
+                'Upgrade to Artist Pro',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReasonItem(IconData icon, String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1114,7 +1500,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     width: double.infinity,
                     child: CustomPaint(
                       painter: OrangeMixerPainter(),
-                    ), // رسم جرافيك الميكسر المطابق
+                    ),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -1183,12 +1569,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   }
 
   Widget _buildSoundCloudView(
-    List<TrackModel> tracks,
-    int plays,
-    int likes,
-    int comments,
-    int reposts,
-  ) {
+      List<TrackModel> tracks,
+      int plays,
+      int likes,
+      int comments,
+      int reposts,
+      ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1210,53 +1596,6 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         const SizedBox(height: 40),
         _buildOnSoundCloudSection(),
       ],
-    );
-  }
-
-  Widget _buildFilterDropdown() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Builder(
-            builder: (context) {
-              return GestureDetector(
-                onTap: () => _showFilterDropdown(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2A),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _selectedFilter,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -1490,12 +1829,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                 ),
                 child: t.coverImagePath != null && t.coverImagePath!.isNotEmpty
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.file(
-                          File(t.coverImagePath!),
-                          fit: BoxFit.cover,
-                        ),
-                      )
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.file(
+                    File(t.coverImagePath!),
+                    fit: BoxFit.cover,
+                  ),
+                )
                     : const Icon(Icons.music_note, color: Colors.white24),
               ),
               title: Text(
@@ -1514,8 +1853,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     _selectedStat == 'plays'
                         ? Icons.play_arrow_outlined
                         : (_selectedStat == 'likes'
-                              ? Icons.favorite
-                              : Icons.chat_bubble_outline),
+                        ? Icons.favorite
+                        : Icons.chat_bubble_outline),
                     color: Colors.white54,
                     size: 16,
                   ),
@@ -1965,19 +2304,19 @@ class TopTracksScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child:
-                            track.coverImagePath != null &&
-                                track.coverImagePath!.isNotEmpty
+                        track.coverImagePath != null &&
+                            track.coverImagePath!.isNotEmpty
                             ? ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: Image.file(
-                                  File(track.coverImagePath!),
-                                  fit: BoxFit.cover,
-                                ),
-                              )
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.file(
+                            File(track.coverImagePath!),
+                            fit: BoxFit.cover,
+                          ),
+                        )
                             : const Icon(
-                                Icons.music_note,
-                                color: Colors.white24,
-                              ),
+                          Icons.music_note,
+                          color: Colors.white24,
+                        ),
                       ),
                       title: Text(
                         track.title,
@@ -2055,10 +2394,6 @@ class WaveformGraphicPainter extends CustomPainter {
     final dotPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
-
-    // final accentPaint = Paint()
-    //   ..color = const Color(0xFFD47AFA)
-    //   ..style = PaintingStyle.fill;
 
     canvas.save();
     canvas.translate(size.width * 0.4, size.height * 0.5);

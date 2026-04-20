@@ -1,18 +1,3 @@
-// Screen: YourUploadsScreen
-// Shows the current user's uploaded tracks.
-// Fully independent of Module 5 and Module 6.
-//
-// Data strategy:
-//   1. Reads user_id from FlutterSecureStorage
-//   2. Calls TrackApiService.getUserPostedTracks(userId) → server tracks
-//   3. Also listens to AudioUploadService.globalMockTracksNotifier → local tracks
-//   4. Local tracks shown at top (just uploaded), server tracks below
-//
-// Playback:
-//   - Local tracks → SmartWaveformPlayer (teammate's existing widget, self-contained)
-//   - Server tracks → show info only (no audio without Module 5)
-//     A "no audio" snackbar is shown if user taps a server track
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,6 +8,8 @@ import 'package:cross_team5/features/audio_upload_track_management/services/audi
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/widgets/smart_player_widget.dart';
 import 'package:cross_team5/features/audio_upload_track_management/screens/upload_track_screen.dart';
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
+import '../../premium_subscription/screens/premium_subscription.dart';
 
 enum _Sort { recentlyAdded, trackName }
 
@@ -40,15 +27,12 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final TextEditingController _searchController = TextEditingController();
 
-  // ── Server tracks ─────────────────────────────
   List<Track> _serverTracks = [];
   bool _isLoadingServer = true;
   String? _serverError;
 
-  // ── Local player state ────────────────────────
   TrackModel? _playingLocalTrack;
 
-  // ── Filter/sort ───────────────────────────────
   String _searchQuery = '';
   _Sort _sort = _Sort.recentlyAdded;
   _Filter _filter = _Filter.all;
@@ -65,9 +49,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────
-  // Load server tracks
-  // ─────────────────────────────────────────────
   Future<void> _loadServerTracks() async {
     setState(() {
       _isLoadingServer = true;
@@ -96,14 +77,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Filter local tracks
-  // ─────────────────────────────────────────────
   List<TrackModel> _filterLocal(List<TrackModel> all) {
     var list = all
         .where(
           (t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase()),
-        )
+    )
         .toList();
 
     if (_filter == _Filter.public) {
@@ -120,21 +98,15 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     return list;
   }
 
-  // ─────────────────────────────────────────────
-  // Filter server tracks by search
-  // ─────────────────────────────────────────────
   List<Track> _filterServer() {
     if (_searchQuery.isEmpty) return _serverTracks;
     return _serverTracks
         .where(
           (t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase()),
-        )
+    )
         .toList();
   }
 
-  // ─────────────────────────────────────────────
-  // Filter menu
-  // ─────────────────────────────────────────────
   void _showFilterMenu(BuildContext context) async {
     final box = context.findRenderObject() as RenderBox;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -186,16 +158,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Play local track
-  // ─────────────────────────────────────────────
   void _playLocal(TrackModel track) {
     setState(() => _playingLocalTrack = track);
   }
 
-  // ─────────────────────────────────────────────
-  // Server track tapped — no player yet
-  // ─────────────────────────────────────────────
   void _onServerTrackTap(Track track) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -225,7 +191,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 return CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
-                    // ── AppBar ───────────────────
                     SliverAppBar(
                       backgroundColor: const Color(0xFF0A0A0A),
                       expandedHeight: 120,
@@ -309,7 +274,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
                     ),
 
-                    // ── Header ────────────────────
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -328,17 +292,45 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.cloud_upload_outlined,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const UploadTrackScreen(),
-                                    ),
-                                  ),
+                                ValueListenableBuilder<bool>(
+                                  valueListenable: PaymentService.subscriptionSuccessNotifier,
+                                  builder: (context, isPro, _) {
+                                    return IconButton(
+                                      icon: const Icon(
+                                        Icons.cloud_upload_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        final int currentUploads = _serverTracks.length + AudioUploadService.globalMockTracksNotifier.value.length;
+                                        if (!isPro && currentUploads >= 3) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+                                              backgroundColor: Colors.orange,
+                                            ),
+                                          );
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                                          );
+                                          return;
+                                        }
+
+                                        final AudioUploadService audioService = AudioUploadService();
+                                        final file = await audioService.pickAudioFile();
+                                        if (file != null) {
+                                          if (!context.mounted) return;
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const UploadTrackScreen(),
+                                              settings: RouteSettings(arguments: file),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    );
+                                  },
                                 ),
                                 GestureDetector(
                                   onTap: () {
@@ -368,7 +360,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
                     ),
 
-                    // ── Server error banner ───────
                     if (_serverError != null)
                       SliverToBoxAdapter(
                         child: Padding(
@@ -415,7 +406,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                         ),
                       ),
 
-                    // ── Server loading ────────────
                     if (_isLoadingServer)
                       const SliverToBoxAdapter(
                         child: Padding(
@@ -433,7 +423,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                         ),
                       ),
 
-                    // ── Local tracks ──────────────
                     if (localTracks.isNotEmpty) ...[
                       SliverToBoxAdapter(
                         child: Padding(
@@ -473,13 +462,13 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             ),
                             subtitle: Text(
                               t.processingState ==
-                                      TrackProcessingState.processing
+                                  TrackProcessingState.processing
                                   ? 'Processing...'
                                   : t.visibility.name,
                               style: TextStyle(
                                 color:
-                                    t.processingState ==
-                                        TrackProcessingState.processing
+                                t.processingState ==
+                                    TrackProcessingState.processing
                                     ? Colors.orange
                                     : Colors.grey[500],
                                 fontSize: 12,
@@ -498,7 +487,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
                     ],
 
-                    // ── Server tracks ─────────────
                     if (serverTracks.isNotEmpty) ...[
                       SliverToBoxAdapter(
                         child: Padding(
@@ -575,7 +563,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
                     ],
 
-                    // ── Empty state ───────────────
                     if (!_isLoadingServer &&
                         localTracks.isEmpty &&
                         serverTracks.isEmpty)
@@ -598,33 +585,59 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              ElevatedButton.icon(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const UploadTrackScreen(),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.cloud_upload_outlined),
-                                label: const Text('Upload your first track'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                ),
+                              ValueListenableBuilder<bool>(
+                                valueListenable: PaymentService.subscriptionSuccessNotifier,
+                                builder: (context, isPro, _) {
+                                  return ElevatedButton.icon(
+                                    onPressed: () async {
+                                      final int currentUploads = _serverTracks.length + AudioUploadService.globalMockTracksNotifier.value.length;
+                                      if (!isPro && currentUploads >= 3) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+                                            backgroundColor: Colors.orange,
+                                          ),
+                                        );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                                        );
+                                        return;
+                                      }
+
+                                      final AudioUploadService audioService = AudioUploadService();
+                                      final file = await audioService.pickAudioFile();
+                                      if (file != null) {
+                                        if (!context.mounted) return;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const UploadTrackScreen(),
+                                            settings: RouteSettings(arguments: file),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.cloud_upload_outlined),
+                                    label: const Text('Upload your first track'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
                       ),
 
-                    // Bottom padding for player bar
                     const SliverToBoxAdapter(child: SizedBox(height: 120)),
                   ],
                 );
               },
             ),
 
-            // ── Local preview player ──────────────
             if (_playingLocalTrack != null)
               Positioned(
                 left: 0,
@@ -643,9 +656,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Helper widgets
-  // ─────────────────────────────────────────────
   Widget _thumb({String? localPath, String? networkUrl}) {
     return Container(
       width: 50,
@@ -660,11 +670,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
             ? Image.file(File(localPath), fit: BoxFit.cover)
             : networkUrl != null
             ? Image.network(
-                networkUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>
-                    const Icon(Icons.music_note, color: Colors.white24),
-              )
+          networkUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) =>
+          const Icon(Icons.music_note, color: Colors.white24),
+        )
             : const Icon(Icons.music_note, color: Colors.white24),
       ),
     );
@@ -704,12 +714,21 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 'Edit track',
                 style: TextStyle(color: Colors.white),
               ),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UploadTrackScreen()),
-                );
+
+                final AudioUploadService audioService = AudioUploadService();
+                final file = await audioService.pickAudioFile();
+
+                if (file != null && context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const UploadTrackScreen(),
+                      settings: RouteSettings(arguments: file),
+                    ),
+                  );
+                }
               },
             ),
           ],

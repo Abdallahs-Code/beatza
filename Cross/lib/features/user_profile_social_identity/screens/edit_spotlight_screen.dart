@@ -1,7 +1,12 @@
+
 import 'dart:io';
+
+import 'package:cross_team5/features/user_profile_social_identity/screens/your_uploads_spotlight_screen.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import '../../premium_subscription/services/payment_service.dart';
 import '../models/spotlight_models.dart';
-import 'your_uploads_spotlight_screen.dart';
 
 class EditSpotlightScreen extends StatefulWidget {
   final List<SpotlightItemModel> initialItems;
@@ -123,7 +128,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const ProRestrictionsScreen(),
+                              const ProRestrictionsScreen(),
                             ),
                           );
                         },
@@ -250,18 +255,23 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
-                GestureDetector(
-                  // ربط الزر بالنافذة الجديدة
-                  onTap: _showAmplifyProModal,
-                  child: const Text(
-                    'GET ARTIST PRO',
-                    style: TextStyle(
-                      color: Color(0xFFFF5500),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: PaymentService.subscriptionSuccessNotifier,
+                  builder: (context, isPro, child) {
+                    if (isPro) return const SizedBox.shrink();
+                    return GestureDetector(
+                      onTap: _showAmplifyProModal,
+                      child: const Text(
+                        'GET ARTIST PRO',
+                        style: TextStyle(
+                          color: Color(0xFFFF5500),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -295,103 +305,103 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             child: currentItems.isEmpty
                 ? const SizedBox.shrink()
                 : ReorderableListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    itemCount: currentItems.length,
-                    onReorder: (oldIndex, newIndex) {
-                      setState(() {
-                        if (newIndex > oldIndex) {
-                          newIndex -= 1;
-                        }
-                        final item = currentItems.removeAt(oldIndex);
-                        currentItems.insert(newIndex, item);
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      final item = currentItems[index];
-                      return Container(
-                        key: ValueKey(item.id),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1A1A1A),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child:
-                                item.imageUrl != null &&
-                                    item.imageUrl!.isNotEmpty
-                                ? (item.imageUrl!.startsWith('http')
-                                      ? Image.network(
-                                          item.imageUrl!,
-                                          width: 48,
-                                          height: 48,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.file(
-                                          File(item.imageUrl!),
-                                          width: 48,
-                                          height: 48,
-                                          fit: BoxFit.cover,
-                                        ))
-                                : Container(
-                                    width: 48,
-                                    height: 48,
-                                    color: Colors.grey[800],
-                                    child: const Icon(
-                                      Icons.music_note,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                          title: Text(
-                            item.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            item.subtitle,
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 13,
-                            ),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.remove_circle_outline,
-                                  color: Colors.redAccent,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    currentItems.removeAt(index);
-                                  });
-                                },
-                              ),
-                              const Icon(
-                                Icons.drag_handle,
-                                color: Colors.white38,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              itemCount: currentItems.length,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) {
+                    newIndex -= 1;
+                  }
+                  final item = currentItems.removeAt(oldIndex);
+                  currentItems.insert(newIndex, item);
+                });
+              },
+              itemBuilder: (context, index) {
+                final item = currentItems[index];
+                return Container(
+                  key: ValueKey(item.id),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child:
+                      item.imageUrl != null &&
+                          item.imageUrl!.isNotEmpty
+                          ? (item.imageUrl!.startsWith('http')
+                          ? Image.network(
+                        item.imageUrl!,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      )
+                          : Image.file(
+                        File(item.imageUrl!),
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ))
+                          : Container(
+                        width: 48,
+                        height: 48,
+                        color: Colors.grey[800],
+                        child: const Icon(
+                          Icons.music_note,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      item.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      item.subtitle,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            color: Colors.redAccent,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              currentItems.removeAt(index);
+                            });
+                          },
+                        ),
+                        const Icon(
+                          Icons.drag_handle,
+                          color: Colors.white38,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
 
           Padding(
@@ -613,6 +623,7 @@ class ArtistTermsScreen extends StatelessWidget {
     );
   }
 }
+
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});

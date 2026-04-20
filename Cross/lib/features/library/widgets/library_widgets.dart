@@ -10,6 +10,10 @@ import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/library/screens/settings_screen.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 
+import '../../premium_subscription/screens/premium_subscription.dart';
+import '../../premium_subscription/services/payment_service.dart';
+
+
 class LibraryHeader extends StatelessWidget {
   const LibraryHeader({super.key});
 
@@ -19,22 +23,37 @@ class LibraryHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.chipPink, AppColors.inferno],
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Text(
-              'Get Artist Pro',
-              style: TextStyle(
-                color: AppColors.whiteSmoke,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
+          ValueListenableBuilder<bool>(
+            valueListenable: PaymentService.subscriptionSuccessNotifier,
+            builder: (context, isPro, _) {
+              return GestureDetector(
+                onTap: () {
+                  if (!isPro) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                    );
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.chipPink, AppColors.inferno],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    isPro ? 'Artist Pro' : 'Get Artist Pro',
+                    style: const TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
           const Spacer(),
           const Text(
@@ -67,7 +86,6 @@ class LibraryHeader extends StatelessWidget {
     );
   }
 }
-
 class LibraryMenuItem extends StatelessWidget {
   final String title;
 
