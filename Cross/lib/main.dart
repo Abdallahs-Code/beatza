@@ -10,16 +10,24 @@ import 'core/services/connectivity_service.dart';
 import 'features/premium_subscription/services/offline_download_service.dart';
 import 'features/premium_subscription/services/payment_service.dart';
 
-
 const bool openPlaybackDebugOnStart = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ConnectivityService.instance.initialize();
-  await PaymentService.subscriptionSuccessNotifier.loadLocalStatus();
-  await OfflineDownloadService.shared.loadDownloadedTracks();
 
   await dotenv.load(fileName: '.env');
+
+  await ConnectivityService.instance.initialize();
+
+  try {
+    await PaymentService.subscriptionSuccessNotifier.refresh();
+
+    final subState = PaymentService.subscriptionSuccessNotifier.value;
+  } catch (e) {
+    await PaymentService.subscriptionSuccessNotifier.loadLocalStatus();
+  }
+  await OfflineDownloadService.shared.loadDownloadedTracks();
+
   runApp(const MyApp());
 }
 

@@ -1420,10 +1420,10 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                   : null,
                             ),
                           ),
-                          ValueListenableBuilder<bool>(
+                          ValueListenableBuilder<SubscriptionState>(
                             valueListenable: PaymentService.subscriptionSuccessNotifier,
-                            builder: (context, isPro, child) {
-                              if (isPro) {
+                            builder: (context, state, child) {
+                              if (state.isPro) {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16.0),
                                   child: Container(
@@ -1461,8 +1461,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               }
                               return const SizedBox.shrink();
                             },
-                          ),
-                        ],
+                          ),                        ],
                       ),
                     ),
                     Padding(

@@ -8,8 +8,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// Package imports
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
@@ -21,6 +19,7 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/authentication_user_management/services/qr_polling_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -70,10 +69,10 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _buildQrPollingDialog(
-    BuildContext context,
-    AuthApiService authApi,
-    String initialQrData,
-  ) {
+      BuildContext context,
+      AuthApiService authApi,
+      String initialQrData,
+      ) {
     String currentQrData = initialQrData;
     bool isLoading = false;
     String pollingStatus = 'waiting';
@@ -193,51 +192,51 @@ class LoginScreen extends StatelessWidget {
                         onPressed: isLoading
                             ? null
                             : () async {
-                                setDialogState(() => isLoading = true);
-                                try {
-                                  final newToken = await authApi
-                                      .getQrCodeToken();
+                          setDialogState(() => isLoading = true);
+                          try {
+                            final newToken = await authApi
+                                .getQrCodeToken();
 
-                                  if (!dialogContext.mounted) return;
+                            if (!dialogContext.mounted) return;
 
-                                  setDialogState(() {
-                                    currentQrData = newToken;
-                                    isLoading = false;
-                                  });
-                                  pollingService?.stopPolling();
-                                  _startPolling(
-                                    dialogContext,
-                                    authApi,
-                                    newToken,
-                                    setDialogState,
-                                    (service) => pollingService = service,
-                                    () => pollingStatus,
-                                    (status) => setDialogState(
-                                      () => pollingStatus = status,
-                                    ),
-                                  );
-                                } catch (e) {
-                                  setDialogState(() => isLoading = false);
-                                  if (!dialogContext.mounted) {
-                                    return;
-                                  }
-                                  ScaffoldMessenger.of(
-                                    dialogContext,
-                                  ).showSnackBar(
-                                    SnackBar(
-                                      content: Text("Refresh failed: $e"),
-                                    ),
-                                  );
-                                }
-                              },
+                            setDialogState(() {
+                              currentQrData = newToken;
+                              isLoading = false;
+                            });
+                            pollingService?.stopPolling();
+                            _startPolling(
+                              dialogContext,
+                              authApi,
+                              newToken,
+                              setDialogState,
+                                  (service) => pollingService = service,
+                                  () => pollingStatus,
+                                  (status) => setDialogState(
+                                    () => pollingStatus = status,
+                              ),
+                            );
+                          } catch (e) {
+                            setDialogState(() => isLoading = false);
+                            if (!dialogContext.mounted) {
+                              return;
+                            }
+                            ScaffoldMessenger.of(
+                              dialogContext,
+                            ).showSnackBar(
+                              SnackBar(
+                                content: Text("Refresh failed: $e"),
+                              ),
+                            );
+                          }
+                        },
                         icon: isLoading
                             ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
                             : const Icon(Icons.refresh, size: 16),
                         label: Text(
                           isLoading ? 'Refreshing...' : 'Refresh QR Code',
@@ -296,23 +295,23 @@ class LoginScreen extends StatelessWidget {
         context,
         authApi,
         currentQrData,
-        (newState) {},
-        (service) => pollingService = service,
-        () => pollingStatus,
-        (newStatus) {},
+            (newState) {},
+            (service) => pollingService = service,
+            () => pollingStatus,
+            (newStatus) {},
       );
     });
   }
 
   void _startPolling(
-    BuildContext context,
-    AuthApiService authApi,
-    String qrData,
-    void Function(void Function()) setStateFn,
-    void Function(QrPollingService) onServiceReady,
-    String Function() getStatusFn,
-    void Function(String) onStatusChange,
-  ) {
+      BuildContext context,
+      AuthApiService authApi,
+      String qrData,
+      void Function(void Function()) setStateFn,
+      void Function(QrPollingService) onServiceReady,
+      String Function() getStatusFn,
+      void Function(String) onStatusChange,
+      ) {
     final pollingService = QrPollingService(
       authApi: authApi,
       pollInterval: const Duration(seconds: 5),
@@ -323,64 +322,64 @@ class LoginScreen extends StatelessWidget {
 
     pollingService
         .startPolling(
-          qrData: qrData,
-          onStatusUpdate: (status) {
-            if (getStatusFn() != status) {
-              onStatusChange(status);
-            }
-          },
-          onError: (error) {
-            setStateFn(() {
-              onStatusChange('error');
-            });
-
-            if (!context.mounted) {
-              return;
-            }
-
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
-          },
-        )
-        .then((result) {
-          if (!context.mounted) {
-            return;
-          }
-
-          if (result['status'] == 'success') {
-            _handleDesktopLoginSuccess(context, result);
-          }
-        })
-        .catchError((error) {
-          if (!context.mounted) {
-            return;
-          }
-
-          if (error is TimeoutException) {
-            setStateFn(() {
-              onStatusChange('timeout');
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Session expired. Please scan a new QR code.'),
-              ),
-            );
-          } else {
-            setStateFn(() {
-              onStatusChange('error');
-            });
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
-          }
+      qrData: qrData,
+      onStatusUpdate: (status) {
+        if (getStatusFn() != status) {
+          onStatusChange(status);
+        }
+      },
+      onError: (error) {
+        setStateFn(() {
+          onStatusChange('error');
         });
+
+        if (!context.mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
+      },
+    )
+        .then((result) {
+      if (!context.mounted) {
+        return;
+      }
+
+      if (result['status'] == 'success') {
+        _handleDesktopLoginSuccess(context, result);
+      }
+    })
+        .catchError((error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      if (error is TimeoutException) {
+        setStateFn(() {
+          onStatusChange('timeout');
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session expired. Please scan a new QR code.'),
+          ),
+        );
+      } else {
+        setStateFn(() {
+          onStatusChange('error');
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
+      }
+    });
   }
 
   Future<void> _handleDesktopLoginSuccess(
-    BuildContext context,
-    Map<String, dynamic> userData,
-  ) async {
+      BuildContext context,
+      Map<String, dynamic> userData,
+      ) async {
     try {
       final authApi = AuthApiService();
       final data = userData['data'];
@@ -402,6 +401,8 @@ class LoginScreen extends StatelessWidget {
         }
       }
 
+      await PaymentService.subscriptionSuccessNotifier.refresh();
+
       if (!context.mounted) {
         return;
       }
@@ -410,7 +411,7 @@ class LoginScreen extends StatelessWidget {
       Navigator.pushNamedAndRemoveUntil(
         context,
         HomeRoutes.home,
-        (route) => false,
+            (route) => false,
         arguments: {'loginMethod': 'qr_desktop'},
       );
     } catch (e) {
@@ -548,7 +549,7 @@ class LoginScreen extends StatelessWidget {
                       final refreshToken = uri.queryParameters["refreshToken"];
                       final pendingToken = uri.queryParameters["pendingToken"];
                       final incompleteToken =
-                          uri.queryParameters["incompleteToken"];
+                      uri.queryParameters["incompleteToken"];
                       final displayName = uri.queryParameters["displayName"];
 
                       if (accessToken != null &&
@@ -562,6 +563,8 @@ class LoginScreen extends StatelessWidget {
                         );
 
                         await authApiService.refreshToken();
+
+                        await PaymentService.subscriptionSuccessNotifier.refresh();
 
                         if (!context.mounted) {
                           return;

@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _handleUpload(BuildContext context) async {
-    final isPro = PaymentService.subscriptionSuccessNotifier.value;
+    final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
     final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
 
     if (!isPro && currentUploads >= 3) {
@@ -893,7 +893,7 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
                       return IconButton(
                         icon: const Icon(Icons.download_rounded, color: AppColors.white60, size: 24),
                         onPressed: _isBlocked ? null : () {
-                          final isPro = PaymentService.subscriptionSuccessNotifier.value;
+                          final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
                           if (!isPro) {
                             Navigator.push(
                               context,

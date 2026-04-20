@@ -61,7 +61,8 @@ class UploadTrackScreen extends StatefulWidget {
 class _UploadTrackScreenState extends State<UploadTrackScreen> {
   final AudioUploadService _audioService = AudioUploadService();
   final TrackApiService _trackApiService = TrackApiService();
-
+  bool _allowComments = false;
+  bool _showCommentsToPublic = false;
   PlatformFile? _selectedFile;
   String? _selectedFileName;
   int _uploadProgress = 0;
@@ -442,9 +443,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
+    return ValueListenableBuilder<SubscriptionState>(
       valueListenable: PaymentService.subscriptionSuccessNotifier,
-      builder: (context, isPro, _) {
+      builder: (context, state, _) {
+        final isPro = state.isPro;
         return Scaffold(
           backgroundColor: const Color(0xFF0F0F0F),
           appBar: AppBar(
@@ -553,7 +555,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       },
     );
   }
-
   Widget _buildTabBar() {
     return Container(
       decoration: BoxDecoration(
@@ -1155,8 +1156,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             child: _switchTile(
               'Allow people to comment on your track',
               '',
-              false,
-                  (v) {},
+              _allowComments,
+                  (v) {
+                if (isPro) setState(() => _allowComments = v);
+              },
               disabled: !isPro,
             ),
           ),
@@ -1169,8 +1172,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             child: _switchTile(
               'Show track comments to public',
               '',
-              false,
-                  (v) {},
+              _showCommentsToPublic,
+                  (v) {
+                if (isPro) setState(() => _showCommentsToPublic = v);
+              },
               disabled: !isPro,
             ),
           ),
@@ -1245,7 +1250,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       ],
     );
   }
-
   Widget _buildProBanner() {
     return GestureDetector(
       onTap: _showProModal,

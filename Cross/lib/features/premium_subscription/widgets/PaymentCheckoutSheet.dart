@@ -18,9 +18,7 @@ class CardNumberFormatter extends TextInputFormatter {
       }
     }
     var string = buffer.toString();
-    return newValue.copyWith(
-        text: string,
-        selection: TextSelection.collapsed(offset: string.length));
+    return newValue.copyWith(text: string, selection: TextSelection.collapsed(offset: string.length));
   }
 }
 
@@ -36,9 +34,7 @@ class ExpiryDateFormatter extends TextInputFormatter {
       if (i == 1 && text.length > 2) buffer.write(' / ');
     }
     var string = buffer.toString();
-    return newValue.copyWith(
-        text: string,
-        selection: TextSelection.collapsed(offset: string.length));
+    return newValue.copyWith(text: string, selection: TextSelection.collapsed(offset: string.length));
   }
 }
 
@@ -98,44 +94,67 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     return true;
   }
 
-  Future<void> _processRealPayment() async {
-    setState(() => _errorMessage = null);
+  Future<void> _processPayment() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    final cardNumber = _cardNumberController.text.replaceAll(' ', '');
-    final expiry = _expiryController.text.trim();
-    final cvc = _cvcController.text.trim();
+    if (_isAddingNewCard) {
+      final cardNumber = _cardNumberController.text.replaceAll(' ', '');
+      final expiry = _expiryController.text.trim();
+      final cvc = _cvcController.text.trim();
 
-    if (cardNumber.isEmpty || expiry.isEmpty || cvc.isEmpty) {
-      setState(() => _errorMessage = 'Please fill all card details.');
-      return;
+      if (cardNumber.isEmpty || expiry.isEmpty || cvc.isEmpty) {
+        setState(() {
+          _errorMessage = 'Please fill all card details.';
+          _isLoading = false;
+        });
+        return;
+      }
+      if (cardNumber.length < 15) {
+        setState(() {
+          _errorMessage = 'Invalid card number length.';
+          _isLoading = false;
+        });
+        return;
+      }
+      if (!_isValidExpiryDate(expiry)) {
+        setState(() {
+          _errorMessage = 'Invalid or expired card date.';
+          _isLoading = false;
+        });
+        return;
+      }
+      if (cvc.length < 3) {
+        setState(() {
+          _errorMessage = 'Invalid CVC.';
+          _isLoading = false;
+        });
+        return;
+      }
     }
-    if (cardNumber.length < 15) {
-      setState(() => _errorMessage = 'Invalid card number length.');
-      return;
-    }
-    if (!_isValidExpiryDate(expiry)) {
-      setState(() => _errorMessage = 'Invalid or expired card date.');
-      return;
-    }
-    if (cvc.length < 3) {
-      setState(() => _errorMessage = 'Invalid CVC.');
-      return;
-    }
-
-    setState(() => _isLoading = true);
 
     try {
-      await Future.delayed(const Duration(milliseconds: 1500));
+      await Future.delayed(const Duration(milliseconds: 500));
       const paymentMethodId = 'pm_card_visa';
 
-      final String actualPriceId = widget.plan['priceId'].toString().startsWith('dummy_')
-          ? 'price_1TGQ4EKiCVlMQgBUJwZCK3um'
-          : widget.plan['priceId'];
+      final String actualPriceId = widget.plan['priceId'];
+      final isCurrentlyPro = PaymentService.subscriptionSuccessNotifier.isPro;
+
       await PaymentService.registerStripeCustomer(paymentMethodId);
-      await PaymentService.createSubscription(actualPriceId);
-      await PaymentService.refreshToken();
-      await PaymentService.subscriptionSuccessNotifier.markAsProLocally();
-      if (_saveInfo) {
+
+      if (isCurrentlyPro) {
+        await PaymentService.updateSubscription(actualPriceId);
+      } else {
+        await PaymentService.createSubscription(actualPriceId);
+      }
+
+      // إخبار التطبيق والواجهة فوراً بأن المستخدم أصبح Pro (سيستمر في التأكد من الـ API بالخلفية)
+      PaymentService.subscriptionSuccessNotifier.setOptimisticPro(actualPriceId);
+
+      if (_isAddingNewCard && _saveInfo) {
+        final cardNumber = _cardNumberController.text.replaceAll(' ', '');
         final last4 = cardNumber.substring(cardNumber.length - 4);
         await _storage.write(key: 'saved_card_last4', value: last4);
       }
@@ -147,33 +166,14 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         _isLoading = false;
         _errorMessage = e.toString().replaceAll('Exception: ', '');
       });
-    }
-  }
-
-  Future<void> _processMockPayment() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final String actualPriceId = widget.plan['priceId'].toString().startsWith('dummy_')
-          ? 'price_1TGQ4EKiCVlMQgBUJwZCK3um'
-          : widget.plan['priceId'];
-
-      await PaymentService.registerStripeCustomer('pm_card_visa');
-      await PaymentService.createSubscription(actualPriceId);
-      await PaymentService.refreshToken();
-
-      await PaymentService.subscriptionSuccessNotifier.markAsProLocally();
-
-      if (mounted) Navigator.pop(context);
-      _showSuccessDialog();
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage ?? 'Payment failed'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
@@ -260,7 +260,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           const SizedBox(height: 8),
-
           GestureDetector(
             onTap: () => setState(() => _selectedMethod = 'apple_pay'),
             child: Container(
@@ -282,7 +281,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           const SizedBox(height: 12),
-
           GestureDetector(
             onTap: () => setState(() => _selectedMethod = 'link'),
             child: Container(
@@ -303,7 +301,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               ),
             ),
           ),
-
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Row(
@@ -317,7 +314,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               ],
             ),
           ),
-
           if (_savedCardLast4 != null) ...[
             const Text('Saved', style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
@@ -347,10 +343,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
             const SizedBox(height: 24),
           ],
-
           const Text('New payment method', style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-
           Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.black12)),
             child: Column(
@@ -371,13 +365,11 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           const SizedBox(height: 24),
-
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.w500)),
             ),
-
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -386,7 +378,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: _isLoading ? null : _processMockPayment,
+              onPressed: _isLoading ? null : _processPayment,
               child: _isLoading
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : Row(
@@ -425,10 +417,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ],
           ),
           const SizedBox(height: 24),
-
           const Text('Card information', style: TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-
           Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black12)),
             child: Column(
@@ -469,7 +459,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           const SizedBox(height: 24),
-
           const Text('Billing address', style: TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           Container(
@@ -483,7 +472,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           const SizedBox(height: 16),
-
           Row(
             children: [
               Checkbox(value: _saveInfo, activeColor: const Color(0xFF0A84FF), onChanged: (val) => setState(() => _saveInfo = val ?? true), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))),
@@ -491,18 +479,16 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ],
           ),
           const SizedBox(height: 24),
-
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.w500)),
             ),
-
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0A84FF), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-              onPressed: _isLoading ? null : _processRealPayment,
+              onPressed: _isLoading ? null : _processPayment,
               child: _isLoading
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : Row(

@@ -23,9 +23,10 @@ class TopHeader extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        ValueListenableBuilder<bool>(
+        ValueListenableBuilder<SubscriptionState>(
           valueListenable: PaymentService.subscriptionSuccessNotifier,
-          builder: (context, isPro, _) {
+          builder: (context, state, _) {
+            final isPro = state.isPro;
             return HeaderIcon(
               Icons.cloud_upload_outlined,
               onTap: () async {
@@ -59,8 +60,7 @@ class TopHeader extends StatelessWidget {
               },
             );
           },
-        ),
-        const SizedBox(width: 10),
+        ),        const SizedBox(width: 10),
         const HeaderIcon(Icons.more_horiz),
       ],
     );

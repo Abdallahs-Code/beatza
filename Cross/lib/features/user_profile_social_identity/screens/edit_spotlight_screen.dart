@@ -255,10 +255,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
-                ValueListenableBuilder<bool>(
+                ValueListenableBuilder<SubscriptionState>(
                   valueListenable: PaymentService.subscriptionSuccessNotifier,
-                  builder: (context, isPro, child) {
-                    if (isPro) return const SizedBox.shrink();
+                  builder: (context, state, child) {
+                    if (state.isPro) return const SizedBox.shrink();
                     return GestureDetector(
                       onTap: _showAmplifyProModal,
                       child: const Text(
@@ -272,8 +272,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                       ),
                     );
                   },
-                ),
-              ],
+                ),              ],
             ),
           ),
 

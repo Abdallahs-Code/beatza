@@ -292,14 +292,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                ValueListenableBuilder<bool>(
+                                ValueListenableBuilder<SubscriptionState>(
                                   valueListenable: PaymentService.subscriptionSuccessNotifier,
-                                  builder: (context, isPro, _) {
-                                    return IconButton(
-                                      icon: const Icon(
-                                        Icons.cloud_upload_outlined,
-                                        color: Colors.white,
-                                      ),
+                                  builder: (context, state, _) {
+                                    final isPro = state.isPro;
+                                    return ElevatedButton.icon(
                                       onPressed: () async {
                                         final int currentUploads = _serverTracks.length + AudioUploadService.globalMockTracksNotifier.value.length;
                                         if (!isPro && currentUploads >= 3) {
@@ -329,10 +326,15 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                                           );
                                         }
                                       },
+                                      icon: const Icon(Icons.cloud_upload_outlined),
+                                      label: const Text('Upload your first track'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange,
+                                        foregroundColor: Colors.white,
+                                      ),
                                     );
                                   },
-                                ),
-                                GestureDetector(
+                                ),                                GestureDetector(
                                   onTap: () {
                                     if (localTracks.isNotEmpty) {
                                       _playLocal(localTracks.first);
@@ -585,10 +587,15 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              ValueListenableBuilder<bool>(
+                              ValueListenableBuilder<SubscriptionState>(
                                 valueListenable: PaymentService.subscriptionSuccessNotifier,
-                                builder: (context, isPro, _) {
-                                  return ElevatedButton.icon(
+                                builder: (context, state, _) {
+                                  final isPro = state.isPro;
+                                  return IconButton(
+                                    icon: const Icon(
+                                      Icons.cloud_upload_outlined,
+                                      color: Colors.white,
+                                    ),
                                     onPressed: () async {
                                       final int currentUploads = _serverTracks.length + AudioUploadService.globalMockTracksNotifier.value.length;
                                       if (!isPro && currentUploads >= 3) {
@@ -618,16 +625,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                                         );
                                       }
                                     },
-                                    icon: const Icon(Icons.cloud_upload_outlined),
-                                    label: const Text('Upload your first track'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.orange,
-                                      foregroundColor: Colors.white,
-                                    ),
                                   );
                                 },
-                              ),
-                            ],
+                              ),                            ],
                           ),
                         ),
                       ),

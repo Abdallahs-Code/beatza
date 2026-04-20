@@ -1,58 +1,112 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class SubscriptionStatusNotifier extends ValueNotifier<bool> {
-  SubscriptionStatusNotifier() : super(false);
+class SubscriptionState {
+  final bool isPro;
+  final String? currentPriceId;
+  SubscriptionState({required this.isPro, this.currentPriceId});
+}
+
+class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
+  SubscriptionStatusNotifier() : super(SubscriptionState(isPro: false, currentPriceId: null));
+
+  bool get isPro => value.isPro;
+  String? get currentPriceId => value.currentPriceId;
+
+  bool _isOptimisticWait = false;
+  Timer? _pollingTimer;
 
   Future<void> loadLocalStatus() async {
-    final localStatus = await PaymentService._storage.read(key: 'is_pro');
-    value = localStatus == 'true';
+    await checkStatusFromApi();
   }
+
   Future<void> checkStatusFromApi() async {
     try {
       final token = await PaymentService._getToken();
-      if (token == null) return;
+      if (token == null) {
+        if (!_isOptimisticWait) reset();
+        return;
+      }
 
-      final url = Uri.parse('${PaymentService.baseUrl}/api/payment/v1/subscriptions');
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'User-Agent': 'Android',
-        },
-      ).timeout(const Duration(seconds: 8));
+      final responseBody = await PaymentService._sendPaymentRequest('GET', '/api/payment/v1/subscriptions');
+      final data = jsonDecode(responseBody);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true && data['data'] != null && data['data']['status'] == 'active') {
-          value = true;
-          await PaymentService._storage.write(key: 'is_pro', value: 'true');
-        } else {
-          value = false;
-          await PaymentService._storage.delete(key: 'is_pro');
+      if (data['success'] == true && data['data'] != null) {
+        final subData = data['data'];
+
+        final actualSub = (subData is List && subData.isNotEmpty)
+            ? subData[0]
+            : (subData['subscription'] ?? subData);
+
+        final status = actualSub['status']?.toString().toLowerCase() ?? '';
+
+        if (status == 'active' || status == 'trialing' || status == 'incomplete' || status == 'past_due') {
+
+          String? priceId;
+
+          if (actualSub['priceId'] != null && actualSub['priceId'].toString().isNotEmpty) {
+            priceId = actualSub['priceId'].toString();
+          } else if (actualSub['plan'] != null) {
+            if (actualSub['plan'] is String) {
+              priceId = actualSub['plan'];
+            } else if (actualSub['plan'] is Map) {
+              priceId = actualSub['plan']['id']?.toString();
+            }
+          }
+
+          priceId ??= actualSub['items']?['data']?[0]?['price']?['id']?.toString();
+
+          _isOptimisticWait = false;
+          _pollingTimer?.cancel();
+          value = SubscriptionState(isPro: true, currentPriceId: priceId);
+          return;
         }
       }
+
+      if (!_isOptimisticWait) {
+        reset();
+      }
     } catch (e) {
-      debugPrint('Error checking subscription status: $e');
+      if (!_isOptimisticWait) {
+        reset();
+      }
     }
   }
 
-  Future<void> markAsProLocally() async {
-    value = true;
-    await PaymentService._storage.write(key: 'is_pro', value: 'true');
+  void setOptimisticPro(String priceId) {
+    _isOptimisticWait = true;
+    value = SubscriptionState(isPro: true, currentPriceId: priceId);
+
+    int attempts = 0;
+    _pollingTimer?.cancel();
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      attempts++;
+      await checkStatusFromApi();
+      try { await PaymentService.refreshToken(); } catch(_) {}
+
+      if (!_isOptimisticWait || attempts >= 5) {
+        _isOptimisticWait = false;
+        timer.cancel();
+      }
+    });
   }
 
   Future<void> refresh() async {
     await checkStatusFromApi();
   }
 
-  Future<void> reset() async {
-    value = false;
-    await PaymentService._storage.delete(key: 'is_pro');
+  void reset() {
+    _isOptimisticWait = false;
+    _pollingTimer?.cancel();
+    value = SubscriptionState(isPro: false, currentPriceId: null);
+
+    PaymentService._storage.delete(key: 'is_pro_local');
+    PaymentService._storage.delete(key: 'price_id_local');
   }
 }
 
@@ -74,13 +128,16 @@ class PaymentService {
 
     Future<HttpClientResponse> makeRequest(String currentToken) async {
       final httpClient = HttpClient();
-      final request = method == 'POST' ? await httpClient.postUrl(url) : await httpClient.getUrl(url);
+      final request = method == 'POST' ? await httpClient.postUrl(url)
+          : method == 'PATCH' ? await httpClient.patchUrl(url)
+          : method == 'DELETE' ? await httpClient.deleteUrl(url)
+          : await httpClient.getUrl(url);
 
       request.headers.set('Authorization', 'Bearer $currentToken', preserveHeaderCase: true);
       request.headers.set('Content-Type', 'application/json', preserveHeaderCase: true);
       request.headers.set('User-Agent', 'Android', preserveHeaderCase: true);
 
-      if (body != null && method == 'POST') {
+      if (body != null && (method == 'POST' || method == 'PATCH' || method == 'DELETE')) {
         request.write(jsonEncode(body));
       }
       return await request.close();
@@ -96,17 +153,13 @@ class PaymentService {
 
     final responseBody = await response.transform(utf8.decoder).join();
 
-    if (response.statusCode == 400 && endpoint.contains('/user')) {
-      final errorMsg = jsonDecode(responseBody)['message'] ?? '';
-      if (errorMsg.toString().toLowerCase().contains('already has a stripe customer id')) {
-        return responseBody;
-      }
-    }
-
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return responseBody;
     } else {
-      final errorMsg = jsonDecode(responseBody)['message'] ?? 'Unknown error';
+      var errorMsg = 'Unknown error';
+      try {
+        errorMsg = jsonDecode(responseBody)['message'] ?? errorMsg;
+      } catch (_) {}
       throw Exception(errorMsg);
     }
   }
@@ -117,11 +170,33 @@ class PaymentService {
   }
 
   static Future<void> registerStripeCustomer(String paymentMethodId) async {
-    await _sendPaymentRequest('POST', '/api/payment/v1/user', body: {'paymentMethodId': paymentMethodId});
+    try {
+      await _sendPaymentRequest('POST', '/api/payment/v1/user', body: {'paymentMethodId': paymentMethodId});
+    } catch (e) {
+      if (!e.toString().toLowerCase().contains('already has a stripe customer id')) {
+        rethrow;
+      }
+    }
   }
 
   static Future<void> createSubscription(String priceId) async {
-    await _sendPaymentRequest('POST', '/api/payment/v1/subscriptions', body: {'priceId': priceId});
+    try {
+      await _sendPaymentRequest('POST', '/api/payment/v1/subscriptions', body: {'priceId': priceId});
+    } catch (e) {
+      if (e.toString().toLowerCase().contains('already has an active subscription')) {
+        await updateSubscription(priceId);
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  static Future<void> updateSubscription(String priceId) async {
+    await _sendPaymentRequest('PATCH', '/api/payment/v1/subscriptions', body: {'priceId': priceId});
+  }
+
+  static Future<void> cancelSubscription() async {
+    await _sendPaymentRequest('DELETE', '/api/payment/v1/subscriptions', body: {'cancelAtPeriodEnd': false});
   }
 
   static Future<void> refreshToken() async {
