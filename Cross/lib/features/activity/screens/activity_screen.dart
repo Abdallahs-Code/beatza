@@ -233,12 +233,12 @@ class _ActivityScreenState extends State<ActivityScreen>
           if (today.isNotEmpty) ...[
             _sectionLabel('Today'),
             ...today.map(
-                (n) => _NotificationTile(notification: n, controller: _controller)),
+                (n) => _NotificationTile(key: ValueKey(n.notificationId), notification: n, controller: _controller)),
           ],
           if (older.isNotEmpty) ...[
             _sectionLabel('Older'),
             ...older.map(
-                (n) => _NotificationTile(notification: n, controller: _controller)),
+                (n) => _NotificationTile(key: ValueKey(n.notificationId), notification: n, controller: _controller)),
           ],
           const SizedBox(height: 32),
         ],
@@ -367,6 +367,7 @@ class _NotificationTile extends StatefulWidget {
   final ActivityNotificationsController controller;
 
   const _NotificationTile({
+    super.key,
     required this.notification,
     required this.controller,
   });
@@ -576,6 +577,11 @@ class _NotificationTileState extends State<_NotificationTile> {
   Future<void> _navigateToUserProfile(String userId) async {
     final token = await AuthApiService().getStoredAccessToken() ?? '';
     final currentUserId = await AuthApiService().getStoredUserId();
+    // Use cached follow state if this is the actor we already checked.
+    final isFollowing = (n.activityType == 'user_followed' &&
+            userId == n.actor.userId)
+        ? _isFollowing
+        : false;
     if (!mounted) return;
     Navigator.pushNamed(
       context,
@@ -585,13 +591,15 @@ class _NotificationTileState extends State<_NotificationTile> {
         'token': token,
         'currentUserId':
             (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
-        'initialIsFollowing': false,
+        'initialIsFollowing': isFollowing,
         'initialIsBlocked': false,
       },
     );
   }
 
   void _navigateToBehindTheTrack() {
+    // For like/repost: n.to = track owner. For new_track: n.actor.userId = uploader.
+    final trackOwnerId = n.activityType == 'new_track' ? n.actor.userId : n.to;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -601,6 +609,7 @@ class _NotificationTileState extends State<_NotificationTile> {
           actorAvatarUrl: n.actor.avatarUrl,
           actorUserId: n.actor.userId,
           activityType: n.activityType,
+          trackOwnerId: trackOwnerId,
         ),
       ),
     );

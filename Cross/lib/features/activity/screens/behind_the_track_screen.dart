@@ -17,6 +17,7 @@ class BehindTheTrackScreen extends StatefulWidget {
   final String actorAvatarUrl;
   final String actorUserId;
   final String activityType;
+  final String trackOwnerId;
 
   const BehindTheTrackScreen({
     super.key,
@@ -25,6 +26,7 @@ class BehindTheTrackScreen extends StatefulWidget {
     required this.actorAvatarUrl,
     required this.actorUserId,
     required this.activityType,
+    required this.trackOwnerId,
   });
 
   @override
@@ -45,8 +47,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   late int _likeCount = 0;
   int _commentCount = 0;
 
-  String? _artistCity;
-  String? _artistCountry;
+  String? _ownerDisplayName;
+  String? _ownerAvatarUrl;
+  String? _ownerCity;
+  String? _ownerCountry;
+  bool _ownerIsFollowed = false;
 
   bool get _isCurrentlyPlaying {
     final svc = PlaybackStreamingEngineService.shared;
@@ -79,7 +84,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _loading = false;
         });
         _checkLikeStatus();
-        _fetchArtistLocation(track.artistId);
+        _fetchOwnerProfile();
       }
     } catch (e) {
       if (mounted) {
@@ -91,35 +96,39 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     }
   }
 
-  Future<void> _fetchArtistLocation(String? artistId) async {
-    if (artistId == null || artistId.isEmpty) return;
+  Future<void> _fetchOwnerProfile() async {
+    final ownerId = widget.trackOwnerId;
+    if (ownerId.isEmpty) return;
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
-      final profile =
-          await UserProfileService().getUserProfile(artistId, token);
+      final profile = await UserProfileService().getUserProfile(ownerId, token);
       if (!mounted) return;
       setState(() {
-        _artistCity = profile.city.trim().isEmpty ? null : profile.city.trim();
-        _artistCountry =
+        _ownerDisplayName = profile.displayName.trim().isEmpty
+            ? null
+            : profile.displayName.trim();
+        _ownerAvatarUrl = profile.profileImgLink.trim().isEmpty
+            ? null
+            : profile.profileImgLink.trim();
+        _ownerCity =
+            profile.city.trim().isEmpty ? null : profile.city.trim();
+        _ownerCountry =
             profile.country.trim().isEmpty ? null : profile.country.trim();
+        _ownerIsFollowed = profile.isFollowed;
       });
     } catch (_) {}
   }
 
-  // ── Exact same pattern as _ExpandedEngagementBarState._checkLikeStatus ──
   Future<void> _checkLikeStatus() async {
     try {
-      final userId = await AuthApiService().getStoredUserId();
-      if (userId == null || !mounted) return;
-      final result = await _engagementApi.getTrackLikers(
+      final result = await _engagementApi.checkTrackLikeStatus(
         trackId: widget.trackId,
-        limit: 50,
       );
       if (!mounted) return;
-      if (result.$1 == 200 && result.$2 is List) {
-        final likers = result.$2 as List<EngagementUser>;
-        setState(() => _isLiked = likers.any((u) => u.userId == userId));
+      if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
+        final data = result.$2 as Map<String, dynamic>;
+        setState(() => _isLiked = data['liked'] as bool? ?? false);
       }
     } catch (_) {}
   }
@@ -177,27 +186,41 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   }
 
   Future<void> _navigateToArtist() async {
-    final artistId = _track?.artistId;
-    if (artistId == null || artistId.isEmpty) return;
+    final ownerId = widget.trackOwnerId;
+    if (ownerId.isEmpty) return;
     final token = await AuthApiService().getStoredAccessToken() ?? '';
     final currentUserId = await AuthApiService().getStoredUserId();
     if (!mounted) return;
-    Navigator.pushNamed(context, '/user_profile', arguments: {
-      'userId': artistId,
-      'token': token,
-      'currentUserId': currentUserId,
-    });
+    Navigator.pushNamed(
+      context,
+      UserProfileSocialIdentityRoutes.userProfileRoute,
+      arguments: {
+        'userId': ownerId,
+        'token': token,
+        'currentUserId':
+            (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
+        'initialIsFollowing': _ownerIsFollowed,
+        'initialIsBlocked': false,
+      },
+    );
   }
 
   Future<void> _navigateToActor() async {
     final token = await AuthApiService().getStoredAccessToken() ?? '';
     final currentUserId = await AuthApiService().getStoredUserId();
     if (!mounted) return;
-    Navigator.pushNamed(context, '/user_profile', arguments: {
-      'userId': widget.actorUserId,
-      'token': token,
-      'currentUserId': currentUserId,
-    });
+    Navigator.pushNamed(
+      context,
+      UserProfileSocialIdentityRoutes.userProfileRoute,
+      arguments: {
+        'userId': widget.actorUserId,
+        'token': token,
+        'currentUserId':
+            (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
+        'initialIsFollowing': false,
+        'initialIsBlocked': false,
+      },
+    );
   }
 
   void _playTrack() {
@@ -227,6 +250,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     );
     if (!mounted) return;
     _checkLikeStatus();
+    try {
+      final refreshed = await _trackApi.getSingleTrackById(widget.trackId);
+      if (mounted) setState(() => _likeCount = refreshed.numLikes);
+    } catch (_) {}
   }
 
   @override
@@ -496,6 +523,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   }
 
   Widget _buildArtistCard(PlaybackTrackModel track) {
+    final displayName = _ownerDisplayName ?? track.artistName;
+    final location = [_ownerCity, _ownerCountry]
+        .whereType<String>()
+        .join(', ');
     return GestureDetector(
       onTap: _navigateToArtist,
       child: Padding(
@@ -505,40 +536,34 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             CircleAvatar(
               radius: 26,
               backgroundColor: const Color(0xFF2A2A2A),
-              child: Text(
-                track.artistName.isNotEmpty
-                    ? track.artistName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700),
-              ),
+              backgroundImage: _ownerAvatarUrl != null
+                  ? NetworkImage(_ownerAvatarUrl!)
+                  : null,
+              child: _ownerAvatarUrl == null
+                  ? Text(
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700),
+                    )
+                  : null,
             ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(track.artistName,
+                Text(displayName,
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w600)),
-                if (track.genre != null && track.genre!.isNotEmpty ||
-                    _artistCity != null ||
-                    _artistCountry != null)
-                  Text(
-                    [
-                      if (track.genre != null && track.genre!.isNotEmpty)
-                        track.genre!,
-                      if (_artistCity != null || _artistCountry != null)
-                        [_artistCity, _artistCountry]
-                            .whereType<String>()
-                            .join(', '),
-                    ].join(' · '),
-                    style: const TextStyle(
-                        color: Color(0xFF888888), fontSize: 13),
-                  ),
+                if (location.isNotEmpty)
+                  Text(location,
+                      style: const TextStyle(
+                          color: Color(0xFF888888), fontSize: 13)),
               ],
             ),
             const Spacer(),

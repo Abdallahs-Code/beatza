@@ -21,6 +21,8 @@ class UserProfileModel {
   final int followingsCount;
   final int trackCount;
   final bool isPrivate;
+  final bool isFollowed;
+  final bool isBlocked;
 
   const UserProfileModel({
     required this.userId,
@@ -43,6 +45,8 @@ class UserProfileModel {
     this.followingsCount = 0,
     this.trackCount = 0,
     this.isPrivate = false,
+    this.isFollowed = false,
+    this.isBlocked = false,
   });
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +90,8 @@ class UserProfileModel {
       ),
       trackCount: _readInt(json['trackCount']),
       isPrivate: json['isPrivate'] == true,
+      isFollowed: json['isFollowed'] == true,
+      isBlocked: json['isBlocked'] == true,
     );
   }
 

@@ -107,6 +107,29 @@ class EngagementApiService {
   }
 
   // ─────────────────────────────────────────────
+  // Check if the current user has liked a track.
+  // GET /api/engagement/tracks/v1/{trackId}/like
+  //
+  // Returns (200, {"liked": bool}) on success.
+  // ─────────────────────────────────────────────
+  Future<(int, dynamic)> checkTrackLikeStatus({required String trackId}) async {
+    if (trackId.trim().isEmpty) return (400, "Invalid track ID");
+    try {
+      final headers = await _authHeaders();
+      if (headers == null) return (401, "Unauthorized");
+      final response = await _client.get(
+        Uri.parse("$_basePath/tracks/v1/$trackId/like"),
+        headers: headers,
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return (200, data);
+      return (response.statusCode, data["message"] ?? "Failed to check like");
+    } catch (err) {
+      return (500, "Network error: $err");
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // Toggle like on a playlist.
   // POST /api/engagement/playlists/v1/{playlistId}/like
   // No request body required.

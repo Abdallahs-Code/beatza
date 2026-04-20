@@ -399,9 +399,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
           if (idx != -1) replies[idx] = real;
           setState(() => _expandedReplies[replyingToId] = replies);
         }
+        _fetchTotalCommentCount();
       } else {
         // Reload full comment list so count and ordering are accurate.
         _loadComments();
+        _fetchTotalCommentCount();
       }
     } else {
       // Rollback optimistic insert.
