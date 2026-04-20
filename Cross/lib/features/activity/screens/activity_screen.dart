@@ -2,8 +2,11 @@ import 'package:cross_team5/features/activity/controllers/activity_notifications
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import 'package:cross_team5/features/activity/screens/quick_reply_sheet.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
+import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
 import 'package:flutter/material.dart';
 
 const _kBg = Color(0xFF111111);
@@ -376,6 +379,8 @@ class _NotificationTileState extends State<_NotificationTile> {
 
   bool _isLiked = false;
   bool _isLikeLoading = false;
+  PlaybackTrackModel? _track;
+  int? _commentTimestamp;
 
   ActivityNotificationModel get n => widget.notification;
 
@@ -387,9 +392,20 @@ class _NotificationTileState extends State<_NotificationTile> {
   @override
   void initState() {
     super.initState();
+    _fetchTrackData();
     if (_hasActions(n.activityType)) {
       _checkLikeStatus();
     }
+  }
+
+  Future<void> _fetchTrackData() async {
+    final trackId = _resolvedTrackId;
+    if (trackId.isEmpty) return;
+    try {
+      final track = await PlaybackTrackApiService().getSingleTrackById(trackId);
+      if (!mounted) return;
+      setState(() => _track = track);
+    } catch (_) {}
   }
 
   Future<void> _checkLikeStatus() async {
@@ -408,7 +424,12 @@ class _NotificationTileState extends State<_NotificationTile> {
           (c) => c?.commentId == commentId,
           orElse: () => null,
         );
-        if (match != null) setState(() => _isLiked = match.isLikedByUser);
+        if (match != null) {
+          setState(() {
+            _isLiked = match.isLikedByUser;
+            _commentTimestamp = match.timestamp;
+          });
+        }
       }
     } catch (_) {}
   }
@@ -434,7 +455,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     setState(() => _isLikeLoading = false);
   }
 
-  // ── Reply opens the custom Quick Reply bottom sheet ──
+  // Opens quick reply without pre-filling (used for tile tap)
   void _openQuickReply() {
     showModalBottomSheet(
       context: context,
@@ -443,11 +464,45 @@ class _NotificationTileState extends State<_NotificationTile> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => QuickReplySheet(
         trackId: _resolvedTrackId,
-        trackTitle: n.target.title ?? '',
-        trackArtist: '',
-        numComments: 0,
-        numReposts: 0,
+        trackTitle: _track?.title ?? n.target.title ?? '',
+        trackArtist: _track?.artistName ?? '',
+        trackThumbnailUrl: _track?.artworkUrl,
+        numComments: _track?.numComments ?? 0,
+        numReposts: _track?.numReposts ?? 0,
       ),
+    );
+  }
+
+  // Opens quick reply pre-filled with the actor's @mention and comment timestamp
+  void _openReply() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => QuickReplySheet(
+        trackId: _resolvedTrackId,
+        trackTitle: _track?.title ?? n.target.title ?? '',
+        trackArtist: _track?.artistName ?? '',
+        trackThumbnailUrl: _track?.artworkUrl,
+        numComments: _track?.numComments ?? 0,
+        numReposts: _track?.numReposts ?? 0,
+        initialParentCommentId: n.target.targetId,
+        initialMentionDisplayName: n.actor.displayName,
+        initialTimestamp: _commentTimestamp,
+      ),
+    );
+  }
+
+  void _openTrackOptions() {
+    final track = _track;
+    if (track == null) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TrackOptionsSheet(track: track),
     );
   }
 
@@ -633,12 +688,13 @@ class _NotificationTileState extends State<_NotificationTile> {
         ];
       case 'track_commented':
         final comment = n.target.commentText?.trim() ?? '';
-        final title = n.target.title?.trim() ?? '';
+        final title = (_track?.title ?? n.target.title)?.trim() ?? '';
         return [
           const TextSpan(text: 'commented '),
-          if (comment.isNotEmpty) TextSpan(text: comment, style: bold),
+          if (comment.isNotEmpty)
+            TextSpan(text: '"$comment"', style: bold),
           if (title.isNotEmpty) ...[
-            const TextSpan(text: '\non '),
+            const TextSpan(text: ' on '),
             TextSpan(text: title, style: bold),
           ],
         ];
@@ -699,7 +755,7 @@ class _NotificationTileState extends State<_NotificationTile> {
         n.activityType == 'track_commented' ||
         n.activityType == 'user_mentioned' ||
         n.activityType == 'new_track') {
-      return ClipRRect(
+      final thumb = ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: Container(
           width: 52,
@@ -710,6 +766,10 @@ class _NotificationTileState extends State<_NotificationTile> {
               color: Color(0xFF555555), size: 26),
         ),
       );
+      if (_track != null) {
+        return GestureDetector(onTap: _openTrackOptions, child: thumb);
+      }
+      return thumb;
     }
 
     return null;
@@ -726,7 +786,7 @@ class _NotificationTileState extends State<_NotificationTile> {
           icon: Icons.chat_bubble_outline_rounded,
           label: 'Reply',
           filled: false,
-          onTap: _openQuickReply,
+          onTap: _openReply,
         ),
         const SizedBox(width: 8),
         _chip(
