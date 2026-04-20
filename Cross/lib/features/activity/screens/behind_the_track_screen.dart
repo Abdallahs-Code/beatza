@@ -170,15 +170,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       ),
     );
     if (!mounted) return;
-    // Refresh comment count after returning, same as global overlay
-    final result = await _engagementApi.getTrackComments(
-      trackId: widget.trackId,
-      limit: 100,
-    );
-    if (!mounted) return;
-    if (result.$1 == 200 && result.$2 is List) {
-      setState(() => _commentCount = (result.$2 as List).length);
-    }
+    try {
+      final refreshed = await _trackApi.getSingleTrackById(widget.trackId);
+      if (mounted) setState(() => _commentCount = refreshed.numComments);
+    } catch (_) {}
   }
 
   Future<void> _navigateToArtist() async {
@@ -209,23 +204,29 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     final track = _track;
     if (track == null) return;
     final svc = PlaybackStreamingEngineService.shared;
-    if (svc.state.currentTrack?.id == track.id && svc.state.isPlaying) {
-      svc.pause();
+    if (svc.state.currentTrack?.id == track.id) {
+      if (svc.state.isPlaying) {
+        svc.pause();
+      } else {
+        svc.resume();
+      }
     } else {
       svc.playTrack(track);
     }
   }
 
-  void _openTrackOptions() {
+  Future<void> _openTrackOptions() async {
     final track = _track;
     if (track == null) return;
-    showModalBottomSheet<void>(
+    await showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => TrackOptionsSheet(track: track),
     );
+    if (!mounted) return;
+    _checkLikeStatus();
   }
 
   @override
@@ -361,7 +362,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Widget _buildStats(PlaybackTrackModel track) {
     final parts = <String>[];
-    if (track.numPlays > 0) parts.add('▶ ${_fmt(track.numPlays)}');
+    parts.add('▶ ${_fmt(track.numPlays)}');
     if (track.duration != null) parts.add(_fmtDuration(track.duration!));
     if (track.releaseDate != null) parts.add(_fmtDate(track.releaseDate!));
     if (parts.isEmpty) return const SizedBox.shrink();

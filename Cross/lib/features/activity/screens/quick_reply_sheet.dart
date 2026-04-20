@@ -333,10 +333,16 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     final token = await _authApi.getStoredAccessToken() ?? '';
     final currentUserId = await _authApi.getStoredUserId();
     if (!mounted) return;
-    Navigator.pushNamed(context, '/user_profile', arguments: {
+    Navigator.pushNamed(
+      context,
+      '/user_profile',
+      arguments: {
       'userId': userId,
       'token': token,
-      'currentUserId': currentUserId,
+      'currentUserId':
+          (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
+      'initialIsFollowing': false,
+      'initialIsBlocked': false,
     });
   }
 
@@ -498,7 +504,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                     width: 52,
                     height: 52,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _thumbPlaceholder(),
+                    errorBuilder: (context, error, stack) => _thumbPlaceholder(),
                   )
                 : _thumbPlaceholder(),
           ),

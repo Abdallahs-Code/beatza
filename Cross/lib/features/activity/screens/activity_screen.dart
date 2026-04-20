@@ -5,8 +5,10 @@ import 'package:cross_team5/features/activity/screens/quick_reply_sheet.dart';
 import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 import 'package:flutter/material.dart';
 
 const _kBg = Color(0xFF111111);
@@ -379,6 +381,9 @@ class _NotificationTileState extends State<_NotificationTile> {
 
   bool _isLiked = false;
   bool _isLikeLoading = false;
+  bool _isFollowing = false;
+  bool _isFollowLoading = false;
+  bool _trackFetched = false;
   PlaybackTrackModel? _track;
   int? _commentTimestamp;
 
@@ -396,16 +401,59 @@ class _NotificationTileState extends State<_NotificationTile> {
     if (_hasActions(n.activityType)) {
       _checkLikeStatus();
     }
+    if (n.activityType == 'user_followed') {
+      _checkFollowStatus();
+    }
   }
 
   Future<void> _fetchTrackData() async {
     final trackId = _resolvedTrackId;
-    if (trackId.isEmpty) return;
+    if (trackId.isEmpty) {
+      setState(() => _trackFetched = true);
+      return;
+    }
     try {
       final track = await PlaybackTrackApiService().getSingleTrackById(trackId);
       if (!mounted) return;
-      setState(() => _track = track);
+      setState(() {
+        _track = track;
+        _trackFetched = true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _trackFetched = true);
+    }
+  }
+
+  Future<void> _checkFollowStatus() async {
+    try {
+      final currentUserId = await AuthApiService().getStoredUserId();
+      if (currentUserId == null || !mounted) return;
+      final result =
+          await SocialApiService().getFollowing(userId: currentUserId);
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is List) {
+        final following = result.$2 as List<Follower>;
+        setState(() =>
+            _isFollowing = following.any((f) => f.userId == n.actor.userId));
+      }
     } catch (_) {}
+  }
+
+  Future<void> _toggleFollow() async {
+    if (_isFollowLoading) return;
+    final wasFollowing = _isFollowing;
+    setState(() {
+      _isFollowing = !wasFollowing;
+      _isFollowLoading = true;
+    });
+    final result = wasFollowing
+        ? await SocialApiService().unfollowUser(targetUserId: n.actor.userId)
+        : await SocialApiService().followUser(targetUserId: n.actor.userId);
+    if (!mounted) return;
+    if (result.$1 != 200 && result.$1 != 201) {
+      setState(() => _isFollowing = wasFollowing);
+    }
+    setState(() => _isFollowLoading = false);
   }
 
   Future<void> _checkLikeStatus() async {
@@ -520,6 +568,8 @@ class _NotificationTileState extends State<_NotificationTile> {
       case 'track_commented':
       case 'user_mentioned':
         _openQuickReply();
+      case 'new_track':
+        _navigateToBehindTheTrack();
     }
   }
 
@@ -527,11 +577,18 @@ class _NotificationTileState extends State<_NotificationTile> {
     final token = await AuthApiService().getStoredAccessToken() ?? '';
     final currentUserId = await AuthApiService().getStoredUserId();
     if (!mounted) return;
-    Navigator.pushNamed(context, '/user_profile', arguments: {
-      'userId': userId,
-      'token': token,
-      'currentUserId': currentUserId,
-    });
+    Navigator.pushNamed(
+      context,
+      UserProfileSocialIdentityRoutes.userProfileRoute,
+      arguments: {
+        'userId': userId,
+        'token': token,
+        'currentUserId':
+            (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
+        'initialIsFollowing': false,
+        'initialIsBlocked': false,
+      },
+    );
   }
 
   void _navigateToBehindTheTrack() {
@@ -688,7 +745,9 @@ class _NotificationTileState extends State<_NotificationTile> {
         ];
       case 'track_commented':
         final comment = n.target.commentText?.trim() ?? '';
-        final title = (_track?.title ?? n.target.title)?.trim() ?? '';
+        final title = _trackFetched
+            ? (_track?.title ?? n.target.title ?? '').trim()
+            : (n.target.title?.trim() ?? '…');
         return [
           const TextSpan(text: 'commented '),
           if (comment.isNotEmpty)
@@ -717,7 +776,9 @@ class _NotificationTileState extends State<_NotificationTile> {
         ];
       case 'user_mentioned':
         final mention = n.target.commentText?.trim() ?? '';
-        final title = n.target.title?.trim() ?? '';
+        final title = _trackFetched
+            ? (_track?.title ?? n.target.title ?? '').trim()
+            : (n.target.title?.trim() ?? '…');
         return [
           const TextSpan(text: 'mentioned you '),
           if (mention.isNotEmpty) TextSpan(text: mention, style: bold),
@@ -733,19 +794,30 @@ class _NotificationTileState extends State<_NotificationTile> {
 
   Widget? _trailingWidget() {
     if (n.activityType == 'user_followed') {
-      return Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
-          borderRadius: BorderRadius.circular(20),
+      return GestureDetector(
+        onTap: _isFollowLoading ? null : _toggleFollow,
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: _isFollowing ? const Color(0xFF2A2A2A) : _kOrange,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          alignment: Alignment.center,
+          child: _isFollowLoading
+              ? const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2))
+              : Text(
+                  _isFollowing ? 'Following' : 'Follow',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
+                ),
         ),
-        alignment: Alignment.center,
-        child: const Text('Following',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600)),
       );
     }
 
