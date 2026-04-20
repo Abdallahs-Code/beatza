@@ -675,6 +675,7 @@ class EngagementApiService {
     required String content,
     required int timestamp,
     String? parentCommentId,
+    String? mentionedUserId,
   }) async {
     if (trackId.trim().isEmpty) return (400, "Invalid track ID");
     if (content.trim().isEmpty) return (400, "Comment cannot be empty");
@@ -691,6 +692,10 @@ class EngagementApiService {
       // Only include parentCommentId when replying to another comment.
       if (parentCommentId != null && parentCommentId.trim().isNotEmpty) {
         body["parentCommentId"] = parentCommentId.trim();
+      }
+
+      if (mentionedUserId != null && mentionedUserId.trim().isNotEmpty) {
+        body["mentionedUserId"] = mentionedUserId.trim();
       }
 
       final response = await _client.post(
@@ -795,4 +800,50 @@ class EngagementApiService {
       return (500, "Network error: $err");
     }
   }
+
+  // GET /api/engagement/mentions/v1/followers
+  // Returns follower suggestions for @mention in comments.
+  // Response: [{ userId, displayName, avatarUrl, profileLink }]
+  Future<(int, dynamic)> getMentionFollowers({
+    int offset = 1,
+    int limit = 20,
+  }) async {
+    try {
+      final headers = await _authHeaders();
+      if (headers == null) return (401, "Unauthorized");
+      final uri = Uri.parse("$_basePath/mentions/v1/followers")
+          .replace(queryParameters: {
+        'offset': '$offset',
+        'limit': '$limit',
+      });
+      final response = await _client.get(uri, headers: headers);
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data is List) {
+        final users = data
+            .map((e) => MentionUser(
+                  userId: (e['userId'] ?? '').toString(),
+                  displayName: (e['displayName'] ?? '').toString(),
+                  avatarUrl: e['avatarUrl']?.toString(),
+                ))
+            .where((u) => u.userId.isNotEmpty)
+            .toList();
+        return (200, users);
+      }
+      return (response.statusCode, data is Map ? data['message'] ?? 'Failed' : 'Failed');
+    } catch (err) {
+      return (500, "Network error: $err");
+    }
+  }
+}
+
+class MentionUser {
+  final String userId;
+  final String displayName;
+  final String? avatarUrl;
+
+  const MentionUser({
+    required this.userId,
+    required this.displayName,
+    this.avatarUrl,
+  });
 }

@@ -38,7 +38,6 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/widgets/comment_tile.dart';
-import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
@@ -66,15 +65,15 @@ class CommentsScreen extends StatefulWidget {
 class _CommentsScreenState extends State<CommentsScreen> {
   final EngagementApiService _service = EngagementApiService();
   final AuthApiService _authService = AuthApiService();
-  final SocialApiService _socialApi = SocialApiService();
   final TextEditingController _inputController = TextEditingController();
   final FocusNode _inputFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
   // @ mention state
-  List<Follower> _followingUsers = [];
-  List<Follower> _mentionSuggestions = [];
+  List<MentionUser> _mentionFollowers = [];
+  List<MentionUser> _mentionSuggestions = [];
   bool _showMentionSuggestions = false;
+  String? _pendingMentionedUserId;
 
   // ── Local like persistence (shared across screen instances this session) ──
   static const FlutterSecureStorage _likeStorage = FlutterSecureStorage();
@@ -193,16 +192,16 @@ class _CommentsScreenState extends State<CommentsScreen> {
             ? null
             : profile.profileImgLink.trim();
       });
-      // Load following list for @ mention suggestions
-      final followResult = await _socialApi.getFollowing(userId: userId);
+      // Load mention follower suggestions for @ in comments
+      final mentionResult = await _service.getMentionFollowers();
       if (!mounted) return;
-      if (followResult.$1 == 200 && followResult.$2 is List) {
-        setState(() => _followingUsers = followResult.$2 as List<Follower>);
+      if (mentionResult.$1 == 200 && mentionResult.$2 is List) {
+        setState(() => _mentionFollowers = (mentionResult.$2 as List).cast<MentionUser>());
       }
     } catch (_) {}
   }
 
-  // Detects @query in the text field and filters following users
+  // Detects @query in the text field and filters mention followers
   void _onMentionTextChanged() {
     final text = _inputController.text;
     final cursor =
@@ -214,8 +213,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
       final query = beforeCursor.substring(atIndex + 1);
       if (!query.contains(' ')) {
         final filtered = query.isEmpty
-            ? _followingUsers
-            : _followingUsers
+            ? _mentionFollowers
+            : _mentionFollowers
                 .where((u) => u.displayName
                     .toLowerCase()
                     .contains(query.toLowerCase()))
@@ -224,6 +223,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           setState(() {
             _mentionSuggestions = filtered.take(5).toList();
             _showMentionSuggestions = true;
+            _pendingMentionedUserId = null;
           });
           return;
         }
@@ -235,7 +235,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   // Replaces the current @query with @displayName in the input field
-  void _insertMention(Follower user) {
+  void _insertMention(MentionUser user) {
     final text = _inputController.text;
     final cursor =
         _inputController.selection.baseOffset.clamp(0, text.length);
@@ -249,7 +249,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
       text: '$newBefore$afterCursor',
       selection: TextSelection.collapsed(offset: newBefore.length),
     );
-    setState(() => _showMentionSuggestions = false);
+    setState(() {
+      _showMentionSuggestions = false;
+      _pendingMentionedUserId = user.userId;
+    });
   }
 
   Future<void> _navigateToProfile(String userId) async {
@@ -367,11 +370,15 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final replyingToId = _replyingTo?.commentId;
     setState(() => _replyingTo = null);
 
+    final mentionId = _pendingMentionedUserId;
+    setState(() => _pendingMentionedUserId = null);
+
     final result = await _service.postComment(
       trackId: widget.trackId,
       content: content,
       timestamp: _currentPositionSeconds,
       parentCommentId: replyingToId,
+      mentionedUserId: mentionId,
     );
 
     if (!mounted) return;
@@ -903,10 +910,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   CircleAvatar(
                     radius: 16,
                     backgroundColor: Colors.grey[800],
-                    backgroundImage: user.profileImgLink?.isNotEmpty == true
-                        ? NetworkImage(user.profileImgLink!)
+                    backgroundImage: user.avatarUrl?.isNotEmpty == true
+                        ? NetworkImage(user.avatarUrl!)
                         : null,
-                    child: user.profileImgLink?.isNotEmpty != true
+                    child: user.avatarUrl?.isNotEmpty != true
                         ? Text(
                             user.displayName.isNotEmpty
                                 ? user.displayName[0].toUpperCase()

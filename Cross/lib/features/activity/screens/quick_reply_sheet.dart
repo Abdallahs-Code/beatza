@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/features/activity/screens/quick_reply_options_menu.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
-import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
@@ -37,7 +36,6 @@ class QuickReplySheet extends StatefulWidget {
 
 class _QuickReplySheetState extends State<QuickReplySheet> {
   final EngagementApiService _engagementApi = EngagementApiService();
-  final SocialApiService _socialApi = SocialApiService();
   final AuthApiService _authApi = AuthApiService();
   final TextEditingController _inputController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -65,9 +63,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
 
   // @ mention state
   String? _currentUserId;
-  List<Follower> _followingUsers = [];
-  List<Follower> _mentionSuggestions = [];
+  List<MentionUser> _mentionFollowers = [];
+  List<MentionUser> _mentionSuggestions = [];
   bool _showMentionSuggestions = false;
+  String? _pendingMentionedUserId;
 
   static const _quickReplies = [
     'i love this 🖤',
@@ -125,15 +124,15 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     final userId = await _authApi.getStoredUserId();
     if (!mounted || userId == null) return;
     setState(() => _currentUserId = userId);
-    // Load following list for @ mention suggestions
-    final result = await _socialApi.getFollowing(userId: userId);
+    // Load mention follower suggestions for @ in comments
+    final result = await _engagementApi.getMentionFollowers();
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is List) {
-      setState(() => _followingUsers = result.$2 as List<Follower>);
+      setState(() => _mentionFollowers = (result.$2 as List).cast<MentionUser>());
     }
   }
 
-  // Detects @ in the text field and filters following users for suggestions
+  // Detects @ in the text field and filters mention followers for suggestions
   void _onTextChanged() {
     final text = _inputController.text;
     final cursor =
@@ -145,8 +144,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       final query = beforeCursor.substring(atIndex + 1);
       if (!query.contains(' ')) {
         final filtered = query.isEmpty
-            ? _followingUsers
-            : _followingUsers
+            ? _mentionFollowers
+            : _mentionFollowers
                 .where((u) => u.displayName
                     .toLowerCase()
                     .contains(query.toLowerCase()))
@@ -155,6 +154,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
           setState(() {
             _mentionSuggestions = filtered.take(5).toList();
             _showMentionSuggestions = true;
+            _pendingMentionedUserId = null;
           });
           return;
         }
@@ -166,7 +166,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   }
 
   // Inserts @displayName into the text field replacing the current @query
-  void _insertMention(Follower user) {
+  void _insertMention(MentionUser user) {
     final text = _inputController.text;
     final cursor =
         _inputController.selection.baseOffset.clamp(0, text.length);
@@ -180,7 +180,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       text: '$newBefore$afterCursor',
       selection: TextSelection.collapsed(offset: newBefore.length),
     );
-    setState(() => _showMentionSuggestions = false);
+    setState(() {
+      _showMentionSuggestions = false;
+      _pendingMentionedUserId = user.userId;
+    });
   }
 
   Future<void> _loadComments() async {
@@ -269,11 +272,15 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       setState(() => _comments.insert(0, optimistic));
     }
 
+    final mentionId = _pendingMentionedUserId;
+    setState(() => _pendingMentionedUserId = null);
+
     final result = await _engagementApi.postComment(
       trackId: widget.trackId,
       content: content,
       timestamp: _effectiveTimestamp,
       parentCommentId: replyingTo?.commentId,
+      mentionedUserId: mentionId,
     );
     if (!mounted) return;
 
@@ -813,10 +820,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                     radius: 16,
                     backgroundColor: const Color(0xFF2A2A2A),
                     backgroundImage:
-                        user.profileImgLink?.isNotEmpty == true
-                            ? NetworkImage(user.profileImgLink!)
+                        user.avatarUrl?.isNotEmpty == true
+                            ? NetworkImage(user.avatarUrl!)
                             : null,
-                    child: user.profileImgLink?.isNotEmpty != true
+                    child: user.avatarUrl?.isNotEmpty != true
                         ? Text(
                             user.displayName.isNotEmpty
                                 ? user.displayName[0].toUpperCase()

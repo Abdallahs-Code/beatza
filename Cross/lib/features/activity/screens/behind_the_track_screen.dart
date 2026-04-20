@@ -363,7 +363,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
-                Text(track.artistName,
+                Text(_ownerDisplayName ?? track.artistName,
                     style: const TextStyle(
                         color: Color(0xFF999999), fontSize: 14)),
                 const SizedBox(height: 8),
