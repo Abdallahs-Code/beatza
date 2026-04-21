@@ -2,9 +2,90 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import '../../premium_subscription/screens/premium_subscription.dart';
+import '../../premium_subscription/services/payment_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  void _showManageSubscriptionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF111111),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Manage Subscription',
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.upgrade_rounded, color: AppColors.whiteSmoke),
+                title: const Text('Upgrade Plan', style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16)),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
+                title: const Text('Cancel Subscription', style: TextStyle(color: Colors.redAccent, fontSize: 16)),
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  final nav = Navigator.of(context, rootNavigator: true);
+                  final messenger = ScaffoldMessenger.of(context);
+
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (dialogContext) => const Center(child: CircularProgressIndicator(color: AppColors.brilliantOrange)),
+                  );
+
+                  try {
+                    await PaymentService.cancelSubscription();
+                    await PaymentService.refreshToken();
+
+                    PaymentService.subscriptionSuccessNotifier.reset();
+
+                    nav.pop();
+
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Subscription cancelled successfully')),
+                    );
+                  } catch (e) {
+                    nav.pop();
+
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +100,29 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
                 child: Column(
                   children: [
+                    ValueListenableBuilder<SubscriptionState>(
+                      valueListenable: PaymentService.subscriptionSuccessNotifier,
+                      builder: (context, state, child) {
+                        if (state.isPro) {
+                          return _SettingsTile(
+                            title: 'Manage Subscription (Pro)',
+                            onTap: () => _showManageSubscriptionSheet(context),
+                          );
+                        } else {
+                          return _SettingsTile(
+                            title: 'Upgrade to Artist Pro',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const PremiumSubscriptionScreen(),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
                     const _SettingsTile(
                       title: 'Autoplay related tracks',
                       hasTrailingSwitch: true,
@@ -58,13 +162,11 @@ class SettingsScreen extends StatelessWidget {
                       onTap: () async {
                         final authService = AuthApiService();
                         await authService.logout();
-
                         if (!context.mounted) return;
-
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           AuthenticationRoutes.welcome,
-                          (route) => false,
+                              (route) => false,
                         );
                       },
                     ),
@@ -137,12 +239,14 @@ class _SettingsTile extends StatefulWidget {
   final bool showChevron;
   final bool hasTrailingSwitch;
   final bool initialSwitchValue;
+  final VoidCallback? onTap;
 
   const _SettingsTile({
     required this.title,
     this.showChevron = true,
     this.hasTrailingSwitch = false,
     this.initialSwitchValue = false,
+    this.onTap,
   });
 
   @override
@@ -161,7 +265,7 @@ class _SettingsTileState extends State<_SettingsTile> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: widget.hasTrailingSwitch ? null : () {},
+      onTap: widget.hasTrailingSwitch ? null : (widget.onTap ?? () {}),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 18),
         child: Row(
@@ -278,7 +382,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
       Navigator.pushNamedAndRemoveUntil(
         context,
         AuthenticationRoutes.welcome,
-        (route) => false,
+            (route) => false,
       );
     } else {
       setState(() {
@@ -346,10 +450,10 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   onChanged: _isDeleting
                       ? null
                       : (value) {
-                          setState(() {
-                            _confirmed = value ?? false;
-                          });
-                        },
+                    setState(() {
+                      _confirmed = value ?? false;
+                    });
+                  },
                   activeColor: Colors.redAccent,
                   checkColor: Colors.white,
                   side: const BorderSide(color: AppColors.white60),
@@ -412,17 +516,17 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     ),
                     child: _isDeleting
                         ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                         : const Text(
-                            'Delete my account',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
+                      'Delete my account',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ],

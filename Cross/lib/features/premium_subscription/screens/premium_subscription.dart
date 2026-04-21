@@ -23,8 +23,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       'badge': 'Monthly',
       'badgeColor': const Color(0xFF8E24AA),
       'isPro': true,
-      'amount': '164.99',
-      'priceId': 'dummy_pro_monthly',
+      'amount': '0.00',
+      'priceId': '',
       'features': [
         'Unlimited track uploads',
         'Get paid directly and more fairly',
@@ -39,8 +39,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       'badge': 'Yearly',
       'badgeColor': const Color(0xFFE65100),
       'isPro': true,
-      'amount': '1,149.99',
-      'priceId': 'dummy_pro_yearly',
+      'amount': '0.00',
+      'priceId': '',
       'features': [
         'Unlimited track uploads',
         'Get paid directly and more fairly',
@@ -55,8 +55,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       'badge': 'Monthly',
       'badgeColor': const Color(0xFF8E24AA),
       'isPro': false,
-      'amount': '65.00',
-      'priceId': 'dummy_artist_monthly',
+      'amount': '0.00',
+      'priceId': '',
       'features': [
         '3 hours of uploads',
         '2 distributed and monetized tracks per month',
@@ -71,8 +71,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       'badge': 'Yearly',
       'badgeColor': const Color(0xFFE65100),
       'isPro': false,
-      'amount': '479.99',
-      'priceId': 'dummy_artist_yearly',
+      'amount': '0.00',
+      'priceId': '',
       'features': [
         '3 hours of uploads',
         '2 distributed and monetized tracks per month',
@@ -93,21 +93,28 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
     try {
       final apiPlans = await PaymentService.getPlans();
       List<Map<String, dynamic>> tempPlans = [];
+
       for (var template in _uiPlanTemplates) {
         if (apiPlans.containsKey(template['id'])) {
           final apiData = apiPlans[template['id']];
-          template['priceId'] = apiData['priceId'];
-          template['amount'] = apiData['amount'].toString();
+          tempPlans.add({
+            ...template,
+            'priceId': apiData['priceId'],
+            'amount': apiData['amount'].toString(),
+            'name': apiData['name'] ?? template['name'],
+          });
         }
-        tempPlans.add(template);
       }
+
       setState(() {
         _mergedPlans = tempPlans;
         _isLoadingPlans = false;
       });
     } catch (e) {
-      setState(() => _isLoadingPlans = false);
-      setState(() => _mergedPlans = _uiPlanTemplates);
+      setState(() {
+        _isLoadingPlans = false;
+        _mergedPlans = [];
+      });
     }
   }
 
@@ -161,15 +168,41 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingPlans) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
+    }
+
+    if (_mergedPlans.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(
+          child: Text(
+            'No plans available right now.\nPlease try again later.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 16),
+          ),
+        ),
+      );
+    }
+
     final currentGradient = _mergedPlans.isNotEmpty
         ? _mergedPlans[_currentPage]['gradient']
         : const [Colors.black, Colors.black];
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _isLoadingPlans
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : CustomScrollView(
+      body: CustomScrollView(
         slivers: [
           SliverAppBar(
             backgroundColor: Colors.transparent,
@@ -301,25 +334,78 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
               },
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => PaymentCheckoutSheet(plan: plan),
-                );
-              },
-              child: const Text('Subscribe now', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
+          ValueListenableBuilder<SubscriptionState>(
+            valueListenable: PaymentService.subscriptionSuccessNotifier,
+            builder: (context, state, _) {
+              final currentPriceId = state.currentPriceId;
+
+              int getUserPlanWeight(String? idStr) {
+                if (idStr == null || idStr.isEmpty) return 0;
+                final p = _mergedPlans.firstWhere((element) => element['priceId'] == idStr, orElse: () => <String, dynamic>{});
+                if (p.isEmpty) return 0;
+                final planIdStr = p['id'].toString().toLowerCase();
+                if (planIdStr == 'pro_yearly') return 40;
+                if (planIdStr == 'pro_monthly') return 30;
+                if (planIdStr == 'artist_yearly') return 20;
+                if (planIdStr == 'artist_monthly') return 10;
+                return 0;
+              }
+
+              final int userWeight = getUserPlanWeight(currentPriceId);
+              final planIdString = plan['id'].toString().toLowerCase();
+              int cardWeight = 0;
+              if (planIdString == 'pro_yearly') cardWeight = 40;
+              else if (planIdString == 'pro_monthly') cardWeight = 30;
+              else if (planIdString == 'artist_yearly') cardWeight = 20;
+              else if (planIdString == 'artist_monthly') cardWeight = 10;
+
+              final bool isCurrentPlan = currentPriceId != null && currentPriceId == plan['priceId'];
+
+              String buttonText;
+              bool isDisabled = false;
+
+              if (isCurrentPlan) {
+                buttonText = 'Current Plan';
+                isDisabled = true;
+              } else if (userWeight > 0) {
+                if (cardWeight > userWeight) {
+                  buttonText = 'Upgrade';
+                  isDisabled = false;
+                } else {
+                  buttonText = 'Already Subscribed';
+                  isDisabled = true;
+                }
+              } else {
+                buttonText = 'Subscribe now';
+                isDisabled = false;
+              }
+
+              return SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    disabledBackgroundColor: const Color(0xFF424242),
+                    disabledForegroundColor: Colors.white54,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                  onPressed: isDisabled
+                      ? null
+                      : () {
+                    if (plan['priceId'] == null || plan['priceId'].toString().isEmpty) return;
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => PaymentCheckoutSheet(plan: plan),
+                    );
+                  },
+                  child: Text(buttonText, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           const Text('Cancel anytime.', style: TextStyle(color: Colors.white70, fontSize: 12)),
@@ -332,7 +418,6 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       ),
     );
   }
-
   Widget _buildPromoAndFaqSection() {
     return Container(
       color: Colors.black,

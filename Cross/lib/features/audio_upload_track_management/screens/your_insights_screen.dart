@@ -1141,10 +1141,10 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   }
 
   Widget _buildFansTabWrapper() {
-    return ValueListenableBuilder<bool>(
+    return ValueListenableBuilder<SubscriptionState>(
       valueListenable: PaymentService.subscriptionSuccessNotifier,
-      builder: (context, isPro, _) {
-        if (isPro) {
+      builder: (context, state, _) {
+        if (state.isPro) {
           return _buildFansContent();
         } else {
           return _buildFansLockedContent();

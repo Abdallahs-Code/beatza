@@ -38,9 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     final bool hasInternet = await ConnectivityService.instance.hasInternetConnection();
-    final bool isPro = PaymentService.subscriptionSuccessNotifier.value;
-
-    if (!mounted) return;
+    final bool isPro = PaymentService.subscriptionSuccessNotifier.isPro;    if (!mounted) return;
     if (!hasInternet && !isPro) {
       setState(() {
         _isChecking = false;

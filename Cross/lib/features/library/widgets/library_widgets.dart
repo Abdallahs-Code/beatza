@@ -23,9 +23,10 @@ class LibraryHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
-          ValueListenableBuilder<bool>(
+          ValueListenableBuilder<SubscriptionState>(
             valueListenable: PaymentService.subscriptionSuccessNotifier,
-            builder: (context, isPro, _) {
+            builder: (context, state, _) {
+              final isPro = state.isPro;
               return GestureDetector(
                 onTap: () {
                   if (!isPro) {
@@ -54,8 +55,7 @@ class LibraryHeader extends StatelessWidget {
                 ),
               );
             },
-          ),
-          const Spacer(),
+          ),          const Spacer(),
           const Text(
             AppText.libraryTitle,
             style: TextStyle(

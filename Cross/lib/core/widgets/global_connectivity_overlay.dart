@@ -53,9 +53,10 @@ class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
+    return ValueListenableBuilder<SubscriptionState>(
       valueListenable: PaymentService.subscriptionSuccessNotifier,
-      builder: (context, isPro, _) {
+      builder: (context, state, _) {
+        final isPro = state.isPro;
         if (_isConnected || isPro) {
           return const SizedBox.shrink();
         }
@@ -119,5 +120,4 @@ class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
         );
       },
     );
-  }
-}
+  }}
