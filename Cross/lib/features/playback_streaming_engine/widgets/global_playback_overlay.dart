@@ -32,6 +32,10 @@ final ValueNotifier<bool> _isTransientSheetOpening = ValueNotifier<bool>(false);
 // Set to the trackId of the commented track, reset to null after consumption.
 final ValueNotifier<String?> _trackCommentPosted = ValueNotifier<String?>(null);
 
+// Notifies the engagement bar that the CommentsScreen was closed so it can
+// refresh the displayed comment count.
+final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(null);
+
 final Map<String, List<double>> _expandedWaveformCache =
     <String, List<double>>{};
 
@@ -1813,12 +1817,30 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
     _commentCount = widget.track.numComments;
     _checkLikeStatus();
     _trackCommentPosted.addListener(_onExternalCommentPosted);
+    _commentsScreenClosed.addListener(_onCommentsScreenClosed);
   }
 
   @override
   void dispose() {
     _trackCommentPosted.removeListener(_onExternalCommentPosted);
+    _commentsScreenClosed.removeListener(_onCommentsScreenClosed);
     super.dispose();
+  }
+
+  void _onCommentsScreenClosed() {
+    if (_commentsScreenClosed.value == widget.track.id && mounted) {
+      _refreshCommentCount();
+    }
+  }
+
+  Future<void> _refreshCommentCount() async {
+    try {
+      final count = await _engagementService.getTrackCommentCount(
+        widget.track.id,
+      );
+      if (!mounted) return;
+      setState(() => _commentCount = count);
+    } catch (_) {}
   }
 
   // Increments comment count when the inline bar posts a comment for this track.
@@ -1911,14 +1933,11 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
     if (!mounted) return;
     // Refresh comment count after returning from CommentsScreen
     // (user may have posted or deleted comments while there).
-    final result = await _engagementService.getTrackComments(
-      trackId: widget.track.id,
-      limit: 100,
+    final count = await _engagementService.getTrackCommentCount(
+      widget.track.id,
     );
     if (!mounted) return;
-    if (result.$1 == 200 && result.$2 is List) {
-      setState(() => _commentCount = (result.$2 as List).length);
-    }
+    setState(() => _commentCount = count);
   }
 
   String _formatCount(int count) {
@@ -2124,13 +2143,13 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     );
   }
 
-  void _openComments() {
+  Future<void> _openComments() async {
     Navigator.pop(context);
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
     final int positionSeconds =
         PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
-    Navigator.pushNamed(
+    await Navigator.pushNamed(
       navCtx,
       EngagementSocialInteractionsRoutes.comments,
       arguments: {
@@ -2141,6 +2160,8 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
         'currentPositionSeconds': positionSeconds,
       },
     );
+    _commentsScreenClosed.value = widget.track.id;
+    Future.microtask(() => _commentsScreenClosed.value = null);
   }
 
   Future<void> _openRepost() async {
@@ -2249,13 +2270,23 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   color: _isLiked ? Colors.orange : Colors.white,
                   onTap: _toggleLike,
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
+                  onTap: () {
+                    PlaybackStreamingEngineService.shared
+                        .addToQueueNext(widget.track);
+                    Navigator.pop(context);
+                  },
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.format_list_bulleted_rounded,
                   label: 'Play last',
+                  onTap: () {
+                    PlaybackStreamingEngineService.shared
+                        .addToQueueLast(widget.track);
+                    Navigator.pop(context);
+                  },
                 ),
                 const _TrackOptionTile(
                   icon: Icons.playlist_add_outlined,
@@ -2663,7 +2694,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
     final List<PlaybackTrackModel> queue = _player.activeQueue;
     final int currentIndex = _player.currentQueueIndex;
     final bool isShuffled = _player.isShuffled;
-    final RepeatMode repeatMode = _player.repeatMode;
+    final TrackRepeatMode repeatMode = _player.repeatMode;
 
     final List<PlaybackTrackModel> playingNext =
         (currentIndex >= 0 && currentIndex + 1 < queue.length)
@@ -2671,7 +2702,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
             : <PlaybackTrackModel>[];
 
     final bool showPlayingNext =
-        repeatMode != RepeatMode.one && playingNext.isNotEmpty;
+        repeatMode != TrackRepeatMode.one && playingNext.isNotEmpty;
 
     return Container(
       height: maxHeight,
@@ -2731,8 +2762,8 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                   ),
                   const SizedBox(width: 20),
                   GestureDetector(
-                    onTap: _player.cycleRepeatMode,
-                    child: repeatMode == RepeatMode.one
+                    onTap: _player.cycleTrackRepeatMode,
+                    child: repeatMode == TrackRepeatMode.one
                         ? const Icon(
                             Icons.repeat_one_rounded,
                             color: AppColors.brilliantOrange,
@@ -2740,7 +2771,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                           )
                         : Icon(
                             Icons.repeat_rounded,
-                            color: repeatMode == RepeatMode.all
+                            color: repeatMode == TrackRepeatMode.all
                                 ? AppColors.brilliantOrange
                                 : Colors.white54,
                             size: 24,

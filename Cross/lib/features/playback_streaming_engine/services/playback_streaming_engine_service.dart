@@ -15,7 +15,7 @@ import '../models/playback_track_model.dart';
 import 'audio_player_client.dart';
 import 'public_tracks_paging_service.dart';
 
-enum RepeatMode { none, all, one }
+enum TrackRepeatMode { none, all, one }
 
 class PlaybackStreamingEngineService extends ChangeNotifier {
   static final PlaybackStreamingEngineService shared =
@@ -41,7 +41,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   bool _isShuffled = false;
   List<PlaybackTrackModel> _originalQueue = const <PlaybackTrackModel>[];
-  RepeatMode _repeatMode = RepeatMode.none;
+  TrackRepeatMode _repeatMode = TrackRepeatMode.none;
 
   PlaybackStreamingEngineService._shared()
       : _audioPlayerClient = AudioplayersClient(),
@@ -69,7 +69,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   bool get hasNextInQueue =>
       _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length - 1;
   bool get isShuffled => _isShuffled;
-  RepeatMode get repeatMode => _repeatMode;
+  TrackRepeatMode get repeatMode => _repeatMode;
 
   Future<void> playTrack(
       PlaybackTrackModel track, {
@@ -338,7 +338,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _currentQueueIndex = -1;
     _isShuffled = false;
     _originalQueue = const <PlaybackTrackModel>[];
-    _repeatMode = RepeatMode.none;
+    _repeatMode = TrackRepeatMode.none;
 
     try {
       await _audioPlayerClient.stop();
@@ -481,7 +481,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
-    if (_repeatMode == RepeatMode.one) {
+    if (_repeatMode == TrackRepeatMode.one) {
       final PlaybackTrackModel? track = _state.currentTrack;
       if (track != null) {
         await playTrack(
@@ -499,7 +499,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       return;
     }
 
-    if (_repeatMode == RepeatMode.all && _activeQueue.isNotEmpty) {
+    if (_repeatMode == TrackRepeatMode.all && _activeQueue.isNotEmpty) {
       await playTrack(
         _activeQueue[0],
         queue: List<PlaybackTrackModel>.from(_activeQueue),
@@ -636,11 +636,11 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void cycleRepeatMode() {
+  void cycleTrackRepeatMode() {
     _repeatMode = switch (_repeatMode) {
-      RepeatMode.none => RepeatMode.all,
-      RepeatMode.all => RepeatMode.one,
-      RepeatMode.one => RepeatMode.none,
+      TrackRepeatMode.none => TrackRepeatMode.all,
+      TrackRepeatMode.all => TrackRepeatMode.one,
+      TrackRepeatMode.one => TrackRepeatMode.none,
     };
     notifyListeners();
   }
@@ -678,6 +678,27 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     queue.insert(absNew, item);
     _activeQueue = queue;
 
+    notifyListeners();
+  }
+
+  void addToQueueNext(PlaybackTrackModel track) {
+    if (_activeQueue.isEmpty || _currentQueueIndex < 0) {
+      _activeQueue = [track];
+      _currentQueueIndex = 0;
+    } else {
+      final List<PlaybackTrackModel> queue =
+          List<PlaybackTrackModel>.from(_activeQueue);
+      queue.insert(_currentQueueIndex + 1, track);
+      _activeQueue = queue;
+    }
+    notifyListeners();
+  }
+
+  void addToQueueLast(PlaybackTrackModel track) {
+    final List<PlaybackTrackModel> queue =
+        List<PlaybackTrackModel>.from(_activeQueue);
+    queue.add(track);
+    _activeQueue = queue;
     notifyListeners();
   }
 
