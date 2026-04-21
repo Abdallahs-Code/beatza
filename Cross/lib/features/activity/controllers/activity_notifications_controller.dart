@@ -1,6 +1,7 @@
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:cross_team5/features/activity/services/activity_notifications_api_service.dart';
 import 'package:cross_team5/features/activity/services/activity_notifications_socket_service.dart';
+import 'package:cross_team5/features/activity/services/push_notification_service.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -134,6 +135,8 @@ class ActivityNotificationsController extends ChangeNotifier {
     _unreadCount = _notifications.where((item) => !item.read).length;
     _errorMessage = null;
     notifyListeners();
+
+    PushNotificationService.shared.show(notification);
   }
 
   void setFilter(ActivityNotificationFilter filter) {
