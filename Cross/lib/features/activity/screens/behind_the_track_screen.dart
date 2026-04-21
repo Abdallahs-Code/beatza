@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
@@ -46,12 +47,14 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   bool _isLikeLoading = false;
   late int _likeCount = 0;
   int _commentCount = 0;
+  int _repostCount = 0;
 
   String? _ownerDisplayName;
   String? _ownerAvatarUrl;
   String? _ownerCity;
   String? _ownerCountry;
   bool _ownerIsFollowed = false;
+  bool _isOwnerFollowLoading = false;
 
   bool get _isCurrentlyPlaying {
     final svc = PlaybackStreamingEngineService.shared;
@@ -81,6 +84,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _track = track;
           _likeCount = track.numLikes;
           _commentCount = track.numComments;
+          _repostCount = track.numReposts;
           _loading = false;
         });
         _checkLikeStatus();
@@ -181,7 +185,13 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     if (!mounted) return;
     try {
       final refreshed = await _trackApi.getSingleTrackById(widget.trackId);
-      if (mounted) setState(() => _commentCount = refreshed.numComments);
+      if (mounted) {
+        setState(() {
+          _commentCount = refreshed.numComments;
+          _likeCount = refreshed.numLikes;
+          _repostCount = refreshed.numReposts;
+        });
+      }
     } catch (_) {}
   }
 
@@ -223,6 +233,23 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     );
   }
 
+  Future<void> _toggleOwnerFollow() async {
+    if (_isOwnerFollowLoading) return;
+    final wasFollowing = _ownerIsFollowed;
+    setState(() {
+      _ownerIsFollowed = !wasFollowing;
+      _isOwnerFollowLoading = true;
+    });
+    final result = wasFollowing
+        ? await SocialApiService().unfollowUser(targetUserId: widget.trackOwnerId)
+        : await SocialApiService().followUser(targetUserId: widget.trackOwnerId);
+    if (!mounted) return;
+    if (result.$1 != 200 && result.$1 != 201) {
+      setState(() => _ownerIsFollowed = wasFollowing);
+    }
+    setState(() => _isOwnerFollowLoading = false);
+  }
+
   void _playTrack() {
     final track = _track;
     if (track == null) return;
@@ -252,7 +279,12 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     _checkLikeStatus();
     try {
       final refreshed = await _trackApi.getSingleTrackById(widget.trackId);
-      if (mounted) setState(() => _likeCount = refreshed.numLikes);
+      if (mounted) {
+        setState(() {
+          _likeCount = refreshed.numLikes;
+          _repostCount = refreshed.numReposts;
+        });
+      }
     } catch (_) {}
   }
 
@@ -324,10 +356,224 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _buildTrackCard(track),
           _buildActorRow(),
           _buildActionRow(),
+          if (track.tags.isNotEmpty) _buildTags(track.tags),
           const Divider(color: Color(0xFF2A2A2A), height: 1),
           const SizedBox(height: 16),
           _buildArtistCard(track),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+          _buildFanLeaderboard(),
+          const SizedBox(height: 24),
+          _buildInPlaylists(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTags(List<String> tags) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: tags
+            .map((tag) => Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1C1C),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '# $tag',
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 13),
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildFanLeaderboard() {
+    // Hardcoded visual — no API yet
+    final fans = [
+      ('Ahmed Mekawy', '29 plays', null),
+      ('joshy b', '22 plays', null),
+      ('Fizza Shiekh', '16 plays', null),
+      ('Zenza86', '15 plays', null),
+      ('Sachin Kumar', '14 plays', null),
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('Fan leaderboard',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700)),
+              const SizedBox(width: 6),
+              const Icon(Icons.info_outline_rounded,
+                  color: Colors.white38, size: 16),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: _kSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                // Top / First toggle (visual only)
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF333333),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text('Top',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          alignment: Alignment.center,
+                          child: const Text('First',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 14)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text('Fans who have played this track the most.',
+                      style:
+                          TextStyle(color: Colors.white54, fontSize: 13)),
+                ),
+                ...fans.asMap().entries.map((e) {
+                  final idx = e.key;
+                  final (name, plays, _) = e.value;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Text('${idx + 1}.',
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 14)),
+                        ),
+                        const SizedBox(width: 10),
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: const Color(0xFF444444),
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : '?',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(name,
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 14)),
+                        ),
+                        Text(plays,
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 13)),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInPlaylists() {
+    // Hardcoded visual — no API yet
+    final playlists = [
+      ('Personal Faves XX !', 'MUSIC AFiCi...'),
+      ('Tracks 🔥🔥🔥', 'Hossam Moh'),
+      ('Saveme', 'User 578913'),
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('In Playlists',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 140,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: playlists.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (_, i) {
+                final (name, owner) = playlists[i];
+                return SizedBox(
+                  width: 110,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: _kSurface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.queue_music_rounded,
+                            color: Color(0xFF444444), size: 36),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600)),
+                      Text(owner,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 12)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -490,6 +736,22 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             ),
           ),
           const SizedBox(width: 24),
+          // Repost count (tap opens options for repost)
+          GestureDetector(
+            onTap: _openTrackOptions,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                const Icon(Icons.repeat_rounded,
+                    color: Colors.white70, size: 22),
+                const SizedBox(width: 5),
+                Text('$_repostCount',
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 14)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
           GestureDetector(
             onTap: _openTrackOptions,
             behavior: HitTestBehavior.opaque,
@@ -527,13 +789,13 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     final location = [_ownerCity, _ownerCountry]
         .whereType<String>()
         .join(', ');
-    return GestureDetector(
-      onTap: _navigateToArtist,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            CircleAvatar(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _navigateToArtist,
+            child: CircleAvatar(
               radius: 26,
               backgroundColor: const Color(0xFF2A2A2A),
               backgroundImage: _ownerAvatarUrl != null
@@ -551,26 +813,56 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                     )
                   : null,
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(displayName,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600)),
-                if (location.isNotEmpty)
-                  Text(location,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: _navigateToArtist,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(displayName,
                       style: const TextStyle(
-                          color: Color(0xFF888888), fontSize: 13)),
-              ],
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600)),
+                  if (location.isNotEmpty)
+                    Text(location,
+                        style: const TextStyle(
+                            color: Color(0xFF888888), fontSize: 13)),
+                ],
+              ),
             ),
-            const Spacer(),
-            const Icon(Icons.chevron_right_rounded,
-                color: Colors.white38, size: 22),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: _isOwnerFollowLoading ? null : _toggleOwnerFollow,
+            child: Container(
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: _ownerIsFollowed
+                    ? const Color(0xFF2A2A2A)
+                    : _kOrange,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              alignment: Alignment.center,
+              child: _isOwnerFollowLoading
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : Text(
+                      _ownerIsFollowed ? 'Following' : 'Follow',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600),
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

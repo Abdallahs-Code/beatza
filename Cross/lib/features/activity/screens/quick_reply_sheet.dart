@@ -15,6 +15,7 @@ class QuickReplySheet extends StatefulWidget {
   final int numReposts;
   final String? initialParentCommentId;
   final String? initialMentionDisplayName;
+  final String? initialMentionUserId;
   final int? initialTimestamp;
 
   const QuickReplySheet({
@@ -27,6 +28,7 @@ class QuickReplySheet extends StatefulWidget {
     this.numReposts = 0,
     this.initialParentCommentId,
     this.initialMentionDisplayName,
+    this.initialMentionUserId,
     this.initialTimestamp,
   });
 
@@ -222,6 +224,11 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
         _inputController.text = '@$mention ';
         _inputController.selection =
             TextSelection.collapsed(offset: _inputController.text.length);
+        if (widget.initialMentionUserId != null &&
+            widget.initialMentionUserId!.isNotEmpty) {
+          setState(() =>
+              _pendingMentionedUserId = widget.initialMentionUserId);
+        }
       }
       if (widget.initialTimestamp != null) {
         setState(() => _currentPositionSeconds = widget.initialTimestamp!);
@@ -436,6 +443,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     setState(() {
       _replyingTo = comment;
       _showMentionSuggestions = false;
+      _pendingMentionedUserId = comment.userId.isNotEmpty ? comment.userId : null;
     });
     _inputController.text = '@${comment.displayName} ';
     _inputController.selection =
