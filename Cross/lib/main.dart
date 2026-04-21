@@ -7,6 +7,7 @@ import 'package:cross_team5/routes/app_router.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/core/widgets/global_connectivity_overlay.dart';
 import 'core/services/connectivity_service.dart';
+import 'features/activity/services/push_notification_service.dart';
 import 'features/premium_subscription/services/offline_download_service.dart';
 import 'features/premium_subscription/services/payment_service.dart';
 
@@ -27,6 +28,7 @@ void main() async {
     await PaymentService.subscriptionSuccessNotifier.loadLocalStatus();
   }
   await OfflineDownloadService.shared.loadDownloadedTracks();
+  await PushNotificationService.shared.initialize();
 
   runApp(const MyApp());
 }

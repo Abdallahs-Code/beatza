@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,8 @@ import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
 import 'audio_player_client.dart';
 import 'public_tracks_paging_service.dart';
+
+enum RepeatMode { none, all, one }
 
 class PlaybackStreamingEngineService extends ChangeNotifier {
   static final PlaybackStreamingEngineService shared =
@@ -35,6 +38,10 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   String? _lastHistoryReportedTrackId;
   int _outputLevelRequestId = 0;
   Future<bool> Function()? _ensureNextTrackAvailable;
+
+  bool _isShuffled = false;
+  List<PlaybackTrackModel> _originalQueue = const <PlaybackTrackModel>[];
+  RepeatMode _repeatMode = RepeatMode.none;
 
   PlaybackStreamingEngineService._shared()
       : _audioPlayerClient = AudioplayersClient(),
@@ -61,6 +68,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _currentQueueIndex > 0 && _activeQueue.isNotEmpty;
   bool get hasNextInQueue =>
       _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length - 1;
+  bool get isShuffled => _isShuffled;
+  RepeatMode get repeatMode => _repeatMode;
 
   Future<void> playTrack(
       PlaybackTrackModel track, {
@@ -327,6 +336,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _ensureNextTrackAvailable = null;
     _activeQueue = const <PlaybackTrackModel>[];
     _currentQueueIndex = -1;
+    _isShuffled = false;
+    _originalQueue = const <PlaybackTrackModel>[];
+    _repeatMode = RepeatMode.none;
 
     try {
       await _audioPlayerClient.stop();
@@ -469,8 +481,31 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
+    if (_repeatMode == RepeatMode.one) {
+      final PlaybackTrackModel? track = _state.currentTrack;
+      if (track != null) {
+        await playTrack(
+          track,
+          queue: List<PlaybackTrackModel>.from(_activeQueue),
+          startIndex: _currentQueueIndex,
+          ensureNextTrackAvailable: _ensureNextTrackAvailable,
+        );
+      }
+      return;
+    }
+
     final bool advancedToNextTrack = await playNextTrack();
     if (advancedToNextTrack) {
+      return;
+    }
+
+    if (_repeatMode == RepeatMode.all && _activeQueue.isNotEmpty) {
+      await playTrack(
+        _activeQueue[0],
+        queue: List<PlaybackTrackModel>.from(_activeQueue),
+        startIndex: 0,
+        ensureNextTrackAvailable: _ensureNextTrackAvailable,
+      );
       return;
     }
 
@@ -517,6 +552,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     _lastHistoryReportedTrackId = currentTrack.id;
     _sendPlayedHistoryRequest(currentTrack.id);
+    _sendListenCountRequest(currentTrack.id);
   }
 
   Future<void> _sendPlayedHistoryRequest(String trackId) async {
@@ -546,6 +582,114 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     } catch (error) {
       _lastHistoryReportedTrackId = null;
     }
+  }
+
+  Future<void> _sendListenCountRequest(String trackId) async {
+    try {
+      final String? accessToken = await _storage.read(key: 'access_token');
+      if (accessToken == null || accessToken.trim().isEmpty) return;
+      final String url =
+          '${ApiServices().baseUrl}/api/tracks/v1/listen/$trackId';
+      await _httpClient.patch(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          'User-Agent': 'Android',
+        },
+      );
+    } catch (_) {}
+  }
+
+  void toggleShuffle() {
+    if (_activeQueue.isEmpty) return;
+
+    final PlaybackTrackModel? currentTrack =
+        _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length
+            ? _activeQueue[_currentQueueIndex]
+            : null;
+
+    if (!_isShuffled) {
+      _originalQueue = List<PlaybackTrackModel>.from(_activeQueue);
+      final List<PlaybackTrackModel> remaining =
+          List<PlaybackTrackModel>.from(_activeQueue);
+      if (currentTrack != null) remaining.removeAt(_currentQueueIndex);
+      remaining.shuffle(Random());
+      _activeQueue = [
+        if (currentTrack != null) currentTrack,
+        ...remaining,
+      ];
+      _currentQueueIndex = 0;
+      _isShuffled = true;
+    } else {
+      if (_originalQueue.isNotEmpty) {
+        final int originalIndex = currentTrack != null
+            ? _originalQueue.indexWhere((t) => t.id == currentTrack.id)
+            : -1;
+        _activeQueue = List<PlaybackTrackModel>.from(_originalQueue);
+        _currentQueueIndex = originalIndex >= 0 ? originalIndex : 0;
+      }
+      _originalQueue = const <PlaybackTrackModel>[];
+      _isShuffled = false;
+    }
+
+    notifyListeners();
+  }
+
+  void cycleRepeatMode() {
+    _repeatMode = switch (_repeatMode) {
+      RepeatMode.none => RepeatMode.all,
+      RepeatMode.all => RepeatMode.one,
+      RepeatMode.one => RepeatMode.none,
+    };
+    notifyListeners();
+  }
+
+  void removeFromQueue(int absoluteIndex) {
+    if (absoluteIndex < 0 || absoluteIndex >= _activeQueue.length) return;
+    if (absoluteIndex == _currentQueueIndex) return;
+
+    final List<PlaybackTrackModel> queue =
+        List<PlaybackTrackModel>.from(_activeQueue);
+    queue.removeAt(absoluteIndex);
+    _activeQueue = queue;
+
+    if (absoluteIndex < _currentQueueIndex) {
+      _currentQueueIndex--;
+    }
+
+    notifyListeners();
+  }
+
+  void reorderQueue(int relativeOldIndex, int relativeNewIndex) {
+    if (_currentQueueIndex < 0) return;
+
+    final int afterOffset = _currentQueueIndex + 1;
+    final int absOld = afterOffset + relativeOldIndex;
+    final int absNew = afterOffset + relativeNewIndex;
+
+    if (absOld < 0 || absOld >= _activeQueue.length) return;
+    if (absNew < 0 || absNew >= _activeQueue.length) return;
+    if (absOld == absNew) return;
+
+    final List<PlaybackTrackModel> queue =
+        List<PlaybackTrackModel>.from(_activeQueue);
+    final PlaybackTrackModel item = queue.removeAt(absOld);
+    queue.insert(absNew, item);
+    _activeQueue = queue;
+
+    notifyListeners();
+  }
+
+  void updateQueueKeepingCurrentTrack(List<PlaybackTrackModel> newQueue) {
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null || newQueue.isEmpty) return;
+
+    _activeQueue = List<PlaybackTrackModel>.from(newQueue);
+    final int idx = _activeQueue.indexWhere((t) => t.id == currentTrack.id);
+    _currentQueueIndex = idx >= 0 ? idx : 0;
+
+    notifyListeners();
   }
 
   Future<void> _applyCurrentOutputLevel() async {

@@ -21,6 +21,8 @@ import 'package:cross_team5/features/engagement_social_interactions/screens/like
 import 'package:cross_team5/features/engagement_social_interactions/screens/comments_screen.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
+import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
+import '../services/public_tracks_paging_service.dart';
 
 // Tracks whether the expanded player is currently open so the mini player hides
 final ValueNotifier<bool> _isExpandedPlayerVisible = ValueNotifier<bool>(false);
@@ -342,33 +344,61 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.graphic_eq,
-                                          color: Colors.white70,
-                                          size: 14,
-                                        ),
-                                        SizedBox(width: 6),
-                                        Text(
-                                          'Behind this track',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
+                                  GestureDetector(
+                                    onTap: () async {
+                                      Navigator.of(context).pop();
+                                      final navCtx =
+                                          appNavigatorKey.currentContext;
+                                      if (navCtx == null) return;
+                                      await Future.delayed(Duration.zero);
+                                      if (!navCtx.mounted) return;
+                                      Navigator.of(
+                                        navCtx,
+                                        rootNavigator: true,
+                                      ).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => BehindTheTrackScreen(
+                                            trackId: track.id,
+                                            actorName: track.artistName,
+                                            actorAvatarUrl:
+                                                track.artworkUrl ?? '',
+                                            actorUserId:
+                                                track.artistId ?? '',
+                                            activityType: 'new_track',
+                                            trackOwnerId:
+                                                track.artistId ?? '',
                                           ),
                                         ),
-                                      ],
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.graphic_eq,
+                                            color: Colors.white70,
+                                            size: 14,
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Behind this track',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1965,7 +1995,11 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
           label: '',
           onTap: widget.onShareTap,
         ),
-        const _BottomMetric(icon: Icons.playlist_play_rounded, label: ''),
+        _BottomMetric(
+          icon: Icons.playlist_play_rounded,
+          label: '',
+          onTap: () => _openNextUpSheet(context),
+        ),
         _BottomMetric(
           icon: Icons.more_horiz_rounded,
           label: '',
@@ -2253,9 +2287,26 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 const SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.graphic_eq,
                   label: 'Behind this track',
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final navCtx = appNavigatorKey.currentContext;
+                    if (navCtx == null) return;
+                    Navigator.of(navCtx, rootNavigator: true).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => BehindTheTrackScreen(
+                          trackId: widget.track.id,
+                          actorName: widget.track.artistName,
+                          actorAvatarUrl: widget.track.artworkUrl ?? '',
+                          actorUserId: widget.track.artistId ?? '',
+                          activityType: 'new_track',
+                          trackOwnerId: widget.track.artistId ?? '',
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 const _TrackOptionTile(
                   icon: Icons.outlined_flag_rounded,
@@ -2434,26 +2485,7 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
                         ),
                 );
               }
-              // Show emoji quick-post buttons when bar is empty.
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: () => _postComment('🔥'),
-                    child: const Text('🔥', style: TextStyle(fontSize: 22)),
-                  ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () => _postComment('👏'),
-                    child: const Text('👏', style: TextStyle(fontSize: 22)),
-                  ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () => _postComment('🥺'),
-                    child: const Text('🥺', style: TextStyle(fontSize: 22)),
-                  ),
-                ],
-              );
+              return const SizedBox.shrink();
             },
           ),
         ],
@@ -2477,6 +2509,34 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
   final SocialApiService _socialService = SocialApiService();
   bool _isFollowing = false;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFollowStatus();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ExpandedFollowButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.track.artistId != widget.track.artistId) {
+      setState(() => _isFollowing = false);
+      _checkFollowStatus();
+    }
+  }
+
+  Future<void> _checkFollowStatus() async {
+    final artistId = widget.track.artistId;
+    if (artistId == null || artistId.isEmpty) return;
+    try {
+      final token = await AuthApiService().getStoredAccessToken();
+      if (token == null || !mounted) return;
+      final profile =
+          await UserProfileService().getUserProfile(artistId, token);
+      if (!mounted) return;
+      setState(() => _isFollowing = profile.isFollowed);
+    } catch (_) {}
+  }
 
   Future<void> _toggleFollow() async {
     final artistId = widget.track.artistId;
@@ -2518,6 +2578,402 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
               color: _isFollowing ? Colors.orange : Colors.white70,
               size: 26,
             ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  NEXT UP SHEET — queue viewer with shuffle / repeat / reorder / remove
+// ─────────────────────────────────────────────────────────
+Future<void> _openNextUpSheet(BuildContext context) async {
+  final BuildContext? navigatorContext = appNavigatorKey.currentContext;
+  if (navigatorContext == null) return;
+
+  _isTransientSheetOpening.value = true;
+  try {
+    await showModalBottomSheet<void>(
+      context: navigatorContext,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _NextUpSheet(),
+    );
+  } finally {
+    _isTransientSheetOpening.value = false;
+  }
+}
+
+class _NextUpSheet extends StatefulWidget {
+  const _NextUpSheet();
+
+  @override
+  State<_NextUpSheet> createState() => _NextUpSheetState();
+}
+
+class _NextUpSheetState extends State<_NextUpSheet> {
+  final PlaybackStreamingEngineService _player =
+      PlaybackStreamingEngineService.shared;
+  bool _loadingQueue = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _player.addListener(_onPlayerUpdate);
+    _ensureQueuePopulated();
+  }
+
+  @override
+  void dispose() {
+    _player.removeListener(_onPlayerUpdate);
+    super.dispose();
+  }
+
+  void _onPlayerUpdate() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _ensureQueuePopulated() async {
+    if (_player.activeQueue.length > 1) return;
+    final PlaybackTrackModel? currentTrack = _player.state.currentTrack;
+    if (currentTrack == null) return;
+
+    if (mounted) setState(() => _loadingQueue = true);
+    try {
+      await PublicTracksPagingService.shared.loadInitial(limit: 20);
+      final List<PlaybackTrackModel> publicTracks =
+          PublicTracksPagingService.shared.tracks;
+      if (!mounted) return;
+      if (publicTracks.isNotEmpty) {
+        final List<PlaybackTrackModel> newQueue = [currentTrack];
+        for (final PlaybackTrackModel t in publicTracks) {
+          if (t.id != currentTrack.id) newQueue.add(t);
+        }
+        _player.updateQueueKeepingCurrentTrack(newQueue);
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _loadingQueue = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double maxHeight = MediaQuery.of(context).size.height * 0.88;
+    final PlaybackTrackModel? currentTrack = _player.state.currentTrack;
+    final List<PlaybackTrackModel> queue = _player.activeQueue;
+    final int currentIndex = _player.currentQueueIndex;
+    final bool isShuffled = _player.isShuffled;
+    final RepeatMode repeatMode = _player.repeatMode;
+
+    final List<PlaybackTrackModel> playingNext =
+        (currentIndex >= 0 && currentIndex + 1 < queue.length)
+            ? queue.sublist(currentIndex + 1)
+            : <PlaybackTrackModel>[];
+
+    final bool showPlayingNext =
+        repeatMode != RepeatMode.one && playingNext.isNotEmpty;
+
+    return Container(
+      height: maxHeight,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0A0A0A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Center(
+              child: Container(
+                width: 46,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.white30,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'Next Up',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _player.toggleShuffle,
+                    child: Icon(
+                      Icons.shuffle_rounded,
+                      color: isShuffled
+                          ? AppColors.brilliantOrange
+                          : Colors.white54,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: _player.cycleRepeatMode,
+                    child: repeatMode == RepeatMode.one
+                        ? const Icon(
+                            Icons.repeat_one_rounded,
+                            color: AppColors.brilliantOrange,
+                            size: 24,
+                          )
+                        : Icon(
+                            Icons.repeat_rounded,
+                            color: repeatMode == RepeatMode.all
+                                ? AppColors.brilliantOrange
+                                : Colors.white54,
+                            size: 24,
+                          ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Divider(color: Colors.white12, height: 1),
+            Expanded(
+              child: _loadingQueue
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.brilliantOrange,
+                      ),
+                    )
+                  : ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        if (currentTrack != null) ...[
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
+                            child: Text(
+                              'Currently playing',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                          _QueueCurrentTrackTile(track: currentTrack),
+                          const SizedBox(height: 6),
+                        ],
+                        if (showPlayingNext) ...[
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                            child: Text(
+                              'Playing next',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                          ReorderableListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            proxyDecorator: (child, index, animation) =>
+                                Material(
+                                  color: Colors.transparent,
+                                  child: child,
+                                ),
+                            itemCount: playingNext.length,
+                            onReorder: (oldIndex, newIndex) {
+                              if (newIndex > oldIndex) newIndex--;
+                              _player.reorderQueue(oldIndex, newIndex);
+                            },
+                            itemBuilder: (context, index) {
+                              final PlaybackTrackModel t = playingNext[index];
+                              return _QueueNextTrackTile(
+                                key: ValueKey('q_${t.id}_$index'),
+                                track: t,
+                                index: index,
+                                onRemove: () => _player.removeFromQueue(
+                                  (currentIndex >= 0 ? currentIndex + 1 : 0) +
+                                      index,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QueueCurrentTrackTile extends StatelessWidget {
+  final PlaybackTrackModel track;
+  const _QueueCurrentTrackTile({required this.track});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              color: Colors.grey.shade800,
+            ),
+            child: track.artworkUrl != null &&
+                    track.artworkUrl!.trim().isNotEmpty
+                ? Image.network(
+                    track.artworkUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(Icons.album_rounded, color: Colors.white54),
+                  )
+                : const Icon(Icons.album_rounded, color: Colors.white54),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  track.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  track.artistName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QueueNextTrackTile extends StatelessWidget {
+  final PlaybackTrackModel track;
+  final int index;
+  final VoidCallback onRemove;
+
+  const _QueueNextTrackTile({
+    super.key,
+    required this.track,
+    required this.index,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onRemove,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE53935),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.remove, color: Colors.white, size: 18),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            width: 50,
+            height: 50,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              color: Colors.grey.shade800,
+            ),
+            child: track.artworkUrl != null &&
+                    track.artworkUrl!.trim().isNotEmpty
+                ? Image.network(
+                    track.artworkUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(Icons.album_rounded, color: Colors.white54),
+                  )
+                : const Icon(Icons.album_rounded, color: Colors.white54),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  track.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  track.artistName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ReorderableDragStartListener(
+            index: index,
+            child: const Icon(
+              Icons.drag_handle_rounded,
+              color: Colors.white38,
+              size: 24,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -538,6 +538,7 @@ class _NotificationTileState extends State<_NotificationTile> {
         numReposts: _track?.numReposts ?? 0,
         initialParentCommentId: n.target.targetId,
         initialMentionDisplayName: n.actor.displayName,
+        initialMentionUserId: n.actor.userId,
         initialTimestamp: _commentTimestamp,
       ),
     );
@@ -836,16 +837,32 @@ class _NotificationTileState extends State<_NotificationTile> {
         n.activityType == 'track_commented' ||
         n.activityType == 'user_mentioned' ||
         n.activityType == 'new_track') {
+      final artworkUrl = _track?.artworkUrl;
       final thumb = ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: Container(
-          width: 52,
-          height: 52,
-          color: const Color(0xFF222222),
-          alignment: Alignment.center,
-          child: const Icon(Icons.graphic_eq_rounded,
-              color: Color(0xFF555555), size: 26),
-        ),
+        child: artworkUrl != null && artworkUrl.isNotEmpty
+            ? Image.network(
+                artworkUrl,
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => Container(
+                  width: 52,
+                  height: 52,
+                  color: const Color(0xFF222222),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.graphic_eq_rounded,
+                      color: Color(0xFF555555), size: 26),
+                ),
+              )
+            : Container(
+                width: 52,
+                height: 52,
+                color: const Color(0xFF222222),
+                alignment: Alignment.center,
+                child: const Icon(Icons.graphic_eq_rounded,
+                    color: Color(0xFF555555), size: 26),
+              ),
       );
       if (_track != null) {
         return GestureDetector(onTap: _openTrackOptions, child: thumb);
