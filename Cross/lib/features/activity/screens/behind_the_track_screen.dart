@@ -56,6 +56,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   bool _ownerIsFollowed = false;
   bool _isOwnerFollowLoading = false;
 
+  bool _isReposted = false;
+  String? _currentUserId;
+
   bool get _isCurrentlyPlaying {
     final svc = PlaybackStreamingEngineService.shared;
     return svc.state.currentTrack?.id == _track?.id && svc.state.isPlaying;
@@ -88,7 +91,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _loading = false;
         });
         _checkLikeStatus();
+        _checkRepostStatus();
         _fetchOwnerProfile();
+        final uid = await AuthApiService().getStoredUserId();
+        if (mounted) setState(() => _currentUserId = uid);
       }
     } catch (e) {
       if (mounted) {
@@ -135,6 +141,43 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         setState(() => _isLiked = data['liked'] as bool? ?? false);
       }
     } catch (_) {}
+  }
+
+  Future<void> _checkRepostStatus() async {
+    try {
+      final result = await _engagementApi.getTrackRepostStatus(trackId: widget.trackId);
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is RepostStatus) {
+        setState(() => _isReposted = (result.$2 as RepostStatus).reposted);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _openRepostSheet() async {
+    final track = _track;
+    if (track == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RepostBottomSheet(
+        trackId: track.id,
+        title: track.title,
+        artist: track.artistName,
+        thumbnailUrl: track.artworkUrl,
+        isCurrentlyReposted: _isReposted,
+        currentRepostCount: _repostCount,
+        onRepostToggled: (isNowReposted, newCount) {
+          if (mounted) {
+            setState(() {
+              _isReposted = isNowReposted;
+              _repostCount = newCount;
+            });
+          }
+        },
+      ),
+    );
   }
 
   // ── Exact same pattern as _ExpandedEngagementBarState._toggleLike ──
@@ -736,18 +779,19 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             ),
           ),
           const SizedBox(width: 24),
-          // Repost count (tap opens options for repost)
+          // Repost
           GestureDetector(
-            onTap: _openTrackOptions,
+            onTap: _openRepostSheet,
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                const Icon(Icons.repeat_rounded,
-                    color: Colors.white70, size: 22),
+                Icon(Icons.repeat_rounded,
+                    color: _isReposted ? _kOrange : Colors.white70, size: 22),
                 const SizedBox(width: 5),
                 Text('$_repostCount',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 14)),
+                    style: TextStyle(
+                        color: _isReposted ? _kOrange : Colors.white70,
+                        fontSize: 14)),
               ],
             ),
           ),
@@ -834,34 +878,36 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: _isOwnerFollowLoading ? null : _toggleOwnerFollow,
-            child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: _ownerIsFollowed
-                    ? const Color(0xFF2A2A2A)
-                    : _kOrange,
-                borderRadius: BorderRadius.circular(20),
+          if (_currentUserId != widget.trackOwnerId) ...[
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: _isOwnerFollowLoading ? null : _toggleOwnerFollow,
+              child: Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: _ownerIsFollowed
+                      ? const Color(0xFF2A2A2A)
+                      : _kOrange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                alignment: Alignment.center,
+                child: _isOwnerFollowLoading
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        _ownerIsFollowed ? 'Following' : 'Follow',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600),
+                      ),
               ),
-              alignment: Alignment.center,
-              child: _isOwnerFollowLoading
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2))
-                  : Text(
-                      _ownerIsFollowed ? 'Following' : 'Follow',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600),
-                    ),
             ),
-          ),
+          ],
         ],
       ),
     );
