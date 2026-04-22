@@ -35,6 +35,7 @@ class MessagingApiService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
         'User-Agent': 'Android',
+        'accept': 'application/json'
       };
 
   dynamic _decode(http.Response r) {
@@ -135,75 +136,280 @@ class MessagingApiService {
   }
 
   // PATCH /api/messages/v1/chat/read/{chatId}
-  Future<void> markChatAsRead({required String chatId}) async {
-    final token = await _token();
-    final uri = Uri.parse('$_msgBase/chat/read/$chatId');
-    await _client.patch(
-      uri,
-      headers: _headers(token),
-      body: jsonEncode({'chatId': chatId}),
-    );
-  }
+  // Future<void> markChatAsRead({required String chatId}) async {
+  //   final token = await _token();
+  //   final uri = Uri.parse('$_msgBase/chat/read/$chatId');
+  //   await _client.patch(
+  //     uri,
+  //     headers: _headers(token),
+  //     body: jsonEncode({'chatId': chatId}),
+  //   );
+  // }
 
+    // PATCH /api/messages/v1/chat/read
+  // PATCH /api/messages/v1/chat/read
+  Future<void> markChatAsRead({required String chatId}) async {
+    try {
+      final token = await _token();
+      
+      // ✅ URL is correct now
+      final uri = Uri.parse('${_msgBase}/chat/read');
+      
+      // ✅ FIXED: Backend expects 'id', not 'chatId'
+      final requestBody = {'id': chatId};
+      
+      // 🔍 DEBUG: Log exact request
+      print('📤 [DEBUG] PATCH $uri');
+      print('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
+
+      final response = await _client.patch(
+        uri,
+        headers: _headers(token),
+        body: jsonEncode(requestBody),
+      );
+
+      // 🔍 DEBUG: Log response
+      print('📥 [DEBUG] Status: ${response.statusCode}');
+      print('📥 [DEBUG] Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ Chat $chatId marked as read');
+        return;
+      }
+
+      // Handle errors
+      switch (response.statusCode) {
+        case 400:
+          final data = _decode(response);
+          final msg = data is Map ? data['message'] ?? 'Validation failed' : 'Bad Request';
+          throw Exception('Invalid request: $msg');
+        case 401:
+          throw Exception('Unauthorized: Token invalid/expired');
+        case 404:
+          throw Exception('Endpoint not found: $uri');
+        default:
+          throw Exception('Failed: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e, stack) {
+      print('💥 [ERROR] markChatAsRead: $e');
+      print('📍 Stack: $stack');
+      rethrow;
+    }
+  }
   // PATCH /api/messages/v1/chat/unread/{chatId}
+  // PATCH /api/messages/v1/chat/unread
+  // PATCH /api/messages/v1/chat/unread
+  // PATCH /api/messages/v1/chat/unread
   Future<void> markChatAsUnread({required String chatId}) async {
-    final token = await _token();
-    final uri = Uri.parse('$_msgBase/chat/unread/$chatId');
-    await _client.patch(
-      uri,
-      headers: _headers(token),
-      body: jsonEncode({'chatId': chatId}),
-    );
+    try {
+      final token = await _token();
+      
+      // ✅ URL construction (same pattern as markChatAsRead)
+      final uri = Uri.parse('${_msgBase}/chat/unread');
+      
+      // ✅ Body: Backend expects 'id' field (same as markChatAsRead)
+      final requestBody = {'id': chatId};
+      
+      // 🔍 DEBUG: Log outgoing request
+      print('📤 [DEBUG] PATCH $uri');
+      print('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
+      print('📤 [DEBUG] Headers: ${_headers(token)}');
+
+      final response = await _client.patch(
+        uri,
+        headers: _headers(token),
+        body: jsonEncode(requestBody),
+      );
+
+      // 🔍 DEBUG: Log incoming response
+      print('📥 [DEBUG] Status: ${response.statusCode}');
+      print('📥 [DEBUG] Body: ${response.body}');
+      print('📥 [DEBUG] Headers: ${response.headers}');
+
+      // ✅ Handle success codes
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ Chat $chatId marked as unread successfully');
+        return;
+      }
+
+      // ❌ Handle error codes with specific messages
+      switch (response.statusCode) {
+        case 400:
+          final data = _decode(response);
+          final errors = data is Map ? data['errors'] : null;
+          final msg = data is Map ? data['message'] ?? 'Validation failed' : 'Bad Request';
+          
+          if (errors is List) {
+            print('⚠️ [DEBUG] Validation errors: $errors');
+          }
+          throw Exception('Invalid request: $msg');
+          
+        case 401:
+          throw Exception('Unauthorized: Token invalid or expired');
+        case 403:
+          throw Exception('Forbidden: You do not have permission for this action');
+        case 404:
+          throw Exception('Endpoint not found: $uri');
+        default:
+          throw Exception('Failed: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e, stack) {
+      print('💥 [ERROR] markChatAsUnread failed: $e');
+      print('📍 Stack: $stack');
+      rethrow; // Let UI handle error display
+    }
   }
 
   // GET /api/public/tracks/v1/liked/{userId}
+  // Future<List<PlaybackTrackModel>> getLikedTracks({
+  //   required String userId,
+  // }) async {
+  //   final token = await _token();
+  //   final uri = Uri.parse('$_tracksBase/liked/$userId');
+  //   debugPrint('[MessagingApiService.getLikedTracks] GET $uri');
+  //   final res = await _client.get(uri, headers: _headers(token));
+  //   final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
+  //   debugPrint('[MessagingApiService.getLikedTracks] status=${res.statusCode} bodyPreview=$preview');
+  //   final data = _decode(res);
+  //   if (res.statusCode == 200 && data is Map) {
+  //     final rawData = data['data'];
+  //     debugPrint('[MessagingApiService.getLikedTracks] data["data"] runtimeType=${rawData.runtimeType} value=$rawData');
+  //     final list = _extractTrackList(rawData);
+  //     debugPrint('[MessagingApiService.getLikedTracks] extracted ${list.length} items');
+  //     return list
+  //         .whereType<Map<String, dynamic>>()
+  //         .map(PlaybackTrackModel.fromApiJson)
+  //         .toList();
+  //   }
+  //   debugPrint('[MessagingApiService.getLikedTracks] Non-200 or bad body. status=${res.statusCode}');
+  //   return [];
+  // }
+
+
+    // GET /api/public/tracks/v1/liked/{userId}
+    // GET /api/public/tracks/v1/liked/{userId}
   Future<List<PlaybackTrackModel>> getLikedTracks({
     required String userId,
   }) async {
-    final token = await _token();
-    final uri = Uri.parse('$_tracksBase/liked/$userId');
-    debugPrint('[MessagingApiService.getLikedTracks] GET $uri');
-    final res = await _client.get(uri, headers: _headers(token));
-    final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
-    debugPrint('[MessagingApiService.getLikedTracks] status=${res.statusCode} bodyPreview=$preview');
-    final data = _decode(res);
-    if (res.statusCode == 200 && data is Map) {
-      final rawData = data['data'];
-      debugPrint('[MessagingApiService.getLikedTracks] data["data"] runtimeType=${rawData.runtimeType} value=$rawData');
-      final list = _extractTrackList(rawData);
-      debugPrint('[MessagingApiService.getLikedTracks] extracted ${list.length} items');
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map(PlaybackTrackModel.fromApiJson)
-          .toList();
+    try {
+      final token = await _token();
+      final uri = Uri.parse('$_tracksBase/liked/$userId');
+      
+      print('📤 [DEBUG] GET $uri');
+      print('📤 [DEBUG] Headers: ${_headers(token)}');
+      
+      final res = await _client.get(uri, headers: _headers(token));
+      
+      print('📥 [DEBUG] Status: ${res.statusCode}');
+      print('📥 [DEBUG] Body: ${res.body}');
+      
+      final data = _decode(res);
+      
+      if (res.statusCode == 200 && data is Map) {
+        final rawData = data['data'];
+        print('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
+        final list = _extractTrackList(rawData);
+        print('✅ Extracted ${list.length} liked tracks');
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map(PlaybackTrackModel.fromApiJson)
+            .toList();
+      }
+      
+      // ⚠️ WORKAROUND: Return empty list on 500 (backend bug)
+      if (res.statusCode == 500) {
+        print('⚠️ [DEBUG] 500: Backend error on liked tracks — returning empty list');
+        print('📌 [DEBUG] This is a known backend issue for userId=$userId');
+        return [];
+      }
+      
+      // Handle 404 - user not found
+      if (res.statusCode == 404) {
+        print('⚠️ [DEBUG] 404: User $userId not found');
+        return [];
+      }
+      
+      throw Exception(
+          (data is Map ? data['message']?.toString() : null) ??
+              'Failed to load liked tracks: ${res.statusCode}');
+    } catch (e, stack) {
+      print('💥 [ERROR] getLikedTracks: $e');
+      print('📍 Stack: $stack');
+      rethrow;
     }
-    debugPrint('[MessagingApiService.getLikedTracks] Non-200 or bad body. status=${res.statusCode}');
-    return [];
   }
 
   // GET /api/public/tracks/v1/user/{userId}
+  // Future<List<PlaybackTrackModel>> getUserPostedTracks({
+  //   required String userId,
+  // }) async {
+  //   final token = await _token();
+  //   final uri = Uri.parse('$_tracksBase/user/$userId');
+  //   debugPrint('[MessagingApiService.getUserPostedTracks] GET $uri');
+  //   final res = await _client.get(uri, headers: _headers(token));
+  //   final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
+  //   debugPrint('[MessagingApiService.getUserPostedTracks] status=${res.statusCode} bodyPreview=$preview');
+  //   final data = _decode(res);
+  //   if (res.statusCode == 200 && data is Map) {
+  //     final rawData = data['data'];
+  //     debugPrint('[MessagingApiService.getUserPostedTracks] data["data"] runtimeType=${rawData.runtimeType}');
+  //     final list = _extractTrackList(rawData);
+  //     debugPrint('[MessagingApiService.getUserPostedTracks] extracted ${list.length} items');
+  //     return list
+  //         .whereType<Map<String, dynamic>>()
+  //         .map(PlaybackTrackModel.fromApiJson)
+  //         .toList();
+  //   }
+  //   debugPrint('[MessagingApiService.getUserPostedTracks] Non-200 or bad body. status=${res.statusCode}');
+  //   return [];
+  // }
+
+    // GET /api/public/tracks/v1/user/{userId}
+    // GET /api/public/tracks/v1/posted/{userId}
   Future<List<PlaybackTrackModel>> getUserPostedTracks({
     required String userId,
   }) async {
-    final token = await _token();
-    final uri = Uri.parse('$_tracksBase/user/$userId');
-    debugPrint('[MessagingApiService.getUserPostedTracks] GET $uri');
-    final res = await _client.get(uri, headers: _headers(token));
-    final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
-    debugPrint('[MessagingApiService.getUserPostedTracks] status=${res.statusCode} bodyPreview=$preview');
-    final data = _decode(res);
-    if (res.statusCode == 200 && data is Map) {
-      final rawData = data['data'];
-      debugPrint('[MessagingApiService.getUserPostedTracks] data["data"] runtimeType=${rawData.runtimeType}');
-      final list = _extractTrackList(rawData);
-      debugPrint('[MessagingApiService.getUserPostedTracks] extracted ${list.length} items');
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map(PlaybackTrackModel.fromApiJson)
-          .toList();
+    try {
+      final token = await _token();
+      
+      // ✅ CORRECTED: Use /posted/{id} as per API documentation
+      final uri = Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v1/posted/$userId');
+      
+      print('📤 [DEBUG] GET $uri');
+      print('📤 [DEBUG] Headers: ${_headers(token)}');
+      
+      final res = await _client.get(uri, headers: _headers(token));
+      
+      print('📥 [DEBUG] Status: ${res.statusCode}');
+      print('📥 [DEBUG] Body: ${res.body}');
+      
+      final data = _decode(res);
+      
+      if (res.statusCode == 200 && data is Map) {
+        final rawData = data['data'];
+        print('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
+        final list = _extractTrackList(rawData);
+        print('✅ Extracted ${list.length} uploaded tracks');
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map(PlaybackTrackModel.fromApiJson)
+            .toList();
+      }
+      
+      // Handle 404 - user not found or has no public tracks
+      if (res.statusCode == 404) {
+        print('⚠️ [DEBUG] 404: User $userId not found or has no public tracks');
+        return []; // Return empty list instead of throwing
+      }
+      
+      throw Exception(
+          (data is Map ? data['message']?.toString() : null) ??
+              'Failed to load uploaded tracks: ${res.statusCode}');
+    } catch (e, stack) {
+      print('💥 [ERROR] getUserPostedTracks: $e');
+      print('📍 Stack: $stack');
+      rethrow;
     }
-    debugPrint('[MessagingApiService.getUserPostedTracks] Non-200 or bad body. status=${res.statusCode}');
-    return [];
   }
 
   /// Handles the API returning data as:

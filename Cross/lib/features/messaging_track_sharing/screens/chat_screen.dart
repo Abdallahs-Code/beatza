@@ -271,6 +271,15 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+
+    /// Closes the chat and signals to the parent that a refresh is needed
+  void _closeChat() {
+    Navigator.of(context).pop(true); // Return true to trigger MessagesTab refresh
+  }
+
+
+
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients && _scrollCtrl.position.pixels != 0) {
@@ -439,17 +448,24 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _kBg,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(child: _buildBody()),
-          if (_isReceiverBlocked)
-            _buildBlockBanner()
-          else
-            _buildInputBar(),
-        ],
+    return WillPopScope(
+      // ✅ Intercept hardware back button to ensure we always return true
+      onWillPop: () async {
+        _closeChat();
+        return false; // We already handled the pop, so prevent default behavior
+      },
+      child: Scaffold(
+        backgroundColor: _kBg,
+        appBar: _buildAppBar(),
+        body: Column(
+          children: [
+            Expanded(child: _buildBody()),
+            if (_isReceiverBlocked)
+              _buildBlockBanner()
+            else
+              _buildInputBar(),
+          ],
+        ),
       ),
     );
   }
@@ -460,11 +476,10 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: _kBg,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, size: 20),
-        onPressed: () => Navigator.of(context).maybePop(),
-      ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: _closeChat, // ✅ Use the new method instead of direct pop
+        ),
       title: Row(
         children: [
           CircleAvatar(

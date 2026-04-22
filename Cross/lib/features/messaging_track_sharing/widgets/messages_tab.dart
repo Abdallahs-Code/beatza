@@ -100,7 +100,75 @@ class _MessagesTabState extends State<MessagesTab> {
     return _chats;
   }
 
-  Future<void> _openChat(ChatModel chat) async {
+  // Future<void> _openChat(ChatModel chat) async {
+  //   debugPrint('[MessagesTab._openChat] Opening chat ${chat.id}. isUnread=${chat.isUnread(_currentUserId ?? "")}');
+
+  //   // Optimistically mark as read in local state so the unread dot disappears immediately
+  //   if (_currentUserId != null) {
+  //     final idx = _chats.indexWhere((c) => c.id == chat.id);
+  //     if (idx >= 0) {
+  //       final lm = _chats[idx].lastMessage;
+  //       if (lm != null && !lm.seenBy.contains(_currentUserId)) {
+  //         debugPrint('[MessagesTab._openChat] Optimistically marking chat ${chat.id} as read');
+  //         setState(() {
+  //           _chats[idx] = _chats[idx].copyWith(
+  //             lastMessage: LastMessageModel(
+  //               id: lm.id,
+  //               senderId: lm.senderId,
+  //               content: lm.content,
+  //               seenBy: [...lm.seenBy, _currentUserId!],
+  //               createdAt: lm.createdAt,
+  //             ),
+  //           );
+  //         });
+  //       }
+  //     }
+  //   }
+
+  //   final archived = await Navigator.of(context).push<bool>(
+  //     MaterialPageRoute(
+  //       builder: (_) => ChatScreen(
+  //         chatId: chat.id,
+  //         receiverId: chat.otherPerson?.userId ?? '',
+  //         receiverName: chat.otherPerson?.displayName ?? '',
+  //         receiverPhotoUrl: chat.otherPerson?.photoUrl ?? '',
+  //       ),
+  //     ),
+  //   );
+  //   if (!mounted) return;
+  //   if (archived == true) {
+  //     debugPrint('[MessagesTab._openChat] Chat ${chat.id} archived');
+  //     setState(() => _chats.removeWhere((c) => c.id == chat.id));
+  //   } else {
+  //     final visitedChatId = chat.id;
+  //     debugPrint('[MessagesTab._openChat] Returned from chat $visitedChatId, refreshing list');
+  //     await _load();
+  //     // Issue 1: server sometimes returns stale seenBy even after markChatAsRead
+  //     // succeeds. Re-apply our optimistic read mark so the unread dot stays gone.
+  //     if (mounted && _currentUserId != null) {
+  //       final idx = _chats.indexWhere((c) => c.id == visitedChatId);
+  //       if (idx >= 0 && _chats[idx].isUnread(_currentUserId!)) {
+  //         debugPrint('[MessagesTab._openChat] Server still shows unread for $visitedChatId after reload — forcing local read');
+  //         final lm = _chats[idx].lastMessage;
+  //         if (lm != null) {
+  //           setState(() {
+  //             _chats[idx] = _chats[idx].copyWith(
+  //               lastMessage: LastMessageModel(
+  //                 id: lm.id,
+  //                 senderId: lm.senderId,
+  //                 content: lm.content,
+  //                 seenBy: [...lm.seenBy, _currentUserId!],
+  //                 createdAt: lm.createdAt,
+  //               ),
+  //             );
+  //           });
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+    Future<void> _openChat(ChatModel chat) async {
     debugPrint('[MessagesTab._openChat] Opening chat ${chat.id}. isUnread=${chat.isUnread(_currentUserId ?? "")}');
 
     // Optimistically mark as read in local state so the unread dot disappears immediately
@@ -125,7 +193,9 @@ class _MessagesTabState extends State<MessagesTab> {
       }
     }
 
-    final archived = await Navigator.of(context).push<bool>(
+    // Push ChatScreen and wait for it to close
+    // ✅ We now always get a result because ChatScreen always pops with true
+    await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => ChatScreen(
           chatId: chat.id,
@@ -135,36 +205,11 @@ class _MessagesTabState extends State<MessagesTab> {
         ),
       ),
     );
-    if (!mounted) return;
-    if (archived == true) {
-      debugPrint('[MessagesTab._openChat] Chat ${chat.id} archived');
-      setState(() => _chats.removeWhere((c) => c.id == chat.id));
-    } else {
-      final visitedChatId = chat.id;
-      debugPrint('[MessagesTab._openChat] Returned from chat $visitedChatId, refreshing list');
+    
+    // ✅ ALWAYS refresh the messages list when returning from chat
+    if (mounted) {
+      debugPrint('[MessagesTab._openChat] Chat closed, refreshing messages list');
       await _load();
-      // Issue 1: server sometimes returns stale seenBy even after markChatAsRead
-      // succeeds. Re-apply our optimistic read mark so the unread dot stays gone.
-      if (mounted && _currentUserId != null) {
-        final idx = _chats.indexWhere((c) => c.id == visitedChatId);
-        if (idx >= 0 && _chats[idx].isUnread(_currentUserId!)) {
-          debugPrint('[MessagesTab._openChat] Server still shows unread for $visitedChatId after reload — forcing local read');
-          final lm = _chats[idx].lastMessage;
-          if (lm != null) {
-            setState(() {
-              _chats[idx] = _chats[idx].copyWith(
-                lastMessage: LastMessageModel(
-                  id: lm.id,
-                  senderId: lm.senderId,
-                  content: lm.content,
-                  seenBy: [...lm.seenBy, _currentUserId!],
-                  createdAt: lm.createdAt,
-                ),
-              );
-            });
-          }
-        }
-      }
     }
   }
 
