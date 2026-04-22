@@ -6,6 +6,7 @@ import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import 'package:cross_team5/features/messaging_track_sharing/widgets/messages_tab.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
@@ -27,6 +28,7 @@ class _ActivityScreenState extends State<ActivityScreen>
   late final ActivityNotificationsController _controller;
   late final TabController _tabController;
   bool _didRequestFreshState = false;
+  MessageFilter _messageFilter = MessageFilter.all;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     _controller = ActivityNotificationsController.shared;
     _controller.initialize();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onUpdate);
     _controller.addListener(_onUpdate);
   }
 
@@ -64,6 +67,7 @@ class _ActivityScreenState extends State<ActivityScreen>
   @override
   void dispose() {
     _controller.removeListener(_onUpdate);
+    _tabController.removeListener(_onUpdate);
     _tabController.dispose();
     super.dispose();
   }
@@ -75,6 +79,14 @@ class _ActivityScreenState extends State<ActivityScreen>
   // ─── Filter sheet ──────────────────────────────────────────────────────────
 
   Future<void> _openFilterSheet() async {
+    if (_tabController.index == 1) {
+      await _openMessageFilterSheet();
+    } else {
+      await _openNotificationFilterSheet();
+    }
+  }
+
+  Future<void> _openNotificationFilterSheet() async {
     final selected = await showModalBottomSheet<ActivityNotificationFilter>(
       context: context,
       backgroundColor: const Color(0xFF1A1A1A),
@@ -125,6 +137,58 @@ class _ActivityScreenState extends State<ActivityScreen>
     if (selected != null) _controller.setFilter(selected);
   }
 
+  Future<void> _openMessageFilterSheet() async {
+    final selected = await showModalBottomSheet<MessageFilter>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              _msgFilterTile(ctx, MessageFilter.all, 'All messages'),
+              _msgFilterTile(ctx, MessageFilter.unreadOnly, 'Unread only'),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected != null && mounted) {
+      setState(() => _messageFilter = selected);
+    }
+  }
+
+  Widget _msgFilterTile(
+      BuildContext ctx, MessageFilter f, String label) {
+    final sel = f == _messageFilter;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      title: Text(label,
+          style: TextStyle(
+            color: sel ? _kOrange : Colors.white,
+            fontSize: 15,
+            fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+          )),
+      trailing: sel
+          ? const Icon(Icons.check_rounded, color: _kOrange, size: 20)
+          : null,
+      onTap: () => Navigator.of(ctx).pop(f),
+    );
+  }
+
   // ─── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -136,7 +200,7 @@ class _ActivityScreenState extends State<ActivityScreen>
         controller: _tabController,
         children: [
           _buildNotificationsTab(),
-          _buildMessagesPlaceholder(),
+          _buildMessagesTab(),
         ],
       ),
     );
@@ -335,26 +399,8 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  Widget _buildMessagesPlaceholder() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.mail_outline_rounded,
-              color: Colors.white24, size: 52),
-          SizedBox(height: 16),
-          Text('No messages yet',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700)),
-          SizedBox(height: 8),
-          Text('Your messages will appear here.',
-              style:
-                  TextStyle(color: Colors.white38, fontSize: 14)),
-        ],
-      ),
-    );
+  Widget _buildMessagesTab() {
+    return MessagesTab(filter: _messageFilter);
   }
 }
 
