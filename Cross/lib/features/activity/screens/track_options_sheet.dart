@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
+import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
@@ -16,11 +19,15 @@ class TrackOptionsSheet extends StatefulWidget {
 
 class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   final _engagementApi = EngagementApiService();
+  final _msgApi = MessagingApiService();
 
   bool _isLiked = false;
   bool _isLikeLoading = false;
   bool _isReposted = false;
   late int _repostCount;
+
+  List<({String chatId, String name, String photoUrl})> _recentContacts = [];
+  String? _trackPermalink;
 
   @override
   void initState() {
@@ -28,6 +35,26 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     _repostCount = widget.track.numReposts;
     _checkLikeStatus();
     _checkRepostStatus();
+    _loadSendToData();
+  }
+
+  Future<void> _loadSendToData() async {
+    try {
+      final chats = await _msgApi.getChats(limit: 6);
+      final permalink =
+          await _msgApi.getTrackPermalink(trackId: widget.track.id);
+      if (!mounted) return;
+      setState(() {
+        _recentContacts = chats
+            .map((c) => (
+                  chatId: c.id,
+                  name: c.otherPerson?.displayName ?? '',
+                  photoUrl: c.otherPerson?.photoUrl ?? '',
+                ))
+            .toList();
+        _trackPermalink = permalink ?? widget.track.permalink ?? '';
+      });
+    } catch (_) {}
   }
 
   Future<void> _checkLikeStatus() async {
@@ -133,6 +160,35 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     ));
   }
 
+  void _openSendToSheet() {
+    final link = _trackPermalink ?? '';
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (_) => SendToSheet(
+        trackLink: link,
+        trackTitle: widget.track.title,
+      ),
+    );
+  }
+
+  void _sendToContact(String chatId, String name, String photoUrl) {
+    final link = _trackPermalink ?? '';
+    Navigator.of(context, rootNavigator: true).pop(); // close sheet
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          chatId: chatId,
+          receiverName: name,
+          receiverPhotoUrl: photoUrl,
+          initialContent: link,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openRepost() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -189,6 +245,37 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   child: _TrackHeaderCard(track: widget.track),
                 ),
                 const SizedBox(height: 22),
+                if (_recentContacts.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      'SEND TO',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        letterSpacing: 2.2,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Row(
+                      children: _recentContacts
+                          .map((c) => _SendToContact(
+                                name: c.name,
+                                photoUrl: c.photoUrl,
+                                onTap: () => _sendToContact(c.chatId, c.name, c.photoUrl),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Divider(color: Colors.white12, height: 1),
+                ],
+                const SizedBox(height: 18),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
@@ -206,13 +293,17 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
-                    children: const [
-                      _ShareAction(icon: Icons.send_outlined, label: 'Message'),
-                      _ShareAction(icon: Icons.copy_outlined, label: 'Copy link'),
-                      _ShareAction(icon: Icons.qr_code_2_outlined, label: 'QR code'),
-                      _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
-                      _ShareAction(icon: Icons.chat_bubble_outline, label: 'WhatsApp'),
-                      _ShareAction(icon: Icons.camera_alt_outlined, label: 'Stories'),
+                    children: [
+                      _ShareAction(
+                        icon: Icons.send_outlined,
+                        label: 'Message',
+                        onTap: _openSendToSheet,
+                      ),
+                      const _ShareAction(icon: Icons.copy_outlined, label: 'Copy link'),
+                      const _ShareAction(icon: Icons.qr_code_2_outlined, label: 'QR code'),
+                      const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
+                      const _ShareAction(icon: Icons.chat_bubble_outline, label: 'WhatsApp'),
+                      const _ShareAction(icon: Icons.camera_alt_outlined, label: 'Stories'),
                     ],
                   ),
                 ),
@@ -395,31 +486,98 @@ class _TrackHeaderCard extends StatelessWidget {
 class _ShareAction extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
-  const _ShareAction({required this.icon, required this.label});
+  const _ShareAction({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 18),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.10),
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 30),
             ),
-            child: Icon(icon, color: Colors.white, size: 30),
-          ),
-          const SizedBox(height: 8),
-          Text(label,
-              style: const TextStyle(color: Colors.white, fontSize: 13)),
-        ],
+            const SizedBox(height: 8),
+            Text(label,
+                style: const TextStyle(color: Colors.white, fontSize: 13)),
+          ],
+        ),
       ),
     );
+  }
+}
+
+// ── Send-to contact circle ────────────────────────────────────────────────────
+
+class _SendToContact extends StatelessWidget {
+  final String name;
+  final String photoUrl;
+  final VoidCallback onTap;
+
+  const _SendToContact({
+    required this.name,
+    required this.photoUrl,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 31,
+              backgroundColor: const Color(0xFF2A2A2A),
+              backgroundImage:
+                  photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              child: photoUrl.isEmpty
+                  ? Text(
+                      _initials(name),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: 64,
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _initials(String text) {
+    final parts = text.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }
 
