@@ -2,7 +2,6 @@
 import 'dart:io';
 
 import 'package:cross_team5/features/user_profile_social_identity/screens/your_uploads_spotlight_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../premium_subscription/services/payment_service.dart';

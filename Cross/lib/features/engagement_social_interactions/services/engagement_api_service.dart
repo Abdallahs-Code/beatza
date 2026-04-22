@@ -1,6 +1,5 @@
 // Dart imports
 import 'dart:convert';
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -9,7 +8,6 @@ import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/repost_status.dart';
-import 'package:logger/logger.dart';
 
 class EngagementApiService {
   final ApiServices _apiServices;

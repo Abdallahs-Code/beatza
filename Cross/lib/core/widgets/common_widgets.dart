@@ -233,7 +233,7 @@ void _showCreatePlaylistBottomSheet(BuildContext context) {
 }
 
 class CreatePlaylistBottomSheet extends StatefulWidget {
-  const CreatePlaylistBottomSheet({Key? key}) : super(key: key);
+  const CreatePlaylistBottomSheet({super.key});
 
   @override
   State<CreatePlaylistBottomSheet> createState() => _CreatePlaylistBottomSheetState();
@@ -341,7 +341,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                   Switch(
                     value: _isPublic,
                     onChanged: (val) => setState(() => _isPublic = val),
-                    activeColor: Colors.white,
+                    activeThumbColor: Colors.white,
                     activeTrackColor: const Color(0xFFFF5500),
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: Colors.white24,
@@ -354,8 +354,6 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 height: 52,
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Logic for creating the playlist
-                    Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.white, width: 1.5),

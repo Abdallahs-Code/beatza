@@ -40,7 +40,7 @@ class ExpiryDateFormatter extends TextInputFormatter {
 
 class PaymentCheckoutSheet extends StatefulWidget {
   final Map<String, dynamic> plan;
-  const PaymentCheckoutSheet({Key? key, required this.plan}) : super(key: key);
+  const PaymentCheckoutSheet({super.key, required this.plan});
 
   @override
   State<PaymentCheckoutSheet> createState() => _PaymentCheckoutSheetState();

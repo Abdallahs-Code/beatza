@@ -3,10 +3,8 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:cross_team5/features/audio_upload_track_management/models/track_model.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/audio_upload_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
-import 'package:cross_team5/features/audio_upload_track_management/widgets/smart_player_widget.dart';
 import 'package:cross_team5/features/audio_upload_track_management/widgets/pro_disabled_switch_widget.dart';
 import 'package:cross_team5/features/audio_upload_track_management/widgets/pro_radio_tile_widget.dart';
 import 'package:cross_team5/features/audio_upload_track_management/screens/artist_pro_screens.dart';
@@ -70,7 +68,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   bool _uploadComplete = false;
   StreamSubscription<int>? _uploadSubscription;
   PlatformFile? _coverImage;
-  bool _isPlayerVisible = false;
 
   final _titleController = TextEditingController();
   final _genreController = TextEditingController();
@@ -151,7 +148,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       _isUploading = true;
       _uploadComplete = false;
       _uploadProgress = 0;
-      _isPlayerVisible = false;
     });
 
     _uploadSubscription?.cancel();
@@ -164,7 +160,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           setState(() {
             _isUploading = false;
             _uploadComplete = true;
-            _isPlayerVisible = true;
           });
         }
       },
@@ -192,7 +187,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       _uploadComplete = false;
       _uploadProgress = 0;
       _titleController.clear();
-      _isPlayerVisible = false;
     });
   }
 
@@ -522,33 +516,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
                 ],
               ),
-              // if (_selectedFile != null &&
-              //     _selectedFile!.path != null &&
-              //     _isPlayerVisible &&
-              //     _uploadComplete)
-              //   Positioned(
-              //     left: 0,
-              //     right: 0,
-              //     bottom: 16,
-              //     child: SafeArea(
-              //       child: SmartWaveformPlayer(
-              //         track: TrackModel(
-              //           id: _selectedFile!.path!,
-              //           title: _titleController.text.trim().isNotEmpty
-              //               ? _titleController.text
-              //               : (_selectedFileName ?? 'Preview'),
-              //           audioUrl: _selectedFile!.path!,
-              //           coverImagePath: _coverImage?.path,
-              //           genre: 'Unknown',
-              //           descriptiveTags: const [],
-              //           releaseDate: DateTime.now(),
-              //           fileFormat: _selectedFile!.extension ?? 'mp3',
-              //           waveformPeaks: const [],
-              //         ),
-              //         onClose: () => setState(() => _isPlayerVisible = false),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         );

@@ -162,6 +162,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
           );
         }
       } catch (e) {
+        debugPrint('Error checking local file for track ${track.id}: $e');
       }
 
       await _audioPlayerClient.play(trackToPlay);
@@ -616,7 +617,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       if (currentTrack != null) remaining.removeAt(_currentQueueIndex);
       remaining.shuffle(Random());
       _activeQueue = [
-        if (currentTrack != null) currentTrack,
+        ?currentTrack,
         ...remaining,
       ];
       _currentQueueIndex = 0;

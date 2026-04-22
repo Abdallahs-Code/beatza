@@ -6,7 +6,6 @@ import 'package:cross_team5/features/audio_upload_track_management/models/track_
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/audio_upload_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
-import 'package:cross_team5/features/audio_upload_track_management/widgets/smart_player_widget.dart';
 import 'package:cross_team5/features/audio_upload_track_management/screens/upload_track_screen.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
@@ -637,19 +636,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 );
               },
             ),
-
-            // if (_playingLocalTrack != null)
-            //   Positioned(
-            //     left: 0,
-            //     right: 0,
-            //     bottom: 16,
-            //     child: SafeArea(
-            //       child: SmartWaveformPlayer(
-            //         track: _playingLocalTrack!,
-            //         onClose: () => setState(() => _playingLocalTrack = null),
-            //       ),
-            //     ),
-            //   ),
           ],
         ),
       ),
@@ -720,15 +706,15 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 final AudioUploadService audioService = AudioUploadService();
                 final file = await audioService.pickAudioFile();
 
-                if (file != null && context.mounted) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const UploadTrackScreen(),
-                      settings: RouteSettings(arguments: file),
-                    ),
-                  );
-                }
+                if (file == null) return;
+                if (!mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UploadTrackScreen(),
+                    settings: RouteSettings(arguments: file),
+                  ),
+                );
               },
             ),
           ],

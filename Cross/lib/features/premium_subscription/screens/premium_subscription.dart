@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/payment_service.dart';
-import '../widgets/PaymentCheckoutSheet.dart';
+import '../widgets/payment_checkout_sheet.dart';
 import 'pro_restrictions_screen.dart';
 
 class PremiumSubscriptionScreen extends StatefulWidget {
-  const PremiumSubscriptionScreen({Key? key}) : super(key: key);
+  const PremiumSubscriptionScreen({super.key});
 
   @override
   State<PremiumSubscriptionScreen> createState() => _PremiumSubscriptionScreenState();
@@ -354,10 +354,18 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
               final int userWeight = getUserPlanWeight(currentPriceId);
               final planIdString = plan['id'].toString().toLowerCase();
               int cardWeight = 0;
-              if (planIdString == 'pro_yearly') cardWeight = 40;
-              else if (planIdString == 'pro_monthly') cardWeight = 30;
-              else if (planIdString == 'artist_yearly') cardWeight = 20;
-              else if (planIdString == 'artist_monthly') cardWeight = 10;
+              if (planIdString == 'pro_yearly') {
+                cardWeight = 40;
+              }
+              else if (planIdString == 'pro_monthly') {
+                cardWeight = 30;
+              }
+              else if (planIdString == 'artist_yearly') {
+                cardWeight = 20;
+              }
+              else if (planIdString == 'artist_monthly') {
+                cardWeight = 10;
+              }
 
               final bool isCurrentPlan = currentPriceId != null && currentPriceId == plan['priceId'];
 

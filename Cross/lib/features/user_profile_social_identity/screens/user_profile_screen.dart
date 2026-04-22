@@ -22,7 +22,6 @@ import '../models/spotlight_models.dart';
 import '../../premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'edit_spotlight_screen.dart';
-import 'your_uploads_spotlight_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -1003,16 +1002,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             isFollowActionLoading: _isFollowActionLoading,
                             onFollowToggle: _toggleFollowUser,
                           ),
-                          // if (_currentlyPlayingTrack != null)
-                          //   Positioned(
-                          //     left: 0,
-                          //     right: 0,
-                          //     bottom: 84,
-                          //     child: YourInsights(
-                          //       track: _currentlyPlayingTrack!,
-                          //       onClose: _closePlayer,
-                          //     ),
-                          //   ),
                           const Positioned(
                             left: 0,
                             right: 0,

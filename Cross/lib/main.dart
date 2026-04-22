@@ -22,8 +22,6 @@ void main() async {
 
   try {
     await PaymentService.subscriptionSuccessNotifier.refresh();
-
-    final subState = PaymentService.subscriptionSuccessNotifier.value;
   } catch (e) {
     await PaymentService.subscriptionSuccessNotifier.loadLocalStatus();
   }

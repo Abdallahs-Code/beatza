@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/payment_service.dart';
-import '../widgets/PaymentCheckoutSheet.dart';
+import '../widgets/payment_checkout_sheet.dart';
 import 'pro_restrictions_screen.dart';
 
 class PremiumSubscriptionScreen extends StatefulWidget {
-  const PremiumSubscriptionScreen({Key? key}) : super(key: key);
+  const PremiumSubscriptionScreen({super.key});
 
   @override
   State<PremiumSubscriptionScreen> createState() => _PremiumSubscriptionScreenState();
@@ -355,8 +355,11 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
               final planIdString = plan['id'].toString().toLowerCase();
               int cardTier = 0;
-              if (planIdString.contains('pro')) cardTier = 2;
-              else if (planIdString.contains('artist')) cardTier = 1;
+              if (planIdString.contains('pro')) {
+                cardTier = 2;
+              } else if (planIdString.contains('artist')) {
+                cardTier = 1;
+              }
 
               final bool isCurrentPlan = currentPriceId != null && currentPriceId == plan['priceId'];
               final bool isLowerTier = !isCurrentPlan && userTier > cardTier && userTier > 0;
