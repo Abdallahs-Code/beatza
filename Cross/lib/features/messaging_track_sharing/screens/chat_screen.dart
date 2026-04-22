@@ -71,9 +71,46 @@ class _ChatScreenState extends State<ChatScreen> {
     _currentUserId = await _auth.getStoredUserId();
     final token = await _auth.getStoredAccessToken() ?? '';
 
+    // Issue 5 fix: if opened with only receiverId (e.g. from profile), look for an existing chat first
+    if (_chatId == null &&
+        widget.receiverId != null &&
+        widget.receiverId!.isNotEmpty) {
+      try {
+        debugPrint('[ChatScreen._init] No chatId. Searching for existing chat with receiverId=${widget.receiverId}');
+        final chats = await _api.getChats(limit: 50);
+        debugPrint('[ChatScreen._init] Fetched ${chats.length} chats to search');
+        for (final c in chats) {
+          debugPrint('[ChatScreen._init] → chat ${c.id}: receiver.userId="${c.receiver?.userId}" sender.userId="${c.sender?.userId}"');
+        }
+        ChatModel? found;
+        try {
+          found = chats.firstWhere(
+            (c) =>
+                (c.receiver?.userId.isNotEmpty == true &&
+                    c.receiver?.userId == widget.receiverId) ||
+                (c.sender?.userId.isNotEmpty == true &&
+                    c.sender?.userId == widget.receiverId),
+          );
+        } catch (_) {}
+        if (found != null) {
+          debugPrint('[ChatScreen._init] Found existing chat: ${found.id}');
+          _chatId = found.id;
+        } else {
+          debugPrint('[ChatScreen._init] No existing chat found → new conversation');
+        }
+      } catch (e) {
+        debugPrint('[ChatScreen._init] Error searching for existing chat: $e');
+      }
+    }
+
     if (_chatId != null) {
       await _loadMessages();
-      await _api.markChatAsRead(chatId: _chatId!);
+      debugPrint('[ChatScreen._init] Calling markChatAsRead for chatId=$_chatId');
+      _api.markChatAsRead(chatId: _chatId!).then((_) {
+        debugPrint('[ChatScreen._init] markChatAsRead SUCCESS for $_chatId');
+      }).catchError((e) {
+        debugPrint('[ChatScreen._init] markChatAsRead FAILED: $e');
+      });
       await _socket.connect(token: token);
       _socket.onMessageInRoom = _onIncomingMessage;
       _socket.joinChat(_chatId!);
@@ -128,8 +165,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _onIncomingMessage(ChatModel chat) {
     final lm = chat.lastMessage;
-    if (lm == null || _chatId == null) return;
-    if (lm.senderId == _currentUserId) return; // own message echoed back
+    debugPrint('[ChatScreen._onIncomingMessage] event. chatId=${chat.id}, content="${lm?.content}", senderId=${lm?.senderId}, _currentUserId=$_currentUserId, _chatId=$_chatId');
+    if (lm == null || _chatId == null) {
+      debugPrint('[ChatScreen._onIncomingMessage] Skipped: lm=${lm == null ? "null" : "ok"}, _chatId=${_chatId ?? "null"}');
+      return;
+    }
+    if (lm.senderId == _currentUserId) {
+      debugPrint('[ChatScreen._onIncomingMessage] Skipped: own message echo');
+      return;
+    }
     final msg = MessageModel(
       id: lm.id,
       chatId: _chatId!,
@@ -146,8 +190,13 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
     }
-    // Fix 1: mark as read because we are actively viewing this chat
-    _api.markChatAsRead(chatId: _chatId!).catchError((_) {});
+    // Issue 1: mark as read because user is actively viewing this chat
+    debugPrint('[ChatScreen._onIncomingMessage] Calling markChatAsRead for $_chatId');
+    _api.markChatAsRead(chatId: _chatId!).then((_) {
+      debugPrint('[ChatScreen._onIncomingMessage] markChatAsRead SUCCESS');
+    }).catchError((e) {
+      debugPrint('[ChatScreen._onIncomingMessage] markChatAsRead FAILED: $e');
+    });
   }
 
   Future<void> _send() async {
@@ -218,6 +267,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _openOptions() async {
+    debugPrint('[ChatScreen._openOptions] _isReceiverBlocked=$_isReceiverBlocked, _receiverId=$_receiverId');
     final chatId = _chatId;
     final isBlocked = _isReceiverBlocked;
     final action = await showModalBottomSheet<String>(
@@ -307,20 +357,44 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _block() async {
     final rid = _receiverId;
-    if (rid == null || rid.isEmpty) return;
+    debugPrint('[ChatScreen._block] Attempting block. receiverId=$rid, current _isReceiverBlocked=$_isReceiverBlocked');
+    if (rid == null || rid.isEmpty) {
+      debugPrint('[ChatScreen._block] SKIPPED: receiverId is null or empty');
+      return;
+    }
     try {
-      await _social.blockUser(targetUserId: rid);
-      if (mounted) setState(() => _isReceiverBlocked = true);
-    } catch (_) {}
+      final result = await _social.blockUser(targetUserId: rid);
+      debugPrint('[ChatScreen._block] API result: status=${result.$1}, body=${result.$2}');
+      if (result.$1 >= 200 && result.$1 < 300) {
+        if (mounted) setState(() => _isReceiverBlocked = true);
+        debugPrint('[ChatScreen._block] Block successful → _isReceiverBlocked=true');
+      } else {
+        debugPrint('[ChatScreen._block] Block returned non-2xx: ${result.$1}');
+      }
+    } catch (e) {
+      debugPrint('[ChatScreen._block] Exception: $e');
+    }
   }
 
   Future<void> _unblock() async {
     final rid = _receiverId;
-    if (rid == null || rid.isEmpty) return;
+    debugPrint('[ChatScreen._unblock] Attempting unblock. receiverId=$rid');
+    if (rid == null || rid.isEmpty) {
+      debugPrint('[ChatScreen._unblock] SKIPPED: receiverId is null or empty');
+      return;
+    }
     try {
-      await _social.unblockUser(targetUserId: rid);
-      if (mounted) setState(() => _isReceiverBlocked = false);
-    } catch (_) {}
+      final result = await _social.unblockUser(targetUserId: rid);
+      debugPrint('[ChatScreen._unblock] API result: status=${result.$1}, body=${result.$2}');
+      if (result.$1 >= 200 && result.$1 < 300) {
+        if (mounted) setState(() => _isReceiverBlocked = false);
+        debugPrint('[ChatScreen._unblock] Unblock successful → _isReceiverBlocked=false');
+      } else {
+        debugPrint('[ChatScreen._unblock] Unblock returned non-2xx: ${result.$1}');
+      }
+    } catch (e) {
+      debugPrint('[ChatScreen._unblock] Exception: $e');
+    }
   }
 
   void _openAttachSheet() {
@@ -719,31 +793,35 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxBubbleWidth = MediaQuery.of(context).size.width * 0.72;
     final time = _formatTime(message.createdAt);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment:
-            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          if (_looksLikePermalink(message.content))
-            _TrackCardBubble(permalink: message.content.trim(), isMe: isMe)
-          else
-            _buildTextBubble(),
-          const SizedBox(height: 3),
-          Text(
-            time,
-            style: const TextStyle(color: Colors.white38, fontSize: 11),
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment:
+              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            if (_looksLikePermalink(message.content))
+              _TrackCardBubble(permalink: message.content.trim(), isMe: isMe)
+            else
+              _buildTextBubble(maxBubbleWidth),
+            const SizedBox(height: 3),
+            Text(
+              time,
+              style: const TextStyle(color: Colors.white38, fontSize: 11),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextBubble() {
+  Widget _buildTextBubble(double maxWidth) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 280),
+      constraints: BoxConstraints(maxWidth: maxWidth),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
         color: isMe ? _kOrange : const Color(0xFF2A2A2A),

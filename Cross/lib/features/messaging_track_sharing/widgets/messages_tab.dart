@@ -50,16 +50,23 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   Future<void> _load() async {
+    debugPrint('[MessagesTab._load] Fetching chats. currentUserId=$_currentUserId');
     if (mounted) setState(() { _isLoading = true; _error = null; });
     try {
       final chats = await _api.getChats();
       if (!mounted) return;
+      debugPrint('[MessagesTab._load] Got ${chats.length} chats');
+      for (final c in chats) {
+        final lm = c.lastMessage;
+        debugPrint('[MessagesTab._load] → chat ${c.id}: isUnread=${c.isUnread(_currentUserId ?? "")} senderId=${lm?.senderId} seenBy=${lm?.seenBy}');
+      }
       setState(() {
         _chats = chats;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
+      debugPrint('[MessagesTab._load] Error: $e');
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
@@ -94,6 +101,30 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   Future<void> _openChat(ChatModel chat) async {
+    debugPrint('[MessagesTab._openChat] Opening chat ${chat.id}. isUnread=${chat.isUnread(_currentUserId ?? "")}');
+
+    // Optimistically mark as read in local state so the unread dot disappears immediately
+    if (_currentUserId != null) {
+      final idx = _chats.indexWhere((c) => c.id == chat.id);
+      if (idx >= 0) {
+        final lm = _chats[idx].lastMessage;
+        if (lm != null && !lm.seenBy.contains(_currentUserId)) {
+          debugPrint('[MessagesTab._openChat] Optimistically marking chat ${chat.id} as read');
+          setState(() {
+            _chats[idx] = _chats[idx].copyWith(
+              lastMessage: LastMessageModel(
+                id: lm.id,
+                senderId: lm.senderId,
+                content: lm.content,
+                seenBy: [...lm.seenBy, _currentUserId!],
+                createdAt: lm.createdAt,
+              ),
+            );
+          });
+        }
+      }
+    }
+
     final archived = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => ChatScreen(
@@ -106,9 +137,10 @@ class _MessagesTabState extends State<MessagesTab> {
     );
     if (!mounted) return;
     if (archived == true) {
+      debugPrint('[MessagesTab._openChat] Chat ${chat.id} archived');
       setState(() => _chats.removeWhere((c) => c.id == chat.id));
     } else {
-      // Refresh list so read status and new messages are reflected
+      debugPrint('[MessagesTab._openChat] Returned from chat ${chat.id}, refreshing list');
       await _load();
     }
   }

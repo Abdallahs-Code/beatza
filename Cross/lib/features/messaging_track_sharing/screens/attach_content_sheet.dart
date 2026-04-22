@@ -47,8 +47,11 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   }
 
   Future<void> _loadData() async {
+    debugPrint('[AttachContentSheet._loadData] Reading userId from secure storage (key="user_id")...');
     final userId = await _storage.read(key: 'user_id') ?? '';
+    debugPrint('[AttachContentSheet._loadData] userId from storage: "$userId"');
     if (userId.isEmpty) {
+      debugPrint('[AttachContentSheet._loadData] userId is EMPTY — cannot load tracks. Check storage key.');
       if (mounted) {
         setState(() {
           _loadingLikes = false;
@@ -57,10 +60,23 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       }
       return;
     }
+    debugPrint('[AttachContentSheet._loadData] Fetching liked + uploaded tracks for userId=$userId');
     // Load both in parallel
     final results = await Future.wait([
-      _api.getLikedTracks(userId: userId).catchError((_) => <PlaybackTrackModel>[]),
-      _api.getUserPostedTracks(userId: userId).catchError((_) => <PlaybackTrackModel>[]),
+      _api.getLikedTracks(userId: userId).then((t) {
+        debugPrint('[AttachContentSheet._loadData] Liked tracks response: ${t.length} tracks');
+        return t;
+      }).catchError((e) {
+        debugPrint('[AttachContentSheet._loadData] getLikedTracks ERROR: $e');
+        return <PlaybackTrackModel>[];
+      }),
+      _api.getUserPostedTracks(userId: userId).then((t) {
+        debugPrint('[AttachContentSheet._loadData] Uploaded tracks response: ${t.length} tracks');
+        return t;
+      }).catchError((e) {
+        debugPrint('[AttachContentSheet._loadData] getUserPostedTracks ERROR: $e');
+        return <PlaybackTrackModel>[];
+      }),
     ]);
     if (!mounted) return;
     setState(() {
