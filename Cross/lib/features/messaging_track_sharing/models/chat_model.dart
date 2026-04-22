@@ -1,11 +1,17 @@
 class ChatPersonModel {
+  final String userId;
   final String displayName;
   final String photoUrl;
 
-  const ChatPersonModel({required this.displayName, required this.photoUrl});
+  const ChatPersonModel({
+    required this.userId,
+    required this.displayName,
+    required this.photoUrl,
+  });
 
   factory ChatPersonModel.fromJson(Map<String, dynamic> json) {
     return ChatPersonModel(
+      userId: json['userId']?.toString() ?? json['_id']?.toString() ?? '',
       displayName: json['displayName']?.toString() ?? '',
       photoUrl: json['photoUrl']?.toString() ?? '',
     );
