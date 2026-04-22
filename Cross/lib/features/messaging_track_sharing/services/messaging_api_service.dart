@@ -173,6 +173,41 @@ class MessagingApiService {
     return [];
   }
 
+  // GET /api/public/tracks/v1/user/{userId}
+  Future<List<PlaybackTrackModel>> getUserPostedTracks({
+    required String userId,
+  }) async {
+    final token = await _token();
+    final uri = Uri.parse('$_tracksBase/user/$userId');
+    final res = await _client.get(uri, headers: _headers(token));
+    final data = _decode(res);
+    if (res.statusCode == 200 && data is Map) {
+      final list = data['data'] as List<dynamic>? ?? [];
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map(PlaybackTrackModel.fromApiJson)
+          .toList();
+    }
+    return [];
+  }
+
+  // GET /api/public/tracks/v1/permalink/{permalink}
+  Future<PlaybackTrackModel?> getTrackByPermalink({
+    required String permalink,
+  }) async {
+    final uri = Uri.parse('$_tracksBase/permalink/$permalink');
+    final res = await _client.get(uri, headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Android',
+    });
+    final data = _decode(res);
+    if (res.statusCode == 200 && data is Map) {
+      final inner = data['data'] as Map<String, dynamic>? ?? {};
+      if (inner.isNotEmpty) return PlaybackTrackModel.fromApiJson(inner);
+    }
+    return null;
+  }
+
   // GET /api/public/tracks/v1/{trackId} — returns permalink
   Future<String?> getTrackPermalink({required String trackId}) async {
     final uri = Uri.parse('$_tracksBase/$trackId');

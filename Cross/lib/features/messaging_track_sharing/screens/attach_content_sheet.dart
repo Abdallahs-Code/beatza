@@ -1,18 +1,17 @@
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const _kBg = Color(0xFF111111);
 const _kSurface = Color(0xFF1C1C1C);
 const _kOrange = Color(0xFFFF5500);
 
 class AttachContentSheet extends StatefulWidget {
-  final String currentUserId;
   final void Function(String link) onSelected;
 
   const AttachContentSheet({
     super.key,
-    required this.currentUserId,
     required this.onSelected,
   });
 
@@ -24,16 +23,21 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _api = MessagingApiService();
+  final _storage = const FlutterSecureStorage();
 
   List<PlaybackTrackModel> _likedTracks = [];
   bool _loadingLikes = true;
+
+  List<PlaybackTrackModel> _uploadedTracks = [];
+  bool _loadingUploads = true;
+
   String? _selectedTrackLink;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _loadLikedTracks();
+    _loadData();
   }
 
   @override
@@ -42,18 +46,29 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     super.dispose();
   }
 
-  Future<void> _loadLikedTracks() async {
-    try {
-      final tracks =
-          await _api.getLikedTracks(userId: widget.currentUserId);
-      if (!mounted) return;
-      setState(() {
-        _likedTracks = tracks;
-        _loadingLikes = false;
-      });
-    } catch (_) {
-      if (mounted) setState(() => _loadingLikes = false);
+  Future<void> _loadData() async {
+    final userId = await _storage.read(key: 'user_id') ?? '';
+    if (userId.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _loadingLikes = false;
+          _loadingUploads = false;
+        });
+      }
+      return;
     }
+    // Load both in parallel
+    final results = await Future.wait([
+      _api.getLikedTracks(userId: userId).catchError((_) => <PlaybackTrackModel>[]),
+      _api.getUserPostedTracks(userId: userId).catchError((_) => <PlaybackTrackModel>[]),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _likedTracks = results[0];
+      _loadingLikes = false;
+      _uploadedTracks = results[1];
+      _loadingUploads = false;
+    });
   }
 
   @override
@@ -75,10 +90,10 @@ class _AttachContentSheetState extends State<AttachContentSheet>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildLikesTab(scrollCtrl),
+                  _buildTrackList(_likedTracks, _loadingLikes, scrollCtrl),
                   _buildEmptyTab('Playlists'),
                   _buildEmptyTab('Albums'),
-                  _buildEmptyTab('Uploads'),
+                  _buildTrackList(_uploadedTracks, _loadingUploads, scrollCtrl),
                 ],
               ),
             ),
@@ -147,16 +162,20 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     );
   }
 
-  Widget _buildLikesTab(ScrollController scrollCtrl) {
-    if (_loadingLikes) {
+  Widget _buildTrackList(
+    List<PlaybackTrackModel> tracks,
+    bool loading,
+    ScrollController scrollCtrl,
+  ) {
+    if (loading) {
       return const Center(
           child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2));
     }
 
-    if (_likedTracks.isEmpty) {
+    if (tracks.isEmpty) {
       return const Center(
         child: Text(
-          'No liked tracks',
+          'No tracks',
           style: TextStyle(color: Colors.white38, fontSize: 15),
         ),
       );
@@ -164,9 +183,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
 
     return ListView.builder(
       controller: scrollCtrl,
-      itemCount: _likedTracks.length,
+      itemCount: tracks.length,
       itemBuilder: (ctx, i) {
-        final track = _likedTracks[i];
+        final track = tracks[i];
         final permalink = track.permalink ?? '';
         final isSelected = _selectedTrackLink == permalink;
         return ListTile(
@@ -243,7 +262,7 @@ class _TrackThumb extends StatelessWidget {
               width: 48,
               height: 48,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _placeholder(),
+              errorBuilder: (context, error, _) => _placeholder(),
             )
           : _placeholder(),
     );

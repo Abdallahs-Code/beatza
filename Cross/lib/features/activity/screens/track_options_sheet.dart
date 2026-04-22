@@ -26,7 +26,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   bool _isReposted = false;
   late int _repostCount;
 
-  List<({String chatId, String name, String photoUrl})> _recentContacts = [];
+  List<({String receiverId, String name, String photoUrl})> _recentContacts = [];
   String? _trackPermalink;
 
   @override
@@ -40,18 +40,32 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
   Future<void> _loadSendToData() async {
     try {
-      final chats = await _msgApi.getChats(limit: 6);
-      final permalink =
-          await _msgApi.getTrackPermalink(trackId: widget.track.id);
+      final currentUserId = await AuthApiService().getStoredUserId() ?? '';
+      final results = await Future.wait([
+        if (currentUserId.isNotEmpty)
+          SocialApiService().getFollowers(userId: currentUserId)
+        else
+          Future.value((0, <dynamic>[])),
+        _msgApi.getTrackPermalink(trackId: widget.track.id),
+      ]);
+
       if (!mounted) return;
+      final followersResult = results[0] as (int, dynamic);
+      final permalink = results[1] as String?;
+
       setState(() {
-        _recentContacts = chats
-            .map((c) => (
-                  chatId: c.id,
-                  name: c.otherPerson?.displayName ?? '',
-                  photoUrl: c.otherPerson?.photoUrl ?? '',
-                ))
-            .toList();
+        if (followersResult.$1 == 200 && followersResult.$2 is List) {
+          final followers =
+              (followersResult.$2 as List).whereType<Follower>().toList();
+          _recentContacts = followers
+              .take(6)
+              .map((f) => (
+                    receiverId: f.userId,
+                    name: f.displayName,
+                    photoUrl: f.profileImgLink ?? '',
+                  ))
+              .toList();
+        }
         _trackPermalink = permalink ?? widget.track.permalink ?? '';
       });
     } catch (_) {}
@@ -174,13 +188,13 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     );
   }
 
-  void _sendToContact(String chatId, String name, String photoUrl) {
+  void _sendToContact(String receiverId, String name, String photoUrl) {
     final link = _trackPermalink ?? '';
-    Navigator.of(context, rootNavigator: true).pop(); // close sheet
+    Navigator.of(context, rootNavigator: true).pop();
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => ChatScreen(
-          chatId: chatId,
+          receiverId: receiverId,
           receiverName: name,
           receiverPhotoUrl: photoUrl,
           initialContent: link,
@@ -267,7 +281,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                           .map((c) => _SendToContact(
                                 name: c.name,
                                 photoUrl: c.photoUrl,
-                                onTap: () => _sendToContact(c.chatId, c.name, c.photoUrl),
+                                onTap: () => _sendToContact(c.receiverId, c.name, c.photoUrl),
                               ))
                           .toList(),
                     ),

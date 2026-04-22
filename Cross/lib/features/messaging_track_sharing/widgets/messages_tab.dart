@@ -98,33 +98,18 @@ class _MessagesTabState extends State<MessagesTab> {
       MaterialPageRoute(
         builder: (_) => ChatScreen(
           chatId: chat.id,
+          receiverId: chat.otherPerson?.userId ?? '',
           receiverName: chat.otherPerson?.displayName ?? '',
           receiverPhotoUrl: chat.otherPerson?.photoUrl ?? '',
         ),
       ),
     );
-    // If archived, remove from list
-    if (archived == true && mounted) {
+    if (!mounted) return;
+    if (archived == true) {
       setState(() => _chats.removeWhere((c) => c.id == chat.id));
-    } else if (mounted) {
-      // Mark as read in local state
-      setState(() {
-        final idx = _chats.indexWhere((c) => c.id == chat.id);
-        if (idx >= 0) {
-          final lm = _chats[idx].lastMessage;
-          if (lm != null && _currentUserId != null &&
-              !lm.seenBy.contains(_currentUserId)) {
-            final updatedLm = LastMessageModel(
-              id: lm.id,
-              senderId: lm.senderId,
-              content: lm.content,
-              seenBy: [...lm.seenBy, _currentUserId!],
-              createdAt: lm.createdAt,
-            );
-            _chats[idx] = _chats[idx].copyWith(lastMessage: updatedLm);
-          }
-        }
-      });
+    } else {
+      // Refresh list so read status and new messages are reflected
+      await _load();
     }
   }
 
