@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     ActivityNotificationsController.shared.initialize();
     ActivityNotificationsController.shared.reconnectIfNeeded();
-    _publicTracksPagingService.loadInitial(limit: 2);
+    _publicTracksPagingService.loadInitial(limit: 20);
   }
 
   @override
