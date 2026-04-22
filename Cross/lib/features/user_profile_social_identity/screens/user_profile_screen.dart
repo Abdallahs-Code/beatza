@@ -1003,16 +1003,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             isFollowActionLoading: _isFollowActionLoading,
                             onFollowToggle: _toggleFollowUser,
                           ),
-                          if (_currentlyPlayingTrack != null)
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 84,
-                              child: YourInsights(
-                                track: _currentlyPlayingTrack!,
-                                onClose: _closePlayer,
-                              ),
-                            ),
+                          // if (_currentlyPlayingTrack != null)
+                          //   Positioned(
+                          //     left: 0,
+                          //     right: 0,
+                          //     bottom: 84,
+                          //     child: YourInsights(
+                          //       track: _currentlyPlayingTrack!,
+                          //       onClose: _closePlayer,
+                          //     ),
+                          //   ),
                           const Positioned(
                             left: 0,
                             right: 0,

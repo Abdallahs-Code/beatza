@@ -638,18 +638,18 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
               },
             ),
 
-            if (_playingLocalTrack != null)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 16,
-                child: SafeArea(
-                  child: SmartWaveformPlayer(
-                    track: _playingLocalTrack!,
-                    onClose: () => setState(() => _playingLocalTrack = null),
-                  ),
-                ),
-              ),
+            // if (_playingLocalTrack != null)
+            //   Positioned(
+            //     left: 0,
+            //     right: 0,
+            //     bottom: 16,
+            //     child: SafeArea(
+            //       child: SmartWaveformPlayer(
+            //         track: _playingLocalTrack!,
+            //         onClose: () => setState(() => _playingLocalTrack = null),
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       ),
