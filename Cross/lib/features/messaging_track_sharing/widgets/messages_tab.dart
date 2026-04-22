@@ -140,8 +140,31 @@ class _MessagesTabState extends State<MessagesTab> {
       debugPrint('[MessagesTab._openChat] Chat ${chat.id} archived');
       setState(() => _chats.removeWhere((c) => c.id == chat.id));
     } else {
-      debugPrint('[MessagesTab._openChat] Returned from chat ${chat.id}, refreshing list');
+      final visitedChatId = chat.id;
+      debugPrint('[MessagesTab._openChat] Returned from chat $visitedChatId, refreshing list');
       await _load();
+      // Issue 1: server sometimes returns stale seenBy even after markChatAsRead
+      // succeeds. Re-apply our optimistic read mark so the unread dot stays gone.
+      if (mounted && _currentUserId != null) {
+        final idx = _chats.indexWhere((c) => c.id == visitedChatId);
+        if (idx >= 0 && _chats[idx].isUnread(_currentUserId!)) {
+          debugPrint('[MessagesTab._openChat] Server still shows unread for $visitedChatId after reload — forcing local read');
+          final lm = _chats[idx].lastMessage;
+          if (lm != null) {
+            setState(() {
+              _chats[idx] = _chats[idx].copyWith(
+                lastMessage: LastMessageModel(
+                  id: lm.id,
+                  senderId: lm.senderId,
+                  content: lm.content,
+                  seenBy: [...lm.seenBy, _currentUserId!],
+                  createdAt: lm.createdAt,
+                ),
+              );
+            });
+          }
+        }
+      }
     }
   }
 

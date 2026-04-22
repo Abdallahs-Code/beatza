@@ -39,36 +39,66 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   }
 
   Future<void> _loadSendToData() async {
+    // ── Step 1: get current user id ─────────────────────────────────────────
+    final currentUserId = await AuthApiService().getStoredUserId();
+    debugPrint('[TrackOptions._loadSendToData] currentUserId=$currentUserId, trackId=${widget.track.id}');
+    if (currentUserId == null || currentUserId.isEmpty) {
+      debugPrint('[TrackOptions._loadSendToData] ABORTED — currentUserId is null/empty');
+      return;
+    }
+
+    // ── Step 2: get track permalink ─────────────────────────────────────────
+    String? permalink;
     try {
-      final currentUserId = await AuthApiService().getStoredUserId() ?? '';
-      final results = await Future.wait([
-        if (currentUserId.isNotEmpty)
-          SocialApiService().getFollowers(userId: currentUserId)
-        else
-          Future.value((0, <dynamic>[])),
-        _msgApi.getTrackPermalink(trackId: widget.track.id),
-      ]);
+      permalink = await _msgApi.getTrackPermalink(trackId: widget.track.id);
+      debugPrint('[TrackOptions._loadSendToData] permalink="$permalink" (widget.track.permalink="${widget.track.permalink}")');
+    } catch (e) {
+      debugPrint('[TrackOptions._loadSendToData] getTrackPermalink error: $e');
+    }
+
+    // ── Step 3: get followers ────────────────────────────────────────────────
+    try {
+      debugPrint('[TrackOptions._loadSendToData] Calling getFollowers for userId=$currentUserId');
+      final result = await SocialApiService().getFollowers(userId: currentUserId);
+      debugPrint('[TrackOptions._loadSendToData] getFollowers → status=${result.$1}, dataType=${result.$2.runtimeType}');
+
+      if (result.$1 != 200) {
+        debugPrint('[TrackOptions._loadSendToData] getFollowers non-200: ${result.$2}');
+        if (mounted) setState(() => _trackPermalink = permalink ?? widget.track.permalink ?? '');
+        return;
+      }
+
+      final rawList = result.$2;
+      debugPrint('[TrackOptions._loadSendToData] rawList=$rawList');
+
+      List<Follower> followers = [];
+      if (rawList is List) {
+        followers = rawList.whereType<Follower>().toList();
+        debugPrint('[TrackOptions._loadSendToData] Follower objects: ${followers.length}');
+        for (final f in followers.take(6)) {
+          debugPrint('[TrackOptions._loadSendToData] → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"');
+        }
+      } else {
+        debugPrint('[TrackOptions._loadSendToData] rawList is NOT a List: ${rawList.runtimeType}');
+      }
 
       if (!mounted) return;
-      final followersResult = results[0] as (int, dynamic);
-      final permalink = results[1] as String?;
-
       setState(() {
-        if (followersResult.$1 == 200 && followersResult.$2 is List) {
-          final followers =
-              (followersResult.$2 as List).whereType<Follower>().toList();
-          _recentContacts = followers
-              .take(6)
-              .map((f) => (
-                    receiverId: f.userId,
-                    name: f.displayName,
-                    photoUrl: f.profileImgLink ?? '',
-                  ))
-              .toList();
-        }
+        _recentContacts = followers
+            .take(6)
+            .map((f) => (
+                  receiverId: f.userId,
+                  name: f.displayName,
+                  photoUrl: f.profileImgLink ?? '',
+                ))
+            .toList();
         _trackPermalink = permalink ?? widget.track.permalink ?? '';
       });
-    } catch (_) {}
+      debugPrint('[TrackOptions._loadSendToData] setState done: ${_recentContacts.length} contacts, permalink=$_trackPermalink');
+    } catch (e) {
+      debugPrint('[TrackOptions._loadSendToData] getFollowers exception: $e');
+      if (mounted) setState(() => _trackPermalink = permalink ?? widget.track.permalink ?? '');
+    }
   }
 
   Future<void> _checkLikeStatus() async {

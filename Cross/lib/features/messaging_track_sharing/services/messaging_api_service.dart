@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/models/chat_model.dart';
@@ -161,15 +162,22 @@ class MessagingApiService {
   }) async {
     final token = await _token();
     final uri = Uri.parse('$_tracksBase/liked/$userId');
+    debugPrint('[MessagingApiService.getLikedTracks] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
+    final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
+    debugPrint('[MessagingApiService.getLikedTracks] status=${res.statusCode} bodyPreview=$preview');
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
-      final list = data['data'] as List<dynamic>? ?? [];
+      final rawData = data['data'];
+      debugPrint('[MessagingApiService.getLikedTracks] data["data"] runtimeType=${rawData.runtimeType} value=$rawData');
+      final list = _extractTrackList(rawData);
+      debugPrint('[MessagingApiService.getLikedTracks] extracted ${list.length} items');
       return list
           .whereType<Map<String, dynamic>>()
           .map(PlaybackTrackModel.fromApiJson)
           .toList();
     }
+    debugPrint('[MessagingApiService.getLikedTracks] Non-200 or bad body. status=${res.statusCode}');
     return [];
   }
 
@@ -179,14 +187,42 @@ class MessagingApiService {
   }) async {
     final token = await _token();
     final uri = Uri.parse('$_tracksBase/user/$userId');
+    debugPrint('[MessagingApiService.getUserPostedTracks] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
+    final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
+    debugPrint('[MessagingApiService.getUserPostedTracks] status=${res.statusCode} bodyPreview=$preview');
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
-      final list = data['data'] as List<dynamic>? ?? [];
+      final rawData = data['data'];
+      debugPrint('[MessagingApiService.getUserPostedTracks] data["data"] runtimeType=${rawData.runtimeType}');
+      final list = _extractTrackList(rawData);
+      debugPrint('[MessagingApiService.getUserPostedTracks] extracted ${list.length} items');
       return list
           .whereType<Map<String, dynamic>>()
           .map(PlaybackTrackModel.fromApiJson)
           .toList();
+    }
+    debugPrint('[MessagingApiService.getUserPostedTracks] Non-200 or bad body. status=${res.statusCode}');
+    return [];
+  }
+
+  /// Handles the API returning data as:
+  ///   List directly            → [{...}, {...}]
+  ///   Map with "tracks" key    → {"tracks": [...], ...}
+  ///   Map with "data" key      → {"data": [...], ...}
+  ///   Nested paginationInfo    → {"tracks": [...], "paginationInfo": {...}}
+  List<dynamic> _extractTrackList(dynamic rawData) {
+    if (rawData is List) return rawData;
+    if (rawData is Map) {
+      if (rawData['tracks'] is List) {
+        debugPrint('[MessagingApiService._extractTrackList] Found tracks under "tracks" key: ${(rawData["tracks"] as List).length} items');
+        return rawData['tracks'] as List;
+      }
+      if (rawData['data'] is List) {
+        debugPrint('[MessagingApiService._extractTrackList] Found tracks under nested "data" key: ${(rawData["data"] as List).length} items');
+        return rawData['data'] as List;
+      }
+      debugPrint('[MessagingApiService._extractTrackList] Map keys: ${rawData.keys.toList()}');
     }
     return [];
   }

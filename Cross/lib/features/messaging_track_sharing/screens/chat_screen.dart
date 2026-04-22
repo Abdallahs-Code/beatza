@@ -139,13 +139,30 @@ class _ChatScreenState extends State<ChatScreen> {
         before: before,
       );
       if (!mounted) return;
+
+      // Issues 4 & 5: extract receiverId from message senderIds.
+      // Any senderId that isn't the current user IS the receiver.
+      final allMsgs = loadMore
+          ? [...result.messages.reversed, ..._messages]
+          : result.messages.reversed.toList();
+      if (_receiverId == null || _receiverId!.isEmpty) {
+        for (final msg in allMsgs) {
+          if (msg.senderId.isNotEmpty && msg.senderId != _currentUserId) {
+            _receiverId = msg.senderId;
+            debugPrint('[ChatScreen._loadMessages] Extracted receiverId from messages: $_receiverId');
+            break;
+          }
+        }
+        if (_receiverId == null || _receiverId!.isEmpty) {
+          debugPrint('[ChatScreen._loadMessages] Could not extract receiverId — all ${allMsgs.length} messages are from currentUser or list is empty');
+        }
+      }
+
       setState(() {
         if (loadMore) {
-          // Prepend older messages
           _messages = [...result.messages.reversed, ..._messages];
           _hasMore = result.messages.length == 20;
         } else {
-          // API returns newest first; reverse so _messages is oldest→newest
           _messages = result.messages.reversed.toList();
           _hasMore = result.messages.length == 20;
         }
