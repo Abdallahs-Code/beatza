@@ -142,17 +142,10 @@ class UserProfileModel {
       }
     }
 
-    if (bio.trim().isNotEmpty) {
-      payload['bio'] = bio.trim();
-    }
+    payload['bio'] = bio.trim().isEmpty ? null : bio.trim();
 
-    if (city.trim().isNotEmpty) {
-      payload['city'] = city.trim();
-    }
-
-    if (country.trim().isNotEmpty) {
-      payload['country'] = country.trim();
-    }
+    payload['city'] = city.trim().isEmpty ? null : city.trim();
+    payload['country'] = country.trim().isEmpty ? null : country.trim();
 
     final validLinks = links
         .where((e) => e.link.trim().isNotEmpty)
@@ -164,9 +157,7 @@ class UserProfileModel {
         .where((e) => e.link.trim().isNotEmpty)
         .map((e) => e.toJson())
         .toList();
-    if (validBannerLinks.isNotEmpty) {
-      payload['bannerLinks'] = validBannerLinks;
-    }
+    payload['bannerLinks'] = validBannerLinks;
 
     final normalizedSupportLink = _normalizeUrl(supportLink);
     if (normalizedSupportLink != null) {
