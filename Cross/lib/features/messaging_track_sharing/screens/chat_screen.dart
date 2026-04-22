@@ -143,7 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     // Mark as read since we are viewing this chat
     if (_chatId != null) {
-      _api.markChatAsRead(chatId: _chatId!).catchError((_) => null);
+      _api.markChatAsRead(chatId: _chatId!).catchError((_) {});
     }
   }
 

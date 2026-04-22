@@ -10,6 +10,7 @@ import 'package:cross_team5/features/user_profile_social_identity/user_profile_s
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/playback_streaming_engine.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
+import 'package:cross_team5/features/messaging_track_sharing/messaging_track_sharing_routes.dart';
 
 class AppRouter {
   static Map<String, WidgetBuilder> routes = {
@@ -23,5 +24,7 @@ class AppRouter {
     ...PlaybackStreamingEngineRoutes.routes,
     // Module 6 — Engagement & Social Interactions
     ...EngagementSocialInteractionsRoutes.routes,
+    // Messaging & Track Sharing
+    ...MessagingTrackSharingRoutes.routes,
   };
 }

@@ -20,6 +20,7 @@ import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../models/spotlight_models.dart';
 import '../../premium_subscription/services/payment_service.dart';
+import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'edit_spotlight_screen.dart';
 import 'your_uploads_spotlight_screen.dart';
 
@@ -1596,6 +1597,42 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                 ),
                               ),
                             ),
+                          if (!widget.isOwner) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.notifications_none_rounded,
+                                color: Colors.white70,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatScreen(
+                                      receiverId: widget.profile.userId,
+                                      receiverName:
+                                          widget.profile.resolvedDisplayName,
+                                      receiverPhotoUrl:
+                                          widget.profile.profileImgLink,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.send_rounded,
+                                color: Colors.white70,
+                                size: 20,
+                              ),
+                            ),
+                          ],
                           const Spacer(),
                           IconButton(
                             padding: EdgeInsets.zero,
