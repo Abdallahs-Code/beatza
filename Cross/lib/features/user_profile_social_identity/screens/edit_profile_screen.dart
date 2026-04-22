@@ -419,6 +419,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+              if (_countryController.text.trim().isNotEmpty)
+                ListTile(
+                  onTap: () => Navigator.pop(context, ''),
+                  leading: const Icon(Icons.close, color: Colors.redAccent),
+                  title: const Text(
+                    'Clear location',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
+                ),
               SizedBox(
                 height: 420,
                 child: ListView.builder(
@@ -454,13 +463,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (result != null) {
       setState(() {
-        _countryController.text = result;
-
-        final validCities = _countryCityMap[result] ?? const [];
-        if (validCities.isEmpty) {
+        if (result.isEmpty) {
+          _countryController.text = '';
           _cityController.text = '';
-        } else if (!validCities.contains(_cityController.text.trim())) {
-          _cityController.text = validCities.first;
+        } else {
+          _countryController.text = result;
+          final validCities = _countryCityMap[result] ?? const [];
+          if (validCities.isEmpty) {
+            _cityController.text = '';
+          } else if (!validCities.contains(_cityController.text.trim())) {
+            _cityController.text = validCities.first;
+          }
         }
       });
     }
@@ -543,6 +556,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    if (_cityController.text.trim().isNotEmpty)
+                      ListTile(
+                        onTap: () => Navigator.pop(context, ''),
+                        leading: const Icon(
+                          Icons.close,
+                          color: Colors.redAccent,
+                        ),
+                        title: const Text(
+                          'Clear city',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
                     SizedBox(
                       height: 420,
                       child: filteredCities.isEmpty
@@ -595,7 +620,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (result != null) {
       setState(() {
-        _cityController.text = result;
+        _cityController.text = result;  // '' clears, non-empty sets
       });
     }
   }
@@ -772,30 +797,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     final country = _countryController.text.trim();
-    String city = _cityController.text.trim();
-
-    if (country.isNotEmpty && city.isEmpty) {
-      final cities = _countryCityMap[country] ?? [];
-      if (cities.isNotEmpty) {
-        city = cities.first;
-      }
-    }
+    final city = _cityController.text.trim();
 
     setState(() => _saving = true);
 
     try {
-      final linksToSave = _editableLinks
-          .where((e) => e.link.trim().isNotEmpty)
-          .toList();
+      final linksToSave = [
+        ..._editableLinks,
+        ..._editableBannerLinks,
+      ].where((e) => e.link.trim().isNotEmpty).toList();
 
-      final bannerLinksToSave = _editableBannerLinks
-          .where((e) => e.link.trim().isNotEmpty)
-          .toList();
+      const bannerLinksToSave = <ProfileLinkModel>[];
 
       final updatedTextProfile = widget.currentProfile.copyWith(
         displayName: displayName,
         city: city,
-        country: _countryController.text.trim(),
+        country: country,
         bio: _bioController.text.trim(),
         links: linksToSave,
         bannerLinks: bannerLinksToSave,
