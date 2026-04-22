@@ -95,6 +95,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         backgroundColor: AppColors.homeBackground,
         elevation: 0,
         leadingWidth: 140,
+        title: const Text(
+          'Home',
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0, top: 10, bottom: 10),
           child: InkWell(
@@ -197,7 +206,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         bottom: false,
         child: Column(
           children: [
-            const TopHeader(),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
