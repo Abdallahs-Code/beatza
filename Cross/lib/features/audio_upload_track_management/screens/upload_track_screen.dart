@@ -522,33 +522,33 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
                 ],
               ),
-              if (_selectedFile != null &&
-                  _selectedFile!.path != null &&
-                  _isPlayerVisible &&
-                  _uploadComplete)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 16,
-                  child: SafeArea(
-                    child: SmartWaveformPlayer(
-                      track: TrackModel(
-                        id: _selectedFile!.path!,
-                        title: _titleController.text.trim().isNotEmpty
-                            ? _titleController.text
-                            : (_selectedFileName ?? 'Preview'),
-                        audioUrl: _selectedFile!.path!,
-                        coverImagePath: _coverImage?.path,
-                        genre: 'Unknown',
-                        descriptiveTags: const [],
-                        releaseDate: DateTime.now(),
-                        fileFormat: _selectedFile!.extension ?? 'mp3',
-                        waveformPeaks: const [],
-                      ),
-                      onClose: () => setState(() => _isPlayerVisible = false),
-                    ),
-                  ),
-                ),
+              // if (_selectedFile != null &&
+              //     _selectedFile!.path != null &&
+              //     _isPlayerVisible &&
+              //     _uploadComplete)
+              //   Positioned(
+              //     left: 0,
+              //     right: 0,
+              //     bottom: 16,
+              //     child: SafeArea(
+              //       child: SmartWaveformPlayer(
+              //         track: TrackModel(
+              //           id: _selectedFile!.path!,
+              //           title: _titleController.text.trim().isNotEmpty
+              //               ? _titleController.text
+              //               : (_selectedFileName ?? 'Preview'),
+              //           audioUrl: _selectedFile!.path!,
+              //           coverImagePath: _coverImage?.path,
+              //           genre: 'Unknown',
+              //           descriptiveTags: const [],
+              //           releaseDate: DateTime.now(),
+              //           fileFormat: _selectedFile!.extension ?? 'mp3',
+              //           waveformPeaks: const [],
+              //         ),
+              //         onClose: () => setState(() => _isPlayerVisible = false),
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
         );
