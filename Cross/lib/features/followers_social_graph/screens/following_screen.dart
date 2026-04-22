@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph_routes.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
@@ -328,22 +329,83 @@ class _FollowingScreenState extends State<FollowingScreen>
     Navigator.pop(context);
   }
 
+  bool get _isOwnProfile =>
+      _currentUserId != null && _currentUserId == widget.userId;
+
+  Widget _buildTrueFriendsBanner() {
+    if (!_isOwnProfile) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      child: GestureDetector(
+        onTap: () => Navigator.pushNamed(
+          context,
+          FollowersSocialGraphRoutes.trueFriends,
+          arguments: {'userId': widget.userId},
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white54, width: 1.5),
+                ),
+                child: const Icon(Icons.group, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'People who follow you back',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'See your true friends',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white70),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFollowingTab() {
     return RefreshIndicator(
       onRefresh: _loadFollowing,
       child: _isLoadingFollowing
           ? ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
-                SizedBox(height: 300),
-                Center(child: CircularProgressIndicator()),
+              children: [
+                _buildTrueFriendsBanner(),
+                const SizedBox(height: 220),
+                const Center(child: CircularProgressIndicator()),
               ],
             )
           : _followingError != null
           ? ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                const SizedBox(height: 250),
+                _buildTrueFriendsBanner(),
+                const SizedBox(height: 180),
                 Center(child: Text(_followingError!)),
                 const SizedBox(height: 12),
                 Center(
@@ -357,17 +419,20 @@ class _FollowingScreenState extends State<FollowingScreen>
           : _following.isEmpty
           ? ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
-                SizedBox(height: 250),
-                Center(child: Text('You are not following anyone yet.')),
+              children: [
+                _buildTrueFriendsBanner(),
+                const SizedBox(height: 180),
+                const Center(child: Text('You are not following anyone yet.')),
               ],
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: _following.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemCount: _following.length + 1,
+              separatorBuilder: (context, index) =>
+                  index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
               itemBuilder: (context, index) {
-                final follower = _following[index];
+                if (index == 0) return _buildTrueFriendsBanner();
+                final follower = _following[index - 1];
                 return UserTile(
                   follower: follower,
                   currentUserId: _currentUserId,
