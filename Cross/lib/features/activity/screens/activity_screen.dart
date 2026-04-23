@@ -126,8 +126,11 @@ class _ActivityScreenState extends State<ActivityScreen>
         ..._controller.todayNotifications,
         ..._controller.olderNotifications,
       ];
-      if (all.isNotEmpty && all.every((n) => _readyIds.contains(n.notificationId))) {
+      final remaining = all.where((n) => !_readyIds.contains(n.notificationId)).length;
+      debugPrint('[READY] $notificationId — ${_readyIds.length}/${all.length} remaining=$remaining');
+      if (all.isNotEmpty && remaining == 0) {
         _initialLoadComplete = true;
+        debugPrint('[READY] ALL DONE — revealing list');
       }
     });
   }
@@ -342,12 +345,6 @@ class _ActivityScreenState extends State<ActivityScreen>
 
     if (today.isEmpty && older.isEmpty) return _buildEmptyState();
 
-    // Hold a spinner until every tile's secondary API calls have reported back.
-    if (_tilesLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2));
-    }
-
     Widget tile(ActivityNotificationModel n) => _NotificationTile(
           key: ValueKey(n.notificationId),
           notification: n,
@@ -367,25 +364,49 @@ class _ActivityScreenState extends State<ActivityScreen>
           onTileReady: () => _onTileReady(n.notificationId),
         );
 
-    return RefreshIndicator(
+    // SingleChildScrollView + Column builds ALL children eagerly (no lazy
+    // viewport). This is required so every tile's initState fires immediately
+    // and onTileReady callbacks can fill _readyIds.
+    final list = RefreshIndicator(
       color: _kOrange,
       backgroundColor: _kSurface,
       onRefresh: _controller.refresh,
-      child: ListView(
+      child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        children: [
-          if (today.isNotEmpty) ...[
-            _sectionLabel('Today'),
-            ...today.map(tile),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (today.isNotEmpty) ...[
+              _sectionLabel('Today'),
+              ...today.map(tile),
+            ],
+            if (older.isNotEmpty) ...[
+              _sectionLabel('Older'),
+              ...older.map(tile),
+            ],
+            const SizedBox(height: 32),
           ],
-          if (older.isNotEmpty) ...[
-            _sectionLabel('Older'),
-            ...older.map(tile),
-          ],
-          const SizedBox(height: 32),
-        ],
+        ),
       ),
+    );
+
+    debugPrint('[LOADING_GATE] tilesLoading=$_tilesLoading '
+        'ready=${_readyIds.length} total=${today.length + older.length} '
+        'initialComplete=$_initialLoadComplete');
+
+    return Stack(
+      children: [
+        list,
+        if (_tilesLoading)
+          Positioned.fill(
+            child: Container(
+              color: _kBg,
+              child: const Center(
+                child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -587,11 +608,14 @@ class _NotificationTileState extends State<_NotificationTile> {
       }
     }
 
+    debugPrint('[TILE_INIT] ${n.notificationId} type=${n.activityType} pending=$_pendingLoads');
+
     // Nothing to fetch — report ready after first frame.
     if (_pendingLoads == 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_tileReadyFired) {
           _tileReadyFired = true;
+          debugPrint('[TILE] ${n.notificationId} READY (no pending)');
           widget.onTileReady();
         }
       });
@@ -608,8 +632,10 @@ class _NotificationTileState extends State<_NotificationTile> {
   }) {
     widget.onDataFetched(isFollowing, isLiked, track, trackFetched, commentTimestamp);
     _pendingLoads--;
+    debugPrint('[TILE] ${n.notificationId} pending=$_pendingLoads');
     if (_pendingLoads <= 0 && !_tileReadyFired) {
       _tileReadyFired = true;
+      debugPrint('[TILE] ${n.notificationId} READY');
       widget.onTileReady();
     }
   }
