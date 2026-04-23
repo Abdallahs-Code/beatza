@@ -53,11 +53,8 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
     // ── Step 2: resolve audio link ──────────────────────────────────────────
     debugPrint('[SendTo] STEP 2 — resolving audio/track link');
-    debugPrint('[SendTo] STEP 2   track.audioUrl="${widget.track.audioUrl}"');
     debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}"');
-    final permalink = widget.track.audioUrl?.isNotEmpty == true
-        ? widget.track.audioUrl
-        : widget.track.permalink;
+    final permalink = widget.track.permalink?.isNotEmpty == true ? widget.track.permalink : null;
     debugPrint('[SendTo] STEP 2 ✅ resolved link="$permalink"');
 
     // ── Step 3: get followers ────────────────────────────────────────────────

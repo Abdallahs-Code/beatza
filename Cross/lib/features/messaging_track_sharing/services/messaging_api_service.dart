@@ -67,7 +67,7 @@ class MessagingApiService {
   }
 
   // GET /api/messages/v1/chat/message/{chatId}
-  Future<({List<MessageModel> messages, bool isReceiverBlocked})>
+  Future<({List<MessageModel> messages, bool isReceiverBlocked, bool isBlockedByReceiver})>
       getChatMessages({
     required String chatId,
     int limit = 20,
@@ -82,13 +82,25 @@ class MessagingApiService {
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'] as Map<String, dynamic>? ?? {};
+      debugPrint('[getChatMessages] data.keys=${inner.keys.toList()}');
+      for (final k in inner.keys) {
+        if (k != 'messages') debugPrint('[getChatMessages]   $k = ${inner[k]}');
+      }
       final msgList = inner['messages'] as List<dynamic>? ?? [];
+      // Try every field name the backend might use for "you were blocked by them"
+      final isBlockedByReceiver =
+          inner['isBlockedByReceiver'] == true ||
+          inner['isSenderBlocked'] == true ||
+          inner['isCurrentUserBlocked'] == true ||
+          inner['blockedBySender'] == true ||
+          inner['isBlocked'] == true;
       return (
         messages: msgList
             .whereType<Map<String, dynamic>>()
             .map(MessageModel.fromJson)
             .toList(),
         isReceiverBlocked: inner['isReceiverBlocked'] == true,
+        isBlockedByReceiver: isBlockedByReceiver,
       );
     }
     throw Exception(
@@ -177,14 +189,15 @@ class MessagingApiService {
       headers: _headers(token),
       body: jsonEncode({'receiverId': receiverId, 'content': content}),
     );
+    debugPrint('[sendMessage] status=${res.statusCode} body=${res.body.length > 300 ? res.body.substring(0, 300) : res.body}');
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'];
       if (inner is Map<String, dynamic>) return ChatModel.fromJson(inner);
     }
-    throw Exception(
-        (data is Map ? data['message']?.toString() : null) ??
-            'Failed to send message');
+    final errorMsg = (data is Map ? data['message']?.toString() : null) ?? 'Failed to send message';
+    debugPrint('[sendMessage] ERROR → status=${res.statusCode} message="$errorMsg"');
+    throw Exception(errorMsg);
   }
 
   // PATCH /api/messages/v1/archive

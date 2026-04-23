@@ -6,6 +6,7 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/attach_cont
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_socket_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:flutter/material.dart';
 
 const _kBg = Color(0xFF111111);
@@ -51,6 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<MessageModel> _messages = [];
   bool _isLoading = true;
   bool _isReceiverBlocked = false;
+  bool _isBlockedByReceiver = false;
   bool _isSending = false;
   String? _error;
   bool _hasMore = true;
@@ -89,8 +91,11 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
 
+    debugPrint('[ChatScreen._init] _chatId=$_chatId  _receiverId=$_receiverId  _currentUserId=$_currentUserId');
     if (_chatId != null) {
+      debugPrint('[ChatScreen._init] Has chatId → calling _loadMessages');
       await _loadMessages();
+      debugPrint('[ChatScreen._init] After _loadMessages → _isReceiverBlocked=$_isReceiverBlocked  _isBlockedByReceiver=$_isBlockedByReceiver');
       debugPrint('[ChatScreen._init] Calling markChatAsRead for chatId=$_chatId');
       _api.markChatAsRead(chatId: _chatId!).then((_) {
         debugPrint('[ChatScreen._init] markChatAsRead SUCCESS for $_chatId');
@@ -153,6 +158,8 @@ class _ChatScreenState extends State<ChatScreen> {
           _hasMore = result.messages.length == 20;
         }
         _isReceiverBlocked = result.isReceiverBlocked;
+        _isBlockedByReceiver = result.isBlockedByReceiver;
+        debugPrint('[ChatScreen._loadMessages] BLOCK STATE → isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver');
         _isLoading = false;
         _loadingMore = false;
       });
@@ -243,7 +250,15 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
     } catch (e) {
-      if (mounted) {
+      debugPrint('[ChatScreen._send] ERROR: $e');
+      if (!mounted) return;
+      final msg = e.toString().toLowerCase();
+      final isBlockError = msg.contains('block') || msg.contains('forbidden') || msg.contains('cannot send') || msg.contains('disabled');
+      debugPrint('[ChatScreen._send] isBlockError=$isBlockError  raw="$e"');
+      if (isBlockError) {
+        setState(() => _isBlockedByReceiver = true);
+        debugPrint('[ChatScreen._send] → set _isBlockedByReceiver=true, showing banner');
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceFirst('Exception: ', '')),
@@ -446,10 +461,12 @@ class _ChatScreenState extends State<ChatScreen> {
         body: Column(
           children: [
             Expanded(child: _buildBody()),
-            if (_isReceiverBlocked)
-              _buildBlockBanner()
-            else
-              _buildInputBar(),
+            Builder(builder: (ctx) {
+              debugPrint('[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId');
+              if (_isReceiverBlocked) return _buildBlockBanner();
+              if (_isBlockedByReceiver) return _buildBlockedByReceiverBanner();
+              return _buildInputBar();
+            }),
           ],
         ),
       ),
@@ -668,6 +685,35 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildBlockedByReceiverBanner() {
+    return Container(
+      color: const Color(0xFF161616),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 14,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 14,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.block_rounded, color: Colors.white38, size: 16),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'This profile has disabled receiving messages.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white38, fontSize: 13, height: 1.4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInputBar() {
     return Container(
       color: const Color(0xFF161616),
@@ -803,9 +849,12 @@ class _MessageBubble extends StatelessWidget {
 
   static bool _looksLikePermalink(String content) {
     final c = content.trim();
-    return c.length > 8 &&
-        c.length < 200 &&
+    // Must contain exactly one '/' (e.g. "artist-slug/track-slug"),
+    // no spaces, only URL-safe chars, and be a reasonable length.
+    return c.length > 5 &&
+        c.length < 300 &&
         !c.contains(' ') &&
+        c.contains('/') &&
         RegExp(r'^[a-zA-Z0-9\-_./%]+$').hasMatch(c);
   }
 
@@ -876,7 +925,6 @@ class _TrackCardBubble extends StatefulWidget {
 
   const _TrackCardBubble({required this.permalink, required this.isMe});
 
-  // Static cache so we don't re-fetch on ListView rebuilds
   static final Map<String, PlaybackTrackModel?> _cache = {};
 
   @override
@@ -905,14 +953,18 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
     if (mounted) setState(() { _track = result; _loaded = true; });
   }
 
+  void _play() {
+    final track = _track;
+    if (track == null) return;
+    PlaybackStreamingEngineService.shared.playTrack(track);
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (!_loaded) {
-      // Show shimmer-like placeholder while fetching
-      return _buildPlaceholder();
-    }
+    if (!_loaded) return _buildPlaceholder();
+
+    // Couldn't resolve permalink — fall back to plain text bubble
     if (_track == null) {
-      // Couldn't load — render as plain text bubble
       return Container(
         constraints: const BoxConstraints(maxWidth: 280),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
@@ -926,87 +978,160 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
           ),
         ),
         child: Text(widget.permalink,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 15, height: 1.35)),
+            style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.35)),
       );
     }
 
     final track = _track!;
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 300),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Artwork banner
-          if (track.artworkUrl != null && track.artworkUrl!.isNotEmpty)
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(14)),
-              child: Image.network(
-                track.artworkUrl!,
-                height: 140,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, _) => const SizedBox(height: 0),
+    final artwork = track.artworkUrl ?? '';
+
+    return GestureDetector(
+      onTap: _play,
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.72,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1C1C),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              // Album artwork
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: artwork.isNotEmpty
+                    ? Image.network(
+                        artwork,
+                        width: 52,
+                        height: 52,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, _) => _artworkPlaceholder(),
+                      )
+                    : _artworkPlaceholder(),
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        track.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600),
+              const SizedBox(width: 10),
+              // Title + artist
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      track.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        track.artistName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 12),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      track.artistName.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Icon(Icons.play_circle_filled_rounded,
-                    color: _kOrange, size: 32),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4),
+              // Options button
+              GestureDetector(
+                onTap: () => _showOptions(context, track),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.more_horiz, color: Colors.white54, size: 18),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+
+  void _showOptions(BuildContext context, PlaybackTrackModel track) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36, height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.play_arrow_rounded, color: Colors.white70),
+                title: const Text('Play now', style: TextStyle(color: Colors.white, fontSize: 15)),
+                onTap: () { Navigator.pop(context); _play(); },
+              ),
+              ListTile(
+                leading: const Icon(Icons.playlist_play_rounded, color: Colors.white70),
+                title: const Text('Play next', style: TextStyle(color: Colors.white, fontSize: 15)),
+                onTap: () {
+                  Navigator.pop(context);
+                  PlaybackStreamingEngineService.shared.addToQueueNext(track);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.format_list_bulleted_rounded, color: Colors.white70),
+                title: const Text('Play last', style: TextStyle(color: Colors.white, fontSize: 15)),
+                onTap: () {
+                  Navigator.pop(context);
+                  PlaybackStreamingEngineService.shared.addToQueueLast(track);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _artworkPlaceholder() {
+    return Container(
+      width: 52, height: 52,
+      color: const Color(0xFF2A2A2A),
+      child: const Icon(Icons.graphic_eq_rounded, color: Colors.white24, size: 24),
     );
   }
 
   Widget _buildPlaceholder() {
     return Container(
-      width: 260,
-      height: 60,
+      width: 240,
+      height: 72,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: const Color(0xFF1C1C1C),
         borderRadius: BorderRadius.circular(14),
       ),
       child: const Center(
-          child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                  color: _kOrange, strokeWidth: 2))),
+        child: SizedBox(
+          width: 18, height: 18,
+          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2),
+        ),
+      ),
     );
   }
 }

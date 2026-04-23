@@ -202,7 +202,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       itemCount: tracks.length,
       itemBuilder: (ctx, i) {
         final track = tracks[i];
-        final audioLink = track.audioUrl ?? '';
+        final audioLink = track.permalink ?? '';
         final isSelected = _selectedTrackLink == audioLink;
         return ListTile(
           contentPadding:
