@@ -15,8 +15,10 @@ import 'package:cross_team5/features/playback_streaming_engine/services/playback
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
 import 'package:cross_team5/features/library/services/library_history_api_service.dart';
+import '../../audio_upload_track_management/models/track.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
+import '../../audio_upload_track_management/services/track_api_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../models/spotlight_models.dart';
 import '../../premium_subscription/services/payment_service.dart';
@@ -1075,7 +1077,63 @@ class _SoundCloudProfileView extends StatefulWidget {
 class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
   List<SpotlightItemModel?> spotlightItems = List.filled(5, null);
 
+  final TrackApiService _trackApiService = TrackApiService();
+  List<Track> _serverTracks = [];
+  bool _isLoadingTracks = false;
+  String? _fetchingPlaybackId;
+
   bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServerTracks();
+  }
+
+  Future<void> _loadServerTracks() async {
+    if (widget.profile.trackCount == 0) return;
+    setState(() => _isLoadingTracks = true);
+    final result = await _trackApiService.getUserPostedTracks(
+      userId: widget.profile.userId,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isLoadingTracks = false;
+      if (result.$1 == 200) _serverTracks = result.$2 as List<Track>;
+    });
+  }
+
+  Future<void> _playServerTrack(Track track) async {
+    if (_fetchingPlaybackId != null) return;
+    setState(() => _fetchingPlaybackId = track.id);
+    final result = await _trackApiService.getTrackById(trackId: track.id);
+    if (!mounted) return;
+    setState(() => _fetchingPlaybackId = null);
+    if (result.$1 != 200) return;
+    final fullTrack = result.$2 as Track;
+    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) return;
+    final playbackTrack = PlaybackTrackModel(
+      id: fullTrack.id,
+      title: fullTrack.title,
+      artistName: fullTrack.displayArtist,
+      audioUrl: fullTrack.audioLink!,
+      artworkUrl: fullTrack.imageUrl,
+      accessState: PlaybackAccessState.playable,
+      sourceType: PlaybackSourceType.network,
+      isPrivate: fullTrack.isPrivate,
+      numLikes: fullTrack.numLikes,
+      numPlays: fullTrack.numPlays,
+      numReposts: fullTrack.numReposts,
+      numComments: fullTrack.numComments,
+      genre: fullTrack.genre,
+      tags: fullTrack.tags,
+    );
+    await PlaybackStreamingEngineService.shared.playTrack(
+      playbackTrack,
+      queue: [playbackTrack],
+      startIndex: 0,
+    );
+  }
 
   static const String _defaultImageUrl =
       "https://res.cloudinary.com/dr1sqiouu/image/upload/v1776357570/profile/file_ud25rn.png";
@@ -1369,10 +1427,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         SliverToBoxAdapter(
           child: Transform.translate(
             offset: const Offset(0, -4),
-            child: ValueListenableBuilder<List<TrackModel>>(
-              valueListenable: AudioUploadService.globalMockTracksNotifier,
-              builder: (context, tracks, child) {
-                final bool hasTracks = tracks.isNotEmpty;
+            child: Builder(
+              builder: (context) {
                 final bool shouldShowSpotlight =
                     widget.profile.trackCount > 0 &&
                         (widget.showArtistSections || widget.isOwner);
@@ -1511,15 +1567,22 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                      child: Text(
-                        (widget.profile.role.toLowerCase() == 'listener' &&
-                            hasTracks)
-                            ? 'Artist'
-                            : widget.profile.role,
-                        style: const TextStyle(
-                          color: Color(0xFFB3B3B3),
-                          fontSize: 13,
-                        ),
+                      child: ValueListenableBuilder<SubscriptionState>(
+                        valueListenable: PaymentService.subscriptionSuccessNotifier,
+                        builder: (context, state, _) {
+                          final displayRole =
+                              (state.isPro &&
+                                  widget.profile.role.toLowerCase() == 'listener')
+                                  ? 'Artist'
+                                  : widget.profile.role;
+                          return Text(
+                            displayRole,
+                            style: const TextStyle(
+                              color: Color(0xFFB3B3B3),
+                              fontSize: 13,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -1755,7 +1818,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         ),
                       ),
                     ],
-                    if (widget.isOwner && hasTracks) ...[
+                    if (widget.isOwner && shouldShowSpotlight) ...[
                       const SizedBox(height: 24),
                       InkWell(
                         onTap: () {
@@ -1836,85 +1899,84 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         ),
                       ),
                     ],
-                    if (hasTracks) ...[
-                      const SizedBox(height: 28),
-                      const _SectionHeader(title: 'Top tracks', actionText: ''),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: InkWell(
-                          onTap: () => widget.onTrackTap(tracks.first),
-                          child: _LocalTrackRow(
-                            track: tracks.first,
-                            artistName: widget.profile.resolvedDisplayName,
-                            isPlaying:
-                            widget.currentlyPlayingTrackId == tracks.first.id,
-                            onMoreTap: () =>
-                                widget.onTrackOptionsTap(tracks.first),
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (hasTracks) ...[
+                    if (shouldShowSpotlight) ...[
                       const SizedBox(height: 28),
                       const _SectionHeader(title: 'All tracks', actionText: ''),
                       const SizedBox(height: 10),
-                      ...tracks.map((track) {
-                        final bool isPlaying =
-                            widget.currentlyPlayingTrackId == track.id;
-                        final String vis =
-                        track.visibility.toString().toLowerCase();
-                        final bool isPrivate =
-                            vis.contains('private') || vis.contains('unlisted');
-
-                        final Widget trackRow = InkWell(
-                          onTap: () => widget.onTrackTap(track),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
-                            child: _LocalTrackRow(
-                              track: track,
-                              artistName: widget.profile.resolvedDisplayName,
-                              isPlaying: isPlaying,
-                              onMoreTap: () =>
-                                  widget.onTrackOptionsTap(track),
-                            ),
-                          ),
-                        );
-
-                        if (isPrivate || !widget.isOwner) return trackRow;
-
-                        return LongPressDraggable<TrackModel>(
-                          data: track,
-                          feedback: Material(
-                            color: Colors.transparent,
-                            child: Opacity(
-                              opacity: 0.8,
-                              child: Container(
-                                width: MediaQuery.of(context).size.width - 28,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1C1C1C),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: _LocalTrackRow(
-                                  track: track,
-                                  artistName:
-                                  widget.profile.resolvedDisplayName,
-                                  isPlaying: isPlaying,
-                                  onMoreTap: () {},
-                                ),
+                      if (_isLoadingTracks)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.orange,
+                                strokeWidth: 2,
                               ),
                             ),
                           ),
-                          childWhenDragging: Opacity(
-                            opacity: 0.4,
-                            child: trackRow,
-                          ),
-                          child: trackRow,
-                        );
-                      }),
+                        )
+                      else
+                        ..._serverTracks.map((track) {
+                          final isFetching = _fetchingPlaybackId == track.id;
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 2,
+                            ),
+                            leading: Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1C1C1C),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: track.imageUrl != null
+                                    ? Image.network(
+                                        track.imageUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stack) =>
+                                            const Icon(Icons.music_note,
+                                                color: Colors.white24),
+                                      )
+                                    : const Icon(Icons.music_note,
+                                        color: Colors.white24),
+                              ),
+                            ),
+                            title: Text(
+                              track.title,
+                              style: TextStyle(
+                                color: isFetching ? Colors.orange : Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              track.displayArtist,
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: isFetching
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.orange,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : null,
+                            onTap: () => _playServerTrack(track),
+                          );
+                        }),
                     ],
                     const SizedBox(height: 28),
                     const _SectionHeader(title: 'Playlists', actionText: ''),
@@ -1983,6 +2045,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                 );
               },
             ),
+
           ),
         ),
       ],
@@ -2632,83 +2695,6 @@ class _SquareImage extends StatelessWidget {
   }
 }
 
-class _LocalTrackRow extends StatelessWidget {
-  final TrackModel track;
-  final String artistName;
-  final bool isPlaying;
-  final VoidCallback onMoreTap;
-
-  const _LocalTrackRow({
-    required this.track,
-    required this.artistName,
-    required this.onMoreTap,
-    this.isPlaying = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1D1D1D),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child:
-            track.coverImagePath != null && track.coverImagePath!.isNotEmpty
-                ? (track.coverImagePath!.startsWith('http')
-                ? Image.network(track.coverImagePath!, fit: BoxFit.cover)
-                : Image.file(
-              File(track.coverImagePath!),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const Icon(
-                Icons.music_note,
-                color: Colors.white24,
-              ),
-            ))
-                : const Icon(Icons.music_note, color: Colors.white24),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                track.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isPlaying ? const Color(0xFFFF5500) : Colors.white,
-                  fontSize: 14,
-                  fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                artistName,
-                style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                '▶ 1',
-                style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.more_horiz, color: Colors.white54),
-          onPressed: onMoreTap,
-        ),
-      ],
-    );
-  }
-}
 
 class _RoundIconButton extends StatelessWidget {
   final IconData icon;

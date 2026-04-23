@@ -11,7 +11,6 @@ export 'services/audio_upload_service.dart'; // local file + ValueNotifier
 export 'services/track_api_service.dart'; // all 13 API methods
 
 // Widgets (teammate's — unchanged)
-export 'widgets/waveform_widget.dart';
 export 'widgets/metadata_form_widget.dart';
 export 'widgets/pro_disabled_switch_widget.dart';
 export 'widgets/pro_radio_tile_widget.dart';

@@ -33,21 +33,20 @@ class AudioUploadService {
 
   Future<bool> saveTrackData(
     PlatformFile file,
-    Map<String, dynamic> metadata,
-  ) async {
+    Map<String, dynamic> metadata, {
+    String? serverId,
+  }) async {
     await Future.delayed(const Duration(seconds: 1));
 
     TrackVisibility visibility = TrackVisibility.public;
-    if (metadata['visibility'] == 'private'){
-      visibility = TrackVisibility.private;
-    }
-      
-    if (metadata['visibility'] == 'unlisted'){
-      visibility = TrackVisibility.unlisted;
-    }
-      
+    if (metadata['visibility'] == 'private') visibility = TrackVisibility.private;
+    if (metadata['visibility'] == 'unlisted') visibility = TrackVisibility.unlisted;
+
+    final localId = DateTime.now().millisecondsSinceEpoch.toString();
+
     final newTrack = TrackModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: localId,
+      serverId: serverId,
       title:
           metadata['title'] != null && metadata['title'].toString().isNotEmpty
           ? metadata['title']
@@ -61,7 +60,7 @@ class AudioUploadService {
       audioUrl: file.path ?? '',
       waveformPeaks: generateMockWaveform(30),
       visibility: visibility,
-
+      processingState: TrackProcessingState.processing,
       description: metadata['description'] ?? '',
       caption: metadata['caption'] ?? '',
       recordLabel: metadata['recordLabel'] ?? '',
@@ -82,6 +81,16 @@ class AudioUploadService {
     final updatedList = List<TrackModel>.from(globalMockTracksNotifier.value);
     updatedList.insert(0, newTrack);
     globalMockTracksNotifier.value = updatedList;
+
+    // Transition to finished after a short delay to simulate server processing
+    Future.delayed(const Duration(seconds: 4), () {
+      final list = List<TrackModel>.from(globalMockTracksNotifier.value);
+      final idx = list.indexWhere((t) => t.id == localId);
+      if (idx != -1) {
+        list[idx] = list[idx].copyWith(processingState: TrackProcessingState.finished);
+        globalMockTracksNotifier.value = list;
+      }
+    });
 
     return true;
   }
