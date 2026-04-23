@@ -202,8 +202,8 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       itemCount: tracks.length,
       itemBuilder: (ctx, i) {
         final track = tracks[i];
-        final permalink = track.permalink ?? '';
-        final isSelected = _selectedTrackLink == permalink;
+        final audioLink = track.audioUrl ?? '';
+        final isSelected = _selectedTrackLink == audioLink;
         return ListTile(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -226,7 +226,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           trailing: GestureDetector(
             onTap: () => setState(() {
               _selectedTrackLink =
-                  isSelected ? null : (permalink.isNotEmpty ? permalink : null);
+                  isSelected ? null : (audioLink.isNotEmpty ? audioLink : null);
             }),
             child: Container(
               width: 24,
@@ -247,7 +247,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           ),
           onTap: () => setState(() {
             _selectedTrackLink =
-                isSelected ? null : (permalink.isNotEmpty ? permalink : null);
+                isSelected ? null : (audioLink.isNotEmpty ? audioLink : null);
           }),
         );
       },

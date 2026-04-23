@@ -20,7 +20,9 @@ import 'package:cross_team5/features/engagement_social_interactions/engagement_s
 import 'package:cross_team5/features/engagement_social_interactions/screens/likers_screen.dart';
 import 'package:cross_team5/features/engagement_social_interactions/screens/comments_screen.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
-import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
+import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import '../services/public_tracks_paging_service.dart';
 
@@ -2060,12 +2062,138 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   bool _isReposted = false;
   late int _repostCount;
 
+  List<({String receiverId, String name, String photoUrl})> _recentContacts = [];
+  String _trackLink = '';
+
   @override
   void initState() {
     super.initState();
     _repostCount = widget.track.numReposts;
     _checkRepostStatus();
     _checkLikeStatus();
+    _loadSendToData();
+  }
+
+  Future<void> _loadSendToData() async {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('[SendTo] STEP 0 — _loadSendToData() called');
+    debugPrint('[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"');
+
+    // Step 1: currentUserId
+    debugPrint('[SendTo] STEP 1 — reading currentUserId');
+    final currentUserId = await AuthApiService().getStoredUserId();
+    debugPrint('[SendTo] STEP 1 result → currentUserId="$currentUserId"');
+    if (currentUserId == null || currentUserId.isEmpty) {
+      debugPrint('[SendTo] STEP 1 ❌ ABORTED — no currentUserId');
+      return;
+    }
+    debugPrint('[SendTo] STEP 1 ✅ OK');
+
+    // Step 2: resolve track link
+    debugPrint('[SendTo] STEP 2 — resolving track link');
+    debugPrint('[SendTo] STEP 2   track.audioUrl="${widget.track.audioUrl}"');
+    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}"');
+    final link = (widget.track.audioUrl?.isNotEmpty == true
+        ? widget.track.audioUrl
+        : widget.track.permalink) ?? '';
+    debugPrint('[SendTo] STEP 2 ✅ resolved link="$link"');
+
+    // Step 3: fetch followers
+    debugPrint('[SendTo] STEP 3 — calling getFollowers(userId=$currentUserId)');
+    debugPrint('[SendTo] STEP 3   URL: [baseUrl]/api/social/v1/followers/$currentUserId');
+    try {
+      final result = await SocialApiService().getFollowers(userId: currentUserId);
+      debugPrint('[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
+
+      if (result.$1 != 200) {
+        debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"');
+        if (mounted) setState(() => _trackLink = link);
+        return;
+      }
+      debugPrint('[SendTo] STEP 3 ✅ status 200');
+
+      // Step 4: inspect raw list
+      debugPrint('[SendTo] STEP 4 — inspecting raw list');
+      final rawList = result.$2;
+      debugPrint('[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}');
+      debugPrint('[SendTo] STEP 4   rawList is List? ${rawList is List}');
+      if (rawList is List) {
+        debugPrint('[SendTo] STEP 4   rawList.length=${rawList.length}');
+        for (var i = 0; i < rawList.length; i++) {
+          debugPrint('[SendTo] STEP 4   item[$i] type=${rawList[i].runtimeType}  value=${rawList[i]}');
+        }
+      } else {
+        debugPrint('[SendTo] STEP 4 ❌ rawList is NOT a List — type: ${rawList.runtimeType}  value: $rawList');
+      }
+
+      // Step 5: cast to Follower
+      debugPrint('[SendTo] STEP 5 — casting via whereType<Follower>()');
+      List<Follower> followers = [];
+      if (rawList is List) {
+        followers = rawList.whereType<Follower>().toList();
+        debugPrint('[SendTo] STEP 5   input=${rawList.length}  after cast=${followers.length}');
+        if (rawList.isNotEmpty && followers.isEmpty) {
+          debugPrint('[SendTo] STEP 5 ❌ ALL items filtered out — items are ${rawList.first.runtimeType}, not Follower');
+        }
+        for (final f in followers) {
+          debugPrint('[SendTo] STEP 5   Follower → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"');
+        }
+      }
+      debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
+
+      // Step 6: filter empty userIds
+      debugPrint('[SendTo] STEP 6 — filtering empty userIds');
+      final valid = followers.where((f) => f.userId.isNotEmpty).toList();
+      debugPrint('[SendTo] STEP 6   before=${followers.length}  after=${valid.length}');
+
+      // Step 7: setState
+      debugPrint('[SendTo] STEP 7 — setState. mounted=$mounted');
+      if (!mounted) {
+        debugPrint('[SendTo] STEP 7 ❌ unmounted — contacts will NOT be set');
+        return;
+      }
+      final contacts = valid
+          .take(6)
+          .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
+          .toList();
+      setState(() {
+        _recentContacts = contacts;
+        _trackLink = link;
+      });
+      debugPrint('[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}');
+    } catch (e, stack) {
+      debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
+      debugPrint('[SendTo]   stack: $stack');
+      if (mounted) setState(() => _trackLink = link);
+    }
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  }
+
+  void _sendToContact(String receiverId, String name, String photoUrl) {
+    Navigator.of(context, rootNavigator: true).pop();
+    final navCtx = appNavigatorKey.currentContext;
+    if (navCtx == null) return;
+    Navigator.of(navCtx, rootNavigator: true).push(MaterialPageRoute(
+      builder: (_) => ChatScreen(
+        receiverId: receiverId,
+        receiverName: name,
+        receiverPhotoUrl: photoUrl,
+        initialContent: _trackLink,
+      ),
+    ));
+  }
+
+  void _openSendToSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (_) => SendToSheet(
+        trackLink: _trackLink,
+        trackTitle: widget.track.title,
+      ),
+    );
   }
 
   Future<void> _checkLikeStatus() async {
@@ -2220,6 +2348,36 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   child: _TrackOptionsHeaderCard(track: widget.track),
                 ),
                 const SizedBox(height: 22),
+                if (_recentContacts.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      'SEND TO',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        letterSpacing: 2.2,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Row(
+                      children: _recentContacts
+                          .map((c) => _SendToContactBubble(
+                                name: c.name,
+                                photoUrl: c.photoUrl,
+                                onTap: () => _sendToContact(c.receiverId, c.name, c.photoUrl),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Divider(color: Colors.white12, height: 1),
+                ],
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
@@ -2233,12 +2391,12 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const SingleChildScrollView(
+                SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
                     children: [
-                      _ShareAction(icon: Icons.send_outlined, label: 'Message'),
+                      _ShareAction(icon: Icons.send_outlined, label: 'Message', onTap: _openSendToSheet),
                       _ShareAction(
                         icon: Icons.copy_outlined,
                         label: 'Copy link',
@@ -2378,33 +2536,96 @@ class _SheetOptionRow extends StatelessWidget {
 class _ShareAction extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
-  const _ShareAction({required this.icon, required this.label});
+  const _ShareAction({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 18),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.10),
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 30),
             ),
-            child: Icon(icon, color: Colors.white, size: 30),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _SendToContactBubble extends StatelessWidget {
+  final String name;
+  final String photoUrl;
+  final VoidCallback onTap;
+
+  const _SendToContactBubble({
+    required this.name,
+    required this.photoUrl,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 31,
+              backgroundColor: const Color(0xFF2A2A2A),
+              backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              child: photoUrl.isEmpty
+                  ? Text(
+                      _initials(name),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: 64,
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _initials(String text) {
+    final parts = text.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }
 

@@ -71,35 +71,21 @@ class _ChatScreenState extends State<ChatScreen> {
     _currentUserId = await _auth.getStoredUserId();
     final token = await _auth.getStoredAccessToken() ?? '';
 
-    // Issue 5 fix: if opened with only receiverId (e.g. from profile), look for an existing chat first
+    // If opened with only receiverId (e.g. from profile), find or create the chat via API
     if (_chatId == null &&
         widget.receiverId != null &&
         widget.receiverId!.isNotEmpty) {
       try {
-        debugPrint('[ChatScreen._init] No chatId. Searching for existing chat with receiverId=${widget.receiverId}');
-        final chats = await _api.getChats(limit: 50);
-        debugPrint('[ChatScreen._init] Fetched ${chats.length} chats to search');
-        for (final c in chats) {
-          debugPrint('[ChatScreen._init] → chat ${c.id}: receiver.userId="${c.receiver?.userId}" sender.userId="${c.sender?.userId}"');
-        }
-        ChatModel? found;
-        try {
-          found = chats.firstWhere(
-            (c) =>
-                (c.receiver?.userId.isNotEmpty == true &&
-                    c.receiver?.userId == widget.receiverId) ||
-                (c.sender?.userId.isNotEmpty == true &&
-                    c.sender?.userId == widget.receiverId),
-          );
-        } catch (_) {}
-        if (found != null) {
-          debugPrint('[ChatScreen._init] Found existing chat: ${found.id}');
-          _chatId = found.id;
+        debugPrint('[ChatScreen._init] No chatId. Calling findOrCreateChat for receiverId=${widget.receiverId}');
+        final foundId = await _api.findOrCreateChat(receiverId: widget.receiverId!);
+        if (foundId != null && foundId.isNotEmpty) {
+          debugPrint('[ChatScreen._init] findOrCreateChat returned chatId=$foundId');
+          _chatId = foundId;
         } else {
-          debugPrint('[ChatScreen._init] No existing chat found → new conversation');
+          debugPrint('[ChatScreen._init] findOrCreateChat returned null → new conversation');
         }
       } catch (e) {
-        debugPrint('[ChatScreen._init] Error searching for existing chat: $e');
+        debugPrint('[ChatScreen._init] findOrCreateChat error: $e → falling back to new conversation');
       }
     }
 

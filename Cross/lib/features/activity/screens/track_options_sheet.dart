@@ -4,7 +4,6 @@ import 'package:cross_team5/features/engagement_social_interactions/engagement_s
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
-import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
@@ -19,7 +18,6 @@ class TrackOptionsSheet extends StatefulWidget {
 
 class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   final _engagementApi = EngagementApiService();
-  final _msgApi = MessagingApiService();
 
   bool _isLiked = false;
   bool _isLikeLoading = false;
@@ -39,66 +37,104 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   }
 
   Future<void> _loadSendToData() async {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('[SendTo] STEP 0 — _loadSendToData() called');
+    debugPrint('[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"');
+
     // ── Step 1: get current user id ─────────────────────────────────────────
+    debugPrint('[SendTo] STEP 1 — reading currentUserId from secure storage');
     final currentUserId = await AuthApiService().getStoredUserId();
-    debugPrint('[TrackOptions._loadSendToData] currentUserId=$currentUserId, trackId=${widget.track.id}');
+    debugPrint('[SendTo] STEP 1 result → currentUserId="$currentUserId" (isNull=${currentUserId == null}, isEmpty=${currentUserId?.isEmpty})');
     if (currentUserId == null || currentUserId.isEmpty) {
-      debugPrint('[TrackOptions._loadSendToData] ABORTED — currentUserId is null/empty');
+      debugPrint('[SendTo] STEP 1 ❌ ABORTED — no currentUserId. Send To section will NOT show.');
       return;
     }
+    debugPrint('[SendTo] STEP 1 ✅ currentUserId OK');
 
-    // ── Step 2: get track permalink ─────────────────────────────────────────
-    String? permalink;
-    try {
-      permalink = await _msgApi.getTrackPermalink(trackId: widget.track.id);
-      debugPrint('[TrackOptions._loadSendToData] permalink="$permalink" (widget.track.permalink="${widget.track.permalink}")');
-    } catch (e) {
-      debugPrint('[TrackOptions._loadSendToData] getTrackPermalink error: $e');
-    }
+    // ── Step 2: resolve audio link ──────────────────────────────────────────
+    debugPrint('[SendTo] STEP 2 — resolving audio/track link');
+    debugPrint('[SendTo] STEP 2   track.audioUrl="${widget.track.audioUrl}"');
+    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}"');
+    final permalink = widget.track.audioUrl?.isNotEmpty == true
+        ? widget.track.audioUrl
+        : widget.track.permalink;
+    debugPrint('[SendTo] STEP 2 ✅ resolved link="$permalink"');
 
     // ── Step 3: get followers ────────────────────────────────────────────────
+    debugPrint('[SendTo] STEP 3 — calling SocialApiService().getFollowers(userId=$currentUserId)');
+    debugPrint('[SendTo] STEP 3   URL will be: [baseUrl]/api/social/v1/followers/$currentUserId');
     try {
-      debugPrint('[TrackOptions._loadSendToData] Calling getFollowers for userId=$currentUserId');
       final result = await SocialApiService().getFollowers(userId: currentUserId);
-      debugPrint('[TrackOptions._loadSendToData] getFollowers → status=${result.$1}, dataType=${result.$2.runtimeType}');
+      debugPrint('[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
 
       if (result.$1 != 200) {
-        debugPrint('[TrackOptions._loadSendToData] getFollowers non-200: ${result.$2}');
-        if (mounted) setState(() => _trackPermalink = permalink ?? widget.track.permalink ?? '');
+        debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}. data="${result.$2}". Send To will NOT show.');
+        if (mounted) setState(() => _trackPermalink = permalink ?? '');
         return;
       }
+      debugPrint('[SendTo] STEP 3 ✅ status 200');
 
+      // ── Step 4: inspect raw list returned by getFollowers ─────────────────
+      debugPrint('[SendTo] STEP 4 — inspecting raw result.second');
       final rawList = result.$2;
-      debugPrint('[TrackOptions._loadSendToData] rawList=$rawList');
+      debugPrint('[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}');
+      debugPrint('[SendTo] STEP 4   rawList is List? ${rawList is List}');
+      if (rawList is List) {
+        debugPrint('[SendTo] STEP 4   rawList.length=${rawList.length}');
+        for (var i = 0; i < rawList.length; i++) {
+          final item = rawList[i];
+          debugPrint('[SendTo] STEP 4   item[$i] runtimeType=${item.runtimeType} value=$item');
+        }
+      } else {
+        debugPrint('[SendTo] STEP 4 ❌ rawList is NOT a List — this is why followers are empty. Actual type: ${rawList.runtimeType}, value: $rawList');
+      }
 
+      // ── Step 5: cast to List<Follower> ────────────────────────────────────
+      debugPrint('[SendTo] STEP 5 — casting items to Follower via whereType<Follower>()');
       List<Follower> followers = [];
       if (rawList is List) {
         followers = rawList.whereType<Follower>().toList();
-        debugPrint('[TrackOptions._loadSendToData] Follower objects: ${followers.length}');
-        for (final f in followers.take(6)) {
-          debugPrint('[TrackOptions._loadSendToData] → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"');
+        debugPrint('[SendTo] STEP 5   rawList.length=${rawList.length}  followers after whereType=${followers.length}');
+        if (rawList.isNotEmpty && followers.isEmpty) {
+          debugPrint('[SendTo] STEP 5 ❌ whereType<Follower>() filtered out ALL items. Items are ${rawList.first.runtimeType}, not Follower.');
         }
-      } else {
-        debugPrint('[TrackOptions._loadSendToData] rawList is NOT a List: ${rawList.runtimeType}');
+        for (final f in followers) {
+          debugPrint('[SendTo] STEP 5   Follower → userId="${f.userId}" displayName="${f.displayName}" profileImgLink="${f.profileImgLink}"');
+        }
+      }
+      debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
+
+      // ── Step 6: filter out empty userIds ──────────────────────────────────
+      debugPrint('[SendTo] STEP 6 — filtering followers with empty userId');
+      final validFollowers = followers.where((f) => f.userId.isNotEmpty).toList();
+      debugPrint('[SendTo] STEP 6   before filter=${followers.length}  after filter=${validFollowers.length}');
+      for (final f in validFollowers) {
+        debugPrint('[SendTo] STEP 6   valid → userId="${f.userId}" name="${f.displayName}"');
       }
 
-      if (!mounted) return;
+      // ── Step 7: setState ───────────────────────────────────────────────────
+      debugPrint('[SendTo] STEP 7 — about to call setState. mounted=$mounted');
+      if (!mounted) {
+        debugPrint('[SendTo] STEP 7 ❌ widget unmounted before setState — contacts will NOT be set');
+        return;
+      }
+      final contacts = validFollowers
+          .take(6)
+          .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
+          .toList();
+      debugPrint('[SendTo] STEP 7   contacts to set: ${contacts.length}');
       setState(() {
-        _recentContacts = followers
-            .take(6)
-            .map((f) => (
-                  receiverId: f.userId,
-                  name: f.displayName,
-                  photoUrl: f.profileImgLink ?? '',
-                ))
-            .toList();
-        _trackPermalink = permalink ?? widget.track.permalink ?? '';
+        _recentContacts = contacts;
+        _trackPermalink = permalink ?? '';
       });
-      debugPrint('[TrackOptions._loadSendToData] setState done: ${_recentContacts.length} contacts, permalink=$_trackPermalink');
-    } catch (e) {
-      debugPrint('[TrackOptions._loadSendToData] getFollowers exception: $e');
-      if (mounted) setState(() => _trackPermalink = permalink ?? widget.track.permalink ?? '');
+      debugPrint('[SendTo] STEP 7 ✅ setState done. _recentContacts.length=${_recentContacts.length}');
+      debugPrint('[SendTo] STEP 7   Send To section WILL show: ${_recentContacts.isNotEmpty}');
+    } catch (e, stack) {
+      debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
+      debugPrint('[SendTo] STEP 3   stack: $stack');
+      if (mounted) setState(() => _trackPermalink = permalink ?? '');
     }
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 
   Future<void> _checkLikeStatus() async {

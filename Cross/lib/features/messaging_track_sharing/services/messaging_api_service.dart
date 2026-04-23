@@ -96,6 +96,75 @@ class MessagingApiService {
             'Failed to load messages');
   }
 
+  // Find existing chat with receiverId.
+  // Pass 1: match via lastMessage.senderId (fast, no extra calls).
+  // Pass 2: for chats where WE sent the last message, fetch their messages
+  //         and scan for any message from the receiver.
+  // (the /chats API doesn't include userId in participant objects)
+  Future<String?> findOrCreateChat({required String receiverId}) async {
+    try {
+      final token = await _token();
+      final currentUserId = await _authApiService.getStoredUserId() ?? '';
+      final uri = Uri.parse('$_msgBase/chats').replace(queryParameters: {'limit': '100'});
+      debugPrint('[MessagingApiService.findOrCreateChat] GET $uri receiverId=$receiverId');
+      final res = await _client.get(uri, headers: _headers(token));
+      final data = _decode(res);
+      if (res.statusCode != 200 || data is! Map) {
+        debugPrint('[MessagingApiService.findOrCreateChat] chats fetch failed: ${res.statusCode}');
+        return null;
+      }
+      final list = (data['data'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .toList();
+      debugPrint('[MessagingApiService.findOrCreateChat] ${list.length} chats to search');
+
+      // Pass 1: quick match — the receiver sent the last message
+      final needsDeepSearch = <String>[];
+      for (final item in list) {
+        final chatId = item['_id']?.toString() ?? '';
+        if (chatId.isEmpty) continue;
+        final lm = item['lastMessage'];
+        final senderId = lm is Map ? lm['senderId']?.toString() ?? '' : '';
+        debugPrint('[MessagingApiService.findOrCreateChat] pass1 chatId=$chatId senderId=$senderId');
+        if (senderId == receiverId) {
+          debugPrint('[MessagingApiService.findOrCreateChat] Pass 1 match. chatId=$chatId');
+          return chatId;
+        }
+        // We sent the last message — need to look deeper
+        if (senderId == currentUserId) needsDeepSearch.add(chatId);
+      }
+
+      // Pass 2: fetch messages for ambiguous chats and scan for receiverId
+      debugPrint('[MessagingApiService.findOrCreateChat] Pass 2: deep-searching ${needsDeepSearch.length} chats');
+      for (final chatId in needsDeepSearch) {
+        try {
+          final msgUri = Uri.parse('$_msgBase/chat/message/$chatId')
+              .replace(queryParameters: {'limit': '20'});
+          final msgRes = await _client.get(msgUri, headers: _headers(token));
+          final msgData = _decode(msgRes);
+          if (msgRes.statusCode == 200 && msgData is Map) {
+            final inner = msgData['data'];
+            final msgs = (inner is Map ? inner['messages'] : null) as List<dynamic>? ?? [];
+            for (final m in msgs) {
+              if (m is Map && m['senderId']?.toString() == receiverId) {
+                debugPrint('[MessagingApiService.findOrCreateChat] Pass 2 match. chatId=$chatId');
+                return chatId;
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('[MessagingApiService.findOrCreateChat] pass2 error for $chatId: $e');
+        }
+      }
+
+      debugPrint('[MessagingApiService.findOrCreateChat] No existing chat found');
+      return null;
+    } catch (e) {
+      debugPrint('[MessagingApiService.findOrCreateChat] error: $e');
+      return null;
+    }
+  }
+
   // POST /api/messages/v1/send
   Future<ChatModel> sendMessage({
     required String receiverId,
