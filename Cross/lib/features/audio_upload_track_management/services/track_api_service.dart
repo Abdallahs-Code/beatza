@@ -1,21 +1,8 @@
-// Service: TrackApiService
-// All track-related API calls. No dependency on Module 5 or 6.
-//
-// Base paths:
-//   Authenticated : /api/tracks/v1
-//   Public        : /api/public/tracks/v1
-//   Playback      : /api/playback/v1  (history — used by Module 5 later)
-//
-// Every method returns Future<(int statusCode, dynamic body)>.
-// Token is read from FlutterSecureStorage key 'access_token'.
-// User ID is read from FlutterSecureStorage key 'user_id'.
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
-//import 'package:flutter/foundation.dart';
 
 class TrackApiService {
   final ApiServices _apiServices;
@@ -38,19 +25,11 @@ class TrackApiService {
     _playbackBase = '${_apiServices.baseUrl}/api/playback/v1';
   }
 
-  // ─────────────────────────────────────────────
-  // Private helpers
-  // ─────────────────────────────────────────────
-
   Future<String?> _getToken() async {
     final token = await _storage.read(key: 'access_token');
     if (token == null || token.trim().isEmpty) return null;
     return token;
   }
-
-  // Future<String?> _getUserId() async {
-  //   return await _storage.read(key: 'user_id');
-  // }
 
   Map<String, String> _authHeaders(String token) => {
     'Authorization': 'Bearer $token',
@@ -177,7 +156,8 @@ class TrackApiService {
       final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
 
       if (response.statusCode == 201) {
-        return (201, data['message'] ?? 'Track created successfully');
+        final trackId = (data['data'] as Map<String, dynamic>?)?['_id']?.toString();
+        return (201, {'message': data['message'] ?? 'Track created successfully', 'trackId': trackId});
       } else if (response.statusCode == 400) {
         return (400, data['errors'] ?? data['message'] ?? 'Validation failed');
       }
@@ -186,33 +166,6 @@ class TrackApiService {
       return (500, 'Network error: $err');
     }
   }
-
-  // Generate a valid ISRC in format: CC-XXX-YY-NNNNN
-  // String _generateValidISRC() {
-  //   final now = DateTime.now();
-  //   final year = now.year.toString().substring(2); // Last 2 digits
-  //   final unique = (DateTime.now().millisecondsSinceEpoch % 100000)
-  //       .toString()
-  //       .padLeft(5, '0');
-
-  //   // Format: US-SCL-YY-NNNNN (valid ISRC structure)
-  //   return 'US-SCL-$year-$unique';
-  // }
-
-  // Helper to generate a temporary ISRC
-  // String _generateTemporaryISRC() {
-  //   // Format: CC-XXX-YY-NNNNN
-  //   // CC = Country Code (US for example)
-  //   // XXX = Registrant Code (placeholder)
-  //   // YY = Year (last 2 digits)
-  //   // NNNNN = Unique number
-  //   final now = DateTime.now();
-  //   final year = now.year.toString().substring(2);
-  //   final random = (DateTime.now().millisecondsSinceEpoch % 100000)
-  //       .toString()
-  //       .padLeft(5, '0');
-  //   return 'US-SCL-$year-$random';
-  // }
 
   // ─────────────────────────────────────────────
   // Update track metadata / cover image
@@ -252,6 +205,24 @@ class TrackApiService {
         );
       }
 
+      request.fields['permissions'] = jsonEncode({
+        'enableDirectDownload': true,
+        'offlineListening': true,
+        'includeInRssFeed': true,
+        'displayedEmbedCode': true,
+        'enableAppPlayback': true,
+      });
+
+      request.fields['license'] = jsonEncode({
+        'type': 'allRightsReserved',
+        'attribution': false,
+        'nonCommercial': false,
+        'noDerivativeWorks': false,
+        'shareAlike': false,
+      });
+
+      request.fields['advanced'] = jsonEncode({});
+
       final hasUpdate =
           title != null ||
           permalink != null ||
@@ -287,6 +258,15 @@ class TrackApiService {
           return (200, Track.fromNestedJson(trackData));
         }
         return (200, data['message'] ?? 'Track updated');
+      }
+      if (response.statusCode == 400) {
+        final errors = data['errors'] as List?;
+        if (errors != null && errors.isNotEmpty) {
+          final detail = errors
+              .map((e) => '${e['field']}: ${e['message']}')
+              .join('\n');
+          return (400, detail);
+        }
       }
       return (response.statusCode, data['message'] ?? 'Failed to update track');
     } catch (err) {

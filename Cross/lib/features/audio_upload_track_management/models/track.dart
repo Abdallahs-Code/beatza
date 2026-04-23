@@ -82,7 +82,17 @@ class Track {
     final mainArtistsRaw = basicInfo['mainArtists'];
     List<String> artists = [];
     if (mainArtistsRaw is List) {
-      artists = mainArtistsRaw.map((e) => e.toString()).toList();
+      artists = mainArtistsRaw
+          .map<String>((e) {
+            if (e is Map) {
+              return e['displayName']?.toString() ??
+                  e['name']?.toString() ??
+                  '';
+            }
+            return e.toString();
+          })
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
 
     return Track(
