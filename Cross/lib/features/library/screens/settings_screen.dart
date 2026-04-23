@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
@@ -9,6 +11,8 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _showManageSubscriptionSheet(BuildContext context) {
+    final currentPriceId = PaymentService.subscriptionSuccessNotifier.currentPriceId;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF111111),
@@ -23,24 +27,121 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Manage Subscription',
+                'Your Subscription',
                 style: TextStyle(
                   color: AppColors.whiteSmoke,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
               ),
+              const SizedBox(height: 16),
+
+              FutureBuilder<Map<String, dynamic>>(
+                future: PaymentService.getPlans(),
+                builder: (context, plansSnapshot) {
+                  return FutureBuilder<Map<String, dynamic>?>(
+                    future: PaymentService.getCurrentSubscriptionDetails(),
+                    builder: (context, subSnapshot) {
+                      if (plansSnapshot.connectionState == ConnectionState.waiting || subSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Center(child: CircularProgressIndicator(color: AppColors.brilliantOrange)),
+                        );
+                      }
+
+                      if (!subSnapshot.hasData || subSnapshot.data == null) {
+                        return const Text(
+                          'Active Plan (Details unavailable)',
+                          style: TextStyle(color: AppColors.white60, fontSize: 14),
+                        );
+                      }
+
+                      final subData = subSnapshot.data!;
+                      final apiPlans = plansSnapshot.data ?? {};
+                      final String? periodEndStr = subData['currentPeriodEnd'];
+                      final DateTime? expiryDate = periodEndStr != null ? DateTime.parse(periodEndStr).toLocal() : null;
+                      final int daysLeft = expiryDate != null ? expiryDate.difference(DateTime.now()).inDays : 0;
+                      Map<String, dynamic>? currentPlanData;
+                      apiPlans.forEach((key, value) {
+                        if (value['priceId'] == currentPriceId || key == currentPriceId) {
+                          currentPlanData = value;
+                        }
+                      });
+
+                      final planName = currentPlanData?['name'] ?? 'Pro Plan';
+                      final isPro = planName.toLowerCase().contains('pro');
+
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1E1E),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: isPro ? const Color(0xFF8E24AA) : AppColors.tileDark3),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(planName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                            if (isPro)
+                                              const Padding(
+                                                padding: EdgeInsets.only(left: 6),
+                                                child: Icon(Icons.stars, color: Color(0xFFFF3D00), size: 16),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          daysLeft > 0 ? 'Expires in $daysLeft days' : 'Expires today',
+                                          style: TextStyle(
+                                            color: daysLeft < 5 ? Colors.redAccent : const Color(0xFF00D632),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                const Divider(color: Colors.white10),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Renewal Date', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                                    Text(
+                                      expiryDate != null ? '${expiryDate.day}/${expiryDate.month}/${expiryDate.year}' : '--/--/--',
+                                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+
               const SizedBox(height: 24),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.upgrade_rounded, color: AppColors.whiteSmoke),
-                title: const Text('Upgrade Plan', style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16)),
+                leading: const Icon(Icons.sync_alt_rounded, color: AppColors.whiteSmoke),
+                title: const Text('Change or Upgrade Plan', style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16)),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
                 },
               ),
               ListTile(
@@ -85,10 +186,7 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  }  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(
