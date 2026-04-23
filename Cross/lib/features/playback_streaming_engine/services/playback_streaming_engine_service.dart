@@ -39,6 +39,14 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   int _outputLevelRequestId = 0;
   Future<bool> Function()? _ensureNextTrackAvailable;
 
+  // ── Rapid-skip race-condition guard ──────────────────────────────────────
+  // Each playTrack() call captures the seq at entry. Any awaits that complete
+  // after a newer call has started (seq mismatch) are abandoned.
+  int _playSeq = 0;
+  // While true, audio-player state-change and completion events are suppressed.
+  // Cleared once the winning playTrack() confirms playback has started.
+  bool _ignorePlayerStateUpdates = false;
+
   bool _isShuffled = false;
   List<PlaybackTrackModel> _originalQueue = const <PlaybackTrackModel>[];
   TrackRepeatMode _repeatMode = TrackRepeatMode.none;
@@ -77,6 +85,11 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         int? startIndex,
         Future<bool> Function()? ensureNextTrackAvailable,
       }) async {
+    // Stamp this invocation. Any older in-flight call will detect the mismatch
+    // after its next await and return without touching state.
+    final int seq = ++_playSeq;
+    _ignorePlayerStateUpdates = true;
+
     if (queue != null) {
       _setQueueContext(
         queue,
@@ -105,6 +118,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     if (track.accessState == PlaybackAccessState.blocked) {
+      _ignorePlayerStateUpdates = false;
       _previewLimitReached = false;
       _updateState(
         _state.copyWith(
@@ -120,6 +134,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     final String trimmedUrl = track.playbackUrl.trim();
     if (trimmedUrl.isEmpty) {
+      _ignorePlayerStateUpdates = false;
       _updateState(
         _state.copyWith(
           currentTrack: track,
@@ -139,6 +154,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       if (_state.hasTrack) {
         await _audioPlayerClient.stop();
       }
+      // A newer skip arrived while we were stopping — hand off to it.
+      if (seq != _playSeq) return;
 
       _updateState(
         _state.copyWith(
@@ -151,11 +168,14 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       );
 
       await _applyCurrentOutputLevel();
+      if (seq != _playSeq) return;
 
       PlaybackTrackModel trackToPlay = track;
       try {
         final localPath = await OfflineDownloadService.shared.getLocalTrackPath(track.id);
+        if (seq != _playSeq) return;
         if (localPath != null && await File(localPath).exists()) {
+          if (seq != _playSeq) return;
           trackToPlay = track.copyWith(
             localFilePath: localPath,
             sourceType: PlaybackSourceType.deviceFile,
@@ -164,17 +184,27 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       } catch (e) {
         debugPrint('Error checking local file for track ${track.id}: $e');
       }
+      if (seq != _playSeq) return;
 
       await _audioPlayerClient.play(trackToPlay);
+      if (seq != _playSeq) return;
+
+      // This call won the race — confirm playback and restore event processing.
+      _ignorePlayerStateUpdates = false;
+      _updateState(_state.copyWith(status: PlaybackStatus.playing, clearMessage: true));
+      _reportTrackPlayedIfNeeded();
       await _enforceCurrentOutputLevelForTrack(track.id);
     } catch (error) {
-      _updateState(
-        _state.copyWith(
-          currentTrack: track,
-          status: PlaybackStatus.error,
-          message: 'Failed to start playback: $error',
-        ),
-      );
+      if (seq == _playSeq) {
+        _ignorePlayerStateUpdates = false;
+        _updateState(
+          _state.copyWith(
+            currentTrack: track,
+            status: PlaybackStatus.error,
+            message: 'Failed to start playback: $error',
+          ),
+        );
+      }
     }
   }
 
@@ -275,6 +305,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   Future<void> stop() async {
     _outputLevelRequestId++;
+    _playSeq++;                        // cancel any in-progress playTrack
+    _ignorePlayerStateUpdates = false; // restore so the stopped event is processed
     await _audioPlayerClient.stop();
     _previewLimitReached = false;
     _updateState(
@@ -332,6 +364,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   Future<void> clearSessionState() async {
     _outputLevelRequestId++;
+    _playSeq++;
+    _ignorePlayerStateUpdates = false;
     _previewLimitReached = false;
     _lastHistoryReportedTrackId = null;
     _ensureNextTrackAvailable = null;
@@ -425,11 +459,16 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _handlePositionChanged,
     );
     _completionSubscription = _audioPlayerClient.onPlayerComplete.listen((_) {
+      if (_ignorePlayerStateUpdates) return;
       unawaited(_handlePlaybackCompleted());
     });
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {
+    // During a track transition suppress all audio-player events — playTrack()
+    // owns state until it either confirms playback or hands off to a newer call.
+    if (_ignorePlayerStateUpdates) return;
+
     final PlaybackStatus nextStatus = switch (playerState) {
       PlayerState.playing => PlaybackStatus.playing,
       PlayerState.paused =>

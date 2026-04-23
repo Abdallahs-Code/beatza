@@ -618,6 +618,7 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
 
   bool _isPlaying = false;
   Duration _position = Duration.zero;
+  bool _isSkipping = false;
 
   @override
   void initState() {
@@ -645,6 +646,30 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
     }
   }
 
+  Future<void> _skipPrevious() async {
+    if (_isSkipping) return;
+    setState(() => _isSkipping = true);
+    try {
+      if (_position > const Duration(seconds: 1)) {
+        await _globalPlayer.restartFromBeginning();
+      } else {
+        await _globalPlayer.playPreviousTrack();
+      }
+    } finally {
+      if (mounted) setState(() => _isSkipping = false);
+    }
+  }
+
+  Future<void> _skipNext() async {
+    if (_isSkipping) return;
+    setState(() => _isSkipping = true);
+    try {
+      await _globalPlayer.playNextTrack();
+    } finally {
+      if (mounted) setState(() => _isSkipping = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -652,13 +677,8 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
       children: [
         _PlayerActionButton(
           icon: Icons.skip_previous_rounded,
-          onTap: () async {
-            if (_position > const Duration(seconds: 1)) {
-              await _globalPlayer.restartFromBeginning();
-              return;
-            }
-            await _globalPlayer.playPreviousTrack();
-          },
+          enabled: !_isSkipping,
+          onTap: _skipPrevious,
         ),
         _PlayerActionButton(
           icon: _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
@@ -667,7 +687,8 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
         ),
         _PlayerActionButton(
           icon: Icons.skip_next_rounded,
-          onTap: _globalPlayer.playNextTrack,
+          enabled: !_isSkipping,
+          onTap: _skipNext,
         ),
       ],
     );
@@ -1210,26 +1231,31 @@ class _TopCircleButton extends StatelessWidget {
 class _PlayerActionButton extends StatelessWidget {
   final IconData icon;
   final bool isPrimary;
+  final bool enabled;
   final VoidCallback onTap;
 
   const _PlayerActionButton({
     required this.icon,
     required this.onTap,
     this.isPrimary = false,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: isPrimary ? 78 : 56,
-        height: isPrimary ? 78 : 56,
-        decoration: const BoxDecoration(
-          color: Colors.black,
-          shape: BoxShape.circle,
+      onTap: enabled ? onTap : null,
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.45,
+        child: Container(
+          width: isPrimary ? 78 : 56,
+          height: isPrimary ? 78 : 56,
+          decoration: const BoxDecoration(
+            color: Colors.black,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: isPrimary ? 40 : 28),
         ),
-        child: Icon(icon, color: Colors.white, size: isPrimary ? 40 : 28),
       ),
     );
   }
