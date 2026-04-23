@@ -30,6 +30,15 @@ class _ActivityScreenState extends State<ActivityScreen>
   bool _didRequestFreshState = false;
   MessageFilter _messageFilter = MessageFilter.all;
 
+  // ── Secondary-data cache keyed by ID so tiles never re-fetch on scroll ──
+  final Map<String, bool> _followCache = {};          // actorUserId → isFollowing
+  final Map<String, bool> _likeCache = {};            // commentId   → isLiked
+  final Map<String, PlaybackTrackModel?> _trackCache = {}; // trackId → track
+  final Map<String, bool> _trackFetchedCache = {};    // trackId → was attempted
+  final Map<String, int?> _timestampCache = {};       // commentId → timestamp
+  final Set<String> _readyIds = {};
+  bool _initialLoadComplete = false;
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +83,53 @@ class _ActivityScreenState extends State<ActivityScreen>
 
   void _onUpdate() {
     if (mounted) setState(() {});
+  }
+
+  static String _trackIdFor(ActivityNotificationModel n) =>
+      (n.target.trackId?.isNotEmpty == true) ? n.target.trackId! : n.target.targetId;
+
+  bool get _tilesLoading {
+    if (_initialLoadComplete) return false;
+    final all = [
+      ..._controller.todayNotifications,
+      ..._controller.olderNotifications,
+    ];
+    if (all.isEmpty) return false;
+    return !all.every((n) => _readyIds.contains(n.notificationId));
+  }
+
+  void _onTileDataFetched(
+    ActivityNotificationModel n, {
+    bool? isFollowing,
+    bool? isLiked,
+    PlaybackTrackModel? track,
+    bool trackFetched = false,
+    int? commentTimestamp,
+  }) {
+    if (!mounted) return;
+    setState(() {
+      if (isFollowing != null) _followCache[n.actor.userId] = isFollowing;
+      if (isLiked != null) _likeCache[n.target.targetId] = isLiked;
+      if (trackFetched) {
+        _trackCache[_trackIdFor(n)] = track;
+        _trackFetchedCache[_trackIdFor(n)] = true;
+      }
+      if (commentTimestamp != null) _timestampCache[n.target.targetId] = commentTimestamp;
+    });
+  }
+
+  void _onTileReady(String notificationId) {
+    if (_initialLoadComplete || _readyIds.contains(notificationId)) return;
+    setState(() {
+      _readyIds.add(notificationId);
+      final all = [
+        ..._controller.todayNotifications,
+        ..._controller.olderNotifications,
+      ];
+      if (all.isNotEmpty && all.every((n) => _readyIds.contains(n.notificationId))) {
+        _initialLoadComplete = true;
+      }
+    });
   }
 
   // ─── Filter sheet ──────────────────────────────────────────────────────────
@@ -286,6 +342,31 @@ class _ActivityScreenState extends State<ActivityScreen>
 
     if (today.isEmpty && older.isEmpty) return _buildEmptyState();
 
+    // Hold a spinner until every tile's secondary API calls have reported back.
+    if (_tilesLoading) {
+      return const Center(
+          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2));
+    }
+
+    Widget tile(ActivityNotificationModel n) => _NotificationTile(
+          key: ValueKey(n.notificationId),
+          notification: n,
+          controller: _controller,
+          initialIsFollowing: _followCache[n.actor.userId],
+          initialIsLiked: _likeCache[n.target.targetId],
+          initialTrack: _trackCache[_trackIdFor(n)],
+          initialTrackFetched: _trackFetchedCache[_trackIdFor(n)] ?? false,
+          initialCommentTimestamp: _timestampCache[n.target.targetId],
+          onDataFetched: (isFollowing, isLiked, track, trackFetched, commentTimestamp) =>
+              _onTileDataFetched(n,
+                  isFollowing: isFollowing,
+                  isLiked: isLiked,
+                  track: track,
+                  trackFetched: trackFetched,
+                  commentTimestamp: commentTimestamp),
+          onTileReady: () => _onTileReady(n.notificationId),
+        );
+
     return RefreshIndicator(
       color: _kOrange,
       backgroundColor: _kSurface,
@@ -296,13 +377,11 @@ class _ActivityScreenState extends State<ActivityScreen>
         children: [
           if (today.isNotEmpty) ...[
             _sectionLabel('Today'),
-            ...today.map(
-                (n) => _NotificationTile(key: ValueKey(n.notificationId), notification: n, controller: _controller)),
+            ...today.map(tile),
           ],
           if (older.isNotEmpty) ...[
             _sectionLabel('Older'),
-            ...older.map(
-                (n) => _NotificationTile(key: ValueKey(n.notificationId), notification: n, controller: _controller)),
+            ...older.map(tile),
           ],
           const SizedBox(height: 32),
         ],
@@ -412,10 +491,36 @@ class _NotificationTile extends StatefulWidget {
   final ActivityNotificationModel notification;
   final ActivityNotificationsController controller;
 
+  // Cached values from parent — provided on remount so tile renders immediately.
+  final bool? initialIsFollowing;
+  final bool? initialIsLiked;
+  final PlaybackTrackModel? initialTrack;
+  final bool initialTrackFetched;
+  final int? initialCommentTimestamp;
+
+  // Called whenever a secondary API returns so parent can cache the result.
+  final void Function(
+    bool? isFollowing,
+    bool? isLiked,
+    PlaybackTrackModel? track,
+    bool trackFetched,
+    int? commentTimestamp,
+  ) onDataFetched;
+
+  // Called once all secondary API calls for this tile have completed.
+  final VoidCallback onTileReady;
+
   const _NotificationTile({
     super.key,
     required this.notification,
     required this.controller,
+    required this.initialIsFollowing,
+    required this.initialIsLiked,
+    required this.initialTrack,
+    required this.initialTrackFetched,
+    required this.initialCommentTimestamp,
+    required this.onDataFetched,
+    required this.onTileReady,
   });
 
   @override
@@ -434,6 +539,10 @@ class _NotificationTileState extends State<_NotificationTile> {
   PlaybackTrackModel? _track;
   int? _commentTimestamp;
 
+  // Tracks how many secondary API calls are still in-flight.
+  int _pendingLoads = 0;
+  bool _tileReadyFired = false;
+
   ActivityNotificationModel get n => widget.notification;
 
   String get _resolvedTrackId =>
@@ -444,46 +553,99 @@ class _NotificationTileState extends State<_NotificationTile> {
   @override
   void initState() {
     super.initState();
-    _fetchTrackData();
-    if (_hasActions(n.activityType)) {
-      _checkLikeStatus();
+
+    // Track data — use cache if available, otherwise fetch.
+    final trackId = _resolvedTrackId;
+    if (trackId.isEmpty) {
+      _trackFetched = true;
+    } else if (widget.initialTrackFetched) {
+      _track = widget.initialTrack;
+      _trackFetched = true;
+    } else {
+      _pendingLoads++;
+      _fetchTrackData();
     }
+
+    // Like / comment status.
+    if (_hasActions(n.activityType)) {
+      if (widget.initialIsLiked != null) {
+        _isLiked = widget.initialIsLiked!;
+        _commentTimestamp = widget.initialCommentTimestamp;
+      } else {
+        _pendingLoads++;
+        _checkLikeStatus();
+      }
+    }
+
+    // Follow status.
     if (n.activityType == 'user_followed') {
-      _checkFollowStatus();
+      if (widget.initialIsFollowing != null) {
+        _isFollowing = widget.initialIsFollowing!;
+      } else {
+        _pendingLoads++;
+        _checkFollowStatus();
+      }
+    }
+
+    // Nothing to fetch — report ready after first frame.
+    if (_pendingLoads == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_tileReadyFired) {
+          _tileReadyFired = true;
+          widget.onTileReady();
+        }
+      });
+    }
+  }
+
+  // Called by every async method on completion (success or error).
+  void _completePending({
+    bool? isFollowing,
+    bool? isLiked,
+    PlaybackTrackModel? track,
+    bool trackFetched = false,
+    int? commentTimestamp,
+  }) {
+    widget.onDataFetched(isFollowing, isLiked, track, trackFetched, commentTimestamp);
+    _pendingLoads--;
+    if (_pendingLoads <= 0 && !_tileReadyFired) {
+      _tileReadyFired = true;
+      widget.onTileReady();
     }
   }
 
   Future<void> _fetchTrackData() async {
     final trackId = _resolvedTrackId;
     if (trackId.isEmpty) {
-      setState(() => _trackFetched = true);
+      if (mounted) setState(() => _trackFetched = true);
+      _completePending(trackFetched: true);
       return;
     }
     try {
       final track = await PlaybackTrackApiService().getSingleTrackById(trackId);
-      if (!mounted) return;
-      setState(() {
-        _track = track;
-        _trackFetched = true;
-      });
+      if (mounted) setState(() { _track = track; _trackFetched = true; });
+      _completePending(track: track, trackFetched: true);
     } catch (_) {
       if (mounted) setState(() => _trackFetched = true);
+      _completePending(trackFetched: true);
     }
   }
 
   Future<void> _checkFollowStatus() async {
     try {
       final currentUserId = await AuthApiService().getStoredUserId();
-      if (currentUserId == null || !mounted) return;
-      final result =
-          await SocialApiService().getFollowing(userId: currentUserId);
-      if (!mounted) return;
+      if (currentUserId == null) { _completePending(); return; }
+      final result = await SocialApiService().getFollowing(userId: currentUserId);
       if (result.$1 == 200 && result.$2 is List) {
-        final following = result.$2 as List<Follower>;
-        setState(() =>
-            _isFollowing = following.any((f) => f.userId == n.actor.userId));
+        final isFollowing = (result.$2 as List<Follower>).any((f) => f.userId == n.actor.userId);
+        if (mounted) setState(() => _isFollowing = isFollowing);
+        _completePending(isFollowing: isFollowing);
+      } else {
+        _completePending();
       }
-    } catch (_) {}
+    } catch (_) {
+      _completePending();
+    }
   }
 
   Future<void> _toggleFollow() async {
@@ -506,27 +668,29 @@ class _NotificationTileState extends State<_NotificationTile> {
   Future<void> _checkLikeStatus() async {
     final trackId = n.target.trackId;
     final commentId = n.target.targetId;
-    if (trackId == null || trackId.isEmpty || commentId.isEmpty) return;
+    if (trackId == null || trackId.isEmpty || commentId.isEmpty) {
+      _completePending();
+      return;
+    }
     try {
-      final result = await _engagementService.getTrackComments(
-        trackId: trackId,
-        limit: 100,
-      );
-      if (!mounted) return;
+      final result = await _engagementService.getTrackComments(trackId: trackId, limit: 100);
       if (result.$1 == 200 && result.$2 is List) {
-        final comments = result.$2 as List<Comment>;
-        final match = comments.cast<Comment?>().firstWhere(
+        final match = (result.$2 as List<Comment>).cast<Comment?>().firstWhere(
           (c) => c?.commentId == commentId,
           orElse: () => null,
         );
         if (match != null) {
-          setState(() {
-            _isLiked = match.isLikedByUser;
-            _commentTimestamp = match.timestamp;
-          });
+          if (mounted) setState(() { _isLiked = match.isLikedByUser; _commentTimestamp = match.timestamp; });
+          _completePending(isLiked: match.isLikedByUser, commentTimestamp: match.timestamp);
+        } else {
+          _completePending();
         }
+      } else {
+        _completePending();
       }
-    } catch (_) {}
+    } catch (_) {
+      _completePending();
+    }
   }
 
   Future<void> _toggleLike() async {
