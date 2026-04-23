@@ -228,4 +228,18 @@ class PaymentService {
       throw Exception('Failed to refresh authentication token.');
     }
   }
+
+  static Future<Map<String, dynamic>?> getCurrentSubscriptionDetails() async {
+    try {
+      final responseBody = await _sendPaymentRequest('GET', '/api/payment/v1/subscriptions');
+      final jsonResponse = jsonDecode(responseBody);
+
+      if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+        return jsonResponse['data'] as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('Error fetching subscription details: $e');
+    }
+    return null;
+  }
 }
