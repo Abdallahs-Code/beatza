@@ -140,7 +140,11 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           const Spacer(),
           GestureDetector(
             onTap: _selectedTrackLink != null
-                ? () => widget.onSelected(_selectedTrackLink!)
+                ? () {
+                    final payload = 'track::${_selectedTrackLink!}';
+                    debugPrint('[AttachContentSheet] Done tapped. permalink="${_selectedTrackLink!}" payload="$payload"');
+                    widget.onSelected(payload);
+                  }
                 : null,
             child: Text(
               'Done',
@@ -203,6 +207,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       itemBuilder: (ctx, i) {
         final track = tracks[i];
         final audioLink = track.permalink ?? '';
+        debugPrint('[AttachContentSheet] track[${track.title}] permalink="${track.permalink}" audioUrl="${track.audioUrl}"');
         final isSelected = _selectedTrackLink == audioLink;
         return ListTile(
           contentPadding:

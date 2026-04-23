@@ -519,16 +519,21 @@ class MessagingApiService {
   Future<PlaybackTrackModel?> getTrackByPermalink({
     required String permalink,
   }) async {
+    final token = await _token();
     final uri = Uri.parse('$_tracksBase/permalink/$permalink');
-    final res = await _client.get(uri, headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'Android',
-    });
+    debugPrint('[getTrackByPermalink] GET $uri');
+    final res = await _client.get(uri, headers: _headers(token));
+    debugPrint('[getTrackByPermalink] status=${res.statusCode} bodyPreview=${res.body.length > 200 ? res.body.substring(0, 200) : res.body}');
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'] as Map<String, dynamic>? ?? {};
-      if (inner.isNotEmpty) return PlaybackTrackModel.fromApiJson(inner);
+      if (inner.isNotEmpty) {
+        final track = PlaybackTrackModel.fromApiJson(inner);
+        debugPrint('[getTrackByPermalink] ✅ parsed → title="${track.title}" artist="${track.artistName}"');
+        return track;
+      }
     }
+    debugPrint('[getTrackByPermalink] ❌ returned null (status=${res.statusCode})');
     return null;
   }
 

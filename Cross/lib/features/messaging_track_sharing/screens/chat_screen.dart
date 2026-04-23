@@ -431,6 +431,8 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => AttachContentSheet(
         onSelected: (link) {
+          debugPrint('[AttachSheet] onSelected link="$link" length=${link.length}');
+          debugPrint('[AttachSheet] _isTrackMessage=${_MessageBubble._isTrackMessage(link)}');
           _inputCtrl.text = link;
           Navigator.of(context).pop();
         },
@@ -847,16 +849,8 @@ class _MessageBubble extends StatelessWidget {
 
   const _MessageBubble({required this.message, required this.isMe});
 
-  static bool _looksLikePermalink(String content) {
-    final c = content.trim();
-    // Must contain exactly one '/' (e.g. "artist-slug/track-slug"),
-    // no spaces, only URL-safe chars, and be a reasonable length.
-    return c.length > 5 &&
-        c.length < 300 &&
-        !c.contains(' ') &&
-        c.contains('/') &&
-        RegExp(r'^[a-zA-Z0-9\-_./%]+$').hasMatch(c);
-  }
+  static bool _isTrackMessage(String content) =>
+      content.trim().startsWith('track::');
 
   @override
   Widget build(BuildContext context) {
@@ -871,8 +865,11 @@ class _MessageBubble extends StatelessWidget {
           crossAxisAlignment:
               isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            if (_looksLikePermalink(message.content))
-              _TrackCardBubble(permalink: message.content.trim(), isMe: isMe)
+            if (_isTrackMessage(message.content))
+              _TrackCardBubble(
+                permalink: message.content.trim().substring('track::'.length),
+                isMe: isMe,
+              )
             else
               _buildTextBubble(maxBubbleWidth),
             const SizedBox(height: 3),
@@ -947,8 +944,10 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   }
 
   Future<void> _load() async {
+    debugPrint('[TrackCardBubble._load] fetching permalink="${widget.permalink}"');
     final result = await MessagingApiService()
         .getTrackByPermalink(permalink: widget.permalink);
+    debugPrint('[TrackCardBubble._load] result=${result == null ? "NULL — card will fall back to plain text" : "OK title=${result.title} artist=${result.artistName}"}');
     _TrackCardBubble._cache[widget.permalink] = result;
     if (mounted) setState(() { _track = result; _loaded = true; });
   }

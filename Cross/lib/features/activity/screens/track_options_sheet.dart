@@ -66,7 +66,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
       if (result.$1 != 200) {
         debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}. data="${result.$2}". Send To will NOT show.');
-        if (mounted) setState(() => _trackPermalink = permalink ?? '');
+        if (mounted) setState(() => _trackPermalink = permalink != null && permalink.isNotEmpty ? 'track::$permalink' : '');
         return;
       }
       debugPrint('[SendTo] STEP 3 ✅ status 200');
@@ -122,14 +122,14 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       debugPrint('[SendTo] STEP 7   contacts to set: ${contacts.length}');
       setState(() {
         _recentContacts = contacts;
-        _trackPermalink = permalink ?? '';
+        _trackPermalink = permalink != null && permalink.isNotEmpty ? 'track::$permalink' : '';
       });
       debugPrint('[SendTo] STEP 7 ✅ setState done. _recentContacts.length=${_recentContacts.length}');
       debugPrint('[SendTo] STEP 7   Send To section WILL show: ${_recentContacts.isNotEmpty}');
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo] STEP 3   stack: $stack');
-      if (mounted) setState(() => _trackPermalink = permalink ?? '');
+      if (mounted) setState(() => _trackPermalink = permalink != null && permalink.isNotEmpty ? 'track::$permalink' : '');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }

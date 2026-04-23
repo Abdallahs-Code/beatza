@@ -2104,7 +2104,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
       if (result.$1 != 200) {
         debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"');
-        if (mounted) setState(() => _trackLink = link);
+        if (mounted) setState(() => _trackLink = link.isNotEmpty ? 'track::$link' : '');
         return;
       }
       debugPrint('[SendTo] STEP 3 ✅ status 200');
@@ -2155,13 +2155,13 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
           .toList();
       setState(() {
         _recentContacts = contacts;
-        _trackLink = link;
+        _trackLink = link.isNotEmpty ? 'track::$link' : '';
       });
       debugPrint('[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}');
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo]   stack: $stack');
-      if (mounted) setState(() => _trackLink = link);
+      if (mounted) setState(() => _trackLink = link.isNotEmpty ? 'track::$link' : '');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
