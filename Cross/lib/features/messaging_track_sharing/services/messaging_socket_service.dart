@@ -12,6 +12,9 @@ class MessagingSocketService {
   // Called when a new message arrives in a chat the user is NOT viewing
   void Function(ChatModel chat)? onMessageNotify;
 
+  // Secondary listener for push notifications (set by MessagingNotificationService)
+  void Function(ChatModel chat)? onMessageNotifyPush;
+
   // Called when a new message arrives in the chat room the user IS viewing
   void Function(ChatModel chat)? onMessageInRoom;
 
@@ -77,6 +80,7 @@ class MessagingSocketService {
         try {
           final chat = ChatModel.fromJson(Map<String, dynamic>.from(data));
           onMessageNotify?.call(chat);
+          onMessageNotifyPush?.call(chat);
         } catch (_) {}
       }
     });

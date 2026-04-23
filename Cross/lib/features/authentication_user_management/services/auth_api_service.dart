@@ -7,6 +7,7 @@ import "package:cross_team5/features/authentication_user_management/models/user.
 as user_model;
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 
 class AuthApiService {
@@ -90,6 +91,7 @@ class AuthApiService {
           }
 
           await ActivityNotificationsController.shared.initialize();
+          await MessagingNotificationService.shared.initialize();
           await PaymentService.subscriptionSuccessNotifier.refresh();
 
           return (200, data["message"] ?? "Login successful");
@@ -163,6 +165,7 @@ class AuthApiService {
     } catch (_) {
     } finally {
       ActivityNotificationsController.shared.resetForLogout();
+      MessagingNotificationService.shared.reset();
       await _clearTokens();
       await PlaybackStreamingEngineService.shared.clearSessionState();
       PaymentService.subscriptionSuccessNotifier.reset();
@@ -202,6 +205,7 @@ class AuthApiService {
             await _storage.write(key: 'user_id', value: userId);
           }
           await ActivityNotificationsController.shared.initialize();
+          await MessagingNotificationService.shared.initialize();
           return (200, "Token refreshed successfully");
         } else {
           return (
@@ -433,6 +437,7 @@ class AuthApiService {
           );
 
           await ActivityNotificationsController.shared.initialize();
+          await MessagingNotificationService.shared.initialize();
 
           await refreshToken();
           await PaymentService.subscriptionSuccessNotifier.refresh();
@@ -494,6 +499,7 @@ class AuthApiService {
             refreshToken: refreshTokenValue,
           );
           await ActivityNotificationsController.shared.initialize();
+          await MessagingNotificationService.shared.initialize();
 
           await refreshToken();
           await PaymentService.subscriptionSuccessNotifier.refresh();

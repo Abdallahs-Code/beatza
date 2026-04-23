@@ -11,6 +11,7 @@ import 'package:cross_team5/features/playback_streaming_engine/services/public_t
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/offline_download_service.dart';
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     ActivityNotificationsController.shared.initialize();
     ActivityNotificationsController.shared.reconnectIfNeeded();
+    MessagingNotificationService.shared.initialize();
     _publicTracksPagingService.loadInitial(limit: 20);
   }
 

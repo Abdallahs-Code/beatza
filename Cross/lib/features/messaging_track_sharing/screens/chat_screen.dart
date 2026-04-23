@@ -1,5 +1,6 @@
 import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/models/chat_model.dart';
 import 'package:cross_team5/features/messaging_track_sharing/models/message_model.dart';
@@ -67,6 +68,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.initialContent != null && widget.initialContent!.isNotEmpty) {
       _inputCtrl.text = widget.initialContent!;
     }
+    if (widget.chatId != null) {
+      MessagingNotificationService.shared.setActiveChatId(widget.chatId);
+    }
     _init();
   }
 
@@ -84,6 +88,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (foundId != null && foundId.isNotEmpty) {
           debugPrint('[ChatScreen._init] findOrCreateChat returned chatId=$foundId');
           _chatId = foundId;
+          MessagingNotificationService.shared.setActiveChatId(foundId);
         } else {
           debugPrint('[ChatScreen._init] findOrCreateChat returned null → new conversation');
         }
@@ -445,6 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     if (_chatId != null) _socket.leaveChat(_chatId!);
     _socket.onMessageInRoom = null;
+    MessagingNotificationService.shared.setActiveChatId(null);
     _inputCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();

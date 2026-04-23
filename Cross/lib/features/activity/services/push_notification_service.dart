@@ -25,6 +25,23 @@ class PushNotificationService {
     android: _androidDetails,
   );
 
+  static const _msgChannelId = 'beatza_messages';
+  static const _msgChannelName = 'Messages';
+  static const _msgChannelDesc = 'New message notifications';
+
+  static const _msgAndroidDetails = AndroidNotificationDetails(
+    _msgChannelId,
+    _msgChannelName,
+    channelDescription: _msgChannelDesc,
+    importance: Importance.high,
+    priority: Priority.high,
+    icon: '@mipmap/ic_launcher',
+  );
+
+  static const _msgNotificationDetails = NotificationDetails(
+    android: _msgAndroidDetails,
+  );
+
   Future<void> initialize() async {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -37,6 +54,18 @@ class PushNotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+  }
+
+  Future<void> showMessage({
+    required String senderName,
+    required String content,
+    required String chatId,
+  }) async {
+    final body = content.startsWith('track::')
+        ? 'sent you a track'
+        : content;
+    final id = chatId.hashCode.abs() % 100000;
+    await _plugin.show(id, senderName, body, _msgNotificationDetails);
   }
 
   Future<void> show(ActivityNotificationModel notification) async {
