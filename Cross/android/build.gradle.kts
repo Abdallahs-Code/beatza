@@ -3,15 +3,19 @@ allprojects {
         google()
         mavenCentral()
     }
+    configurations.all {
+        resolutionStrategy {
+            force("com.android.tools.build:gradle:8.13.1")
+        }
+    }
 }
 
-// Fix for legacy Flutter plugins that don't specify compileSdk
 subprojects {
     afterEvaluate {
         if (extensions.findByName("android") != null) {
             val androidExt = extensions.findByType<com.android.build.gradle.BaseExtension>()
-            if (androidExt != null && androidExt.compileSdkVersion == null) {
-                androidExt.compileSdkVersion(35)
+            if (androidExt != null) {
+                androidExt.compileSdkVersion(36)
             }
         }
     }
