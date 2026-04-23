@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
+import 'package:cross_team5/features/audio_upload_track_management/models/track_model.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/audio_upload_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/widgets/pro_disabled_switch_widget.dart';
@@ -59,6 +61,8 @@ class UploadTrackScreen extends StatefulWidget {
 class _UploadTrackScreenState extends State<UploadTrackScreen> {
   final AudioUploadService _audioService = AudioUploadService();
   final TrackApiService _trackApiService = TrackApiService();
+  TrackModel? _editingTrack;
+  Track? _editingServerTrack;
   bool _allowComments = false;
   bool _showCommentsToPublic = false;
   PlatformFile? _selectedFile;
@@ -96,10 +100,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   String _licensing = 'all_rights';
 
   int get _uploadStepsCompleted {
+    final bool inEditMode = _editingTrack != null || _editingServerTrack != null;
     int c = 0;
-    if (_selectedFile != null) c++;
+    if (inEditMode || _selectedFile != null) c++;
     if (_coverImage != null) c++;
-    if (_titleController.text.trim().isNotEmpty) c++;
+    if (_genreController.text.trim().isNotEmpty) c++;
     if (_descriptionController.text.trim().isNotEmpty) c++;
     return c;
   }
@@ -116,7 +121,32 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     super.didChangeDependencies();
     if (!_isInit) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is PlatformFile) _processFile(args);
+      if (args is PlatformFile) {
+        _processFile(args);
+      } else if (args is Track) {
+        _editingServerTrack = args;
+        _selectedFileName = args.title;
+        _titleController.text = args.title;
+        _genreController.text = args.genre;
+        _descriptionController.text = args.description;
+        _tagsController.text = args.tags.join(', ');
+        _privacy = args.isPrivate ? 'unlisted' : 'public';
+        if (args.mainArtists.isNotEmpty) _artists.addAll(args.mainArtists);
+        _uploadComplete = true;
+      } else if (args is TrackModel) {
+        _editingTrack = args;
+        _selectedFileName = args.audioUrl.split(RegExp(r'[/\\]')).last;
+        _titleController.text = args.title;
+        _genreController.text = args.genre;
+        _descriptionController.text = args.description;
+        _captionController.text = args.caption;
+        _tagsController.text = args.descriptiveTags.join(', ');
+        _privacy = args.visibility == TrackVisibility.private ||
+                args.visibility == TrackVisibility.unlisted
+            ? 'unlisted'
+            : 'public';
+        _uploadComplete = true;
+      }
       _isInit = true;
     }
   }
@@ -191,6 +221,74 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 
   Future<void> _saveTrack() async {
+    if (_editingServerTrack != null) {
+      await _updateServerTrack();
+    } else if (_editingTrack != null) {
+      await _updateExistingTrack();
+    } else {
+      await _uploadNewTrack();
+    }
+  }
+
+  Future<void> _updateServerTrack() async {
+    final track = _editingServerTrack!;
+    if (_titleController.text.trim().isEmpty) {
+      _snack('Please enter a track title', isError: true);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final tags = _tagsController.text
+        .split(',')
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    final genre = _genreController.text.trim();
+    final effectiveTags = tags.isNotEmpty
+        ? tags
+        : (genre.isNotEmpty ? [genre] : ['uncategorized']);
+
+    final result = await _trackApiService.updateTrack(
+      trackId: track.id,
+      imageFilePath: _coverImage?.path,
+      title: _titleController.text.trim(),
+      mainArtists: _artists.isNotEmpty ? _artists : null,
+      genre: genre.isNotEmpty ? genre : null,
+      tags: effectiveTags,
+      description: _descriptionController.text.trim().isNotEmpty
+          ? _descriptionController.text.trim()
+          : null,
+      isPrivate: _privacy == 'unlisted',
+      caption: _captionController.text.trim().isNotEmpty
+          ? _captionController.text.trim()
+          : null,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (result.$1 == 200) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Track updated successfully'),
+          backgroundColor: Color(0xFF2A2A2A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      _snack(
+        result.$2.toString().isNotEmpty
+            ? result.$2.toString()
+            : 'Update failed. Please try again.',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _uploadNewTrack() async {
     if (_selectedFile == null || !_uploadComplete) return;
     if (_titleController.text.trim().isEmpty) {
       _snack('Please enter a track title', isError: true);
@@ -230,15 +328,22 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     setState(() => _isSaving = false);
 
     if (result.$1 == 201) {
-      await _audioService.saveTrackData(_selectedFile!, {
-        'title': _titleController.text.trim(),
-        'genre': _genreController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'caption': _captionController.text.trim(),
-        'tags': _tagsController.text.trim(),
-        'visibility': _privacy,
-        'coverImagePath': _coverImage?.path,
-      });
+      final resultData = result.$2 as Map<String, dynamic>?;
+      final serverId = resultData?['trackId'] as String?;
+
+      await _audioService.saveTrackData(
+        _selectedFile!,
+        {
+          'title': _titleController.text.trim(),
+          'genre': _genreController.text.trim(),
+          'description': _descriptionController.text.trim(),
+          'caption': _captionController.text.trim(),
+          'tags': _tagsController.text.trim(),
+          'visibility': _privacy,
+          'coverImagePath': _coverImage?.path,
+        },
+        serverId: serverId,
+      );
 
       if (!mounted) return;
 
@@ -250,20 +355,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       messenger.showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF2A2A2A),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
           elevation: 10,
           duration: const Duration(seconds: 5),
           content: Row(
             children: [
-              const Icon(
-                Icons.check_circle,
-                color: Color(0xFFFF5500),
-                size: 28,
-              ),
+              const Icon(Icons.check_circle, color: Color(0xFFFF5500), size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -292,16 +391,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 onTap: () {
                   messenger.hideCurrentSnackBar();
                   navigator.push(
-                    MaterialPageRoute(
-                      builder: (_) => const YourUploadsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const YourUploadsScreen()),
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF5500),
                     borderRadius: BorderRadius.circular(20),
@@ -329,6 +423,91 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         isError: true,
       );
     }
+  }
+
+  Future<void> _updateExistingTrack() async {
+    final track = _editingTrack!;
+    if (_titleController.text.trim().isEmpty) {
+      _snack('Please enter a track title', isError: true);
+      return;
+    }
+    if (track.serverId == null || track.serverId!.trim().isEmpty) {
+      _snack('Cannot update: server ID not available for this track.', isError: true);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final tags = _tagsController.text
+        .split(',')
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    final result = await _trackApiService.updateTrack(
+      trackId: track.serverId!,
+      imageFilePath: _coverImage?.path,
+      title: _titleController.text.trim(),
+      mainArtists: _artists.isNotEmpty ? _artists : null,
+      genre: _genreController.text.trim().isNotEmpty ? _genreController.text.trim() : null,
+      tags: tags.isNotEmpty ? tags : null,
+      description: _descriptionController.text.trim().isNotEmpty
+          ? _descriptionController.text.trim()
+          : null,
+      isPrivate: _privacy == 'unlisted',
+      caption: _captionController.text.trim().isNotEmpty
+          ? _captionController.text.trim()
+          : null,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (result.$1 == 200) {
+      final updated = track.copyWith(
+        title: _titleController.text.trim(),
+        genre: _genreController.text.trim(),
+        descriptiveTags: tags,
+        description: _descriptionController.text.trim(),
+        caption: _captionController.text.trim(),
+        visibility: _privacy == 'unlisted' ? TrackVisibility.unlisted : TrackVisibility.public,
+        coverImagePath: _coverImage?.path ?? track.coverImagePath,
+      );
+
+      final list = List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+      final idx = list.indexWhere((t) => t.id == track.id);
+      if (idx != -1) list[idx] = updated;
+      AudioUploadService.globalMockTracksNotifier.value = list;
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Track updated successfully'),
+          backgroundColor: Color(0xFF2A2A2A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      _snack(
+        result.$2.toString().isNotEmpty
+            ? result.$2.toString()
+            : 'Update failed. Please try again.',
+        isError: true,
+      );
+    }
+  }
+
+  Widget _coverPlaceholder() {
+    return CustomPaint(
+      painter: DashedRectPainter(color: Colors.white54, strokeWidth: 1.5, gap: 6),
+      child: Container(
+        width: 90,
+        height: 90,
+        alignment: Alignment.center,
+        child: const Icon(Icons.camera_alt_outlined, color: Colors.white, size: 28),
+      ),
+    );
   }
 
   void _snack(String msg, {bool isError = false}) {
@@ -454,9 +633,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
             ),
-            title: const Text(
-              'Upload',
-              style: TextStyle(
+            title: Text(
+              (_editingTrack != null || _editingServerTrack != null) ? 'Update Track' : 'Upload',
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -576,32 +755,24 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           children: [
             GestureDetector(
               onTap: _pickCoverImage,
-              child: _coverImage != null
-                  ? ClipRRect(
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(_coverImage!.path!),
-                  width: 90,
-                  height: 90,
-                  fit: BoxFit.cover,
-                ),
-              )
-                  : CustomPaint(
-                painter: DashedRectPainter(
-                  color: Colors.white54,
-                  strokeWidth: 1.5,
-                  gap: 6,
-                ),
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
+                child: _coverImage != null
+                    ? Image.file(
+                        File(_coverImage!.path!),
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                      )
+                    : _editingServerTrack?.imageUrl != null
+                        ? Image.network(
+                            _editingServerTrack!.imageUrl!,
+                            width: 90,
+                            height: 90,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stack) => _coverPlaceholder(),
+                          )
+                        : _coverPlaceholder(),
               ),
             ),
             const SizedBox(width: 16),
@@ -626,7 +797,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
-                  if (_selectedFile == null)
+                  if (_editingTrack != null || _editingServerTrack != null)
+                    const Icon(Icons.lock_outline, color: Colors.white38, size: 20)
+                  else if (_selectedFile == null)
                     GestureDetector(
                       onTap: _pickAndUploadFile,
                       child: Container(
@@ -647,36 +820,29 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   else if (_isUploading)
                     _buildProgressBar()
                   else if (_uploadComplete)
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: _pickAndUploadFile,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'Replace',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: _pickAndUploadFile,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.white),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Replace',
+                              style: TextStyle(color: Colors.white, fontSize: 12),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 24,
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.check_circle, color: Colors.green, size: 24),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -1441,7 +1607,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 
   Widget _buildSaveButton() {
-    final ready = _selectedFile != null && _uploadComplete;
+    final ready = _editingTrack != null || _editingServerTrack != null || (_selectedFile != null && _uploadComplete);
     return Column(
       children: [
         SizedBox(
