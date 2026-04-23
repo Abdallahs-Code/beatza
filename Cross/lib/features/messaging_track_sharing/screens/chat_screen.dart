@@ -1,3 +1,4 @@
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/models/chat_model.dart';
@@ -867,6 +868,7 @@ class _MessageBubble extends StatelessWidget {
           children: [
             if (_isTrackMessage(message.content))
               _TrackCardBubble(
+                key: ValueKey(message.content),
                 permalink: message.content.trim().substring('track::'.length),
                 isMe: isMe,
               )
@@ -920,7 +922,7 @@ class _TrackCardBubble extends StatefulWidget {
   final String permalink;
   final bool isMe;
 
-  const _TrackCardBubble({required this.permalink, required this.isMe});
+  const _TrackCardBubble({super.key, required this.permalink, required this.isMe});
 
   static final Map<String, PlaybackTrackModel?> _cache = {};
 
@@ -940,6 +942,19 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
       _loaded = true;
     } else {
       _load();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_TrackCardBubble old) {
+    super.didUpdateWidget(old);
+    if (old.permalink != widget.permalink) {
+      if (_TrackCardBubble._cache.containsKey(widget.permalink)) {
+        setState(() { _track = _TrackCardBubble._cache[widget.permalink]; _loaded = true; });
+      } else {
+        setState(() { _track = null; _loaded = false; });
+        _load();
+      }
     }
   }
 
@@ -1062,50 +1077,9 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   void _showOptions(BuildContext context, PlaybackTrackModel track) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36, height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.play_arrow_rounded, color: Colors.white70),
-                title: const Text('Play now', style: TextStyle(color: Colors.white, fontSize: 15)),
-                onTap: () { Navigator.pop(context); _play(); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.playlist_play_rounded, color: Colors.white70),
-                title: const Text('Play next', style: TextStyle(color: Colors.white, fontSize: 15)),
-                onTap: () {
-                  Navigator.pop(context);
-                  PlaybackStreamingEngineService.shared.addToQueueNext(track);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.format_list_bulleted_rounded, color: Colors.white70),
-                title: const Text('Play last', style: TextStyle(color: Colors.white, fontSize: 15)),
-                onTap: () {
-                  Navigator.pop(context);
-                  PlaybackStreamingEngineService.shared.addToQueueLast(track);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TrackOptionsSheet(track: track),
     );
   }
 
