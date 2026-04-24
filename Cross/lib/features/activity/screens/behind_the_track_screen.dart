@@ -287,8 +287,15 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         ? await SocialApiService().unfollowUser(targetUserId: widget.trackOwnerId)
         : await SocialApiService().followUser(targetUserId: widget.trackOwnerId);
     if (!mounted) return;
-    if (result.$1 != 200 && result.$1 != 201) {
-      setState(() => _ownerIsFollowed = wasFollowing);
+    if (result.$1 < 200 || result.$1 >= 300) {
+      setState(() {
+        _ownerIsFollowed = wasFollowing;
+        _isOwnerFollowLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.$2.toString())),
+      );
+      return;
     }
     setState(() => _isOwnerFollowLoading = false);
   }
