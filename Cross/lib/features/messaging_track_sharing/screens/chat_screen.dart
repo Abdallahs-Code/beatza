@@ -127,6 +127,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     try {
+      debugPrint('━━━ [ChatScreen._loadMessages] ━━━');
+      debugPrint('[ChatScreen._loadMessages] _chatId="$_chatId" (empty=${_chatId?.isEmpty}) loadMore=$loadMore');
       // For load-more, fetch older messages before the oldest we have
       final before =
           loadMore && _messages.isNotEmpty ? _messages.first.id : null;

@@ -10,10 +10,18 @@ class ChatPersonModel {
   });
 
   factory ChatPersonModel.fromJson(Map<String, dynamic> json) {
+    // photo may be nested under profileImg.imgLink
+    String photo = json['photoUrl']?.toString() ?? '';
+    if (photo.isEmpty) {
+      final profileImg = json['profileImg'];
+      if (profileImg is Map) {
+        photo = profileImg['imgLink']?.toString() ?? '';
+      }
+    }
     return ChatPersonModel(
       userId: json['userId']?.toString() ?? json['_id']?.toString() ?? '',
       displayName: json['displayName']?.toString() ?? '',
-      photoUrl: json['photoUrl']?.toString() ?? '',
+      photoUrl: photo,
     );
   }
 }
@@ -51,6 +59,8 @@ class LastMessageModel {
 
 class ChatModel {
   final String id;
+  // Participant user IDs (extracted from participant objects in GET /chats)
+  final List<String> participants;
   final LastMessageModel? lastMessage;
   // HTTP GET /chats uses "receiver"; socket broadcasts use "sender"
   final ChatPersonModel? receiver;
@@ -58,6 +68,7 @@ class ChatModel {
 
   const ChatModel({
     required this.id,
+    this.participants = const [],
     this.lastMessage,
     this.receiver,
     this.sender,
@@ -75,6 +86,7 @@ class ChatModel {
   ChatModel copyWith({LastMessageModel? lastMessage}) {
     return ChatModel(
       id: id,
+      participants: participants,
       lastMessage: lastMessage ?? this.lastMessage,
       receiver: receiver,
       sender: sender,
@@ -85,8 +97,31 @@ class ChatModel {
     final rawLm = json['lastMessage'];
     final rawReceiver = json['receiver'];
     final rawSender = json['sender'];
+
+    // API uses "chat" key (GET /chats), fallbacks for socket events and other shapes
+    String id = '';
+    for (final key in ['chat', 'chatId', '_id', 'id']) {
+      final v = json[key]?.toString() ?? '';
+      if (v.isNotEmpty) { id = v; break; }
+    }
+
+    // Participants come as full user objects — extract their _id strings
+    final participants = <String>[];
+    final rawParticipants = json['participants'];
+    if (rawParticipants is List) {
+      for (final p in rawParticipants) {
+        if (p is String && p.isNotEmpty) {
+          participants.add(p);
+        } else if (p is Map) {
+          final pid = p['_id']?.toString() ?? p['id']?.toString() ?? p['userId']?.toString() ?? '';
+          if (pid.isNotEmpty) participants.add(pid);
+        }
+      }
+    }
+
     return ChatModel(
-      id: json['_id']?.toString() ?? '',
+      id: id,
+      participants: participants,
       lastMessage: rawLm is Map<String, dynamic>
           ? LastMessageModel.fromJson(rawLm)
           : null,
