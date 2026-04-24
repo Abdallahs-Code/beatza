@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 enum PlaybackAccessState { playable, preview, blocked }
 
 enum PlaybackSourceType { network, deviceFile }
@@ -147,8 +149,36 @@ class PlaybackTrackModel {
         _nullableString(json['file_url']) ??
         _nullableString(json['fileUrl']);
 
+    // ── ID resolution: API returns 'trackId' on list/single endpoints
+    //    and '_id' on liked/posted list endpoints. Accept both.
+    final String resolvedId =
+        (json['trackId'] ?? json['_id'] ?? '').toString().trim();
+
+    // ── Artist ID: API now uses 'posterId' — add as first candidate.
+    final String? resolvedArtistId =
+        _nullableString(json['posterId']) ??
+        _nullableString(json['userId']) ??
+        _nullableString(json['user_id']) ??
+        _nullableString(basicInfo['userId']) ??
+        _nullableString(basicInfo['user_id']) ??
+        _nullableString(json['creator']);
+
+    // ── Debug: log resolved IDs so any future mismatch is immediately visible.
+    if (resolvedId.isEmpty) {
+      debugPrint(
+        '[PlaybackTrackModel.fromApiJson] ⚠️ EMPTY id resolved. '
+        "json keys: ${json.keys.toList()}. "
+        "_id='${json['_id']}' trackId='${json['trackId']}'",
+      );
+    } else {
+      debugPrint(
+        '[PlaybackTrackModel.fromApiJson] ✅ id="$resolvedId" '
+        "artistId='$resolvedArtistId' title='${basicInfo['title']}'",
+      );
+    }
+
     return PlaybackTrackModel(
-      id: (json['_id'] ?? '').toString(),
+      id: resolvedId,
       title: (basicInfo['title'] ?? 'Unknown title').toString(),
       artistName: mainArtists.isEmpty
           ? 'Unknown artist'
@@ -179,12 +209,7 @@ class PlaybackTrackModel {
       includeInRssFeed: permissions['includeInRssFeed'] == true,
       displayedEmbedCode: permissions['displayedEmbedCode'] == true,
       enableAppPlayback: canPlay,
-      artistId:
-          _nullableString(json['userId']) ??
-          _nullableString(json['user_id']) ??
-          _nullableString(basicInfo['userId']) ??
-          _nullableString(basicInfo['user_id']) ??
-          _nullableString(json['creator']),
+      artistId: resolvedArtistId,
       waveformPeaks: const [],
     );
   }

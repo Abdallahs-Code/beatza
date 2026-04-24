@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 // Package imports
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
@@ -49,13 +50,16 @@ class PublicTracksApiService {
       },
     );
 
+    debugPrint('[PublicTracksApiService] GET $uri → ${response.statusCode}');
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      debugPrint('[PublicTracksApiService] ❌ body: ${response.body}');
       throw Exception(
         'Failed to fetch public tracks. '
         'Status code: ${response.statusCode}. '
         'Body: ${response.body}',
       );
     }
+    debugPrint('[PublicTracksApiService] raw body (first 400): ${response.body.substring(0, response.body.length.clamp(0, 400))}');
 
     final dynamic decoded = jsonDecode(response.body);
 
@@ -148,6 +152,7 @@ class PublicTracksApiService {
           (raw['uploader'] as Map<String, dynamic>?) ??
           {};
       for (final dynamic candidate in [
+        raw['posterId'],   // new API field
         raw['userId'],
         raw['user_id'],
         raw['creator'],

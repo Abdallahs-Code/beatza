@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -35,13 +36,16 @@ class PlaybackTrackApiService {
       },
     );
 
+    debugPrint('[PlaybackTrackApiService] GET $url → ${response.statusCode}');
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      debugPrint('[PlaybackTrackApiService] ❌ body: ${response.body}');
       throw Exception(
         'Failed to fetch tracks. '
         'Status code: ${response.statusCode}. '
         'Body: ${response.body}',
       );
     }
+    debugPrint('[PlaybackTrackApiService] raw body: ${response.body.substring(0, response.body.length.clamp(0, 400))}');
 
     final dynamic decoded = jsonDecode(response.body);
 
