@@ -21,7 +21,6 @@ class WelcomeScreen extends StatelessWidget {
         url: authUrl,
         callbackUrlScheme: "beatza",
       );
-      debugPrint("Authentication callback received: $result");
 
       final uri = Uri.parse(result);
       final accessToken = uri.queryParameters["accessToken"];
@@ -49,7 +48,6 @@ class WelcomeScreen extends StatelessWidget {
         );
       }
     } catch (e) {
-      debugPrint("Authentication failed: $e");
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
@@ -59,12 +57,12 @@ class WelcomeScreen extends StatelessWidget {
   }
 
   void _handleAuth(BuildContext context) {
-  if (isCrossPlatFlow) {
-    Navigator.pushNamed(context, AuthenticationRoutes.login);
-  } else {
-    _openAuthFlow(context);
+    if (isCrossPlatFlow) {
+      Navigator.pushNamed(context, AuthenticationRoutes.login);
+    } else {
+      _openAuthFlow(context);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {

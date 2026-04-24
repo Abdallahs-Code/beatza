@@ -8,11 +8,7 @@ class AuthLinkText extends StatelessWidget {
   final String text;
   final bool alignCenter;
 
-  const AuthLinkText({
-    super.key,
-    required this.text,
-    this.alignCenter = false,
-  });
+  const AuthLinkText({super.key, required this.text, this.alignCenter = false});
 
   @override
   Widget build(BuildContext context) {

@@ -41,27 +41,28 @@ class _EmailEntryScreenState extends State<EmailEntryScreen> {
 
     try {
       final authApiService = AuthApiService();
-final bool userExists = await authApiService.checkUserExists(
-  email: _emailController.text.trim(),
-);
+      final bool userExists = await authApiService.checkUserExists(
+        email: _emailController.text.trim(),
+      );
 
-if (!mounted) return;
+      if (!mounted) return;
 
-if (userExists) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => PasswordScreen(email: _emailController.text.trim()),
-    ),
-  );
-} else {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => CreatePasswordScreen(email: _emailController.text.trim()),
-    ),
-  );
-}
+      if (userExists) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PasswordScreen(email: _emailController.text.trim()),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                CreatePasswordScreen(email: _emailController.text.trim()),
+          ),
+        );
+      }
     } catch (err) {
       if (!mounted) return;
 
@@ -89,9 +90,7 @@ if (userExists) {
               const SizedBox(height: 20),
 
               const Center(
-                child: AuthTitleText(
-                  text: "Sign in or create an account",
-                ),
+                child: AuthTitleText(text: "Sign in or create an account"),
               ),
 
               const SizedBox(height: 30),
@@ -114,9 +113,7 @@ if (userExists) {
 
               const SizedBox(height: 20),
 
-              const AuthLinkText(
-                text: "Need help?",
-              ),
+              const AuthLinkText(text: "Need help?"),
             ],
           ),
         ),

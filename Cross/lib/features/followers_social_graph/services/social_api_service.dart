@@ -1,7 +1,6 @@
 // Dart imports
 import 'dart:convert';
 
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -19,9 +18,9 @@ class SocialApiService {
     ApiServices? apiServices,
     http.Client? client,
     FlutterSecureStorage? storage,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage() {
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _client = client ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage() {
     _servicePath = "${_apiServices.baseUrl}/api/social/v1";
   }
 
@@ -30,8 +29,40 @@ class SocialApiService {
     return int.tryParse(value?.toString() ?? '0') ?? 0;
   }
 
+  dynamic _tryDecodeJson(String body) {
+    final trimmed = body.trim();
+    if (trimmed.isEmpty) return null;
+
+    try {
+      return jsonDecode(trimmed);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _extractMessage(
+    http.Response response, {
+    required String fallbackMessage,
+  }) {
+    final decoded = _tryDecodeJson(response.body);
+
+    if (decoded is Map<String, dynamic>) {
+      final message = decoded['message'];
+      if (message != null && message.toString().trim().isNotEmpty) {
+        return message.toString();
+      }
+    }
+
+    final raw = response.body.trim();
+    if (raw.isNotEmpty) {
+      return raw;
+    }
+
+    return fallbackMessage;
+  }
+
   List<Follower> _parseUserList(String responseBody) {
-    final decoded = jsonDecode(responseBody);
+    final decoded = _tryDecodeJson(responseBody);
 
     final List<dynamic> list;
     if (decoded is List) {
@@ -43,28 +74,43 @@ class SocialApiService {
       list = <dynamic>[];
     }
 
-    return list.map((item) {
-      final map = item as Map<String, dynamic>;
+    return list.whereType<Map>().map((item) {
+      final map = Map<String, dynamic>.from(item);
 
       return Follower(
-        map['userId']?.toString() ??
-            map['user_id']?.toString() ??
-            '',
+        map['userId']?.toString() ?? map['user_id']?.toString() ?? '',
         map['displayName']?.toString() ??
             map['display_name']?.toString() ??
             'Unknown User',
         map['profileImgLink']?.toString() ??
             map['profile_img_link']?.toString(),
         _parseInt(map['trackCount'] ?? map['track_count']),
+        _parseInt(map['followersCount'] ?? map['followers_count']),
         _parseIsFollowing(map),
       );
     }).toList();
   }
 
   bool _parseIsFollowing(Map<String, dynamic> map) {
-    final value = map['isFollowing'] ?? map['is_following'];
+    // Preferred backend source of truth:
+    // "Does the currently authenticated user follow this listed user?"
+    final value =
+        map['isFollowed'] ??
+        map['is_followed'] ??
+        map['isFollowing'] ??
+        map['is_following'];
+
     if (value is bool) return value;
-    if (value is String) return value.toLowerCase() == 'true';
+
+    if (value is String) {
+      final normalized = value.toLowerCase().trim();
+      return normalized == 'true' || normalized == '1';
+    }
+
+    if (value is num) {
+      return value != 0;
+    }
+
     return false;
   }
 
@@ -102,19 +148,18 @@ class SocialApiService {
 
       if (response.statusCode == 200) {
         final followers = _parseUserList(response.body);
-        LoggerService.logger.i("Fetched ${followers.length} followers for userId: $userId response: ${response.body}");
         return (200, followers);
       }
 
-      final data = jsonDecode(response.body);
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Failed to fetch followers")
-            : "Failed to fetch followers",
+        _extractMessage(
+          response,
+          fallbackMessage: "Failed to fetch followers",
+        ),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -135,24 +180,19 @@ class SocialApiService {
       );
 
       if (response.statusCode == 200) {
-  final following = _parseUserList(response.body);
+        final following = _parseUserList(response.body);
+        return (200, following);
+      }
 
-  for (final user in following) {
-    user.isFollowing = true;
-  }
-
-  return (200, following);
-}
-
-      final data = jsonDecode(response.body);
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Failed to fetch following")
-            : "Failed to fetch following",
+        _extractMessage(
+          response,
+          fallbackMessage: "Failed to fetch following",
+        ),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -173,15 +213,15 @@ class SocialApiService {
         return (200, suggestedUsers);
       }
 
-      final data = jsonDecode(response.body);
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Failed to fetch suggested users")
-            : "Failed to fetch suggested users",
+        _extractMessage(
+          response,
+          fallbackMessage: "Failed to fetch suggested users",
+        ),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -202,15 +242,15 @@ class SocialApiService {
         return (200, blockedUsers);
       }
 
-      final data = jsonDecode(response.body);
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Failed to fetch blocked users")
-            : "Failed to fetch blocked users",
+        _extractMessage(
+          response,
+          fallbackMessage: "Failed to fetch blocked users",
+        ),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -230,20 +270,20 @@ class SocialApiService {
         headers: _headers(accessToken),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        return (200, data);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = _tryDecodeJson(response.body);
+        return (
+          response.statusCode,
+          decoded ?? _extractMessage(response, fallbackMessage: "Followed"),
+        );
       }
 
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Follow request failed")
-            : "Follow request failed",
+        _extractMessage(response, fallbackMessage: "Follow request failed"),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -263,20 +303,20 @@ class SocialApiService {
         headers: _headers(accessToken),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        return (200, data);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = _tryDecodeJson(response.body);
+        return (
+          response.statusCode,
+          decoded ?? _extractMessage(response, fallbackMessage: "Unfollowed"),
+        );
       }
 
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Unfollow request failed")
-            : "Unfollow request failed",
+        _extractMessage(response, fallbackMessage: "Unfollow request failed"),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -296,20 +336,20 @@ class SocialApiService {
         headers: _headers(accessToken),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        return (200, data);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = _tryDecodeJson(response.body);
+        return (
+          response.statusCode,
+          decoded ?? _extractMessage(response, fallbackMessage: "Blocked"),
+        );
       }
 
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Block request failed")
-            : "Block request failed",
+        _extractMessage(response, fallbackMessage: "Block request failed"),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 
@@ -329,20 +369,20 @@ class SocialApiService {
         headers: _headers(accessToken),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        return (200, data);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = _tryDecodeJson(response.body);
+        return (
+          response.statusCode,
+          decoded ?? _extractMessage(response, fallbackMessage: "Unblocked"),
+        );
       }
 
       return (
         response.statusCode,
-        data is Map<String, dynamic>
-            ? (data["message"] ?? "Unblock request failed")
-            : "Unblock request failed",
+        _extractMessage(response, fallbackMessage: "Unblock request failed"),
       );
     } catch (err) {
-      return (500, "Network error: $err");
+      return (500, "Request failed: $err");
     }
   }
 }

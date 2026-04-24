@@ -13,10 +13,7 @@ import 'package:cross_team5/features/authentication_user_management/widgets/auth
 class CheckInboxScreen extends StatefulWidget {
   final String email;
 
-  const CheckInboxScreen({
-    super.key,
-    required this.email,
-  });
+  const CheckInboxScreen({super.key, required this.email});
 
   @override
   State<CheckInboxScreen> createState() => _CheckInboxScreenState();
@@ -29,10 +26,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
     final Uri gmailUri = Uri.parse("https://mail.google.com");
 
     if (await canLaunchUrl(gmailUri)) {
-      await launchUrl(
-        gmailUri,
-        mode: LaunchMode.externalApplication,
-      );
+      await launchUrl(gmailUri, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -81,19 +75,14 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
             children: [
               const SizedBox(height: 10),
 
-              const AuthTitleText(
-                text: "Check your inbox!",
-              ),
+              const AuthTitleText(text: "Check your inbox!"),
 
               const SizedBox(height: 20),
 
               const Text(
                 "Click on the link we sent to",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 18,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 18),
               ),
 
               const SizedBox(height: 6),
@@ -117,10 +106,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 child: RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
                     children: [
                       const TextSpan(
                         text: "No email in your inbox or spam folder? ",
@@ -143,11 +129,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 height: 230,
                 width: 230,
                 alignment: Alignment.center,
-                child: const Icon(
-                  Icons.send,
-                  size: 140,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.send, size: 140, color: Colors.white),
               ),
 
               const SizedBox(height: 34),
@@ -156,10 +138,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _openGmail,
-                  icon: const Icon(
-                    Icons.mail_outline,
-                    color: Colors.black,
-                  ),
+                  icon: const Icon(Icons.mail_outline, color: Colors.black),
                   label: const Text(
                     "Open Gmail",
                     style: TextStyle(

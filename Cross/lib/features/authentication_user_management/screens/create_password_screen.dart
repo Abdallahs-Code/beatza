@@ -14,10 +14,7 @@ import 'package:cross_team5/features/authentication_user_management/widgets/pass
 class CreatePasswordScreen extends StatefulWidget {
   final String email;
 
-  const CreatePasswordScreen({
-    super.key,
-    required this.email,
-  });
+  const CreatePasswordScreen({super.key, required this.email});
 
   @override
   State<CreatePasswordScreen> createState() => _CreatePasswordScreenState();
@@ -32,29 +29,27 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
     super.dispose();
   }
 
-void _handleContinue() {
-  final String password = _passwordController.text.trim();
+  void _handleContinue() {
+    final String password = _passwordController.text.trim();
 
-  if (password.length < 8) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Password must be at least 8 characters"),
+    if (password.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password must be at least 8 characters")),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UserInfoScreen(
+          email: widget.email,
+          password: password,
+          isGoogleFlow: false,
+        ),
       ),
     );
-    return;
   }
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => UserInfoScreen(
-        email: widget.email,
-        password: password,
-        isGoogleFlow: false,
-      ),
-    ),
-  );
-}
 
   @override
   Widget build(BuildContext context) {
@@ -70,17 +65,11 @@ void _handleContinue() {
               const AuthBackButton(),
               const SizedBox(height: 20),
 
-              const Center(
-                child: AuthTitleText(
-                  text: "Create an account",
-                ),
-              ),
+              const Center(child: AuthTitleText(text: "Create an account")),
 
               const SizedBox(height: 36),
 
-              const AuthSubtitleText(
-                text: "Your email address",
-              ),
+              const AuthSubtitleText(text: "Your email address"),
               const SizedBox(height: 6),
 
               Text(
@@ -112,9 +101,7 @@ void _handleContinue() {
 
               const SizedBox(height: 20),
 
-              const AuthLinkText(
-                text: "Need help?",
-              ),
+              const AuthLinkText(text: "Need help?"),
             ],
           ),
         ),

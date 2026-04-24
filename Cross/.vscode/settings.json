@@ -1,4 +1,6 @@
 {
   "dart.flutterSdkPath": ".fvm/versions/3.38.5",
-  "cmake.sourceDirectory": "C:/Users/Dell/OneDrive/Desktop/happy/cross_team5/windows"
+  "cmake.sourceDirectory": "C:/Users/Dell/OneDrive/Desktop/happy/cross_team5/windows",
+  "cmake.ignoreCMakeListsMissing": true,
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

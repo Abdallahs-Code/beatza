@@ -2,14 +2,13 @@
 import 'package:flutter/material.dart';
 
 // Package imports
-import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart'
-    hide YourUploadsScreen;
+import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class UserTile extends StatelessWidget {
   final Follower follower;
   final String? currentUserId;
+  final String? accessToken;
   final VoidCallback? onFollowTap;
   final VoidCallback? onBlockTap;
   final VoidCallback? onUnblockTap;
@@ -20,6 +19,7 @@ class UserTile extends StatelessWidget {
     super.key,
     required this.follower,
     this.currentUserId,
+    this.accessToken,
     this.onFollowTap,
     this.onBlockTap,
     this.onUnblockTap,
@@ -29,142 +29,188 @@ class UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedCurrentUserId = currentUserId?.trim() ?? '';
+    final normalizedFollowerUserId = follower.userId.trim();
+
     final isMe =
-        currentUserId != null &&
-        currentUserId!.trim() == follower.userId.trim();
+        normalizedCurrentUserId.isNotEmpty &&
+        normalizedCurrentUserId == normalizedFollowerUserId;
 
-    return InkWell(
-      onTap: () async {
-        final authService = AuthApiService();
+    final bool canOpenProfile = !follower.isBlocked && normalizedFollowerUserId.isNotEmpty;
 
-        final token = await authService.getStoredAccessToken();
-        final currentUserIdFromStorage = await authService.getStoredUserId();
+    void openProfile() {
+      if (!canOpenProfile) return;
 
-        final safeToken =
-            (token == null || token.trim().isEmpty) ? 'mock_token' : token;
+      Navigator.pushNamed(
+        context,
+        UserProfileSocialIdentityRoutes.userProfileRoute,
+        arguments: {
+          'userId': normalizedFollowerUserId,
+          'token': accessToken ?? '',
+          'currentUserId':
+              normalizedCurrentUserId.isEmpty ? null : normalizedCurrentUserId,
+          'initialIsFollowing': follower.isFollowing,
+          'initialIsBlocked': follower.isBlocked,
+        },
+      );
+    }
 
-        final safeViewedUserId = follower.userId.trim().isEmpty
-            ? 'mock_user_id'
-            : follower.userId;
-
-        final safeCurrentUserId =
-            (currentUserIdFromStorage == null ||
-                    currentUserIdFromStorage.trim().isEmpty)
-                ? null
-                : currentUserIdFromStorage;
-
-        if (!context.mounted) return;
-
-        Navigator.pushNamed(
-          context,
-          UserProfileSocialIdentityRoutes.userProfileRoute,
-          arguments: {
-            'userId': safeViewedUserId,
-            'token': safeToken,
-            'currentUserId': safeCurrentUserId,
-            'initialIsFollowing': follower.isFollowing,
-          },
+    Widget buildActionButton() {
+      if (follower.isBlocked) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.red.shade100,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'Blocked',
+            style: TextStyle(
+              color: Colors.red.shade800,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
         );
-      },
+      }
+
+      return GestureDetector(
+        onTap: onFollowTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+          decoration: BoxDecoration(
+            color: follower.isFollowing ? Colors.grey.shade300 : Colors.orange,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            follower.isFollowing ? 'Following' : 'Follow',
+            style: TextStyle(
+              color: follower.isFollowing ? Colors.black87 : Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget? buildPopupMenu() {
+      if (isMe) return null;
+
+      if (follower.isBlocked && onUnblockTap != null) {
+        return PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value == 'unblock') {
+              onUnblockTap!();
+            }
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'unblock',
+              child: Text('Unblock'),
+            ),
+          ],
+        );
+      }
+
+      if (showUnblockOption && onUnblockTap != null) {
+        return PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value == 'unblock') {
+              onUnblockTap!();
+            }
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'unblock',
+              child: Text('Unblock'),
+            ),
+          ],
+        );
+      }
+
+      if (showBlockOption && onBlockTap != null) {
+        return PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            if (value == 'block') {
+              onBlockTap!();
+            }
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'block',
+              child: Text('Block user'),
+            ),
+          ],
+        );
+      }
+
+      return null;
+    }
+
+    final popupMenu = buildPopupMenu();
+
+    return Opacity(
+      opacity: follower.isBlocked ? 0.92 : 1,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundImage: follower.profileImgLink != null
-                  ? NetworkImage(follower.profileImgLink!)
-                  : null,
-              child: follower.profileImgLink == null
-                  ? Text(
-                      follower.displayName.isNotEmpty
-                          ? follower.displayName[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    )
-                  : null,
+            GestureDetector(
+              onTap: canOpenProfile ? openProfile : null,
+              behavior: HitTestBehavior.opaque,
+              child: CircleAvatar(
+                radius: 24,
+                backgroundImage:
+                    follower.profileImgLink != null &&
+                        follower.profileImgLink!.trim().isNotEmpty
+                    ? NetworkImage(follower.profileImgLink!)
+                    : null,
+                child:
+                    follower.profileImgLink == null ||
+                        follower.profileImgLink!.trim().isEmpty
+                    ? Text(
+                        follower.displayName.isNotEmpty
+                            ? follower.displayName[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      )
+                    : null,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    follower.displayName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+              child: GestureDetector(
+                onTap: canOpenProfile ? openProfile : null,
+                behavior: HitTestBehavior.opaque,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      follower.displayName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${follower.trackCount} tracks',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
+                    const SizedBox(height: 2),
+                    Text(
+                      '${follower.trackCount} tracks',
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (onFollowTap != null && !isMe)
-              GestureDetector(
-                onTap: onFollowTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: follower.isFollowing
-                        ? Colors.grey.shade300
-                        : Colors.orange,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    follower.isFollowing ? 'Following' : 'Follow',
-                    style: TextStyle(
-                      color: follower.isFollowing
-                          ? Colors.black87
-                          : Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
+                  ],
                 ),
               ),
-            if ((showBlockOption && !isMe) || (showUnblockOption && !isMe))
-              const SizedBox(width: 4),
-            if (showBlockOption && !isMe)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                onSelected: (value) {
-                  if (value == 'block' && onBlockTap != null) {
-                    onBlockTap!();
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'block',
-                    child: Text('Block user'),
-                  ),
-                ],
-              ),
-            if (showUnblockOption && !isMe)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                onSelected: (value) {
-                  if (value == 'unblock' && onUnblockTap != null) {
-                    onUnblockTap!();
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'unblock',
-                    child: Text('Unblock'),
-                  ),
-                ],
-              ),
+            ),
+            if (onFollowTap != null && !isMe) buildActionButton(),
+            if (popupMenu != null) ...[
+  const SizedBox(width: 4),
+  popupMenu,
+],
           ],
         ),
       ),

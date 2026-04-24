@@ -15,20 +15,50 @@ class YourUploadsSpotlightScreen extends StatefulWidget {
   });
 
   @override
-  State<YourUploadsSpotlightScreen> createState() => _YourUploadsSpotlightScreenState();
+  State<YourUploadsSpotlightScreen> createState() =>
+      _YourUploadsSpotlightScreenState();
 }
 
-class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen> {
+class _YourUploadsSpotlightScreenState
+    extends State<YourUploadsSpotlightScreen> {
   late List<SpotlightItemModel> localSelected;
 
   final List<SpotlightItemModel> mockAlbums = [
-    SpotlightItemModel(id: 'a1', title: 'Summer Vibes Album', subtitle: 'ozOo', type: SpotlightType.album, imageUrl: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop'),
-    SpotlightItemModel(id: 'a2', title: 'Deep House Mixes', subtitle: 'ozOo', type: SpotlightType.album, imageUrl: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop'),
+    SpotlightItemModel(
+      id: 'a1',
+      title: 'Summer Vibes Album',
+      subtitle: 'ozOo',
+      type: SpotlightType.album,
+      imageUrl:
+          'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
+    ),
+    SpotlightItemModel(
+      id: 'a2',
+      title: 'Deep House Mixes',
+      subtitle: 'ozOo',
+      type: SpotlightType.album,
+      imageUrl:
+          'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
+    ),
   ];
 
   final List<SpotlightItemModel> mockPlaylists = [
-    SpotlightItemModel(id: 'p1', title: 'Top Hits Playlist', subtitle: 'ozOo', type: SpotlightType.playlist, imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop'),
-    SpotlightItemModel(id: 'p2', title: 'Workout Energy', subtitle: 'ozOo', type: SpotlightType.playlist, imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=300&auto=format&fit=crop'),
+    SpotlightItemModel(
+      id: 'p1',
+      title: 'Top Hits Playlist',
+      subtitle: 'ozOo',
+      type: SpotlightType.playlist,
+      imageUrl:
+          'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
+    ),
+    SpotlightItemModel(
+      id: 'p2',
+      title: 'Workout Energy',
+      subtitle: 'ozOo',
+      type: SpotlightType.playlist,
+      imageUrl:
+          'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=300&auto=format&fit=crop',
+    ),
   ];
 
   @override
@@ -46,7 +76,10 @@ class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen>
           localSelected.add(item);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('You can only pin up to 5 items.'), behavior: SnackBarBehavior.floating),
+            const SnackBar(
+              content: Text('You can only pin up to 5 items.'),
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
       }
@@ -55,7 +88,9 @@ class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen>
 
   Widget _buildList(List<SpotlightItemModel> items) {
     if (items.isEmpty) {
-      return const Center(child: Text('Nothing found', style: TextStyle(color: Colors.white54)));
+      return const Center(
+        child: Text('Nothing found', style: TextStyle(color: Colors.white54)),
+      );
     }
 
     return ListView.builder(
@@ -75,20 +110,56 @@ class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen>
                   borderRadius: BorderRadius.circular(4),
                   child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                       ? (item.imageUrl!.startsWith('http')
-                      ? Image.network(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover)
-                      : Image.file(File(item.imageUrl!), width: 52, height: 52, fit: BoxFit.cover))
-                      : Container(width: 52, height: 52, color: Colors.grey[800], child: const Icon(Icons.music_note, color: Colors.white)),
+                            ? Image.network(
+                                item.imageUrl!,
+                                width: 52,
+                                height: 52,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                File(item.imageUrl!),
+                                width: 52,
+                                height: 52,
+                                fit: BoxFit.cover,
+                              ))
+                      : Container(
+                          width: 52,
+                          height: 52,
+                          color: Colors.grey[800],
+                          child: const Icon(
+                            Icons.music_note,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 2),
-                      Text(item.subtitle, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                      Text(
+                        item.subtitle,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      const Text('▶ 0', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      const Text(
+                        '▶ 0',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
@@ -96,7 +167,7 @@ class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen>
                   isSelected ? Icons.push_pin : Icons.push_pin_outlined,
                   color: isSelected ? Colors.white : Colors.white38,
                   size: 22,
-                )
+                ),
               ],
             ),
           ),
@@ -116,14 +187,24 @@ class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen>
           elevation: 0,
           leading: const SizedBox.shrink(),
           leadingWidth: 0,
-          title: const Text('Your Uploads', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          title: const Text(
+            'Your Uploads',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           centerTitle: true,
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context, localSelected);
               },
-              child: const Text('Done', style: TextStyle(color: Colors.white, fontSize: 16)),
+              child: const Text(
+                'Done',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
             ),
           ],
           bottom: const TabBar(
@@ -143,10 +224,16 @@ class _YourUploadsSpotlightScreenState extends State<YourUploadsSpotlightScreen>
             ValueListenableBuilder<List<TrackModel>>(
               valueListenable: AudioUploadService.globalMockTracksNotifier,
               builder: (context, tracks, child) {
-                final publicTracks = tracks.where((t) {
-                  String visibility = t.visibility.toString().toLowerCase();
-                  return !visibility.contains('private') && !visibility.contains('unlisted');
-                }).map((t) => SpotlightItemModel.fromTrack(t, widget.artistName)).toList();
+                final publicTracks = tracks
+                    .where((t) {
+                      String visibility = t.visibility.toString().toLowerCase();
+                      return !visibility.contains('private') &&
+                          !visibility.contains('unlisted');
+                    })
+                    .map(
+                      (t) => SpotlightItemModel.fromTrack(t, widget.artistName),
+                    )
+                    .toList();
 
                 return _buildList(publicTracks);
               },

@@ -1,4 +1,3 @@
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -12,11 +11,7 @@ class VerifyCodeScreen extends StatefulWidget {
   // If you later have the email from backend/callback, pass it here.
   final String? email;
 
-  const VerifyCodeScreen({
-    super.key,
-    required this.pendingToken,
-    this.email,
-  });
+  const VerifyCodeScreen({super.key, required this.pendingToken, this.email});
 
   @override
   State<VerifyCodeScreen> createState() => _VerifyCodeScreenState();
@@ -51,18 +46,14 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter the verification code"),
-        ),
+        const SnackBar(content: Text("Please enter the verification code")),
       );
       return;
     }
 
     if (code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("The verification code must be 6 digits"),
-        ),
+        const SnackBar(content: Text("The verification code must be 6 digits")),
       );
       return;
     }
@@ -77,8 +68,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       pendingToken: widget.pendingToken,
       code: code,
     );
-
-    LoggerService.logger.i("Verify code result: ${result.$1}, ${result.$2}");
 
     if (!mounted) return;
 
@@ -103,14 +92,15 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   }
 
   Future<void> _handleSendAgain() async {
-    // Your current backend/service layer does NOT include
-    // a resend-Google-verification-code endpoint.
-    // So this button currently only informs the user.
     setState(() {
       _isSendingAgain = true;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    final authApiService = AuthApiService();
+
+    final result = await authApiService.resendGoogleVerificationCode(
+      pendingToken: widget.pendingToken,
+    );
 
     if (!mounted) return;
 
@@ -119,16 +109,20 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Resend code is not connected yet"),
-        backgroundColor: AppColors.anger,
+      SnackBar(
+        content: Text(result.$2.toString()),
+        backgroundColor: (result.$1 >= 200 && result.$1 < 300)
+            ? Colors.green
+            : AppColors.anger,
       ),
     );
   }
 
   void _onCodeChanged(String value) {
     final digitsOnly = value.replaceAll(RegExp(r'[^0-9]'), '');
-    final limited = digitsOnly.length > 6 ? digitsOnly.substring(0, 6) : digitsOnly;
+    final limited = digitsOnly.length > 6
+        ? digitsOnly.substring(0, 6)
+        : digitsOnly;
 
     if (limited != _codeController.text) {
       _codeController.value = TextEditingValue(
@@ -170,10 +164,10 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final displayedEmail =
-        (widget.email != null && widget.email!.trim().isNotEmpty)
-            ? widget.email!.trim()
-            : "your email";
+    // final displayedEmail =
+    //     (widget.email != null && widget.email!.trim().isNotEmpty)
+    //         ? widget.email!.trim()
+    //         : "your email";
 
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
@@ -224,19 +218,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
-                    Text(
-                      displayedEmail,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 52),
 
                     Stack(
                       alignment: Alignment.center,

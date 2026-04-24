@@ -7,10 +7,10 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 class QrPollingService {
   final AuthApiService _authApi;
   Timer? _pollingTimer;
-  
+
   final Duration pollInterval;
   final Duration timeout;
-  
+
   QrPollingService({
     required AuthApiService authApi,
     this.pollInterval = const Duration(seconds: 5),
@@ -40,7 +40,7 @@ class QrPollingService {
         final status = response['status'] as String;
         // To be completed upon API changes
         // final message = response['message'] as String;
-        
+
         // Notify UI of status change
         onStatusUpdate?.call(status);
 
@@ -50,11 +50,11 @@ class QrPollingService {
             stopwatch.stop();
             completer.complete(response); // Contains user data
             break;
-          
+
           case 'waiting':
             // keep polling
             break;
-          
+
           default:
             timer.cancel();
             stopwatch.stop();
@@ -64,10 +64,10 @@ class QrPollingService {
       } catch (e) {
         // Network error or HTTP error (400, 401, 500)
         onError?.call(e);
-        
+
         // Check if it's a fatal error (not just network glitch)
         final errorMessage = e.toString().toLowerCase();
-        if (errorMessage.contains('session expired') || 
+        if (errorMessage.contains('session expired') ||
             errorMessage.contains('bad request') ||
             errorMessage.contains('internal server error')) {
           // Fatal error - stop polling

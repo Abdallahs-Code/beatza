@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 // Package imports
-import 'package:cross_team5/core/services/logger_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/models/user.dart'
     as user_model;
@@ -153,10 +152,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
           gender: gender,
         );
 
-        LoggerService.logger.i(
-          "UserInfoScreen completeGoogleSignup -> status: ${result.$1}, body: ${result.$2}",
-        );
-
         if (!mounted) return;
 
         if (result.$1 == 200) {
@@ -196,18 +191,12 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
           ),
         );
 
-        LoggerService.logger.i(
-          "UserInfoScreen signup -> status: ${result.$1}, body: ${result.$2}",
-        );
-
         if (!mounted) return;
 
         if (result.$1 == 200 || result.$1 == 201) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => CheckInboxScreen(email: email),
-            ),
+            MaterialPageRoute(builder: (_) => CheckInboxScreen(email: email)),
           );
           return;
         }
@@ -220,14 +209,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         );
       }
     } catch (e) {
-      LoggerService.logger.i("UserInfoScreen error: $e");
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: AppColors.anger,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: AppColors.anger),
       );
     } finally {
       if (mounted) {
@@ -245,20 +230,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(
-          color: Colors.white.withValues(alpha: 0.14),
-        ),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(
-          color: Colors.white70,
-          width: 1.2,
-        ),
+        borderSide: const BorderSide(color: Colors.white70, width: 1.2),
       ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
     );
   }
 
@@ -281,7 +259,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     String Function(T value)? selectedLabelBuilder,
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       dropdownColor: const Color(0xFF121212),
       style: const TextStyle(
@@ -289,10 +267,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
-      icon: const Icon(
-        Icons.keyboard_arrow_down,
-        color: Color(0xFFB3B3B3),
-      ),
+      icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFFB3B3B3)),
       decoration: _inputDecoration(),
       hint: Text(
         hint,

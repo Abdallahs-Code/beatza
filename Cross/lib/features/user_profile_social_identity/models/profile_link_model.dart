@@ -23,10 +23,7 @@ class ProfileLinkModel {
   }
 
   Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{
-      'name': title,
-      'link': normalizedUrl,
-    };
+    final map = <String, dynamic>{'name': title, 'link': normalizedUrl};
     if (linkId.trim().isNotEmpty) {
       map['linkId'] = linkId.trim();
     }

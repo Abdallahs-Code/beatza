@@ -21,6 +21,8 @@ class UserProfileModel {
   final int followingsCount;
   final int trackCount;
   final bool isPrivate;
+  final bool isFollowed;
+  final bool isBlocked;
 
   const UserProfileModel({
     required this.userId,
@@ -43,6 +45,8 @@ class UserProfileModel {
     this.followingsCount = 0,
     this.trackCount = 0,
     this.isPrivate = false,
+    this.isFollowed = false,
+    this.isBlocked = false,
   });
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
@@ -58,27 +62,27 @@ class UserProfileModel {
       city: (json['city'] ?? '').toString(),
       country: (json['country'] ?? '').toString(),
       links:
-      (json['links'] as List?)
-          ?.map(
-            (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
-      )
-          .toList() ??
+          (json['links'] as List?)
+              ?.map(
+                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList() ??
           const [],
       bannerLinks:
-      (json['bannerLinks'] as List?)
-          ?.map(
-            (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
-      )
-          .toList() ??
+          (json['bannerLinks'] as List?)
+              ?.map(
+                (e) => ProfileLinkModel.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList() ??
           const [],
       supportLink: (json['supportLink'] ?? '').toString(),
       role: _normalizeRole((json['role'] ?? '').toString()),
       isPaid: json['isPaid'] == true,
       favoriteGenres:
-      (json['favoriteGenres'] as List?)
-          ?.map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty)
-          .toList() ??
+          (json['favoriteGenres'] as List?)
+              ?.map((e) => e.toString().trim())
+              .where((e) => e.isNotEmpty)
+              .toList() ??
           const [],
       followersCount: _readInt(json['followersCount']),
       followingsCount: _readInt(
@@ -86,6 +90,8 @@ class UserProfileModel {
       ),
       trackCount: _readInt(json['trackCount']),
       isPrivate: json['isPrivate'] == true,
+      isFollowed: json['isFollowed'] == true,
+      isBlocked: json['isBlocked'] == true,
     );
   }
 
@@ -117,19 +123,29 @@ class UserProfileModel {
   Map<String, dynamic> toUpdatePayload() {
     final Map<String, dynamic> payload = {};
 
-    if (displayName.trim().isNotEmpty)
-      payload['displayName'] = displayName.trim();
-    if (firstName.trim().isNotEmpty) payload['firstName'] = firstName.trim();
-    if (lastName.trim().isNotEmpty) payload['lastName'] = lastName.trim();
-    if (profileUrl.trim().isNotEmpty)
-      payload['profileLink'] = profileUrl.trim();
-    if (bio.trim().isNotEmpty) payload['bio'] = bio.trim();
-    if (city.trim().isNotEmpty) payload['city'] = city.trim();
-    if (country.trim().isNotEmpty) payload['country'] = country.trim();
-
-    if (favoriteGenres.isNotEmpty) payload['favoriteGenres'] = favoriteGenres;
-
+    payload['displayName'] = displayName.trim();
     payload['isPrivate'] = isPrivate;
+    payload['favoriteGenres'] = favoriteGenres;
+
+    if (firstName.trim().isNotEmpty) {
+      payload['firstName'] = firstName.trim();
+    }
+
+    if (lastName.trim().isNotEmpty) {
+      payload['lastName'] = lastName.trim();
+    }
+
+    if (profileUrl.trim().isNotEmpty) {
+      final normalizedProfileUrl = _normalizeUrl(profileUrl);
+      if (normalizedProfileUrl != null) {
+        payload['profileLink'] = normalizedProfileUrl;
+      }
+    }
+
+    payload['bio'] = bio.trim().isEmpty ? null : bio.trim();
+
+    payload['city'] = city.trim().isEmpty ? null : city.trim();
+    payload['country'] = country.trim().isEmpty ? null : country.trim();
 
     final validLinks = links
         .where((e) => e.link.trim().isNotEmpty)
@@ -141,7 +157,7 @@ class UserProfileModel {
         .where((e) => e.link.trim().isNotEmpty)
         .map((e) => e.toJson())
         .toList();
-    if (validBannerLinks.isNotEmpty) payload['bannerLinks'] = validBannerLinks;
+    payload['bannerLinks'] = validBannerLinks;
 
     final normalizedSupportLink = _normalizeUrl(supportLink);
     if (normalizedSupportLink != null) {
@@ -220,7 +236,21 @@ class UserProfileModel {
   }
 
   List<ProfileLinkModel> get visibleLinks {
-    return links.where((e) => e.link.trim().isNotEmpty).toList();
+    final combined = [...links, ...bannerLinks];
+
+    final seen = <String>{};
+    final result = <ProfileLinkModel>[];
+
+    for (final item in combined) {
+      final normalized = item.normalizedUrl.trim();
+      if (normalized.isEmpty) continue;
+      if (seen.contains(normalized)) continue;
+
+      seen.add(normalized);
+      result.add(item);
+    }
+
+    return result;
   }
 
   static int _readInt(dynamic value) {
@@ -242,7 +272,7 @@ class UserProfileModel {
     if (trimmed.isEmpty) return null;
 
     final normalized =
-    trimmed.startsWith('http://') || trimmed.startsWith('https://')
+        trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 

@@ -1,53 +1,73 @@
-// Dart imports
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import '../../audio_upload_track_management/screens/upload_track_screen.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
+import '../../premium_subscription/screens/premium_subscription.dart';
+import '../../premium_subscription/services/payment_service.dart';
 
 class TopHeader extends StatelessWidget {
   const TopHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Row(
-        children: [
-          const Spacer(),
-          const Text(
-            AppText.homeTitle,
-            style: TextStyle(
-              color: AppColors.whiteSmoke,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-            ),
+    return Row(
+      children: [
+        const Spacer(),
+        const Text(
+          AppText.homeTitle,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
           ),
-          const Spacer(),
-          HeaderIcon(
-            Icons.cloud_upload_outlined,
-            onTap: () async {
-              final AudioUploadService audioService = AudioUploadService();
-              final file = await audioService.pickAudioFile();
-              if (file != null) {
-                if (!context.mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const UploadTrackScreen(),
-                    settings: RouteSettings(arguments: file),
-                  ),
-                );
-              }
-            },
-          ),
+        ),
+        const Spacer(),
+        ValueListenableBuilder<SubscriptionState>(
+          valueListenable: PaymentService.subscriptionSuccessNotifier,
+          builder: (context, state, _) {
+            final isPro = state.isPro;
+            return HeaderIcon(
+              Icons.cloud_upload_outlined,
+              onTap: () async {
+                final AudioUploadService audioService = AudioUploadService();
+                final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
+                if (!isPro && currentUploads >= 3) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                  );
+                  return;
+                }
 
-          const SizedBox(width: 10),
-          const HeaderIcon(Icons.more_horiz),
-        ],
-      ),
+                final file = await audioService.pickAudioFile();
+                if (file != null) {
+                  if (!context.mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UploadTrackScreen(),
+                      settings: RouteSettings(arguments: file),
+                    ),
+                  );
+                }
+              },
+            );
+          },
+        ),        const SizedBox(width: 10),
+        const HeaderIcon(Icons.more_horiz),
+      ],
     );
   }
-}class HeaderIcon extends StatelessWidget {
+}
+
+class HeaderIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
@@ -69,6 +89,7 @@ class TopHeader extends StatelessWidget {
     );
   }
 }
+
 class YourLikesCard extends StatelessWidget {
   const YourLikesCard({super.key});
 

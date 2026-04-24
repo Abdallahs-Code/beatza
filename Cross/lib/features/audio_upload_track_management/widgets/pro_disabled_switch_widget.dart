@@ -1,34 +1,34 @@
 import 'package:flutter/cupertino.dart';
 
 class ProDisabledSwitch extends StatelessWidget {
-final VoidCallback onTap;
+  final VoidCallback onTap;
 
-const ProDisabledSwitch({super.key, required this.onTap});
+  const ProDisabledSwitch({super.key, required this.onTap});
 
-@override
-Widget build(BuildContext context) {
-return GestureDetector(
-onTap: onTap,
-child: Container(
-width: 50,
-height: 30,
-padding: const EdgeInsets.all(4),
-decoration: BoxDecoration(
-color: const Color(0xFF2A2A2A),
-borderRadius: BorderRadius.circular(20),
-),
-child: Align(
-alignment: Alignment.centerRight,
-child: Container(
-width: 22,
-height: 22,
-decoration: const BoxDecoration(
-color: Color(0xFFBDBDBD),
-shape: BoxShape.circle,
-),
-),
-),
-),
-);
-}
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 50,
+        height: 30,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2A2A),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            width: 22,
+            height: 22,
+            decoration: const BoxDecoration(
+              color: Color(0xFFBDBDBD),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
