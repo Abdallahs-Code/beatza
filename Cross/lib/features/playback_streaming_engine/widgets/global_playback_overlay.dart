@@ -7,6 +7,7 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
 import '../services/playback_streaming_engine_service.dart';
+import '../services/playback_track_api_service.dart';
 import '../services/waveform_extractor.dart';
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
@@ -1863,11 +1864,11 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
 
   Future<void> _refreshCommentCount() async {
     try {
-      final count = await _engagementService.getTrackCommentCount(
+      final track = await PlaybackTrackApiService().getSingleTrackById(
         widget.track.id,
       );
       if (!mounted) return;
-      setState(() => _commentCount = count);
+      setState(() => _commentCount = track.numComments);
     } catch (_) {}
   }
 
@@ -1903,7 +1904,17 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
       if (!mounted) return;
       if (result.$1 == 200 && result.$2 is List) {
         final likers = result.$2 as List<EngagementUser>;
-        setState(() => _isLiked = likers.any((u) => u.userId == userId));
+        final isLiked = likers.any((u) => u.userId == userId);
+        setState(() {
+          _isLiked = isLiked;
+          // Guard against stale track model: if the user has liked this track
+          // but numLikes was 0 (e.g. navigated away before server count
+          // propagated), use the actual likers list length so the count is
+          // visible instead of showing a filled heart with no number.
+          if (isLiked && _likeCount == 0) {
+            _likeCount = likers.isNotEmpty ? likers.length : 1;
+          }
+        });
       }
     } catch (_) {}
   }
@@ -1959,13 +1970,16 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
       ),
     );
     if (!mounted) return;
-    // Refresh comment count after returning from CommentsScreen
-    // (user may have posted or deleted comments while there).
-    final count = await _engagementService.getTrackCommentCount(
-      widget.track.id,
-    );
-    if (!mounted) return;
-    setState(() => _commentCount = count);
+    // Refresh comment count after returning from CommentsScreen using the
+    // track API so replies are included in the total (same source as the
+    // comments screen header count).
+    try {
+      final track = await PlaybackTrackApiService().getSingleTrackById(
+        widget.track.id,
+      );
+      if (!mounted) return;
+      setState(() => _commentCount = track.numComments);
+    } catch (_) {}
   }
 
   String _formatCount(int count) {
