@@ -22,7 +22,7 @@ class MessagingApiService {
         _client = client ?? http.Client(),
         _authApiService = authApiService ?? AuthApiService() {
     _msgBase = '${_apiServices.baseUrl}/api/messages/v1';
-    _tracksBase = '${_apiServices.baseUrl}/api/public/tracks/v1';
+    _tracksBase = '${_apiServices.baseUrl}/api/tracks/v1';
   }
 
   Future<String> _token() async {
@@ -472,8 +472,7 @@ class MessagingApiService {
     try {
       final token = await _token();
       
-      // ✅ CORRECTED: Use /posted/{id} as per API documentation
-      final uri = Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v1/posted/$userId');
+      final uri = Uri.parse('$_tracksBase/posted/$userId');
       
       print('📤 [DEBUG] GET $uri');
       print('📤 [DEBUG] Headers: ${_headers(token)}');
@@ -533,12 +532,12 @@ class MessagingApiService {
     return [];
   }
 
-  // GET /api/public/tracks/v1/permalink/{permalink}
+  // GET /api/tracks/v1/permalink/{permalink}  (authenticated — single param)
   Future<PlaybackTrackModel?> getTrackByPermalink({
     required String permalink,
   }) async {
     final token = await _token();
-    final uri = Uri.parse('$_tracksBase/permalink/$permalink');
+    final uri = Uri.parse('${_apiServices.baseUrl}/api/tracks/v1/permalink/$permalink');
     debugPrint('[getTrackByPermalink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getTrackByPermalink] status=${res.statusCode} bodyPreview=${res.body.length > 200 ? res.body.substring(0, 200) : res.body}');
