@@ -52,14 +52,40 @@ class MessagingApiService {
     final token = await _token();
     final uri = Uri.parse('$_msgBase/chats')
         .replace(queryParameters: {'limit': '$limit'});
+    debugPrint('[getChats] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
+    debugPrint('[getChats] status=${res.statusCode}');
+    debugPrint('[getChats] raw body=${res.body.length > 600 ? res.body.substring(0, 600) : res.body}');
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
-      final list = data['data'] as List<dynamic>? ?? [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map(ChatModel.fromJson)
-          .toList();
+      final rawList = data['data'];
+      debugPrint('[getChats] data["data"] runtimeType=${rawList.runtimeType}');
+      final list = (rawList as List<dynamic>? ?? []);
+      debugPrint('[getChats] ${list.length} items in list');
+      final chats = <ChatModel>[];
+      for (int i = 0; i < list.length; i++) {
+        final item = list[i];
+        if (item is Map<String, dynamic>) {
+          // Log EVERY key so we can see the full structure
+          debugPrint('[getChats] item[$i] ALL KEYS: ${item.keys.toList()}');
+          for (final k in item.keys) {
+            final v = item[k];
+            if (v is! List && v is! Map) {
+              debugPrint('[getChats] item[$i]   "$k" = $v');
+            } else if (v is List) {
+              debugPrint('[getChats] item[$i]   "$k" = List(${v.length}) first=${v.isEmpty ? "empty" : v.first}');
+            } else {
+              debugPrint('[getChats] item[$i]   "$k" = Map keys=${(v as Map).keys.toList()}');
+            }
+          }
+          final chat = ChatModel.fromJson(item);
+          debugPrint('[getChats] item[$i] → parsed chat.id="${chat.id}" participants=${chat.participants}');
+          chats.add(chat);
+        } else {
+          debugPrint('[getChats] item[$i] NOT A MAP — type=${item.runtimeType} value=$item');
+        }
+      }
+      return chats;
     }
     throw Exception(
         (data is Map ? data['message']?.toString() : null) ??
@@ -73,12 +99,16 @@ class MessagingApiService {
     int limit = 20,
     String? before,
   }) async {
+    debugPrint('━━━ [getChatMessages] ━━━');
+    debugPrint('[getChatMessages] chatId="$chatId" (empty=${chatId.isEmpty})');
     final token = await _token();
     final params = <String, String>{'limit': '$limit'};
     if (before != null && before.isNotEmpty) params['before'] = before;
     final uri = Uri.parse('$_msgBase/chat/message/$chatId')
         .replace(queryParameters: params);
+    debugPrint('[getChatMessages] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
+    debugPrint('[getChatMessages] status=${res.statusCode} body=${res.body.length > 300 ? res.body.substring(0, 300) : res.body}');
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'] as Map<String, dynamic>? ?? {};
@@ -108,15 +138,12 @@ class MessagingApiService {
             'Failed to load messages');
   }
 
-  // Find existing chat with receiverId.
-  // Pass 1: match via lastMessage.senderId (fast, no extra calls).
-  // Pass 2: for chats where WE sent the last message, fetch their messages
-  //         and scan for any message from the receiver.
-  // (the /chats API doesn't include userId in participant objects)
+  // Find an existing chat that includes receiverId in its participants array.
+  // The GET /chats API now returns participants: [userId1, userId2], so we
+  // can find the right chat in a single request with no deep message scanning.
   Future<String?> findOrCreateChat({required String receiverId}) async {
     try {
       final token = await _token();
-      final currentUserId = await _authApiService.getStoredUserId() ?? '';
       final uri = Uri.parse('$_msgBase/chats').replace(queryParameters: {'limit': '100'});
       debugPrint('[MessagingApiService.findOrCreateChat] GET $uri receiverId=$receiverId');
       final res = await _client.get(uri, headers: _headers(token));
@@ -130,46 +157,37 @@ class MessagingApiService {
           .toList();
       debugPrint('[MessagingApiService.findOrCreateChat] ${list.length} chats to search');
 
-      // Pass 1: quick match — the receiver sent the last message
-      final needsDeepSearch = <String>[];
       for (final item in list) {
-        final chatId = item['_id']?.toString() ?? '';
-        if (chatId.isEmpty) continue;
-        final lm = item['lastMessage'];
-        final senderId = lm is Map ? lm['senderId']?.toString() ?? '' : '';
-        debugPrint('[MessagingApiService.findOrCreateChat] pass1 chatId=$chatId senderId=$senderId');
-        if (senderId == receiverId) {
-          debugPrint('[MessagingApiService.findOrCreateChat] Pass 1 match. chatId=$chatId');
-          return chatId;
+        // Key is "chat" in current API; fall back to chatId / _id / id
+        String chatId = '';
+        for (final key in ['chat', 'chatId', '_id', 'id']) {
+          final v = item[key]?.toString() ?? '';
+          if (v.isNotEmpty) { chatId = v; break; }
         }
-        // We sent the last message — need to look deeper
-        if (senderId == currentUserId) needsDeepSearch.add(chatId);
-      }
+        if (chatId.isEmpty) continue;
 
-      // Pass 2: fetch messages for ambiguous chats and scan for receiverId
-      debugPrint('[MessagingApiService.findOrCreateChat] Pass 2: deep-searching ${needsDeepSearch.length} chats');
-      for (final chatId in needsDeepSearch) {
-        try {
-          final msgUri = Uri.parse('$_msgBase/chat/message/$chatId')
-              .replace(queryParameters: {'limit': '20'});
-          final msgRes = await _client.get(msgUri, headers: _headers(token));
-          final msgData = _decode(msgRes);
-          if (msgRes.statusCode == 200 && msgData is Map) {
-            final inner = msgData['data'];
-            final msgs = (inner is Map ? inner['messages'] : null) as List<dynamic>? ?? [];
-            for (final m in msgs) {
-              if (m is Map && m['senderId']?.toString() == receiverId) {
-                debugPrint('[MessagingApiService.findOrCreateChat] Pass 2 match. chatId=$chatId');
-                return chatId;
-              }
+        // Participants are full user objects — extract _id strings
+        final participantIds = <String>[];
+        final rawP = item['participants'];
+        if (rawP is List) {
+          for (final p in rawP) {
+            if (p is String && p.isNotEmpty) {
+              participantIds.add(p);
+            } else if (p is Map) {
+              final pid = p['_id']?.toString() ?? p['id']?.toString() ?? '';
+              if (pid.isNotEmpty) participantIds.add(pid);
             }
           }
-        } catch (e) {
-          debugPrint('[MessagingApiService.findOrCreateChat] pass2 error for $chatId: $e');
+        }
+        debugPrint('[MessagingApiService.findOrCreateChat] chatId=$chatId participantIds=$participantIds');
+
+        if (participantIds.contains(receiverId)) {
+          debugPrint('[MessagingApiService.findOrCreateChat] ✅ Match via participants. chatId=$chatId');
+          return chatId;
         }
       }
 
-      debugPrint('[MessagingApiService.findOrCreateChat] No existing chat found');
+      debugPrint('[MessagingApiService.findOrCreateChat] No existing chat found — will create new');
       return null;
     } catch (e) {
       debugPrint('[MessagingApiService.findOrCreateChat] error: $e');

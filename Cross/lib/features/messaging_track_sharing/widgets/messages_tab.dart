@@ -169,7 +169,11 @@ class _MessagesTabState extends State<MessagesTab> {
   // }
 
     Future<void> _openChat(ChatModel chat) async {
-    debugPrint('[MessagesTab._openChat] Opening chat ${chat.id}. isUnread=${chat.isUnread(_currentUserId ?? "")}');
+    debugPrint('━━━ [MessagesTab._openChat] ━━━');
+    debugPrint('[MessagesTab._openChat] chat.id="${chat.id}" (empty=${chat.id.isEmpty})');
+    debugPrint('[MessagesTab._openChat] participants=${chat.participants}');
+    debugPrint('[MessagesTab._openChat] otherPerson.userId="${chat.otherPerson?.userId}" name="${chat.otherPerson?.displayName}"');
+    debugPrint('[MessagesTab._openChat] isUnread=${chat.isUnread(_currentUserId ?? "")}');
 
     // Optimistically mark as read in local state so the unread dot disappears immediately
     if (_currentUserId != null) {
