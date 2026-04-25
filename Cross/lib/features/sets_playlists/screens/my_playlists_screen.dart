@@ -41,7 +41,6 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
 
   @override
   void dispose() {
-    _playlistService.dispose();
     super.dispose();
   }
 
@@ -53,7 +52,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
 
     try {
       final (statusCode, playlists) =
-          await _playlistService.getMyPlaylists(limit: 50, offset: 0);
+          await _playlistService.getMyPlaylists();
 
       if (!mounted) return;
 
