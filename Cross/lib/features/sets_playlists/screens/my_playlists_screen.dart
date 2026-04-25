@@ -41,6 +41,10 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
 
   @override
   void dispose() {
+<<<<<<< HEAD
+=======
+    _playlistService.dispose();
+>>>>>>> b5545df (feat(playlists)added screens, widgets and services)
     super.dispose();
   }
 
@@ -52,7 +56,11 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
 
     try {
       final (statusCode, playlists) =
+<<<<<<< HEAD
           await _playlistService.getMyPlaylists();
+=======
+          await _playlistService.getMyPlaylists(limit: 50, offset: 0);
+>>>>>>> b5545df (feat(playlists)added screens, widgets and services)
 
       if (!mounted) return;
 
