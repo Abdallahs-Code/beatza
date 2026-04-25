@@ -55,10 +55,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
-<<<<<<< HEAD
-=======
-    _service.dispose();
->>>>>>> b5545df (feat(playlists)added screens, widgets and services)
     super.dispose();
   }
 
@@ -81,19 +77,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       final (statusCode, playlist) = widget.isOwner
           ? await _service.getPlaylistWithTracks(
               playlistId: widget.playlistId,
-<<<<<<< HEAD
             )
           : await _service.getPublicPlaylistWithTracks(
               playlistId: widget.playlistId,
-=======
-              limit: _limit,
-              offset: 0,
-            )
-          : await _service.getPublicPlaylistWithTracks(
-              playlistId: widget.playlistId,
-              limit: _limit,
-              offset: 0,
->>>>>>> b5545df (feat(playlists)added screens, widgets and services)
             );
 
       if (!mounted) return;
@@ -112,10 +98,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               ? 'Sign in to view this playlist.'
               : 'Failed to load playlist.';
           _isLoading = false;
-<<<<<<< HEAD
           debugPrint('Error loading playlist: HTTP $statusCode');
-=======
->>>>>>> b5545df (feat(playlists)added screens, widgets and services)
         });
       }
     } catch (e) {
@@ -131,23 +114,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     if (_isFetchingMore || !_hasMore) return;
     setState(() => _isFetchingMore = true);
 
-    final nextOffset = _page * _limit;
     final (statusCode, playlist) = widget.isOwner
         ? await _service.getPlaylistWithTracks(
             playlistId: widget.playlistId,
-<<<<<<< HEAD
           )
         : await _service.getPublicPlaylistWithTracks(
             playlistId: widget.playlistId,
-=======
-            limit: _limit,
-            offset: nextOffset,
-          )
-        : await _service.getPublicPlaylistWithTracks(
-            playlistId: widget.playlistId,
-            limit: _limit,
-            offset: nextOffset,
->>>>>>> b5545df (feat(playlists)added screens, widgets and services)
           );
 
     if (!mounted) return;
