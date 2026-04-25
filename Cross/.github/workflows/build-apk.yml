@@ -38,26 +38,16 @@ jobs:
       - name: Build Windows release
         run: flutter build windows --release
 
-      - name: Package desktop app
-        id: package
+      - name: Prepare short SHA
+        id: vars
         shell: pwsh
         run: |
-          $releaseDir = 'build/windows/x64/runner/Release'
-          if (-not (Test-Path $releaseDir)) {
-            throw "Expected build output folder not found: $releaseDir"
-          }
+          $shortSha = "${{ github.sha }}".Substring(0, 7)
+          "short_sha=$shortSha" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-          $shortSha = "${{ github.sha }}".Substring(0,7)
-          $artifactName = "beatza-windows-${{ github.ref_name }}-$shortSha"
-          $zipPath = "$env:RUNNER_TEMP/$artifactName.zip"
-
-          Compress-Archive -Path "$releaseDir/*" -DestinationPath $zipPath -CompressionLevel Optimal -Force
-          "zip_path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "artifact_name=$artifactName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-
-      - name: Upload zipped desktop artifact
+      - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.package.outputs.artifact_name }}
-          path: ${{ steps.package.outputs.zip_path }}
+          name: beatza-windows-${{ github.ref_name }}-${{ steps.vars.outputs.short_sha }}
+          path: build/windows/x64/runner/Release/
           retention-days: 30
