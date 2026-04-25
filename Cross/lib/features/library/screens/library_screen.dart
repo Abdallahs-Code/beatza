@@ -14,6 +14,7 @@ import 'package:cross_team5/features/user_profile_social_identity/user_profile_s
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../../audio_upload_track_management/screens/your_uploads_screen.dart';
 import '../../premium_subscription/screens/offline_downloads_screen.dart';
+import 'package:cross_team5/features/sets_playlists/sets_playlists_routes.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -329,7 +330,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                     child: const LibraryMenuItem(title: AppText.yourLikes),
                   ),
-                  const LibraryMenuItem(title: AppText.playlists),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/playlists');
+                    },
+                    child: const LibraryMenuItem(title: AppText.playlists),
+                  ),
                   const LibraryMenuItem(title: AppText.albums),
                   const LibraryMenuItem(title: AppText.following),
                   const LibraryMenuItem(title: AppText.stations),
