@@ -50,4 +50,5 @@ jobs:
         with:
           name: beatza-windows-${{ github.ref_name }}-${{ steps.vars.outputs.short_sha }}
           path: build/windows/x64/runner/Release/
+          include-hidden-files: true
           retention-days: 30
