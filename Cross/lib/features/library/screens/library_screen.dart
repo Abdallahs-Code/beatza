@@ -346,7 +346,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                     child: const LibraryMenuItem(title: AppText.yourLikes),
                   ),
-                  const LibraryMenuItem(title: AppText.playlists),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/playlists');
+                    },
+                    child: const LibraryMenuItem(title: AppText.playlists),
+                  ),
                   const LibraryMenuItem(title: AppText.albums),
                   InkWell(
                     onTap: _openFollowingScreen,

@@ -1,0 +1,285 @@
+// Screen: EditPlaylistScreen
+// Allows the owner to update playlist metadata (API #3).
+// Supports title, description, genre, type (public/private), image.
+
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
+
+class EditPlaylistScreen extends StatefulWidget {
+  final PlaylistModel playlist;
+
+  const EditPlaylistScreen({super.key, required this.playlist});
+
+  @override
+  State<EditPlaylistScreen> createState() => _EditPlaylistScreenState();
+}
+
+class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
+  final PlaylistApiService _service = PlaylistApiService();
+  final _formKey = GlobalKey<FormState>();
+
+  late final TextEditingController _titleController;
+  late final TextEditingController _descController;
+  late final TextEditingController _genreController;
+
+  bool _isPrivate = false;
+  bool _isSaving = false;
+  File? _pickedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    final p = widget.playlist;
+    _titleController = TextEditingController(text: p.title);
+    _descController = TextEditingController(text: p.description);
+    _genreController = TextEditingController(text: p.genre);
+    _isPrivate = p.isPrivate;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    _genreController.dispose();
+    _service.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+        source: ImageSource.gallery, imageQuality: 85);
+    if (picked != null) {
+      setState(() => _pickedImage = File(picked.path));
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+
+    final (statusCode, message) = await _service.updatePlaylist(
+      playlistId: widget.playlist.id,
+      title: _titleController.text.trim(),
+      description: _descController.text.trim(),
+      genre: _genreController.text.trim(),
+      type: _isPrivate ? 'private' : 'public',
+      imagePath: _pickedImage?.path,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Playlist updated successfully.')),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.pureBlack,
+      appBar: AppBar(
+        backgroundColor: AppColors.pureBlack,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Edit Playlist',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _isSaving ? null : _save,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.crusta),
+                  )
+                : const Text(
+                    'Save',
+                    style: TextStyle(
+                      color: AppColors.crusta,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            // Image picker
+            Center(
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: _pickedImage != null
+                          ? Image.file(_pickedImage!,
+                              width: 160,
+                              height: 160,
+                              fit: BoxFit.cover)
+                          : (widget.playlist.image?.imgLink.isNotEmpty == true
+                              ? Image.network(
+                                  widget.playlist.image!.imgLink,
+                                  width: 160,
+                                  height: 160,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      _placeholderArt(),
+                                )
+                              : _placeholderArt()),
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.crusta,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(Icons.camera_alt,
+                            color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: _pickImage,
+                child: const Text('Change Image',
+                    style: TextStyle(color: AppColors.crusta)),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title
+            _buildLabel('Title *'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _titleController,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration('Playlist title'),
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Title is required' : null,
+            ),
+            const SizedBox(height: 20),
+
+            // Description
+            _buildLabel('Description'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _descController,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration('Optional description'),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 20),
+
+            // Genre
+            _buildLabel('Genre'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _genreController,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration('e.g. Electronic, Hip-Hop'),
+            ),
+            const SizedBox(height: 24),
+
+            // Privacy toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Private playlist',
+                        style: TextStyle(color: Colors.white, fontSize: 15)),
+                    SizedBox(height: 2),
+                    Text('Only you can see this playlist',
+                        style:
+                            TextStyle(color: Colors.white54, fontSize: 12)),
+                  ],
+                ),
+                Switch(
+                  value: _isPrivate,
+                  onChanged: (v) => setState(() => _isPrivate = v),
+                  activeColor: AppColors.crusta,
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white38),
+      filled: true,
+      fillColor: AppColors.cardDark,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.crusta),
+      ),
+    );
+  }
+
+  Widget _placeholderArt() {
+    return Container(
+      width: 160,
+      height: 160,
+      color: AppColors.cardDark,
+      child: const Icon(Icons.queue_music,
+          color: Colors.white24, size: 60),
+    );
+  }
+}
