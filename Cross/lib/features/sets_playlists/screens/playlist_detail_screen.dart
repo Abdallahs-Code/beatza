@@ -55,7 +55,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _service.dispose();
     super.dispose();
   }
 
@@ -78,13 +77,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       final (statusCode, playlist) = widget.isOwner
           ? await _service.getPlaylistWithTracks(
               playlistId: widget.playlistId,
-              limit: _limit,
-              offset: 0,
             )
           : await _service.getPublicPlaylistWithTracks(
               playlistId: widget.playlistId,
-              limit: _limit,
-              offset: 0,
             );
 
       if (!mounted) return;
@@ -103,6 +98,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               ? 'Sign in to view this playlist.'
               : 'Failed to load playlist.';
           _isLoading = false;
+          debugPrint('Error loading playlist: HTTP $statusCode');
         });
       }
     } catch (e) {
@@ -122,13 +118,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     final (statusCode, playlist) = widget.isOwner
         ? await _service.getPlaylistWithTracks(
             playlistId: widget.playlistId,
-            limit: _limit,
-            offset: nextOffset,
           )
         : await _service.getPublicPlaylistWithTracks(
             playlistId: widget.playlistId,
-            limit: _limit,
-            offset: nextOffset,
           );
 
     if (!mounted) return;

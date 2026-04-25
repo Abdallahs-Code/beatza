@@ -26,7 +26,6 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
   @override
   void dispose() {
     _nameController.dispose();
-    _service.dispose();
     super.dispose();
   }
 

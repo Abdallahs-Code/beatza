@@ -47,7 +47,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     _titleController.dispose();
     _descController.dispose();
     _genreController.dispose();
-    _service.dispose();
     super.dispose();
   }
 
