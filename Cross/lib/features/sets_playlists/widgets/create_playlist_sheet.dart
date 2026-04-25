@@ -1,0 +1,183 @@
+// Widget: CreatePlaylistSheet
+// Bottom sheet for creating a new playlist (API #19).
+// Shows playlistName input + privacy toggle.
+
+import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
+
+class CreatePlaylistSheet extends StatefulWidget {
+  final void Function(PlaylistModel playlist)? onCreated;
+
+  const CreatePlaylistSheet({super.key, this.onCreated});
+
+  @override
+  State<CreatePlaylistSheet> createState() => _CreatePlaylistSheetState();
+}
+
+class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
+  final PlaylistApiService _service = PlaylistApiService();
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  bool _isPrivate = false;
+  bool _isCreating = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _service.dispose();
+    super.dispose();
+  }
+
+  Future<void> _create() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isCreating = true);
+
+    final (statusCode, playlist) = await _service.createPlaylist(
+      playlistName: _nameController.text.trim(),
+      isPrivate: _isPrivate,
+    );
+
+    if (!mounted) return;
+    setState(() => _isCreating = false);
+
+    if ((statusCode == 200 || statusCode == 201) && playlist != null) {
+      widget.onCreated?.call(playlist);
+      Navigator.pop(context);
+    } else if (statusCode == 403) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Free plan limit reached. Upgrade to Pro for unlimited playlists.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to create playlist. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'New Playlist',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Name field
+              TextFormField(
+                controller: _nameController,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Playlist name',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  filled: true,
+                  fillColor: AppColors.cardDark,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide:
+                        const BorderSide(color: AppColors.crusta),
+                  ),
+                ),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'Please enter a name'
+                    : null,
+              ),
+              const SizedBox(height: 20),
+
+              // Privacy toggle
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Private playlist',
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
+                  Switch(
+                    value: _isPrivate,
+                    onChanged: (v) => setState(() => _isPrivate = v),
+                    activeColor: AppColors.crusta,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Create button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isCreating ? null : _create,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.crusta,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: _isCreating
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          'Create Playlist',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
