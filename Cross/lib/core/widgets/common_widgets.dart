@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
+import 'package:cross_team5/features/feed_search_discovery/feed_search_discovery_routes.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import '../../features/audio_upload_track_management/screens/upload_track_screen.dart';
 import '../../features/audio_upload_track_management/services/audio_upload_service.dart';
@@ -44,7 +45,11 @@ class CommonBottomNavBar extends StatelessWidget {
                 icon: Icons.feed_outlined,
                 label: 'Feed',
                 active: currentItem == AppNavItem.feed,
-                onTap: () {},
+                onTap: () {
+                  if (currentItem != AppNavItem.feed) {
+                    Navigator.pushNamed(context, FeedSearchDiscoveryRoutes.feed);
+                  }
+                },
               ),
 
               if (isPro) ...[
@@ -60,7 +65,11 @@ class CommonBottomNavBar extends StatelessWidget {
                   icon: Icons.search,
                   label: 'Search',
                   active: currentItem == AppNavItem.search,
-                  onTap: () {},
+                  onTap: () {
+                    if (currentItem != AppNavItem.search) {
+                      Navigator.pushNamed(context, FeedSearchDiscoveryRoutes.search);
+                    }
+                  },
                 ),
                 _NavItem(
                   icon: Icons.library_books_outlined,
@@ -77,7 +86,11 @@ class CommonBottomNavBar extends StatelessWidget {
                   icon: Icons.search,
                   label: 'Search',
                   active: currentItem == AppNavItem.search,
-                  onTap: () {},
+                  onTap: () {
+                    if (currentItem != AppNavItem.search) {
+                      Navigator.pushNamed(context, FeedSearchDiscoveryRoutes.search);
+                    }
+                  },
                 ),
                 _NavItem(
                   icon: Icons.library_books_outlined,
