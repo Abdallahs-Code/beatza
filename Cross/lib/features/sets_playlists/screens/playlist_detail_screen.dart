@@ -1,4 +1,4 @@
-// Screen: PlaylistDetailScreen
+﻿// Screen: PlaylistDetailScreen
 // Shows a single playlist with its paginated tracks (API #2 / #8).
 // Supports:
 //  - Reordering tracks via drag-and-drop (API #17)

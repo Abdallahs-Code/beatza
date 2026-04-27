@@ -1,4 +1,4 @@
-// Screen: EditPlaylistScreen
+﻿// Screen: EditPlaylistScreen
 // Allows the owner to update playlist metadata (API #3).
 // Supports title, description, genre, type (public/private), image.
 
@@ -47,7 +47,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     _titleController.dispose();
     _descController.dispose();
     _genreController.dispose();
-    _service.dispose();
     super.dispose();
   }
 
