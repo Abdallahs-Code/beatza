@@ -219,13 +219,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _send() async {
     final content = _inputCtrl.text.trim();
-    if (content.isEmpty || _isSending) return;
+    debugPrint('━━━ [ChatScreen._send] ━━━');
+    debugPrint('[ChatScreen._send] content="$content" (empty=${content.isEmpty}) isSending=$_isSending chatId="$_chatId"');
+    if (content.isEmpty || _isSending) {
+      debugPrint('[ChatScreen._send] EARLY EXIT: empty=${ content.isEmpty} isSending=$_isSending');
+      return;
+    }
 
     setState(() => _isSending = true);
     _inputCtrl.clear();
 
     try {
       if (_chatId == null) {
+        debugPrint('[ChatScreen._send] No chatId → sending via HTTP (new chat) receiverId=${widget.receiverId}');
         final chat = await _api.sendMessage(
           receiverId: widget.receiverId!,
           content: content,
@@ -233,6 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!mounted) return;
         final newChatId = chat.id;
         _chatId = newChatId;
+        debugPrint('[ChatScreen._send] New chat created. chatId=$newChatId');
         // Store receiverId if not already set
         if (_receiverId == null || _receiverId!.isEmpty) {
           _receiverId = chat.receiver?.userId ?? chat.sender?.userId;
@@ -242,6 +249,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _socket.joinChat(newChatId);
         await _loadMessages();
       } else {
+        debugPrint('[ChatScreen._send] Existing chat=$_chatId → sending via socket. isTrack=${_MessageBubble._isTrackMessage(content)}');
         _socket.sendMessage(chatId: _chatId!, content: content);
         final now = DateTime.now();
         final optimistic = MessageModel(
@@ -252,6 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
           seenBy: [_currentUserId ?? ''],
           createdAt: now,
         );
+        debugPrint('[ChatScreen._send] Optimistic message added. id=${optimistic.id} content="${optimistic.content}"');
         if (mounted) {
           setState(() => _messages = [..._messages, optimistic]);
           _scrollToBottom();
@@ -874,14 +883,20 @@ class _MessageBubble extends StatelessWidget {
           crossAxisAlignment:
               isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            if (_isTrackMessage(message.content))
-              _TrackCardBubble(
-                key: ValueKey(message.content),
-                permalink: message.content.trim().substring('track::'.length),
-                isMe: isMe,
-              )
-            else
-              _buildTextBubble(maxBubbleWidth),
+            Builder(builder: (ctx) {
+              final isTrack = _isTrackMessage(message.content);
+              debugPrint('[MessageBubble.build] id="${message.id}" isTrack=$isTrack content="${message.content.length > 60 ? "${message.content.substring(0, 60)}..." : message.content}"');
+              if (isTrack) {
+                final pl = message.content.trim().substring('track::'.length);
+                debugPrint('[MessageBubble.build] → TrackCardBubble permalink="$pl"');
+                return _TrackCardBubble(
+                  key: ValueKey(message.content),
+                  permalink: pl,
+                  isMe: isMe,
+                );
+              }
+              return _buildTextBubble(maxBubbleWidth);
+            }),
             const SizedBox(height: 3),
             Text(
               time,
@@ -945,10 +960,14 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   @override
   void initState() {
     super.initState();
+    debugPrint('━━━ [TrackCardBubble.initState] ━━━');
+    debugPrint('[TrackCardBubble.initState] permalink="${widget.permalink}"');
     if (_TrackCardBubble._cache.containsKey(widget.permalink)) {
       _track = _TrackCardBubble._cache[widget.permalink];
       _loaded = true;
+      debugPrint('[TrackCardBubble.initState] Cache HIT → track=${_track == null ? "null (fallback text)" : "\"${_track!.title}\""}');
     } else {
+      debugPrint('[TrackCardBubble.initState] Cache MISS → calling _load()');
       _load();
     }
   }
@@ -957,6 +976,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   void didUpdateWidget(_TrackCardBubble old) {
     super.didUpdateWidget(old);
     if (old.permalink != widget.permalink) {
+      debugPrint('[TrackCardBubble.didUpdateWidget] permalink changed: "${old.permalink}" → "${widget.permalink}"');
       if (_TrackCardBubble._cache.containsKey(widget.permalink)) {
         setState(() { _track = _TrackCardBubble._cache[widget.permalink]; _loaded = true; });
       } else {
@@ -967,12 +987,50 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   }
 
   Future<void> _load() async {
-    debugPrint('[TrackCardBubble._load] fetching permalink="${widget.permalink}"');
-    final result = await MessagingApiService()
-        .getTrackByPermalink(permalink: widget.permalink);
-    debugPrint('[TrackCardBubble._load] result=${result == null ? "NULL — card will fall back to plain text" : "OK title=${result.title} artist=${result.artistName}"}');
-    _TrackCardBubble._cache[widget.permalink] = result;
-    if (mounted) setState(() { _track = result; _loaded = true; });
+    // widget.permalink = the raw track permalink (e.g. "my-track-newer-pro").
+    // We fetch the current user's profileLink at render time via the profile API
+    // so any message — old or new — can resolve the track card.
+    debugPrint('━━━ [TrackCardBubble._load] ━━━');
+    debugPrint('[TrackCardBubble._load] permalink="${widget.permalink}"');
+    try {
+      final api = MessagingApiService();
+      final auth = AuthApiService();
+
+      // Step 1 — get current userId from local storage
+      final userId = await auth.getStoredUserId() ?? '';
+      debugPrint('[TrackCardBubble._load] userId="$userId" (empty=${userId.isEmpty})');
+      if (userId.isEmpty) {
+        debugPrint('[TrackCardBubble._load] ❌ No userId in storage — cannot fetch profileLink');
+        _TrackCardBubble._cache[widget.permalink] = null;
+        if (mounted) setState(() { _track = null; _loaded = true; });
+        return;
+      }
+
+      // Step 2 — fetch current user's profileLink from GET /api/profile/v1/{userId}
+      final profileLink = await api.getUserProfileLink(userId: userId);
+      debugPrint('[TrackCardBubble._load] profileLink="$profileLink"');
+      if (profileLink == null || profileLink.isEmpty) {
+        debugPrint('[TrackCardBubble._load] ❌ profileLink is null/empty — getUserProfileLink failed');
+        _TrackCardBubble._cache[widget.permalink] = null;
+        if (mounted) setState(() { _track = null; _loaded = true; });
+        return;
+      }
+
+      // Step 3 — call GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}
+      debugPrint('[TrackCardBubble._load] calling getTrackByPermalink(profileLink="$profileLink", permalink="${widget.permalink}")');
+      final result = await api.getTrackByPermalink(
+        profileLink: profileLink,
+        permalink: widget.permalink,
+      );
+      debugPrint('[TrackCardBubble._load] result=${result == null ? "NULL — showing fallback text" : "✅ id=${result.id} title=${result.title}"}');
+      _TrackCardBubble._cache[widget.permalink] = result;
+      if (mounted) setState(() { _track = result; _loaded = true; });
+    } catch (e, stack) {
+      debugPrint('[TrackCardBubble._load] ❌ EXCEPTION: $e');
+      debugPrint('[TrackCardBubble._load] stack: $stack');
+      _TrackCardBubble._cache[widget.permalink] = null;
+      if (mounted) setState(() { _track = null; _loaded = true; });
+    }
   }
 
   void _play() {
