@@ -1,42 +1,46 @@
 // test/playlists/playlist_api_service_test.dart
 // Unit tests for Module 7 — Sets & Playlists
-// Mirrors the pattern used in test/auth/auth_services_test.dart
 
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 
-import 'playlist_api_service_test.mocks.dart';
+class MockHttpClient extends Mock implements http.Client {}
 
-@GenerateMocks([http.Client, FlutterSecureStorage, ApiServices])
+class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
+
+class FakeApiServices extends Fake implements ApiServices {
+  @override
+  String get baseUrl => 'http://localhost:4123';
+}
+
 void main() {
-  late MockClient mockClient;
+  late MockHttpClient mockClient;
   late MockFlutterSecureStorage mockStorage;
-  late MockApiServices mockApiServices;
   late PlaylistApiService service;
 
-  const String baseUrl = 'http://localhost:4123';
   const String fakeToken = 'fake_jwt_token';
 
-  setUp(() {
-    mockClient = MockClient();
-    mockStorage = MockFlutterSecureStorage();
-    mockApiServices = MockApiServices();
+  setUpAll(() {
+    registerFallbackValue(Uri.parse('http://localhost:4123'));
+  });
 
-    when(mockApiServices.baseUrl).thenReturn(baseUrl);
-    when(mockStorage.read(key: 'access_token'))
+  setUp(() {
+    mockClient = MockHttpClient();
+    mockStorage = MockFlutterSecureStorage();
+
+    when(() => mockStorage.read(key: 'access_token'))
         .thenAnswer((_) async => fakeToken);
 
     service = PlaylistApiService(
-      apiServices: mockApiServices,
+      apiServices: FakeApiServices(),
       client: mockClient,
       storage: mockStorage,
     );
@@ -44,7 +48,7 @@ void main() {
 
   // ── Helper factories ────────────────────────────────────────────────────
 
-  Map<String, dynamic> _makePlaylistJson({
+  Map<String, dynamic> makePlaylistJson({
     String id = 'playlist_001',
     String title = 'Test Playlist',
     bool isPrivate = false,
@@ -76,7 +80,7 @@ void main() {
     };
   }
 
-  http.Response _jsonResponse(dynamic body, int statusCode) {
+  http.Response jsonResponse(dynamic body, int statusCode) {
     return http.Response(jsonEncode(body), statusCode,
         headers: {'content-type': 'application/json'});
   }
@@ -85,7 +89,7 @@ void main() {
 
   group('PlaylistModel.fromJson', () {
     test('parses all fields correctly', () {
-      final json = _makePlaylistJson(title: 'My Jams', isPrivate: true);
+      final json = makePlaylistJson(title: 'My Jams', isPrivate: true);
       final model = PlaylistModel.fromJson(json);
 
       expect(model.id, 'playlist_001');
@@ -118,15 +122,15 @@ void main() {
       final responseBody = {
         'message': 'Created successfully',
         'data': {
-          'playlists': [_makePlaylistJson(title: 'New Playlist')],
+          'playlists': [makePlaylistJson(title: 'New Playlist')],
         },
       };
 
-      when(mockClient.post(
-        Uri.parse('$baseUrl/api/playlists/v1'),
-        headers: anyNamed('headers'),
-        body: anyNamed('body'),
-      )).thenAnswer((_) async => _jsonResponse(responseBody, 200));
+      when(() => mockClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async => jsonResponse(responseBody, 200));
 
       final (statusCode, playlist) = await service.createPlaylist(
         playlistName: 'New Playlist',
@@ -139,10 +143,12 @@ void main() {
     });
 
     test('returns 403 when free user hits limit', () async {
-      when(mockClient.post(any,
-              headers: anyNamed('headers'), body: anyNamed('body')))
-          .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(() => mockClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async =>
+          jsonResponse({'message': 'Not enough permissions'}, 403));
 
       final (statusCode, playlist) =
           await service.createPlaylist(playlistName: 'Extra');
@@ -152,7 +158,7 @@ void main() {
     });
 
     test('returns 401 when token is missing', () async {
-      when(mockStorage.read(key: 'access_token'))
+      when(() => mockStorage.read(key: 'access_token'))
           .thenAnswer((_) async => null);
 
       final (statusCode, playlist) =
@@ -171,14 +177,14 @@ void main() {
         'message': 'Playlists retrieved successfully',
         'data': {
           'playlists': [
-            _makePlaylistJson(id: 'p1', title: 'Playlist 1'),
-            _makePlaylistJson(id: 'p2', title: 'Playlist 2'),
+            makePlaylistJson(id: 'p1', title: 'Playlist 1'),
+            makePlaylistJson(id: 'p2', title: 'Playlist 2'),
           ],
         },
       };
 
-      when(mockClient.get(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async => _jsonResponse(responseBody, 200));
+      when(() => mockClient.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => jsonResponse(responseBody, 200));
 
       final (statusCode, playlists) = await service.getMyPlaylists();
 
@@ -188,7 +194,7 @@ void main() {
     });
 
     test('returns empty list on 401', () async {
-      when(mockStorage.read(key: 'access_token'))
+      when(() => mockStorage.read(key: 'access_token'))
           .thenAnswer((_) async => null);
 
       final (statusCode, playlists) = await service.getMyPlaylists();
@@ -199,12 +205,15 @@ void main() {
   });
 
   // ── Add track to playlist ────────────────────────────────────────────────
+  // Service uses PATCH /playlists/v1/{playlistId}/tracks/{trackId}
 
   group('addTrackToPlaylist', () {
     test('returns 200 and success message', () async {
-      when(mockClient.post(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async => _jsonResponse(
-              {'message': 'Track added to playlist successfully'}, 200));
+      when(() => mockClient.patch(
+            any(),
+            headers: any(named: 'headers'),
+          )).thenAnswer((_) async => jsonResponse(
+          {'message': 'Track added to playlist successfully'}, 200));
 
       final (statusCode, message) = await service.addTrackToPlaylist(
         playlistId: 'playlist_001',
@@ -216,9 +225,11 @@ void main() {
     });
 
     test('returns 403 when not owner', () async {
-      when(mockClient.post(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(() => mockClient.patch(
+            any(),
+            headers: any(named: 'headers'),
+          )).thenAnswer((_) async =>
+          jsonResponse({'message': 'Not enough permissions'}, 403));
 
       final (statusCode, _) = await service.addTrackToPlaylist(
         playlistId: 'playlist_001',
@@ -233,9 +244,9 @@ void main() {
 
   group('removeTrackFromPlaylist', () {
     test('returns 200 on success', () async {
-      when(mockClient.delete(any, headers: anyNamed('headers')))
+      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
           .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Track removed successfully'}, 200));
+          jsonResponse({'message': 'Track removed successfully'}, 200));
 
       final (statusCode, message) = await service.removeTrackFromPlaylist(
         playlistId: 'playlist_001',
@@ -246,9 +257,9 @@ void main() {
     });
 
     test('returns 403 when not owner', () async {
-      when(mockClient.delete(any, headers: anyNamed('headers')))
+      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
           .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Not enough permissions'}, 403));
+          jsonResponse({'message': 'Not enough permissions'}, 403));
 
       final (statusCode, _) = await service.removeTrackFromPlaylist(
         playlistId: 'p1',
@@ -263,10 +274,12 @@ void main() {
 
   group('reorderTrack', () {
     test('returns 200 on success', () async {
-      when(mockClient.patch(any,
-              headers: anyNamed('headers'), body: anyNamed('body')))
-          .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Track order updated successfully'}, 200));
+      when(() => mockClient.patch(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async =>
+          jsonResponse({'message': 'Track order updated successfully'}, 200));
 
       final (statusCode, message) = await service.reorderTrack(
         playlistId: 'playlist_001',
@@ -280,10 +293,12 @@ void main() {
     });
 
     test('returns 403 when not owner', () async {
-      when(mockClient.patch(any,
-              headers: anyNamed('headers'), body: anyNamed('body')))
-          .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(() => mockClient.patch(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((_) async =>
+          jsonResponse({'message': 'Not enough permissions'}, 403));
 
       final (statusCode, _) = await service.reorderTrack(
         playlistId: 'p1',
@@ -297,12 +312,14 @@ void main() {
 
     test('sends correct body', () async {
       String? capturedBody;
-      when(mockClient.patch(any,
-              headers: anyNamed('headers'), body: anyNamed('body')))
-          .thenAnswer((invocation) async {
+      when(() => mockClient.patch(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          )).thenAnswer((invocation) async {
         capturedBody =
             invocation.namedArguments[const Symbol('body')] as String?;
-        return _jsonResponse(
+        return jsonResponse(
             {'message': 'Track order updated successfully'}, 200);
       });
 
@@ -325,8 +342,8 @@ void main() {
 
   group('deletePlaylist', () {
     test('returns 200 and deleted:true on success', () async {
-      when(mockClient.delete(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async => _jsonResponse({
+      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => jsonResponse({
                 'message': 'Deleted successfully',
                 'data': {'deleted': true},
               }, 200));
@@ -339,21 +356,22 @@ void main() {
     });
 
     test('returns 200 and deleted:false when backend omits flag', () async {
-      when(mockClient.delete(any, headers: anyNamed('headers')))
+      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
           .thenAnswer((_) async =>
-              _jsonResponse({'message': 'Deleted successfully', 'data': {}}, 200));
+          jsonResponse({'message': 'Deleted successfully', 'data': {}}, 200));
 
       final (statusCode, deleted) =
           await service.deletePlaylist(playlistId: 'playlist_001');
 
       expect(statusCode, 200);
-      expect(deleted, isFalse); // safe default
+      expect(deleted, isFalse);
     });
 
     test('returns 403 when not owner', () async {
-      when(mockClient.delete(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async => _jsonResponse(
-              {'message': 'Not enough permissions to access this resource'}, 403));
+      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => jsonResponse(
+              {'message': 'Not enough permissions to access this resource'},
+              403));
 
       final (statusCode, deleted) =
           await service.deletePlaylist(playlistId: 'p_other');
@@ -363,8 +381,8 @@ void main() {
     });
 
     test('returns 404 when playlist not found', () async {
-      when(mockClient.delete(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async => _jsonResponse(
+      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => jsonResponse(
               {'message': 'Property not found or not updated'}, 404));
 
       final (statusCode, deleted) =
@@ -375,7 +393,7 @@ void main() {
     });
 
     test('returns 401 when token missing', () async {
-      when(mockStorage.read(key: 'access_token'))
+      when(() => mockStorage.read(key: 'access_token'))
           .thenAnswer((_) async => null);
 
       final (statusCode, deleted) =
@@ -391,7 +409,7 @@ void main() {
   group('getPlaylistWithTracks', () {
     test('returns paginated playlist with tracks on 200', () async {
       final playlistJson = {
-        ..._makePlaylistJson(id: 'p1', title: 'My Set'),
+        ...makePlaylistJson(id: 'p1', title: 'My Set'),
         'totalTracks': 2,
         'totalPages': 1,
         'page': 1,
@@ -417,8 +435,8 @@ void main() {
         'data': {'playlist': [playlistJson]},
       };
 
-      when(mockClient.get(any, headers: anyNamed('headers')))
-          .thenAnswer((_) async => _jsonResponse(responseBody, 200));
+      when(() => mockClient.get(any(), headers: any(named: 'headers')))
+          .thenAnswer((_) async => jsonResponse(responseBody, 200));
 
       final (statusCode, playlist) = await service.getPlaylistWithTracks(
         playlistId: 'p1',
