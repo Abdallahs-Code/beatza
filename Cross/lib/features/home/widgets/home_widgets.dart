@@ -156,11 +156,13 @@ class YourLikesCard extends StatelessWidget {
 class MiniTrackCard extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String? artworkUrl;
 
-  const MiniTrackCard({super.key, required this.title, required this.subtitle});
+  const MiniTrackCard({super.key, required this.title, required this.subtitle, this.artworkUrl});
 
   @override
   Widget build(BuildContext context) {
+    final bool hasArtwork = (artworkUrl ?? '').trim().isNotEmpty;
     return Container(
       height: 82,
       decoration: BoxDecoration(
@@ -176,7 +178,15 @@ class MiniTrackCard extends StatelessWidget {
               color: AppColors.tileDark3,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
             ),
-            child: const Icon(Icons.music_note, color: AppColors.white54),
+            clipBehavior: Clip.antiAlias,
+            child: hasArtwork
+                ? Image.network(
+                    artworkUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.music_note, color: AppColors.white54),
+                  )
+                : const Icon(Icons.music_note, color: AppColors.white54),
           ),
           Expanded(
             child: Padding(
@@ -217,11 +227,13 @@ class MiniTrackCard extends StatelessWidget {
 class WideTrackCard extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String? artworkUrl;
 
-  const WideTrackCard({super.key, required this.title, required this.subtitle});
+  const WideTrackCard({super.key, required this.title, required this.subtitle, this.artworkUrl});
 
   @override
   Widget build(BuildContext context) {
+    final bool hasArtwork = (artworkUrl ?? '').trim().isNotEmpty;
     return Container(
       height: 84,
       decoration: BoxDecoration(
@@ -237,7 +249,15 @@ class WideTrackCard extends StatelessWidget {
               color: AppColors.tileDark3,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
             ),
-            child: const Icon(Icons.album_outlined, color: AppColors.white54),
+            clipBehavior: Clip.antiAlias,
+            child: hasArtwork
+                ? Image.network(
+                    artworkUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.album_outlined, color: AppColors.white54),
+                  )
+                : const Icon(Icons.album_outlined, color: AppColors.white54),
           ),
           Expanded(
             child: Padding(

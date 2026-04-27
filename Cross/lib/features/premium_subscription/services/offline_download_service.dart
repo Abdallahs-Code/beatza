@@ -7,10 +7,41 @@ import 'package:http/http.dart' as http;
 
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 
 class OfflineDownloadService {
   static final OfflineDownloadService shared = OfflineDownloadService._internal();
-  OfflineDownloadService._internal();
+
+  bool _wasPro = false;
+
+  OfflineDownloadService._internal() {
+    _wasPro = PaymentService.subscriptionSuccessNotifier.isPro;
+    PaymentService.subscriptionSuccessNotifier.addListener(_onSubscriptionChanged);
+  }
+
+  void _onSubscriptionChanged() {
+    final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
+    if (_wasPro && !isPro) {
+      clearAllDownloads();
+    }
+    _wasPro = isPro;
+  }
+
+  Future<void> clearAllDownloads() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final tracks = List<PlaybackTrackModel>.from(downloadedTracksNotifier.value);
+      for (final track in tracks) {
+        final file = File('${dir.path}/${track.id}.mp3');
+        if (await file.exists()) await file.delete();
+      }
+      downloadedTracksNotifier.value = [];
+      downloadProgressNotifier.value = {};
+      await _storage.delete(key: 'offline_track_ids');
+    } catch (e) {
+      debugPrint('Error clearing downloads: $e');
+    }
+  }
 
   final _storage = const FlutterSecureStorage();
 
@@ -18,6 +49,10 @@ class OfflineDownloadService {
   final ValueNotifier<Map<String, double>> downloadProgressNotifier = ValueNotifier({});
 
   Future<void> loadDownloadedTracks() async {
+    if (!PaymentService.subscriptionSuccessNotifier.isPro) {
+      await clearAllDownloads();
+      return;
+    }
     try {
       final String? data = await _storage.read(key: 'offline_track_ids');
       if (data != null && data.isNotEmpty) {
