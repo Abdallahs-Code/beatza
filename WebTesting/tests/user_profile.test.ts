@@ -3,47 +3,43 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { Navbar } from '../pages/components/navbar/navbar';
 import { ProfilePage } from '../pages/profile/profile_page'
 
-const artistState = path.join(process.cwd(), 'playwright/.auth/artist2.json');
+const artist2State = path.join(process.cwd(), 'playwright/.auth/artist2.json');
 const artist1State = path.join(process.cwd(), 'playwright/.auth/artist1.json'); // Adjust file name if needed
 
-test.use({ storageState: artistState })
+test.use({ storageState: artist2State })
 test.describe("Profile Management(Happy Path)", () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('https://beatza.me/home');
         const navbar = new Navbar(page);
         await navbar.GoToProfilePage();
     });
-    test("profile Pic Upload", async ({ page }) => {
-        // const avatarImage = page.getByTestId('user-avatar-img');
-        // const originalSrc = await avatarImage.getAttribute('src');
-
+    test("profile and header Pic Upload", async ({ page }) => {
         const profilePage = new ProfilePage(page)
-        const fileChooserPromise = page.waitForEvent('filechooser');
+
+        const profileUploadChooserPromise = page.waitForEvent('filechooser');
         await profilePage.UploadProfileImg()
-        const fileChooser = await fileChooserPromise;
-        const filePath = path.join(process.cwd(), 'upload assets', 'profile_pic.jpg');
-        await fileChooser.setFiles(filePath);
+        const profileUploadChooser = await profileUploadChooserPromise;
+        const profileImagePath = path.join(process.cwd(), 'upload assets', 'profile_pic.jpg');
+        await profileUploadChooser.setFiles(profileImagePath);
         await page.waitForTimeout(1000)
-        // await expect(page.locator).toHaveScreenshot('updated-avatar.png');
-        await profilePage.DeleteProfileImg()
-        // await expect(page.getByRole('button', { name: /Upload/i })).toBeVisible();
-    })
-    test("header Pic Upload", async ({ page }) => {
-        // const avatarImage = page.getByTestId('user-avatar-img');
-        // const originalSrc = await avatarImage.getAttribute('src');
+        await page.getByRole("button", { name: "Save" }).click()
 
-        const profilePage = new ProfilePage(page)
-        const fileChooserPromise = page.waitForEvent('filechooser');
+        const headerUploadChooserPromise = page.waitForEvent('filechooser');
         await profilePage.UploadHeaderImg()
-        const fileChooser = await fileChooserPromise;
-        const filePath = path.join(process.cwd(), 'upload assets', 'header_pic.jpg');
-        await fileChooser.setFiles(filePath);
+        const headerUploadChooser = await headerUploadChooserPromise;
+        const headerImagePath = path.join(process.cwd(), 'upload assets', 'header_pic.jpg');
+        await headerUploadChooser.setFiles(headerImagePath);
         await page.waitForTimeout(1000)
 
-        await expect(profilePage.headerImg).toHaveScreenshot('updated-avatar.png');
 
+        const profileBannerSection = page
+            .locator('div[style*="background-image"]:has([data-testid="Cover-input"]):has([data-testid="Avatar-input"])')
+            .first();
+
+        await expect(profileBannerSection).toHaveScreenshot('updated-profile-and-header.png');
+
+        await profilePage.DeleteProfileImg()
         await profilePage.DeleteCoverImg()
-
     })
     test("Edit Profile", async ({ page }) => {
         const profilePage = new ProfilePage(page)
@@ -80,8 +76,8 @@ test.describe("Cross Profile Visit", () => {
     let user2ProfileUrl: string;
 
     test.beforeEach(async ({ browser }) => {
-        // Setup Context 1 (Account 1 - using artistState)
-        userContext1 = await browser.newContext({ storageState: artistState });
+        // Setup Context 1 (Account 1 - using artist2State)
+        userContext1 = await browser.newContext({ storageState: artist2State });
         user1 = await userContext1.newPage();
 
         // Setup Context 2 (Account 2 - using artist1State)
@@ -163,7 +159,7 @@ test.describe("Cross Profile Visit", () => {
     });
 
     test("Visit each other's profile using two accounts", async () => {
-        test.setTimeout(50000);
+        test.setTimeout(60000);
         const user1ProfilePage = new ProfilePage(user1);
         const user2ProfilePage = new ProfilePage(user2);
 

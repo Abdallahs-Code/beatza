@@ -1,4 +1,4 @@
-import { Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 
 export class MoreDropdown {
     dropdownContainer: Locator;
@@ -6,36 +6,22 @@ export class MoreDropdown {
     aboutUs: Locator;
     legal: Locator;
     copyright: Locator;
-    mobileApps: Locator;
-    artistMembership: Locator;
-    newsroom: Locator;
-    jobs: Locator;
-    developers: Locator;
-    soundCloudStore: Locator;
     support: Locator;
     keyboardShortcuts: Locator;
     subscription: Locator;
     settings: Locator;
     signOut: Locator;
 
-    constructor(navbar: Locator) {
-        this.dropdownContainer = navbar.getByTestId('more_dropdown');
-
-        // Use text-based locators because these entries can render as links or buttons.
-        this.aboutUs = this.dropdownContainer.getByRole('button', { name: 'About us' });
-        this.legal = this.dropdownContainer.getByRole('button', { name: 'Legal' });
-        this.copyright = this.dropdownContainer.getByRole('button', { name: 'Copyright' });
-        this.mobileApps = this.dropdownContainer.getByRole('button', { name: 'Mobile apps' });
-        this.artistMembership = this.dropdownContainer.getByRole('button', { name: 'Artist Membership' });
-        this.newsroom = this.dropdownContainer.getByRole('button', { name: 'Newsroom' });
-        this.jobs = this.dropdownContainer.getByRole('button', { name: 'Jobs' });
-        this.developers = this.dropdownContainer.getByRole('button', { name: 'Developers' });
-        this.soundCloudStore = this.dropdownContainer.getByRole('button', { name: 'SoundCloud Store' });
-        this.support = this.dropdownContainer.getByRole('button', { name: 'Support' });
-        this.keyboardShortcuts = this.dropdownContainer.getByRole('button', { name: 'Keyboard shortcuts' });
-        this.subscription = this.dropdownContainer.getByRole('button', { name: 'Subscription' });
-        this.settings = this.dropdownContainer.getByRole('button', { name: 'Settings' });
-        this.signOut = this.dropdownContainer.getByRole('button', { name: 'Sign out' });
+    constructor(page: Page) {
+        this.dropdownContainer = page.getByTestId('more_dropdown');
+        this.aboutUs = this.dropdownContainer.getByTestId('about-us-item-link-btn');
+        this.legal = this.dropdownContainer.getByTestId('legal-item-link-btn');
+        this.copyright = this.dropdownContainer.getByTestId('copyright-item-link-btn');
+        this.support = this.dropdownContainer.getByTestId('support-item-link-btn');
+        this.keyboardShortcuts = this.dropdownContainer.getByTestId('keyboard-shortcuts-item-link-btn');
+        this.subscription = this.dropdownContainer.getByTestId('subscription-item-link-btn');
+        this.settings = this.dropdownContainer.getByTestId('settings-item-link-btn');
+        this.signOut = this.dropdownContainer.getByTestId('sign-out-item-link-btn');
     }
 
     async expectVisible() {

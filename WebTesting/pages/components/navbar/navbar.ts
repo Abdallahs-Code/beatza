@@ -57,8 +57,8 @@ export class Navbar {
         this.messages = navbar.getByTestId("messages")
 
         this.more_btn = navbar.getByTestId("more_button")
-        this.moreDropdown = new MoreDropdown(navbar)
-        this.profileDropdown = new ProfileDropdown(navbar)
+        this.moreDropdown = new MoreDropdown(page)
+        this.profileDropdown = new ProfileDropdown(page)
 
     }
 

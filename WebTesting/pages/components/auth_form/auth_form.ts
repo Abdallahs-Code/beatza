@@ -28,6 +28,7 @@ export class AuthForm {
 
     passwordTxtBox: Locator;
     forgetPasswordLink: Locator;
+    captchaInput: Locator;
     sendResetLink: Locator;
     emailPassResetTxtbox: Locator;
 
@@ -63,6 +64,7 @@ export class AuthForm {
 
         this.passwordTxtBox = this.initialForm.getByTestId("password-input");
         this.forgetPasswordLink = this.initialForm.getByTestId("forgot-password-button");
+        this.captchaInput = this.initialForm.getByTestId("client-captcha-input")
         this.passwordContinueBtn = this.initialForm.getByTestId("continue-button-login");
 
         this.displayNameTxtbox = this.detailsForm.getByTestId("DisplayName-input");
@@ -93,6 +95,7 @@ export class AuthForm {
 
     async FillPassword(pass: string) {
         await this.passwordTxtBox.pressSequentially(pass, { delay: 150 })
+        await this.captchaInput.pressSequentially("test123")
     }
 
     async FillDate(month: Months, day: number, year: number) {

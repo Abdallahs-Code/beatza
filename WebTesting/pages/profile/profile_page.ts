@@ -6,6 +6,8 @@ export class ProfilePage {
     headerImg: Locator
     uploadheaderImgBtn: Locator
     uploadProfileImgBtn: Locator
+    saveProfileImgBtn: Locator
+    cancelProfileImgBtn: Locator
 
     editBtn: Locator
     editform: ProfileEditForm
@@ -34,6 +36,8 @@ export class ProfilePage {
         this.profileImg = profilePage.getByTestId("")
         this.headerImg = profilePage.getByTestId("")
         this.uploadProfileImgBtn = profilePage.getByRole("button", { name: "Upload image" })
+        this.saveProfileImgBtn = profilePage.getByTestId("save-button-AvatarPositionModalPopup")
+        this.cancelProfileImgBtn = profilePage.getByTestId("cancel-button-AvatarPositionModalPopup")
         this.uploadheaderImgBtn = profilePage.getByRole("button", { name: "Upload header image" })
         this.replaceImgBtn = profilePage.getByRole("button", { name: "Replace image" })
         this.deleteImgBtn = profilePage.getByRole("button", { name: "Delete image" })

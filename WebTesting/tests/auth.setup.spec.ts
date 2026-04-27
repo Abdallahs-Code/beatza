@@ -35,7 +35,7 @@ setup('Authenticate Artist 2', async ({ page }) => {
 
     const signUpForm = new AuthForm(page)
     await signUpForm.Login(credentials.artist2.email, credentials.artist2.password)
-
+    await page.waitForTimeout(5000)
     await expect(page).toHaveURL('https://beatza.me/home');
     await page.waitForLoadState('load');
 
@@ -51,6 +51,7 @@ setup('Authenticate Listener 1', async ({ page }) => {
 
     const signUpForm = new AuthForm(page)
     await signUpForm.Login(credentials.listener1.email, credentials.listener1.password)
+    await page.waitForTimeout(1000)
 
     await expect(page).toHaveURL('https://beatza.me/home');
     await page.waitForLoadState('load');
@@ -69,6 +70,7 @@ setup('Authenticate Listener 2', async ({ page }) => {
 
     const signUpForm = new AuthForm(page)
     await signUpForm.Login(credentials.listener2.email, credentials.listener2.password)
+    await page.waitForTimeout(1000)
 
     await expect(page).toHaveURL('https://beatza.me/home');
     await page.waitForLoadState('load');

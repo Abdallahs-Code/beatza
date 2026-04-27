@@ -13,18 +13,17 @@ export class ProfileDropdown {
     insights: Locator;
     distribute: Locator;
 
-    constructor(navbar: Locator) {
-        this.dropdownContainer = navbar.getByTestId('profile_dropdown');
+    constructor(page: Page) {
+        this.dropdownContainer = page.getByTestId('profile_dropdown');
         //menu items
-        this.profile = this.dropdownContainer.getByRole("button", { name: "Profile" })
-        this.likes = this.dropdownContainer.getByRole("button", { name: "Likes" })
-        this.playlists = this.dropdownContainer.getByRole("button", { name: "Playlists" })
-        this.stations = this.dropdownContainer.getByRole("button", { name: "Stations" })
-        this.tryArtistPro = this.dropdownContainer.getByRole("button", { name: "Following" })
-        this.whoToFollow = this.dropdownContainer.getByRole("button", { name: "Who to follow" })
-        this.tracks = this.dropdownContainer.getByRole("button", { name: "Tracks" })
-        this.insights = this.dropdownContainer.getByRole("button", { name: "Insights" })
-        this.distribute = this.dropdownContainer.getByRole("button", { name: "Destribute" })
+        this.profile = this.dropdownContainer.getByTestId("profile-item-link-btn")
+        this.likes = this.dropdownContainer.getByTestId("likes-item-link-btn")
+        this.playlists = this.dropdownContainer.getByTestId("playlists-item-link-btn")
+        this.stations = this.dropdownContainer.getByTestId("stations-item-link-btn")
+        this.tryArtistPro = this.dropdownContainer.getByTestId("following-item-link-btn")
+        this.whoToFollow = this.dropdownContainer.getByTestId("who-to-follow-item-link-btn")
+        this.tracks = this.dropdownContainer.getByTestId("tracks-item-link-btn")
+        this.insights = this.dropdownContainer.getByTestId("insights-item-link-btn")
     }
 
 }
