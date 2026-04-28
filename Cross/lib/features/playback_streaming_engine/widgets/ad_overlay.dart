@@ -131,31 +131,35 @@ class AdPlayerWidget extends StatelessWidget {
       return _Pill('Skip in $secsUntilSkip s');
     }
 
-    return GestureDetector(
-      onTap: AdService.shared.skipAd,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Skip Ad',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
+    if (canSkip) {
+      return GestureDetector(
+        onTap: AdService.shared.skipAd,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Skip Ad',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
               ),
-            ),
-            SizedBox(width: 6),
-            Icon(Icons.skip_next_rounded, color: Colors.black, size: 18),
-          ],
+              SizedBox(width: 6),
+              Icon(Icons.skip_next_rounded, color: Colors.black, size: 18),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    return _Pill('No skips remaining');
   }
 }
 
