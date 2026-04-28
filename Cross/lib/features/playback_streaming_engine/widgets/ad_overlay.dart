@@ -124,42 +124,37 @@ class AdPlayerWidget extends StatelessWidget {
     required int remaining,
     required int secsUntilSkip,
   }) {
-    // No skips left — tell the user immediately, no countdown needed.
     if (!canSkip) return _Pill('No skips remaining');
 
     if (!skipReady) {
       return _Pill('Skip in $secsUntilSkip s');
     }
 
-    if (canSkip) {
-      return GestureDetector(
-        onTap: AdService.shared.skipAd,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Skip Ad',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
-              SizedBox(width: 6),
-              Icon(Icons.skip_next_rounded, color: Colors.black, size: 18),
-            ],
-          ),
+    return GestureDetector(
+      onTap: AdService.shared.skipAd,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(4),
         ),
-      );
-    }
-
-    return _Pill('No skips remaining');
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Skip Ad',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(width: 6),
+            Icon(Icons.skip_next_rounded, color: Colors.black, size: 18),
+          ],
+        ),
+      ),
+    );
   }
 }
 
