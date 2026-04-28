@@ -1401,6 +1401,10 @@ Future<void> _showShareSheet(
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;
 
+  final String trackLink = track.permalink?.isNotEmpty == true
+      ? 'track::${track.permalink}'
+      : '';
+
   _isTransientSheetOpening.value = true;
   try {
     await showModalBottomSheet<void>(
@@ -1408,7 +1412,7 @@ Future<void> _showShareSheet(
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
           decoration: const BoxDecoration(
             color: Color(0xFF090909),
@@ -1455,7 +1459,7 @@ Future<void> _showShareSheet(
                               ? Image.network(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => const Icon(
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
                                     Icons.album_rounded,
                                     color: Colors.black54,
                                     size: 34,
@@ -1509,28 +1513,41 @@ Future<void> _showShareSheet(
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const SingleChildScrollView(
+                  SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
                         _ShareAction(
                           icon: Icons.send_outlined,
                           label: 'Message',
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            showModalBottomSheet<void>(
+                              context: navigatorContext,
+                              useRootNavigator: true,
+                              backgroundColor: Colors.transparent,
+                              isScrollControlled: true,
+                              builder: (_) => SendToSheet(
+                                trackLink: trackLink,
+                                trackTitle: track.title,
+                              ),
+                            );
+                          },
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.copy_outlined,
                           label: 'Copy link',
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.qr_code_2_outlined,
                           label: 'QR code',
                         ),
-                        _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
-                        _ShareAction(
+                        const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
+                        const _ShareAction(
                           icon: Icons.chat_bubble_outline,
                           label: 'WhatsApp',
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.camera_alt_outlined,
                           label: 'Stories',
                         ),
@@ -2798,6 +2815,7 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
   final SocialApiService _socialService = SocialApiService();
   bool _isFollowing = false;
   bool _isLoading = false;
+  String? _currentUserId;
 
   @override
   void initState() {
@@ -2820,10 +2838,14 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
+      final userId = await AuthApiService().getStoredUserId();
       final profile =
           await UserProfileService().getUserProfile(artistId, token);
       if (!mounted) return;
-      setState(() => _isFollowing = profile.isFollowed);
+      setState(() {
+        _currentUserId = userId;
+        _isFollowing = profile.isFollowed;
+      });
     } catch (_) {}
   }
 
@@ -2847,6 +2869,11 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (_currentUserId != null &&
+        _currentUserId!.isNotEmpty &&
+        _currentUserId == widget.track.artistId) {
+      return const SizedBox.shrink();
+    }
     return IconButton(
       onPressed: _toggleFollow,
       padding: EdgeInsets.zero,
