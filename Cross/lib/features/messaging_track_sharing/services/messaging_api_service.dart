@@ -253,14 +253,14 @@ class MessagingApiService {
       final token = await _token();
       
       // ✅ URL is correct now
-      final uri = Uri.parse('${_msgBase}/chat/read');
+      final uri = Uri.parse('$_msgBase/chat/read');
       
       // ✅ FIXED: Backend expects 'id', not 'chatId'
       final requestBody = {'id': chatId};
       
       // 🔍 DEBUG: Log exact request
-      print('📤 [DEBUG] PATCH $uri');
-      print('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
+      debugPrint('📤 [DEBUG] PATCH $uri');
+      debugPrint('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
 
       final response = await _client.patch(
         uri,
@@ -269,11 +269,11 @@ class MessagingApiService {
       );
 
       // 🔍 DEBUG: Log response
-      print('📥 [DEBUG] Status: ${response.statusCode}');
-      print('📥 [DEBUG] Body: ${response.body}');
+      debugPrint('📥 [DEBUG] Status: ${response.statusCode}');
+      debugPrint('📥 [DEBUG] Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print('✅ Chat $chatId marked as read');
+        debugPrint('✅ Chat $chatId marked as read');
         return;
       }
 
@@ -291,8 +291,8 @@ class MessagingApiService {
           throw Exception('Failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e, stack) {
-      print('💥 [ERROR] markChatAsRead: $e');
-      print('📍 Stack: $stack');
+      debugPrint('💥 [ERROR] markChatAsRead: $e');
+      debugPrint('📍 Stack: $stack');
       rethrow;
     }
   }
@@ -305,15 +305,15 @@ class MessagingApiService {
       final token = await _token();
       
       // ✅ URL construction (same pattern as markChatAsRead)
-      final uri = Uri.parse('${_msgBase}/chat/unread');
+      final uri = Uri.parse('$_msgBase/chat/unread');
       
       // ✅ Body: Backend expects 'id' field (same as markChatAsRead)
       final requestBody = {'id': chatId};
       
       // 🔍 DEBUG: Log outgoing request
-      print('📤 [DEBUG] PATCH $uri');
-      print('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
-      print('📤 [DEBUG] Headers: ${_headers(token)}');
+      debugPrint('📤 [DEBUG] PATCH $uri');
+      debugPrint('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
+      debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
 
       final response = await _client.patch(
         uri,
@@ -322,13 +322,13 @@ class MessagingApiService {
       );
 
       // 🔍 DEBUG: Log incoming response
-      print('📥 [DEBUG] Status: ${response.statusCode}');
-      print('📥 [DEBUG] Body: ${response.body}');
-      print('📥 [DEBUG] Headers: ${response.headers}');
+      debugPrint('📥 [DEBUG] Status: ${response.statusCode}');
+      debugPrint('📥 [DEBUG] Body: ${response.body}');
+      debugPrint('📥 [DEBUG] Headers: ${response.headers}');
 
       // ✅ Handle success codes
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print('✅ Chat $chatId marked as unread successfully');
+        debugPrint('✅ Chat $chatId marked as unread successfully');
         return;
       }
 
@@ -340,7 +340,7 @@ class MessagingApiService {
           final msg = data is Map ? data['message'] ?? 'Validation failed' : 'Bad Request';
           
           if (errors is List) {
-            print('⚠️ [DEBUG] Validation errors: $errors');
+            debugPrint('⚠️ [DEBUG] Validation errors: $errors');
           }
           throw Exception('Invalid request: $msg');
           
@@ -354,8 +354,8 @@ class MessagingApiService {
           throw Exception('Failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e, stack) {
-      print('💥 [ERROR] markChatAsUnread failed: $e');
-      print('📍 Stack: $stack');
+      debugPrint('💥 [ERROR] markChatAsUnread failed: $e');
+      debugPrint('📍 Stack: $stack');
       rethrow; // Let UI handle error display
     }
   }
@@ -395,21 +395,21 @@ class MessagingApiService {
       final token = await _token();
       final uri = Uri.parse('$_tracksBase/liked/$userId');
       
-      print('📤 [DEBUG] GET $uri');
-      print('📤 [DEBUG] Headers: ${_headers(token)}');
+      debugPrint('📤 [DEBUG] GET $uri');
+      debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
       
       final res = await _client.get(uri, headers: _headers(token));
       
-      print('📥 [DEBUG] Status: ${res.statusCode}');
-      print('📥 [DEBUG] Body: ${res.body}');
+      debugPrint('📥 [DEBUG] Status: ${res.statusCode}');
+      debugPrint('📥 [DEBUG] Body: ${res.body}');
       
       final data = _decode(res);
       
       if (res.statusCode == 200 && data is Map) {
         final rawData = data['data'];
-        print('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
+        debugPrint('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
         final list = _extractTrackList(rawData);
-        print('✅ Extracted ${list.length} liked tracks');
+        debugPrint('✅ Extracted ${list.length} liked tracks');
         return list
             .whereType<Map<String, dynamic>>()
             .map(PlaybackTrackModel.fromApiJson)
@@ -418,14 +418,14 @@ class MessagingApiService {
       
       // ⚠️ WORKAROUND: Return empty list on 500 (backend bug)
       if (res.statusCode == 500) {
-        print('⚠️ [DEBUG] 500: Backend error on liked tracks — returning empty list');
-        print('📌 [DEBUG] This is a known backend issue for userId=$userId');
+        debugPrint('⚠️ [DEBUG] 500: Backend error on liked tracks — returning empty list');
+        debugPrint('📌 [DEBUG] This is a known backend issue for userId=$userId');
         return [];
       }
       
       // Handle 404 - user not found
       if (res.statusCode == 404) {
-        print('⚠️ [DEBUG] 404: User $userId not found');
+        debugPrint('⚠️ [DEBUG] 404: User $userId not found');
         return [];
       }
       
@@ -433,8 +433,8 @@ class MessagingApiService {
           (data is Map ? data['message']?.toString() : null) ??
               'Failed to load liked tracks: ${res.statusCode}');
     } catch (e, stack) {
-      print('💥 [ERROR] getLikedTracks: $e');
-      print('📍 Stack: $stack');
+      debugPrint('💥 [ERROR] getLikedTracks: $e');
+      debugPrint('📍 Stack: $stack');
       rethrow;
     }
   }
@@ -474,21 +474,21 @@ class MessagingApiService {
       
       final uri = Uri.parse('$_tracksBase/posted/$userId');
       
-      print('📤 [DEBUG] GET $uri');
-      print('📤 [DEBUG] Headers: ${_headers(token)}');
+      debugPrint('📤 [DEBUG] GET $uri');
+      debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
       
       final res = await _client.get(uri, headers: _headers(token));
       
-      print('📥 [DEBUG] Status: ${res.statusCode}');
-      print('📥 [DEBUG] Body: ${res.body}');
+      debugPrint('📥 [DEBUG] Status: ${res.statusCode}');
+      debugPrint('📥 [DEBUG] Body: ${res.body}');
       
       final data = _decode(res);
       
       if (res.statusCode == 200 && data is Map) {
         final rawData = data['data'];
-        print('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
+        debugPrint('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
         final list = _extractTrackList(rawData);
-        print('✅ Extracted ${list.length} uploaded tracks');
+        debugPrint('✅ Extracted ${list.length} uploaded tracks');
         return list
             .whereType<Map<String, dynamic>>()
             .map(PlaybackTrackModel.fromApiJson)
@@ -497,7 +497,7 @@ class MessagingApiService {
       
       // Handle 404 - user not found or has no public tracks
       if (res.statusCode == 404) {
-        print('⚠️ [DEBUG] 404: User $userId not found or has no public tracks');
+        debugPrint('⚠️ [DEBUG] 404: User $userId not found or has no public tracks');
         return []; // Return empty list instead of throwing
       }
       
@@ -505,8 +505,8 @@ class MessagingApiService {
           (data is Map ? data['message']?.toString() : null) ??
               'Failed to load uploaded tracks: ${res.statusCode}');
     } catch (e, stack) {
-      print('💥 [ERROR] getUserPostedTracks: $e');
-      print('📍 Stack: $stack');
+      debugPrint('💥 [ERROR] getUserPostedTracks: $e');
+      debugPrint('📍 Stack: $stack');
       rethrow;
     }
   }

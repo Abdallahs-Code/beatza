@@ -152,7 +152,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                   width: 160,
                                   height: 160,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
+                                  errorBuilder: (_, _, _) =>
                                       _placeholderArt(),
                                 )
                               : _placeholderArt()),
@@ -235,7 +235,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 Switch(
                   value: _isPrivate,
                   onChanged: (v) => setState(() => _isPrivate = v),
-                  activeColor: AppColors.crusta,
+                  activeThumbColor: AppColors.crusta,
                 ),
               ],
             ),

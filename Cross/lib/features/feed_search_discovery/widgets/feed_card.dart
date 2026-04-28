@@ -231,7 +231,7 @@ class _FeedCardState extends State<FeedCard> {
       return Image.network(
         widget.imgLink!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
+        errorBuilder: (_, _, _) =>
             Container(color: AppColors.surfaceDark),
       );
     }
@@ -248,7 +248,7 @@ class _FeedCardState extends State<FeedCard> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -259,7 +259,7 @@ class _FeedCardState extends State<FeedCard> {
               ? Image.network(
                   widget.imgLink!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                       Container(color: AppColors.cardDark),
                 )
               : Container(
@@ -286,7 +286,7 @@ class _FeedCardState extends State<FeedCard> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 32),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.45),
+            color: Colors.black.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const AspectRatio(

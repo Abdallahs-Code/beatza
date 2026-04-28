@@ -7,8 +7,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
-import 'package:cross_team5/core/theme/app_text.dart';
-import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/playlist_detail_screen.dart';
@@ -25,7 +23,6 @@ class MyPlaylistsScreen extends StatefulWidget {
 
 class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
   final PlaylistApiService _playlistService = PlaylistApiService();
-  final AuthApiService _authService = AuthApiService();
 
   List<PlaylistModel> _playlists = [];
   bool _isLoading = true;
@@ -245,7 +242,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.crusta.withOpacity(0.4)),
+        border: Border.all(color: AppColors.crusta.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
