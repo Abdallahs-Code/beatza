@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
+import 'package:cross_team5/features/playback_streaming_engine/widgets/ad_overlay.dart';
 import 'package:cross_team5/routes/app_router.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/core/widgets/global_connectivity_overlay.dart';
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
             child ?? const SizedBox.shrink(),
             const GlobalPlaybackOverlay(),
             const GlobalConnectivityOverlay(),
+            const AdOverlay(),
           ],
         );
       },
