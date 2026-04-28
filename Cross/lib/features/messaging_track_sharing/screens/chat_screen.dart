@@ -469,11 +469,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      // ✅ Intercept hardware back button to ensure we always return true
-      onWillPop: () async {
-        _closeChat();
-        return false; // We already handled the pop, so prevent default behavior
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closeChat();
       },
       child: Scaffold(
         backgroundColor: _kBg,

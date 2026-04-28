@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
@@ -186,7 +184,10 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
-  }  Widget build(BuildContext context) {
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(
