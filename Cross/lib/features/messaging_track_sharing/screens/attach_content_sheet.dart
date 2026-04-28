@@ -34,6 +34,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   String? _selectedTrackLink; // permalink of selected track
   String? _selectedArtistId;  // posterId of selected track's uploader
   bool _attachingTrack = false; // true while fetching profileLink on Done tap
+  String? _selectedTrackLink; // permalink of selected track
+  String? _selectedArtistId;  // posterId of selected track's uploader
+  bool _attachingTrack = false; // true while fetching profileLink on Done tap
 
   @override
   void initState() {
@@ -54,6 +57,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     final userId = await _storage.read(key: 'user_id') ?? '';
     debugPrint('[AttachContentSheet._loadData] userId="$userId" (empty=${userId.isEmpty})');
     if (userId.isEmpty) {
+      debugPrint('[AttachContentSheet._loadData] ❌ userId is EMPTY — cannot load tracks.');
       debugPrint('[AttachContentSheet._loadData] ❌ userId is EMPTY — cannot load tracks.');
       if (mounted) setState(() { _loadingLikes = false; _loadingUploads = false; });
       return;
@@ -87,7 +91,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   }
 
   // Called when the user taps "Done".
-  // Fetches the track owner's profileLink via GET /api/public/profile/v1/{artistId},
+  // Fetches the track owner's profileLink via GET /api/profile/v1/{artistId},
   // then composes: track::permalink:"...",profilelink:"..."
   Future<void> _handleDone() async {
     final permalink = _selectedTrackLink!;
@@ -180,7 +184,26 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           GestureDetector(
             onTap: (_selectedTrackLink != null && !_attachingTrack)
                 ? () { _handleDone(); }
+            onTap: (_selectedTrackLink != null && !_attachingTrack)
+                ? () { _handleDone(); }
                 : null,
+            child: _attachingTrack
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                        color: _kOrange, strokeWidth: 2),
+                  )
+                : Text(
+                    'Done',
+                    style: TextStyle(
+                      color: _selectedTrackLink != null
+                          ? _kOrange
+                          : Colors.white38,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
             child: _attachingTrack
                 ? const SizedBox(
                     width: 18,
@@ -282,6 +305,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
               } else if (audioLink.isNotEmpty) {
                 _selectedTrackLink = audioLink;
                 _selectedArtistId = artistId.isNotEmpty ? artistId : null;
+                debugPrint('[AttachContentSheet] Selected (trailing): permalink="$audioLink" artistId="$artistId"');
                 debugPrint('[AttachContentSheet] Selected (trailing): permalink="$audioLink" artistId="$artistId"');
               }
             }),
