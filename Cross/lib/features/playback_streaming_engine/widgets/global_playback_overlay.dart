@@ -2506,7 +2506,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 ),
                 _TrackOptionTile(
                   icon: Icons.repeat_rounded,
-                  label: _isReposted ? 'Reposted' : 'Repost on SoundCloud',
+                  label: _isReposted ? 'Reposted' : 'Repost on Beatza',
                   color: _isReposted ? Colors.orange : Colors.white,
                   onTap: _openRepost,
                 ),

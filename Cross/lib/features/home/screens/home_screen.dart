@@ -8,6 +8,7 @@ import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
@@ -16,6 +17,8 @@ import 'package:cross_team5/features/messaging_track_sharing/services/messaging_
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/offline_download_service.dart';
 import '../../premium_subscription/services/payment_service.dart';
+import '../../authentication_user_management/services/auth_api_service.dart';
+import '../../user_profile_social_identity/services/user_profile_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +30,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final PublicTracksPagingService _publicTracksPagingService =
       PublicTracksPagingService.shared;
+  final PublicTracksApiService _quickPicksApiService = PublicTracksApiService();
+  List<PlaybackTrackModel> _quickPickTracks = [];
+  bool _quickPickLoading = true;
+  String? _displayName;
 
   @override
   void initState() {
@@ -36,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ActivityNotificationsController.shared.reconnectIfNeeded();
     MessagingNotificationService.shared.initialize();
     _publicTracksPagingService.loadInitial(limit: 20);
+    _loadQuickPickTracks();
+    _loadDisplayName();
   }
 
   @override
@@ -47,7 +56,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _quickPicksApiService.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDisplayName() async {
+    try {
+      final authService = AuthApiService();
+      final userId = await authService.getStoredUserId();
+      final token = await authService.getStoredAccessToken();
+      if (userId == null || token == null) return;
+      final profile = await UserProfileService().getUserProfile(userId, token);
+      if (mounted && profile.displayName.trim().isNotEmpty) {
+        setState(() => _displayName = profile.displayName.trim());
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _loadQuickPickTracks() async {
+    try {
+      final result = await _quickPicksApiService.fetchPublicTracksPage(
+        page: 2,
+        limit: 3,
+      );
+      if (mounted) {
+        setState(() {
+          _quickPickTracks = result.tracks;
+          _quickPickLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _quickPickLoading = false);
+    }
+  }
+
+  Future<void> _handleQuickPickTap(PlaybackTrackModel track, int index) async {
+    if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This track does not have a playable audio source yet.'),
+        ),
+      );
+      return;
+    }
+    await PlaybackStreamingEngineService.shared.playTrack(
+      track,
+      queue: _quickPickTracks,
+      startIndex: index,
+    );
   }
 
   @override
@@ -227,33 +283,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: MiniTrackCard(
-                              title: AppText.trackTitle,
-                              subtitle: AppText.artistName,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: MiniTrackCard(
-                              title: AppText.anotherTrack,
-                              subtitle: AppText.anotherArtist,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: WideTrackCard(
-                        title: AppText.longTrackTitle,
-                        subtitle: AppText.trackSubtitle,
-                      ),
+                    _QuickPickTracksSection(
+                      tracks: _quickPickTracks,
+                      isLoading: _quickPickLoading,
+                      onTap: _handleQuickPickTap,
                     ),
                     const SizedBox(height: 28),
                     const Padding(
@@ -310,7 +343,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     ),
                     const SizedBox(height: 26),
-                    const SectionHeader(title: AppText.mixedForUser),
+                    SectionHeader(
+                      title: 'Mixed for ${_displayName ?? 'You'}',
+                    ),
                     const SizedBox(height: 14),
                     const HorizontalMixSection(),
                     const SizedBox(height: 26),
@@ -938,6 +973,73 @@ class _AccessibilityDemoTrackTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _QuickPickTracksSection extends StatelessWidget {
+  final List<PlaybackTrackModel> tracks;
+  final bool isLoading;
+  final Future<void> Function(PlaybackTrackModel, int)? onTap;
+
+  const _QuickPickTracksSection({
+    required this.tracks,
+    required this.isLoading,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final String title0 = tracks.isNotEmpty ? tracks[0].title : AppText.trackTitle;
+    final String sub0 = tracks.isNotEmpty ? tracks[0].artistName : AppText.artistName;
+    final String title1 = tracks.length > 1 ? tracks[1].title : AppText.anotherTrack;
+    final String sub1 = tracks.length > 1 ? tracks[1].artistName : AppText.anotherArtist;
+    final String title2 = tracks.length > 2 ? tracks[2].title : AppText.longTrackTitle;
+    final String sub2 = tracks.length > 2 ? tracks[2].artistName : AppText.trackSubtitle;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: tracks.isNotEmpty ? () => onTap?.call(tracks[0], 0) : null,
+                  child: MiniTrackCard(
+                    title: title0,
+                    subtitle: sub0,
+                    artworkUrl: tracks.isNotEmpty ? tracks[0].artworkUrl : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: tracks.length > 1 ? () => onTap?.call(tracks[1], 1) : null,
+                  child: MiniTrackCard(
+                    title: title1,
+                    subtitle: sub1,
+                    artworkUrl: tracks.length > 1 ? tracks[1].artworkUrl : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GestureDetector(
+            onTap: tracks.length > 2 ? () => onTap?.call(tracks[2], 2) : null,
+            child: WideTrackCard(
+              title: title2,
+              subtitle: sub2,
+              artworkUrl: tracks.length > 2 ? tracks[2].artworkUrl : null,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

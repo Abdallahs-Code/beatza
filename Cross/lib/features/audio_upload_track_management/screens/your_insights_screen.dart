@@ -6,7 +6,7 @@ import '../services/audio_upload_service.dart';
 import '../models/track_model.dart';
 import 'upload_track_screen.dart';
 
-enum InsightTab { soundcloud, allPlatforms, fans }
+enum InsightTab { beatza, allPlatforms, fans }
 
 class YourInsightsScreen extends StatefulWidget {
   const YourInsightsScreen({super.key});
@@ -16,7 +16,7 @@ class YourInsightsScreen extends StatefulWidget {
 }
 
 class _YourInsightsScreenState extends State<YourInsightsScreen> {
-  InsightTab _activeTab = InsightTab.soundcloud;
+  InsightTab _activeTab = InsightTab.beatza;
   String _selectedFilter = 'Last 30 days';
   String _selectedStat = 'plays';
   final List<String> _filterOptions = [
@@ -34,7 +34,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   final List<String> _onSoundCloudTabs = [
     'Albums & Playlists',
     'Algorithms',
-    'SoundCloud Apps',
+    'Beatza Apps',
   ];
 
   @override
@@ -387,7 +387,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                                     'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
                                   ),
                                   TextSpan(
-                                    text: 'SoundCloud Distribution.',
+                                    text: 'Beatza Distribution.',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -397,7 +397,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                             ),
                             const SizedBox(height: 24),
                             const Text(
-                              'If you\'ve distributed songs through other services, those streams won\'t appear here—so your totals may differ from what you see on other platforms. If you want to migrate previously released tracks to SoundCloud, simply follow these instructions.',
+                              'If you\'ve distributed songs through other services, those streams won\'t appear here—so your totals may differ from what you see on other platforms. If you want to migrate previously released tracks to Beatza, simply follow these instructions.',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -406,7 +406,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                             ),
                             const SizedBox(height: 24),
                             const Text(
-                              'Once a track is released through SoundCloud, its data will appear in your All Platforms Insights within 24–48 hours.',
+                              'Once a track is released through Beatza, its data will appear in your All Platforms Insights within 24–48 hours.',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -534,7 +534,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           ValueListenableBuilder<List<TrackModel>>(
             valueListenable: AudioUploadService.globalMockTracksNotifier,
             builder: (context, tracks, child) {
-              if (tracks.isEmpty && _activeTab == InsightTab.soundcloud) {
+              if (tracks.isEmpty && _activeTab == InsightTab.beatza) {
                 return _buildEmptySoundCloudView();
               }
               int plays = 0;
@@ -552,7 +552,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                   children: [
                     _buildHeaderTabs(),
                     const SizedBox(height: 20),
-                    if (_activeTab == InsightTab.soundcloud)
+                    if (_activeTab == InsightTab.beatza)
                       _buildSoundCloudView(
                         tracks,
                         plays,
@@ -582,7 +582,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            _buildTabItem('SoundCloud', InsightTab.soundcloud),
+            _buildTabItem('Beatza', InsightTab.beatza),
             const SizedBox(width: 24),
             _buildTabItem('All Platforms', InsightTab.allPlatforms),
             const SizedBox(width: 24),
@@ -807,12 +807,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         _buildReasonItem(
           Icons.bar_chart,
           'You did not receive a significant amount of plays on your tracks for this reporting period.',
-          'You may have just recently started monetizing your music directly on SoundCloud or with an eligible rightsholder. In order for us to tell you which of your fans are engaged with your music we take some time to collect and analyze the data. Fan data refreshes on the 2nd of every month.',
+          'You may have just recently started monetizing your music directly on Beatza or with an eligible rightsholder. In order for us to tell you which of your fans are engaged with your music we take some time to collect and analyze the data. Fan data refreshes on the 2nd of every month.',
         ),
         _buildReasonItem(
           Icons.money_off,
           'Your tracks are not being monetized.',
-          'Only your tracks that are being monetized on SoundCloud or through a participating rightsholder will be eligible to collect Fan Powered Royalties. You must have correctly monetized tracks to see fans on this page.',
+          'Only your tracks that are being monetized on Beatza or through a participating rightsholder will be eligible to collect Fan Powered Royalties. You must have correctly monetized tracks to see fans on this page.',
         ),
         _buildReasonItem(
           Icons.block,
@@ -1017,7 +1017,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'SoundCloud is the only platform that lets you easily identify and connect with your top fans based on their listening and engagement habits.',
+                  'Beatza is the only platform that lets you easily identify and connect with your top fans based on their listening and engagement habits.',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -1222,7 +1222,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0),
             child: Text(
-              'Distribute more of your SoundCloud tracks to reach\nnew listeners. Your data will appear here once your\nrelease is live.',
+              'Distribute more of your Beatza tracks to reach\nnew listeners. Your data will appear here once your\nrelease is live.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white54,
@@ -1489,7 +1489,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'On SoundCloud',
+                'On Beatza',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -1671,7 +1671,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           ),
           const SizedBox(height: 24),
           const Text(
-            'Access audience and performance insights for your distributed tracks from Spotify, Apple Music, and SoundCloud all from one dashboard.',
+            'Access audience and performance insights for your distributed tracks from Spotify, Apple Music, and Beatza all from one dashboard.',
             style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
           ),
           const SizedBox(height: 24),
@@ -1742,7 +1742,7 @@ class TopTracksScreen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'Top tracks on SoundCloud',
+              'Top tracks on Beatza',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 22,

@@ -37,8 +37,6 @@ class AppText {
 
   static const String moreOfWhatYouLike = "More of what you like";
 
-  static const String mixedForUser = "Mixed for Abdelrahman Kamal";
-
   static const String trendingByGenre = "Trending by genre";
 
   static const String albumsForYou = "Albums for you";
@@ -87,7 +85,7 @@ class AppText {
   static const String weeklyWave = "WEEKLY WAVE";
 
   static const String weeklyWaveDesc =
-      "The best of SoundCloud just for you. Updated every Monday";
+      "The best of Beatza just for you. Updated every Monday";
 
   static const String mixPlaceholder = "Mix playlist placeholder";
 
@@ -103,7 +101,7 @@ class AppText {
     'Rock, Metal, Punk',
     'Pop',
     'Soul',
-    'SoundCloud...',
+    'Beatza...',
   ];
 
   static const String stationPlaceholder = "Station placeholder";
@@ -151,10 +149,10 @@ class AppText {
   static const String qrCodeLoginTitle = 'Sign in with QR code';
 
   static const String qrCodeLoginDesc =
-      'Open SoundCloud on your phone and scan this code to sign in.';
+      'Open Beatza on your phone and scan this code to sign in.';
 
   static const List<String> stepInstruction = [
-    'Open the SoundCloud app on your phone',
+    'Open the Beatza app on your phone',
     'Go to QR scanner',
     'Scan and approve login',
   ];

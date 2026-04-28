@@ -30,7 +30,7 @@ class ProRestrictionsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. SoundCloud Artist Pro Terms of Use & Privacy Policy',
+              'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. Beatza Artist Pro Terms of Use & Privacy Policy',
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 16,
@@ -128,7 +128,7 @@ class ArtistTermsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildSectionBody(
-              'These SoundCloud Artist Subscriptions Terms of Use (the “SoundCloud Artist Terms”) and if applicable the SoundCloud Monetization Terms of Service, are in addition to and are governed by SoundCloud’s Terms of Use (the “Terms of Use”) together with our Community Guidelines, Privacy Policy and Cookie Policy and any other terms specifically referred to in any of those documents (collectively “the Documents”). In the event of a conflict between the SoundCloud Artist Terms and any other Documents, the SoundCloud Artist Terms shall prevail solely in respect to your use of SoundCloud Artist Subscriptions.',
+              'These Beatza Artist Subscriptions Terms of Use (the “Beatza Artist Terms”) and if applicable the Beatza Monetization Terms of Service, are in addition to and are governed by Beatza’s Terms of Use (the “Terms of Use”) together with our Community Guidelines, Privacy Policy and Cookie Policy and any other terms specifically referred to in any of those documents (collectively “the Documents”). In the event of a conflict between the Beatza Artist Terms and any other Documents, the Beatza Artist Terms shall prevail solely in respect to your use of Beatza Artist Subscriptions.',
             ),
 
             _buildSectionTitle('Artist Subscriptions'),

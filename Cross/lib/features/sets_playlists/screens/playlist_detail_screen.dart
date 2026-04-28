@@ -1,4 +1,4 @@
-// Screen: PlaylistDetailScreen
+﻿// Screen: PlaylistDetailScreen
 // Shows a single playlist with its paginated tracks (API #2 / #8).
 // Supports:
 //  - Reordering tracks via drag-and-drop (API #17)
@@ -116,7 +116,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     if (_isFetchingMore || !_hasMore) return;
     setState(() => _isFetchingMore = true);
 
-    final nextOffset = _page * _limit;
     final (statusCode, playlist) = widget.isOwner
         ? await _service.getPlaylistWithTracks(
             playlistId: widget.playlistId,

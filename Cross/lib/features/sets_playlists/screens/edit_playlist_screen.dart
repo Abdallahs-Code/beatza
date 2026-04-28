@@ -1,4 +1,4 @@
-// Screen: EditPlaylistScreen
+﻿// Screen: EditPlaylistScreen
 // Allows the owner to update playlist metadata (API #3).
 // Supports title, description, genre, type (public/private), image.
 

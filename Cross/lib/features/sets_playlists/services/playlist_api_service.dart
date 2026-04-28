@@ -1,4 +1,4 @@
-// Dart imports
+﻿// Dart imports
 import "dart:convert";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 import "package:http/http.dart" as http;
@@ -350,8 +350,7 @@ class PlaylistApiService {
     required String artistId,
   }) async {
     try {
-      final uri =
-          Uri.parse("$_publicBase/$playlistId/recommend/$artistId");
+      final uri = Uri.parse("$_publicBase/$playlistId/recommend/$artistId");
 
       final response = await _client.get(uri, headers: {
         "Content-Type": "application/json",
