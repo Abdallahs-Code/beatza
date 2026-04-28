@@ -561,6 +561,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
+    // Ad counting now happens inside playTrack(), so advancing to the next
+    // track here will automatically trigger the ad check when that track starts.
     await _continueAfterTrackCompleted();
   }
 

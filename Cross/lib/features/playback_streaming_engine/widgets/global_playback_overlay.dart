@@ -572,7 +572,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                     child: _ExpandedEngagementBar(
                       track: track,
                       onShareTap: () => _showShareSheet(context, track),
-                      onMoreTap: () => showTrackOptionsSheet(context, track),
+                      onMoreTap: () => _showTrackOptionsSheet(context, track),
                     ),
                   ),
               ],
