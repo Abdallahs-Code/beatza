@@ -4,6 +4,7 @@ import 'package:cross_team5/features/engagement_social_interactions/engagement_s
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
@@ -51,22 +52,46 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     }
     debugPrint('[SendTo] STEP 1 ✅ currentUserId OK');
 
-    // ── Step 2: resolve audio link ──────────────────────────────────────────
-    debugPrint('[SendTo] STEP 2 — resolving audio/track link');
-    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}"');
+    // ── Step 2: resolve permalink and artistId ──────────────────────────────
+    debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
+    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"');
     final permalink = widget.track.permalink?.isNotEmpty == true ? widget.track.permalink : null;
-    debugPrint('[SendTo] STEP 2 ✅ resolved link="$permalink"');
+    final artistId = widget.track.artistId ?? '';
+    debugPrint('[SendTo] STEP 2 ✅ permalink="$permalink" artistId="$artistId"');
 
-    // ── Step 3: get followers ────────────────────────────────────────────────
-    debugPrint('[SendTo] STEP 3 — calling SocialApiService().getFollowers(userId=$currentUserId)');
-    debugPrint('[SendTo] STEP 3   URL will be: [baseUrl]/api/social/v1/followers/$currentUserId');
+    // ── Step 3: fetch track owner's profileLink ──────────────────────────────
+    debugPrint('[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"');
+    String profileLink = '';
+    if (artistId.isNotEmpty) {
+      try {
+        profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+        debugPrint('[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+        if (profileLink.isEmpty) {
+          debugPrint('[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
+        }
+      } catch (e) {
+        debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
+      }
+    } else {
+      debugPrint('[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.');
+    }
+
+    // Build payload in new format — used in all setState calls below
+    String buildPayload() {
+      if (permalink == null || permalink.isEmpty) return '';
+      return 'track::permalink:"$permalink",profilelink:"$profileLink"';
+    }
+
+    // ── Step 4: get followers ────────────────────────────────────────────────
+    debugPrint('[SendTo] STEP 4 — calling SocialApiService().getFollowers(userId=$currentUserId)');
+    debugPrint('[SendTo] STEP 4   URL will be: [baseUrl]/api/social/v1/followers/$currentUserId');
     try {
       final result = await SocialApiService().getFollowers(userId: currentUserId);
-      debugPrint('[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
+      debugPrint('[SendTo] STEP 4 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
 
       if (result.$1 != 200) {
-        debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}. data="${result.$2}". Send To will NOT show.');
-        if (mounted) setState(() => _trackPermalink = permalink != null && permalink.isNotEmpty ? 'track::$permalink' : '');
+        debugPrint('[SendTo] STEP 4 ❌ Non-200 status=${result.$1}. data="${result.$2}". Send To will NOT show.');
+        if (mounted) setState(() => _trackPermalink = buildPayload());
         return;
       }
       debugPrint('[SendTo] STEP 3 ✅ status 200');
@@ -122,14 +147,14 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       debugPrint('[SendTo] STEP 7   contacts to set: ${contacts.length}');
       setState(() {
         _recentContacts = contacts;
-        _trackPermalink = permalink != null && permalink.isNotEmpty ? 'track::$permalink' : '';
+        _trackPermalink = buildPayload();
       });
       debugPrint('[SendTo] STEP 7 ✅ setState done. _recentContacts.length=${_recentContacts.length}');
       debugPrint('[SendTo] STEP 7   Send To section WILL show: ${_recentContacts.isNotEmpty}');
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo] STEP 3   stack: $stack');
-      if (mounted) setState(() => _trackPermalink = permalink != null && permalink.isNotEmpty ? 'track::$permalink' : '');
+      if (mounted) setState(() => _trackPermalink = buildPayload());
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
