@@ -9,6 +9,9 @@ import 'package:http/http.dart' as http;
 
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/premium_subscription/services/offline_download_service.dart';
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
+
+import 'ad_service.dart';
 
 import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
@@ -521,6 +524,29 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
+    // Free (non-Pro) users see an ad every [AdService.tracksPerAd] tracks.
+    // When an ad is scheduled we pause here; _continueAfterTrackCompleted is
+    // called by AdService once the user finishes or skips the ad.
+    if (!PaymentService.subscriptionSuccessNotifier.isPro) {
+      final bool adScheduled = AdService.shared.checkAndScheduleAd(
+        onAdFinished: () => unawaited(_continueAfterTrackCompleted()),
+      );
+      if (adScheduled) {
+        _updateState(
+          _state.copyWith(
+            status: PlaybackStatus.paused,
+            currentPosition: Duration.zero,
+            clearMessage: true,
+          ),
+        );
+        return;
+      }
+    }
+
+    await _continueAfterTrackCompleted();
+  }
+
+  Future<void> _continueAfterTrackCompleted() async {
     if (_repeatMode == TrackRepeatMode.one) {
       final PlaybackTrackModel? track = _state.currentTrack;
       if (track != null) {
