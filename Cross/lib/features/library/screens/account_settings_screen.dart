@@ -281,8 +281,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   String _formatDob(String iso) {
     if (iso.isEmpty) return '';
     try {
-      final parts = iso.split('-');
-      if (parts.length < 3) return iso;
+      final datePart = iso.split('T').first;
+      final parts = datePart.split('-');
+      if (parts.length < 3) return datePart;
       final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
@@ -298,7 +299,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
     if (currentDob.isNotEmpty) {
       try {
-        final parts = currentDob.split('-');
+        final parts = currentDob.split('T').first.split('-');
         selectedYear = int.parse(parts[0]);
         selectedMonth = int.parse(parts[1]);
         selectedDay = int.parse(parts[2]);
