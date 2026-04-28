@@ -38,7 +38,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   // Pagination
   int _page = 1;
-  int _limit = 20;
   bool _hasMore = true;
   bool _isFetchingMore = false;
   final ScrollController _scrollController = ScrollController();
@@ -442,7 +441,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                       width: 220,
                       height: 220,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholderArt(),
+                      errorBuilder: (_, _, _) => _placeholderArt(),
                     )
                   : _placeholderArt(),
             ),
@@ -467,7 +466,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                 decoration: BoxDecoration(
                   color: p.isPrivate
                       ? AppColors.cardDark2
-                      : AppColors.crusta.withOpacity(0.15),
+                      : AppColors.crusta.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -521,7 +520,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               child: Text(
                 'Hold and drag to reorder tracks',
                 style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     fontSize: 11),
               ),
             ),

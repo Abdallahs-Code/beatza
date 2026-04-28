@@ -137,7 +137,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   Switch(
                     value: _isPrivate,
                     onChanged: (v) => setState(() => _isPrivate = v),
-                    activeColor: AppColors.crusta,
+                    activeThumbColor: AppColors.crusta,
                   ),
                 ],
               ),
