@@ -87,7 +87,40 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         List<PlaybackTrackModel>? queue,
         int? startIndex,
         Future<bool> Function()? ensureNextTrackAvailable,
+        bool countForAd = true,
       }) async {
+    // Never interrupt an ad. When the ad finishes its onAdFinished callback
+    // calls playTrack with countForAd:false, bypassing this guard because
+    // isAdPlaying is already false at that point.
+    if (AdService.shared.isAdPlaying) return;
+
+    // Count every track play toward the ad threshold (non-Pro only).
+    // Using countForAd:false for the post-ad resume call avoids double-counting.
+    if (countForAd && !PaymentService.subscriptionSuccessNotifier.isPro) {
+      final bool adScheduled = AdService.shared.checkAndScheduleAd(
+        onAdFinished: () => unawaited(playTrack(
+          track,
+          queue: queue,
+          startIndex: startIndex,
+          ensureNextTrackAvailable: ensureNextTrackAvailable,
+          countForAd: false,
+        )),
+      );
+      if (adScheduled) {
+        _outputLevelRequestId++;
+        _playSeq++;
+        await _audioPlayerClient.stop();
+        _updateState(
+          _state.copyWith(
+            status: PlaybackStatus.paused,
+            currentPosition: Duration.zero,
+            clearMessage: true,
+          ),
+        );
+        return;
+      }
+    }
+
     // Stamp this invocation. Any older in-flight call will detect the mismatch
     // after its next await and return without touching state.
     final int seq = ++_playSeq;
@@ -521,28 +554,15 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   Future<void> _handlePlaybackCompleted() async {
+    // If an ad is already on screen ignore this event — the ad's onAdFinished
+    // callback handles advancing to the next track.
+    if (AdService.shared.isAdPlaying) return;
+
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
-    // Free (non-Pro) users see an ad every [AdService.tracksPerAd] tracks.
-    // When an ad is scheduled we pause here; _continueAfterTrackCompleted is
-    // called by AdService once the user finishes or skips the ad.
-    if (!PaymentService.subscriptionSuccessNotifier.isPro) {
-      final bool adScheduled = AdService.shared.checkAndScheduleAd(
-        onAdFinished: () => unawaited(_continueAfterTrackCompleted()),
-      );
-      if (adScheduled) {
-        _updateState(
-          _state.copyWith(
-            status: PlaybackStatus.paused,
-            currentPosition: Duration.zero,
-            clearMessage: true,
-          ),
-        );
-        return;
-      }
-    }
-
+    // Ad counting now happens inside playTrack(), so advancing to the next
+    // track here will automatically trigger the ad check when that track starts.
     await _continueAfterTrackCompleted();
   }
 
@@ -555,6 +575,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
           queue: List<PlaybackTrackModel>.from(_activeQueue),
           startIndex: _currentQueueIndex,
           ensureNextTrackAvailable: _ensureNextTrackAvailable,
+          countForAd: false, // repeating the same track — don't count twice
         );
       }
       return;

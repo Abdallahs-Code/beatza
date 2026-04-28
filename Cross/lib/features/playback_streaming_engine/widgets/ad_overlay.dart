@@ -1,319 +1,91 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_windows/webview_windows.dart';
 
 import '../services/ad_service.dart';
 
-/// Full-screen ad overlay driven by [AdService].
-/// Returns [SizedBox.shrink] when no ad is active — zero size, no hit-testing.
+/// No-op — the ad renders inside the expanded player sheet.
 class AdOverlay extends StatelessWidget {
   const AdOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Ad placeholder rendered inside the expanded player.
+/// All countdown state lives in [AdService] so it survives the widget being
+/// disposed when the player is minimised.
+class AdPlayerWidget extends StatelessWidget {
+  const AdPlayerWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: AdService.shared,
       builder: (context, _) {
-        if (!AdService.shared.isAdPlaying) return const SizedBox.shrink();
-        return const _AdPlayer();
-      },
-    );
-  }
-}
+        final int remaining = AdService.shared.remainingSeconds;
+        final bool skipReady = AdService.shared.skipReady;
+        final bool canSkip = AdService.shared.canSkipAd;
+        final int secsUntilSkip =
+            AdService.skipAfterSeconds -
+            (AdService.totalAdSeconds - remaining);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-String get _watchUrl =>
-    'https://www.youtube.com/watch?v=${AdService.adVideoId}&autoplay=1';
-
-const String _desktopUserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-    'AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Chrome/124.0.0.0 Safari/537.36';
-
-const String _mobileUserAgent =
-    'Mozilla/5.0 (Linux; Android 13; Pixel 7) '
-    'AppleWebKit/537.36 (KHTML, like Gecko) '
-    'Chrome/112.0.0.0 Mobile Safari/537.36';
-
-/// [completionSignal] — JS expression fired when the video ends naturally.
-/// [startedSignal]   — JS expression fired the first time the video plays.
-String _buildInjectionScript(String completionSignal, String startedSignal) => '''
-(function() {
-  // ── Immediate black backdrop while the player repositions ─────────────────
-  var backdrop = document.createElement('div');
-  backdrop.style.cssText =
-    'position:fixed;inset:0;z-index:2147483638;background:#000;pointer-events:none;';
-  document.documentElement.appendChild(backdrop);
-
-  // ── Hide every YouTube UI element — leave only the raw <video> ───────────
-  var s = document.createElement('style');
-  s.textContent =
-    '.ytp-chrome-bottom,.ytp-chrome-top,' +
-    '.ytp-gradient-top,.ytp-gradient-bottom,' +
-    '.ytp-pause-overlay,.ytp-more-videos-over-endscreen,' +
-    '.ytp-endscreen-content,.videowall-endscreen,' +
-    '.ytp-ce-element,.ytp-ce-covering-overlay,.ytp-ce-element-shadow,' +
-    '.ytp-cards-teaser,.ytp-cards-button,.ytp-cards-chip-no-icon,' +
-    '.ytp-watermark,.ytp-youtube-button,.ytp-branding,' +
-    '.ytp-large-play-button,.ytp-cued-thumbnail-overlay,' +
-    '.ytp-cued-thumbnail-overlay-image,' +
-    '.annotation,.iv-module,.video-annotations,' +
-    '.ytp-iv-video-content,.iv-branding,' +
-    '.ytp-contextmenu,.ytp-title,.ytp-title-channel,' +
-    '.ytp-title-text,.ytp-share-button-visible' +
-    '{display:none!important}';
-  document.head.appendChild(s);
-
-  // ── Wait for #movie_player + <video>, then take over the viewport ─────────
-  function setup() {
-    var player = document.getElementById('movie_player');
-    if (!player) { setTimeout(setup, 400); return; }
-    var v = player.querySelector('video');
-    if (!v) { setTimeout(setup, 400); return; }
-
-    // Move player to <html> root — escapes every CSS-transform stacking context
-    document.documentElement.appendChild(player);
-    player.style.cssText =
-      'position:fixed!important;top:0!important;left:0!important;' +
-      'width:100vw!important;height:100vh!important;' +
-      'z-index:2147483640!important;background:#000!important;';
-
-    // Make the <video> fill the player
-    v.style.cssText =
-      'width:100%!important;height:100%!important;' +
-      'object-fit:contain!important;background:#000!important;';
-
-    backdrop.remove();
-
-    // Transparent guard — absorbs all pointer events (no pause/seek/clicks)
-    var g = document.createElement('div');
-    g.style.cssText =
-      'position:fixed!important;inset:0!important;' +
-      'z-index:2147483647!important;background:transparent!important;';
-    document.documentElement.appendChild(g);
-
-    // Seek prevention — revert any forward scrub > 2 s
-    var lastTime = 0, reverting = false;
-    v.addEventListener('seeking', function() {
-      if (reverting) return;
-      if (v.currentTime - lastTime > 2) { reverting = true; v.currentTime = lastTime; }
-    }, true);
-    v.addEventListener('seeked', function() {
-      reverting = false;
-      if (v.currentTime < lastTime) lastTime = v.currentTime;
-    }, true);
-    v.addEventListener('timeupdate', function() {
-      if (!reverting && !v.seeking) lastTime = v.currentTime;
-    }, true);
-
-    // Started signal — fires once when playback begins
-    var _sent = false;
-    v.addEventListener('play', function() {
-      if (!_sent) { _sent = true; $startedSignal; }
-    }, true);
-
-    // Completion signal
-    v.addEventListener('ended', function() { $completionSignal; }, true);
-  }
-
-  setup();
-})();
-''';
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _AdPlayer extends StatefulWidget {
-  const _AdPlayer();
-
-  @override
-  State<_AdPlayer> createState() => _AdPlayerState();
-}
-
-class _AdPlayerState extends State<_AdPlayer> {
-  static const int _skipDelaySec = 5;
-  static const int _maxDurationSec = 120;
-
-  int _countdown = _skipDelaySec;
-  bool _skipReady = false;
-
-  /// True once the video emits its first 'play' event — only then do we render.
-  bool _videoStarted = false;
-
-  Timer? _countdownTimer;
-  Timer? _maxDurationTimer;
-
-  // ── Mobile (Android / iOS / macOS) ────────────────────────────────────────
-  WebViewController? _mobileController;
-
-  // ── Windows (WebView2) ────────────────────────────────────────────────────
-  WebviewController? _windowsController;
-  StreamSubscription<dynamic>? _windowsMsgSub;
-  StreamSubscription<LoadingState>? _windowsLoadSub;
-
-  /// True once WebView2 is initialised and its widget can be placed in the tree.
-  bool _windowsWidgetReady = false;
-
-  bool get _isMobile =>
-      Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
-
-  static final String _mobileScript = _buildInjectionScript(
-    "AdChannel.postMessage('completed')",
-    "AdChannel.postMessage('started')",
-  );
-
-  static final String _windowsScript = _buildInjectionScript(
-    "window.chrome.webview.postMessage('completed')",
-    "window.chrome.webview.postMessage('started')",
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    if (_isMobile) {
-      _initMobile();
-    } else if (Platform.isWindows) {
-      _initWindows();
-    }
-    _maxDurationTimer = Timer(
-      const Duration(seconds: _maxDurationSec),
-      () { if (mounted) AdService.shared.onAdCompleted(); },
-    );
-  }
-
-  // ── Mobile init ───────────────────────────────────────────────────────────
-
-  void _initMobile() {
-    _mobileController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black)
-      ..setUserAgent(_mobileUserAgent)
-      ..addJavaScriptChannel(
-        'AdChannel',
-        onMessageReceived: (JavaScriptMessage msg) {
-          if (msg.message == 'started' && mounted) {
-            setState(() => _videoStarted = true);
-            _startCountdown();
-          }
-          if (msg.message == 'completed') AdService.shared.onAdCompleted();
-        },
-      )
-      ..setNavigationDelegate(NavigationDelegate(
-        onNavigationRequest: (NavigationRequest req) {
-          if (!req.isMainFrame) return NavigationDecision.navigate;
-          return req.url.contains(AdService.adVideoId)
-              ? NavigationDecision.navigate
-              : NavigationDecision.prevent;
-        },
-        onPageFinished: (_) =>
-            _mobileController?.runJavaScript(_mobileScript),
-      ))
-      ..loadRequest(Uri.parse(_watchUrl));
-  }
-
-  // ── Windows init ──────────────────────────────────────────────────────────
-
-  Future<void> _initWindows() async {
-    try {
-      _windowsController = WebviewController();
-      await _windowsController!.initialize();
-      await _windowsController!.setUserAgent(_desktopUserAgent);
-
-      _windowsMsgSub = _windowsController!.webMessage.listen((dynamic raw) {
-        final msg = raw.toString();
-        if (msg == 'started' && mounted) {
-          setState(() => _videoStarted = true);
-          _startCountdown();
-        }
-        if (msg == 'completed') AdService.shared.onAdCompleted();
-      });
-
-      _windowsLoadSub = _windowsController!.loadingState
-          .where((s) => s == LoadingState.navigationCompleted)
-          .listen((_) => _windowsController!.executeScript(_windowsScript));
-
-      await _windowsController!.loadUrl(_watchUrl);
-
-      // Widget can now be inserted — the page will load while it's hidden.
-      if (mounted) setState(() => _windowsWidgetReady = true);
-    } catch (_) {
-      // WebView2 unavailable — max-duration timer auto-dismisses.
-    }
-  }
-
-  // ── Countdown — starts only once the video is actually playing ────────────
-
-  void _startCountdown() {
-    if (_countdownTimer != null) return;
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) { t.cancel(); return; }
-      setState(() {
-        if (_countdown > 1) {
-          _countdown--;
-        } else {
-          _countdown = 0;
-          _skipReady = true;
-          t.cancel();
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _countdownTimer?.cancel();
-    _maxDurationTimer?.cancel();
-    _windowsMsgSub?.cancel();
-    _windowsLoadSub?.cancel();
-    _windowsController?.dispose();
-    super.dispose();
-  }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
-
-  @override
-  Widget build(BuildContext context) {
-    // Keep the webview widget in the tree so it loads, but make the entire
-    // overlay invisible (and non-interactive) until the video starts playing.
-    // On mobile the WebViewController loads independently of the widget, so we
-    // can skip inserting the widget until ready; on Windows we need the Webview
-    // widget in the tree once the controller is initialised.
-    final videoArea = _buildVideoArea();
-
-    return Stack(
-      children: [
-        // Video layer — always present once the controller is ready so the
-        // webview surface exists, but invisible until _videoStarted.
-        if (videoArea != null)
-          Positioned.fill(
-            child: IgnorePointer(
-              ignoring: !_videoStarted,
-              child: AnimatedOpacity(
-                opacity: _videoStarted ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: videoArea,
+        return Material(
+          color: Colors.black,
+          child: Stack(
+            children: [
+              // ── Centre content ──────────────────────────────────────────
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.campaign_rounded,
+                        size: 56,
+                        color: Colors.white38,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Advertisement',
+                      style: TextStyle(
+                        color: Colors.white38,
+                        fontSize: 13,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$remaining s',
+                      style: const TextStyle(
+                        color: Colors.white24,
+                        fontSize: 11,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
 
-        // Controls layer — only rendered (and interactive) once video plays.
-        if (_videoStarted) ...[
-          // "Ad" badge — top-left.
-          Positioned(
-            top: 0, left: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
+              // ── "Ad" badge — top-left ───────────────────────────────────
+              Positioned(
+                top: 16,
+                left: 16,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.black54,
+                    color: Colors.white12,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
@@ -327,40 +99,36 @@ class _AdPlayerState extends State<_AdPlayer> {
                   ),
                 ),
               ),
-            ),
-          ),
 
-          // Skip / countdown — bottom-right.
-          Positioned(
-            bottom: 0, right: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: _buildSkipControl(),
+              // ── Skip / countdown — bottom-right ─────────────────────────
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: _buildSkipControl(
+                  skipReady: skipReady,
+                  canSkip: canSkip,
+                  remaining: remaining,
+                  secsUntilSkip: secsUntilSkip,
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ],
+        );
+      },
     );
   }
 
-  /// Returns the video widget, or null if not yet ready to insert into the tree.
-  Widget? _buildVideoArea() {
-    if (_isMobile && _mobileController != null) {
-      return WebViewWidget(controller: _mobileController!);
-    }
-    if (Platform.isWindows && _windowsWidgetReady && _windowsController != null) {
-      return SizedBox.expand(child: Webview(_windowsController!));
-    }
-    return null;
-  }
+  Widget _buildSkipControl({
+    required bool skipReady,
+    required bool canSkip,
+    required int remaining,
+    required int secsUntilSkip,
+  }) {
+    // No skips left — tell the user immediately, no countdown needed.
+    if (!canSkip) return _Pill('No skips remaining');
 
-  Widget _buildSkipControl() {
-    final canSkip = AdService.shared.canSkipAd;
-
-    if (!_skipReady) {
-      return _Pill(canSkip ? 'Skip in $_countdown s' : 'Watch full ad');
+    if (!skipReady) {
+      return _Pill('Skip in $secsUntilSkip s');
     }
 
     if (canSkip) {
@@ -391,7 +159,7 @@ class _AdPlayerState extends State<_AdPlayer> {
       );
     }
 
-    return const _Pill('No skips remaining');
+    return _Pill('No skips remaining');
   }
 }
 
