@@ -13,6 +13,11 @@ import 'package:http/http.dart' as http;
 
 // ─── Top-level helpers (must be accessible from background isolate) ───────────
 
+// The Socket.io service passes the notification object directly as a Map.
+// FCM data values are all strings, so the backend either:
+//   (A) JSON-encodes the whole notification under one key, or
+//   (B) flattens the top-level fields as strings with actor/target JSON-encoded.
+// We try (A) first with the most likely key names, then fall back to (B).
 ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
   // (A) — full JSON string under a single key
   for (final key in ['notification', 'payload', 'data']) {
