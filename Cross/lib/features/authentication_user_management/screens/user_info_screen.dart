@@ -7,6 +7,8 @@ import 'package:cross_team5/features/authentication_user_management/models/user.
 import 'package:cross_team5/features/authentication_user_management/screens/check_inbox_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:cross_team5/features/library/models/account_settings_model.dart';
+import 'package:cross_team5/features/library/services/account_settings_api_service.dart';
 
 class UserInfoScreen extends StatefulWidget {
   final String? email;
@@ -155,6 +157,17 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         if (!mounted) return;
 
         if (result.$1 == 200) {
+          try {
+            final token = await AuthApiService().getStoredAccessToken();
+            if (token != null) {
+              await AccountSettingsApiService().updateSettings(
+                token,
+                AccountSettings(theme: 'Dark', dateOfBirth: dateOfBirth, gender: gender),
+              );
+            }
+          } catch (_) {}
+
+          if (!mounted) return;
           Navigator.pushNamedAndRemoveUntil(
             context,
             HomeRoutes.home,
