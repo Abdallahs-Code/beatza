@@ -68,7 +68,6 @@ class _SearchScreenState extends State<SearchScreen>
 
   // History (while typing)
   List<SearchHistoryItemModel> _history = [];
-  bool _historyLoading = false;
 
   // Results (after submit)
   SearchResultModel? _searchResult;
@@ -167,16 +166,12 @@ class _SearchScreenState extends State<SearchScreen>
   // ── History ────────────────────────────────────────────────────────────────
 
   Future<void> _loadHistory() async {
-    setState(() => _historyLoading = true);
     final (code, data) = await _service.getSearchHistory();
     if (!mounted) return;
     if (code == 200 && data is List) {
       setState(() {
         _history = SearchHistoryItemModel.listFromJson(data);
-        _historyLoading = false;
       });
-    } else {
-      setState(() => _historyLoading = false);
     }
   }
 
