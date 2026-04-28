@@ -24,6 +24,7 @@ import 'package:cross_team5/features/user_profile_social_identity/user_profile_s
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import '../services/public_tracks_paging_service.dart';
 
@@ -1401,14 +1402,37 @@ Future<void> _showShareSheet(
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;
 
+  // Fetch track owner's profileLink so both sender and receiver can load the card.
+  final String permalink = track.permalink ?? '';
+  final String artistId = track.artistId ?? '';
+  String profileLink = '';
+  if (permalink.isNotEmpty && artistId.isNotEmpty) {
+    debugPrint('[_showShareSheet] Fetching profileLink for artistId="$artistId"');
+    try {
+      profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+      debugPrint('[_showShareSheet] profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+    } catch (e) {
+      debugPrint('[_showShareSheet] ❌ getUserProfileLink threw: $e');
+    }
+  } else {
+    debugPrint('[_showShareSheet] ⚠️ permalink="$permalink" artistId="$artistId" — one is empty, skipping profileLink fetch');
+  }
+  final String trackLink = permalink.isNotEmpty
+      ? 'track::permalink:"$permalink",profilelink:"$profileLink"'
+      : '';
+
+  // Re-read context after the async gap — the original capture may be stale.
+  final BuildContext? freshContext = appNavigatorKey.currentContext;
+  if (freshContext == null) return;
+
   _isTransientSheetOpening.value = true;
   try {
     await showModalBottomSheet<void>(
-      context: navigatorContext,
+      context: freshContext,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
           decoration: const BoxDecoration(
             color: Color(0xFF090909),
@@ -1455,7 +1479,7 @@ Future<void> _showShareSheet(
                               ? Image.network(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => const Icon(
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
                                     Icons.album_rounded,
                                     color: Colors.black54,
                                     size: 34,
@@ -1509,28 +1533,43 @@ Future<void> _showShareSheet(
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const SingleChildScrollView(
+                  SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
                         _ShareAction(
                           icon: Icons.send_outlined,
                           label: 'Message',
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            final ctx = appNavigatorKey.currentContext;
+                            if (ctx == null) return;
+                            showModalBottomSheet<void>(
+                              context: ctx,
+                              useRootNavigator: true,
+                              backgroundColor: Colors.transparent,
+                              isScrollControlled: true,
+                              builder: (_) => SendToSheet(
+                                trackLink: trackLink,
+                                trackTitle: track.title,
+                              ),
+                            );
+                          },
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.copy_outlined,
                           label: 'Copy link',
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.qr_code_2_outlined,
                           label: 'QR code',
                         ),
-                        _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
-                        _ShareAction(
+                        const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
+                        const _ShareAction(
                           icon: Icons.chat_bubble_outline,
                           label: 'WhatsApp',
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.camera_alt_outlined,
                           label: 'Stories',
                         ),
@@ -2129,13 +2168,36 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     }
     debugPrint('[SendTo] STEP 1 ✅ OK');
 
-    // Step 2: resolve track link
-    debugPrint('[SendTo] STEP 2 — resolving track link');
-    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}"');
+    // Step 2: resolve permalink and artistId
+    debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
+    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"');
     final link = widget.track.permalink ?? '';
-    debugPrint('[SendTo] STEP 2 ✅ resolved link="$link"');
+    final artistId = widget.track.artistId ?? '';
+    debugPrint('[SendTo] STEP 2 ✅ permalink="$link" artistId="$artistId"');
 
-    // Step 3: fetch followers
+    // Step 3: fetch track owner's profileLink
+    debugPrint('[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"');
+    String profileLink = '';
+    if (artistId.isNotEmpty) {
+      try {
+        profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+        debugPrint('[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+        if (profileLink.isEmpty) {
+          debugPrint('[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
+        }
+      } catch (e) {
+        debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
+      }
+    } else {
+      debugPrint('[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.');
+    }
+
+    String buildPayload() {
+      if (link.isEmpty) return '';
+      return 'track::permalink:"$link",profilelink:"$profileLink"';
+    }
+
+    // Step 4: fetch followers
     debugPrint('[SendTo] STEP 3 — calling getFollowers(userId=$currentUserId)');
     debugPrint('[SendTo] STEP 3   URL: [baseUrl]/api/social/v1/followers/$currentUserId');
     try {
@@ -2144,7 +2206,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
       if (result.$1 != 200) {
         debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"');
-        if (mounted) setState(() => _trackLink = link.isNotEmpty ? 'track::$link' : '');
+        if (mounted) setState(() => _trackLink = buildPayload());
         return;
       }
       debugPrint('[SendTo] STEP 3 ✅ status 200');
@@ -2195,13 +2257,13 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
           .toList();
       setState(() {
         _recentContacts = contacts;
-        _trackLink = link.isNotEmpty ? 'track::$link' : '';
+        _trackLink = buildPayload();
       });
       debugPrint('[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}');
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo]   stack: $stack');
-      if (mounted) setState(() => _trackLink = link.isNotEmpty ? 'track::$link' : '');
+      if (mounted) setState(() => _trackLink = buildPayload());
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
@@ -2506,7 +2568,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 ),
                 _TrackOptionTile(
                   icon: Icons.repeat_rounded,
-                  label: _isReposted ? 'Reposted' : 'Repost on SoundCloud',
+                  label: _isReposted ? 'Reposted' : 'Repost on Beatza',
                   color: _isReposted ? Colors.orange : Colors.white,
                   onTap: _openRepost,
                 ),
@@ -2798,6 +2860,7 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
   final SocialApiService _socialService = SocialApiService();
   bool _isFollowing = false;
   bool _isLoading = false;
+  String? _currentUserId;
 
   @override
   void initState() {
@@ -2820,10 +2883,14 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
+      final userId = await AuthApiService().getStoredUserId();
       final profile =
           await UserProfileService().getUserProfile(artistId, token);
       if (!mounted) return;
-      setState(() => _isFollowing = profile.isFollowed);
+      setState(() {
+        _currentUserId = userId;
+        _isFollowing = profile.isFollowed;
+      });
     } catch (_) {}
   }
 
@@ -2847,6 +2914,11 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (_currentUserId != null &&
+        _currentUserId!.isNotEmpty &&
+        _currentUserId == widget.track.artistId) {
+      return const SizedBox.shrink();
+    }
     return IconButton(
       onPressed: _toggleFollow,
       padding: EdgeInsets.zero,

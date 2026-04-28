@@ -144,7 +144,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
               const Text('Restrictions apply', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               const Text(
-                'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. SoundCloud Artist Pro Terms of Use & Privacy Policy',
+                'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. Beatza Artist Pro Terms of Use & Privacy Policy',
                 style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
               ),
               const SizedBox(height: 24),
@@ -231,7 +231,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 0),
                     child: Text(
-                      "What's next in music is\nfirst on SoundCloud",
+                      "What's next in music is\nfirst on Beatza",
                       style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, height: 1.2),
                     ),
                   ),
@@ -425,9 +425,9 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('SoundCloud supports\nindependent artists', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.2)),
+          const Text('Beatza supports\nindependent artists', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.2)),
           const SizedBox(height: 16),
-          const Text('From fan-powered royalties to our audience-building artist plans, your subscription helps support the SoundCloud global community.', style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.5)),
+          const Text('From fan-powered royalties to our audience-building artist plans, your subscription helps support the Beatza global community.', style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.5)),
           const SizedBox(height: 30),
           const Text('"It\'s such a simple idea. Your monthly fees get split up between the songs"', style: TextStyle(color: Colors.white, fontSize: 16, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500)),
           const SizedBox(height: 10),
@@ -444,7 +444,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
           const SizedBox(height: 50),
           const Text('Frequently asked questions', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          _buildFaqTile('What\'s the difference between fan and artist plans?', 'Our Fan-oriented plans are designed for those who primarily visit the site to listen to SoundCloud\'s 250+ million tracks. Artist plans offer unique features designed to help artists create and distribute their music and content.'),
+          _buildFaqTile('What\'s the difference between fan and artist plans?', 'Our Fan-oriented plans are designed for those who primarily visit the site to listen to Beatza\'s 250+ million tracks. Artist plans offer unique features designed to help artists create and distribute their music and content.'),
           _buildFaqTile('Can I purchase an annual plan and/or family plan?', 'Unfortunately we do not currently offer an annual or family plan option for purchase in the app.'),
           const SizedBox(height: 60),
         ],

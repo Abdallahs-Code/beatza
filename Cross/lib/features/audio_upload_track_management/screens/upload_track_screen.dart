@@ -1248,7 +1248,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ),
         _switchTile(
           'Enable app playback',
-          'Choose whether this track is playable outside of SoundCloud.',
+          'Choose whether this track is playable outside of Beatza.',
           _enableAppPlayback,
               (v) => setState(() => _enableAppPlayback = v),
         ),

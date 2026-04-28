@@ -22,7 +22,7 @@ class MessagingApiService {
         _client = client ?? http.Client(),
         _authApiService = authApiService ?? AuthApiService() {
     _msgBase = '${_apiServices.baseUrl}/api/messages/v1';
-    _tracksBase = '${_apiServices.baseUrl}/api/public/tracks/v1';
+    _tracksBase = '${_apiServices.baseUrl}/api/tracks/v1';
   }
 
   Future<String> _token() async {
@@ -472,8 +472,7 @@ class MessagingApiService {
     try {
       final token = await _token();
       
-      // ✅ CORRECTED: Use /posted/{id} as per API documentation
-      final uri = Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v1/posted/$userId');
+      final uri = Uri.parse('$_tracksBase/posted/$userId');
       
       print('📤 [DEBUG] GET $uri');
       print('📤 [DEBUG] Headers: ${_headers(token)}');
@@ -533,26 +532,119 @@ class MessagingApiService {
     return [];
   }
 
-  // GET /api/public/tracks/v1/permalink/{permalink}
+  // GET /api/profile/v1/{userId} — returns the user's profileLink slug
+  // Mimics the same auth pattern used throughout the project (Bearer token + Android UA)
+  Future<String?> getUserProfileLink({required String userId}) async {
+    debugPrint('━━━ [getUserProfileLink] ━━━');
+    debugPrint('[getUserProfileLink] userId="$userId" (empty=${userId.isEmpty})');
+    if (userId.isEmpty) {
+      debugPrint('[getUserProfileLink] ❌ Empty userId — aborting');
+      return null;
+    }
+    final token = await _token();
+    final uri = Uri.parse('${_apiServices.baseUrl}/api/profile/v1/$userId');
+    debugPrint('[getUserProfileLink] GET $uri');
+    final res = await _client.get(uri, headers: _headers(token));
+    debugPrint('[getUserProfileLink] status=${res.statusCode}');
+    debugPrint('[getUserProfileLink] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}');
+    final data = _decode(res);
+    if (res.statusCode != 200 || data is! Map) {
+      debugPrint('[getUserProfileLink] ❌ Non-200 or non-Map. status=${res.statusCode}');
+      return null;
+    }
+    final profileLink = data['profileLink']?.toString().trim() ?? '';
+    debugPrint('[getUserProfileLink] ✅ profileLink="$profileLink"');
+    return profileLink.isEmpty ? null : profileLink;
+  }
+
+  // GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}
+  // Public endpoint — requires the track owner's profile slug AND the track's permalink.
+  // profileLink is fetched once at attach-time via getUserProfileLink and stored in the
+  // message body so both sender and receiver use the same value.
   Future<PlaybackTrackModel?> getTrackByPermalink({
+    required String profileLink,
     required String permalink,
   }) async {
+    debugPrint('━━━ [getTrackByPermalink] ━━━');
+    debugPrint('[getTrackByPermalink] profileLink="$profileLink"  permalink="$permalink"');
+    if (profileLink.isEmpty) {
+      debugPrint('[getTrackByPermalink] ❌ profileLink is empty — cannot call API. Was it fetched correctly?');
+      return null;
+    }
+    if (permalink.isEmpty) {
+      debugPrint('[getTrackByPermalink] ❌ permalink is empty — aborting');
+      return null;
+    }
+    // Public endpoint — no auth header needed, but include it anyway for consistency
     final token = await _token();
-    final uri = Uri.parse('$_tracksBase/permalink/$permalink');
+    final uri = Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v1/permalink/$profileLink/$permalink');
     debugPrint('[getTrackByPermalink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
-    debugPrint('[getTrackByPermalink] status=${res.statusCode} bodyPreview=${res.body.length > 200 ? res.body.substring(0, 200) : res.body}');
+    debugPrint('[getTrackByPermalink] status=${res.statusCode}');
+    debugPrint('[getTrackByPermalink] body=${res.body.length > 1000 ? "${res.body.substring(0, 1000)}...(truncated)" : res.body}');
     final data = _decode(res);
-    if (res.statusCode == 200 && data is Map) {
-      final inner = data['data'] as Map<String, dynamic>? ?? {};
-      if (inner.isNotEmpty) {
-        final track = PlaybackTrackModel.fromApiJson(inner);
-        debugPrint('[getTrackByPermalink] ✅ parsed → title="${track.title}" artist="${track.artistName}"');
-        return track;
-      }
+    if (res.statusCode != 200 || data is! Map) {
+      debugPrint('[getTrackByPermalink] ❌ Non-200 or non-Map. status=${res.statusCode} dataType=${data.runtimeType}');
+      return null;
     }
-    debugPrint('[getTrackByPermalink] ❌ returned null (status=${res.statusCode})');
-    return null;
+    debugPrint('[getTrackByPermalink] response keys=${data.keys.toList()}');
+    final inner = data['data'] as Map<String, dynamic>? ?? {};
+    debugPrint('[getTrackByPermalink] data["data"] keys=${inner.keys.toList()} (empty=${inner.isEmpty})');
+    if (inner.isEmpty) {
+      debugPrint('[getTrackByPermalink] ❌ data["data"] is empty');
+      return null;
+    }
+    final basicInfo = inner['basicInfo'] as Map<String, dynamic>? ?? {};
+    final audio = inner['audio'] as Map<String, dynamic>? ?? {};
+    final image = inner['image'] as Map<String, dynamic>? ?? {};
+    debugPrint('[getTrackByPermalink] trackId="${inner['trackId']}"  posterId="${inner['posterId']}"');
+    debugPrint('[getTrackByPermalink] basicInfo.title="${basicInfo['title']}"  basicInfo.permalink="${basicInfo['permalink']}"');
+    debugPrint('[getTrackByPermalink] basicInfo.mainArtists=${basicInfo['mainArtists']}');
+    debugPrint('[getTrackByPermalink] audio.audioLink="${audio['audioLink']}"');
+    debugPrint('[getTrackByPermalink] image.imgLink="${image['imgLink']}"');
+    debugPrint('[getTrackByPermalink] durationInSeconds="${inner['durationInSeconds']}"');
+    final track = PlaybackTrackModel.fromApiJson(inner);
+    debugPrint('[getTrackByPermalink] ✅ parsed → id="${track.id}" title="${track.title}" artist="${track.artistName}"');
+    debugPrint('[getTrackByPermalink]    audioUrl="${track.audioUrl}"  artworkUrl="${track.artworkUrl}"  permalink="${track.permalink}"');
+    return track;
+  }
+
+  // GET /api/tracks/v1/{trackId} — returns full track model by database ID
+  Future<PlaybackTrackModel?> getTrackById({required String trackId}) async {
+    debugPrint('━━━ [getTrackById] ━━━');
+    debugPrint('[getTrackById] trackId="$trackId" (empty=${trackId.isEmpty})');
+    if (trackId.isEmpty) {
+      debugPrint('[getTrackById] ❌ Empty trackId — aborting');
+      return null;
+    }
+    final token = await _token();
+    final uri = Uri.parse('$_tracksBase/$trackId');
+    debugPrint('[getTrackById] GET $uri');
+    final res = await _client.get(uri, headers: _headers(token));
+    debugPrint('[getTrackById] status=${res.statusCode}');
+    debugPrint('[getTrackById] body=${res.body.length > 1000 ? "${res.body.substring(0, 1000)}...(truncated)" : res.body}');
+    final data = _decode(res);
+    if (res.statusCode != 200 || data is! Map) {
+      debugPrint('[getTrackById] ❌ Non-200 or non-Map. status=${res.statusCode} dataType=${data.runtimeType}');
+      return null;
+    }
+    debugPrint('[getTrackById] response keys=${data.keys.toList()}');
+    final inner = data['data'] as Map<String, dynamic>? ?? {};
+    debugPrint('[getTrackById] data["data"] keys=${inner.keys.toList()} (empty=${inner.isEmpty})');
+    if (inner.isEmpty) {
+      debugPrint('[getTrackById] ❌ data["data"] is empty');
+      return null;
+    }
+    final basicInfo = inner['basicInfo'] as Map<String, dynamic>? ?? {};
+    final audio = inner['audio'] as Map<String, dynamic>? ?? {};
+    final image = inner['image'] as Map<String, dynamic>? ?? {};
+    debugPrint('[getTrackById] trackId="${inner['trackId']}"  posterId="${inner['posterId']}"');
+    debugPrint('[getTrackById] title="${basicInfo['title']}"  permalink="${basicInfo['permalink']}"');
+    debugPrint('[getTrackById] audio.audioLink="${audio['audioLink']}"');
+    debugPrint('[getTrackById] image.imgLink="${image['imgLink']}"');
+    final track = PlaybackTrackModel.fromApiJson(inner);
+    debugPrint('[getTrackById] ✅ parsed → id="${track.id}" title="${track.title}" artist="${track.artistName}" audioUrl="${track.audioUrl}"');
+    return track;
   }
 
   // GET /api/public/tracks/v1/{trackId} — returns permalink

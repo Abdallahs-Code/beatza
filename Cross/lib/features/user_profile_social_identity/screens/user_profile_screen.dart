@@ -1234,7 +1234,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
       ),
       _ProfileCompletionCardData(
         title: 'Add a profile photo',
-        subtitle: 'Choose a photo to represent\nyourself on SoundCloud',
+        subtitle: 'Choose a photo to represent\nyourself on Beatza',
         buttonText: _hasProfilePhoto ? '' : 'Add photo',
         icon: Icons.camera_alt_outlined,
         isComplete: _hasProfilePhoto,

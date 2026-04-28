@@ -132,7 +132,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'Open SoundCloud on your phone and scan this code',
+                        'Open Beatza on your phone and scan this code',
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                         textAlign: TextAlign.center,
                       ),
