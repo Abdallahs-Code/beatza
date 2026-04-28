@@ -1,4 +1,6 @@
 // Dart imports
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -19,7 +21,9 @@ void main() async {
 
   await dotenv.load(fileName: '.env');
 
-  await Firebase.initializeApp();
+  if (Platform.isAndroid || Platform.isIOS) {
+    await Firebase.initializeApp();
+  }
 
   await ConnectivityService.instance.initialize();
 
