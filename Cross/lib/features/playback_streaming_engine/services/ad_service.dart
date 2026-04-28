@@ -57,7 +57,7 @@ class AdService extends ChangeNotifier {
 
   /// Consume the user's one-time skip. No-op if already used.
   void skipAd() {
-    if (_hasUsedSkip) return;
+    if (!canSkipAd) return;
     _hasUsedSkip = true;
     _finishAd();
   }
