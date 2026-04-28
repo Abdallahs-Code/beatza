@@ -82,6 +82,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               playlistId: widget.playlistId,
             );
 
+      debugPrint("GET /api/playlists/v1/${widget.playlistId} -> $statusCode");
+
       if (!mounted) return;
 
       if (statusCode == 200 && playlist != null) {
@@ -122,6 +124,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             playlistId: widget.playlistId,
           );
 
+    debugPrint("GET /api/playlists/v1/${widget.playlistId} (page $_page) -> $statusCode");
+
     if (!mounted) return;
 
     if (statusCode == 200 && playlist != null) {
@@ -155,6 +159,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       newPosition: newIndex,
     );
 
+    debugPrint("PATCH /api/playlists/v1/${widget.playlistId}/tracks -> $statusCode");
+
     setState(() => _isReordering = false);
 
     if (!mounted) return;
@@ -185,6 +191,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       trackId: track.id,
     );
 
+    debugPrint("DELETE /api/playlists/v1/${widget.playlistId}/tracks/${track.id} -> $statusCode");
+
     if (!mounted) return;
     if (statusCode != 200) {
       setState(() => _tracks.insert(index, track));
@@ -209,6 +217,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
     final (statusCode, deleted) =
         await _service.deletePlaylist(playlistId: widget.playlistId);
+
+    debugPrint("DELETE /api/playlists/v1/${widget.playlistId} -> $statusCode");
 
     if (!mounted) return;
     if (statusCode == 200 && deleted) {
