@@ -222,7 +222,7 @@ class FeedSearchApiService {
     String? usage,
     String? tag,
     String? location,
-    int offset = 1,
+    int offset = 0,
     int limit = 20,
   }) async {
     try {
