@@ -3,6 +3,10 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+// NOTE: profileLink is NOT embedded in the message payload here.
+// The track card renderer (_TrackCardBubble) fetches the current user's profileLink
+// at render time via GET /api/profile/v1/{userId}, so old and new messages both work.
+
 const _kBg = Color(0xFF111111);
 const _kSurface = Color(0xFF1C1C1C);
 const _kOrange = Color(0xFFFF5500);
@@ -47,31 +51,28 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   }
 
   Future<void> _loadData() async {
+    // ── 1. Get userId from local storage (mimics AuthApiService.getStoredUserId) ──
     debugPrint('[AttachContentSheet._loadData] Reading userId from secure storage (key="user_id")...');
     final userId = await _storage.read(key: 'user_id') ?? '';
-    debugPrint('[AttachContentSheet._loadData] userId from storage: "$userId"');
+    debugPrint('[AttachContentSheet._loadData] userId="$userId" (empty=${userId.isEmpty})');
     if (userId.isEmpty) {
-      debugPrint('[AttachContentSheet._loadData] userId is EMPTY — cannot load tracks. Check storage key.');
-      if (mounted) {
-        setState(() {
-          _loadingLikes = false;
-          _loadingUploads = false;
-        });
-      }
+      debugPrint('[AttachContentSheet._loadData] ❌ userId is EMPTY — cannot load tracks or profileLink.');
+      if (mounted) setState(() { _loadingLikes = false; _loadingUploads = false; });
       return;
     }
+
+    // ── 2. Fetch liked + uploaded tracks in parallel ──
     debugPrint('[AttachContentSheet._loadData] Fetching liked + uploaded tracks for userId=$userId');
-    // Load both in parallel
     final results = await Future.wait([
       _api.getLikedTracks(userId: userId).then((t) {
-        debugPrint('[AttachContentSheet._loadData] Liked tracks response: ${t.length} tracks');
+        debugPrint('[AttachContentSheet._loadData] Liked tracks: ${t.length}');
         return t;
       }).catchError((e) {
         debugPrint('[AttachContentSheet._loadData] getLikedTracks ERROR: $e');
         return <PlaybackTrackModel>[];
       }),
       _api.getUserPostedTracks(userId: userId).then((t) {
-        debugPrint('[AttachContentSheet._loadData] Uploaded tracks response: ${t.length} tracks');
+        debugPrint('[AttachContentSheet._loadData] Uploaded tracks: ${t.length}');
         return t;
       }).catchError((e) {
         debugPrint('[AttachContentSheet._loadData] getUserPostedTracks ERROR: $e');
@@ -141,8 +142,12 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           GestureDetector(
             onTap: _selectedTrackLink != null
                 ? () {
+                    // Send just track::{permalink} — the card renderer fetches
+                    // the sender's profileLink at display time via the profile API.
                     final payload = 'track::${_selectedTrackLink!}';
-                    debugPrint('[AttachContentSheet] Done tapped. permalink="${_selectedTrackLink!}" payload="$payload"');
+                    debugPrint('[AttachContentSheet] Done tapped.');
+                    debugPrint('[AttachContentSheet]   selectedPermalink="${_selectedTrackLink!}"');
+                    debugPrint('[AttachContentSheet]   payload="$payload"');
                     widget.onSelected(payload);
                   }
                 : null,
@@ -207,7 +212,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       itemBuilder: (ctx, i) {
         final track = tracks[i];
         final audioLink = track.permalink ?? '';
-        debugPrint('[AttachContentSheet] track[${track.title}] permalink="${track.permalink}" audioUrl="${track.audioUrl}"');
+        debugPrint('[AttachContentSheet] track="${track.title}" id="${track.id}" permalink="$audioLink" artistId="${track.artistId}"');
         final isSelected = _selectedTrackLink == audioLink;
         return ListTile(
           contentPadding:

@@ -1,4 +1,4 @@
-// Dart imports
+﻿// Dart imports
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
@@ -11,9 +11,11 @@ import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph_routes.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../../audio_upload_track_management/screens/your_uploads_screen.dart';
 import '../../premium_subscription/screens/offline_downloads_screen.dart';
+import '../../premium_subscription/services/payment_service.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -175,6 +177,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
+  Future<void> _openFollowingScreen() async {
+    final token = await _authApiService.getStoredAccessToken();
+    final userId = await _authApiService.getStoredUserId();
+    if (userId == null || !mounted) return;
+    Navigator.pushNamed(
+      context,
+      FollowersSocialGraphRoutes.following,
+      arguments: {
+        'userId': userId,
+        'token': token ?? '',
+        'currentUserId': userId,
+      },
+    );
+  }
+
   void _openRecentlyPlayedPage() {
     Navigator.push(
       context,
@@ -329,9 +346,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                     child: const LibraryMenuItem(title: AppText.yourLikes),
                   ),
-                  const LibraryMenuItem(title: AppText.playlists),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/playlists');
+                    },
+                    child: const LibraryMenuItem(title: AppText.playlists),
+                  ),
                   const LibraryMenuItem(title: AppText.albums),
-                  const LibraryMenuItem(title: AppText.following),
+                  InkWell(
+                    onTap: _openFollowingScreen,
+                    child: const LibraryMenuItem(title: AppText.following),
+                  ),
                   const LibraryMenuItem(title: AppText.stations),
 
                   InkWell(
@@ -358,16 +383,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     child: const LibraryMenuItem(title: AppText.yourUploads),
                   ),
 
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OfflineDownloadsScreen(),
-                        ),
+                  ValueListenableBuilder<SubscriptionState>(
+                    valueListenable: PaymentService.subscriptionSuccessNotifier,
+                    builder: (context, state, _) {
+                      if (!state.isPro) return const SizedBox.shrink();
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OfflineDownloadsScreen(),
+                            ),
+                          );
+                        },
+                        child: const LibraryMenuItem(title: 'Downloads'),
                       );
                     },
-                    child: const LibraryMenuItem(title: 'Downloads'),
                   ),
 
                   const SizedBox(height: 20),
@@ -392,10 +423,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   const SizedBox(height: 14),
                   _buildHistoryPreviewSection(),
 
-                  const SizedBox(height: 28),
-
-                  /// IMPORT CARD
-                  const ImportCard(),
                 ],
               ),
             ),
