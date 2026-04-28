@@ -1,4 +1,4 @@
-﻿// Dart imports
+// Dart imports
 import "dart:convert";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 import "package:http/http.dart" as http;
@@ -521,50 +521,47 @@ class PlaylistApiService {
     }
   }
 
-  Future<(int, PlaylistModel?)> createPlaylist({
-  required String playlistName,
-  List<String> tracks = const [],
-  bool isPrivate = false,
-}) async {
-  try {
-    final token = await _getToken();
-    if (token == null) return (401, null);
+  // PATCH /api/playlists/v1/{playlistId}/tracks/{trackId}
+  Future<(int, String)> addTrackToPlaylist({
+    required String playlistId,
+    required String trackId,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, "Unauthorized");
 
-    // DEBUG: Log the exact URL being called
-    debugPrint("🔍 POST to: $_authBase");
+      final response = await _client.patch(
+        Uri.parse("$_authBase/$playlistId/tracks/$trackId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "User-Agent": "Android",
+        },
+      );
 
-    final response = await _client.post(
-      Uri.parse(_authBase), // ✅ FIXED: Use consistent base
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "User-Agent": "Android",
-      },
-      body: jsonEncode({
-        "playlistName": playlistName,
-        "tracks": tracks,
-        "isPrivate": isPrivate,
-      }),
-    );
+      debugPrint("PATCH $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}");
 
-    debugPrint("🔍 Response: ${response.statusCode} - ${response.body}");
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      // Use consistent parsing with rest of file
-      final playlists = PlaylistModel.listFromResponse(data);
-      return (200, playlists.isNotEmpty ? playlists.first : null);
+      final data = jsonDecode(response.body);
+      return (
+        response.statusCode,
+        data["message"]?.toString() ?? "Failed to add track",
+      );
+    } catch (err) {
+      return (500, "Network error: $err");
     }
-
-    return (response.statusCode, null);
-  } catch (err, stack) {
-    debugPrint("❌ createPlaylist error: $err\n$stack");
-    return (500, null);
   }
-}
-  
-  
-  final response = await _client.post(
+
+  // POST /api/v1/playlists
+  Future<(int, PlaylistModel?)> createPlaylist({
+    required String playlistName,
+    List<String> tracks = const [],
+    bool isPrivate = false,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, null);
+
+      final response = await _client.post(
         Uri.parse("${_apiServices.baseUrl}/api/v1/playlists"),
         headers: {
           "Authorization": "Bearer $token",
