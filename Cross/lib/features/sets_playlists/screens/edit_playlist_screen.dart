@@ -73,6 +73,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       imagePath: _pickedImage?.path,
     );
 
+    debugPrint("PUT /api/playlists/v1/${widget.playlist.id} -> $statusCode");
+
     if (!mounted) return;
     setState(() => _isSaving = false);
 

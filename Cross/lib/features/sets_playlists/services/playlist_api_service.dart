@@ -132,6 +132,8 @@ class PlaylistApiService {
       final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
 
+      debugPrint("PUT $_authBase/$playlistId -> ${response.statusCode}");
+
       final data = jsonDecode(response.body);
       return (
         response.statusCode,
@@ -155,6 +157,8 @@ class PlaylistApiService {
         "User-Agent": "Android",
       });
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.listFromResponse(data));
@@ -174,6 +178,8 @@ class PlaylistApiService {
         "Content-Type": "application/json",
         "User-Agent": "Android",
       });
+
+      debugPrint("GET $uri -> ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -202,6 +208,8 @@ class PlaylistApiService {
         "User-Agent": "Android",
       });
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.listFromResponse(data));
@@ -225,6 +233,8 @@ class PlaylistApiService {
         "User-Agent": "Android",
       });
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.listFromResponse(data));
@@ -247,6 +257,8 @@ class PlaylistApiService {
         "Content-Type": "application/json",
         "User-Agent": "Android",
       });
+
+      debugPrint("GET $uri -> ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -289,6 +301,8 @@ class PlaylistApiService {
       final uri = Uri.parse("$baseUrl/creator/$creatorId");
       final response = await _client.get(uri, headers: headers);
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, data["data"] as Map<String, dynamic>?);
@@ -317,6 +331,8 @@ class PlaylistApiService {
         "User-Agent": "Android",
       });
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.listFromResponse(data));
@@ -341,6 +357,8 @@ class PlaylistApiService {
         "User-Agent": "Android",
       });
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.listFromResponse(data));
@@ -364,6 +382,8 @@ class PlaylistApiService {
         "User-Agent": "Android",
       });
 
+      debugPrint("GET $uri -> ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.listFromResponse(data));
@@ -386,6 +406,8 @@ class PlaylistApiService {
         "Content-Type": "application/json",
         "User-Agent": "Android",
       });
+
+      debugPrint("GET $uri -> ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -412,6 +434,8 @@ class PlaylistApiService {
           "User-Agent": "Android",
         },
       );
+
+      debugPrint("GET $_authBase/my-playlists -> ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -445,6 +469,8 @@ class PlaylistApiService {
 
       final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint("PATCH $_authBase/$playlistId/image -> ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -483,6 +509,8 @@ class PlaylistApiService {
         }),
       );
 
+      debugPrint("PATCH $_authBase/$playlistId/tracks -> ${response.statusCode}");
+
       final data = jsonDecode(response.body);
       return (
         response.statusCode,
@@ -510,6 +538,8 @@ class PlaylistApiService {
           "User-Agent": "Android",
         },
       );
+
+      debugPrint("PATCH $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}");
 
       final data = jsonDecode(response.body);
       return (
@@ -544,6 +574,8 @@ class PlaylistApiService {
           "isPrivate": isPrivate,
         }),
       );
+
+      debugPrint("POST ${_apiServices.baseUrl}/api/v1/playlists -> ${response.statusCode}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -581,6 +613,8 @@ class PlaylistApiService {
         },
       );
 
+      debugPrint("DELETE $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}");
+
       final data = jsonDecode(response.body);
       return (
         response.statusCode,
@@ -605,6 +639,8 @@ class PlaylistApiService {
           "User-Agent": "Android",
         },
       );
+
+      debugPrint("DELETE $_authBase/$playlistId -> ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;

@@ -54,6 +54,8 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       final (statusCode, playlists) =
           await _playlistService.getMyPlaylists();
 
+      debugPrint("GET /api/playlists/v1/my-playlists -> $statusCode");
+
       if (!mounted) return;
 
       if (statusCode == 200) {
