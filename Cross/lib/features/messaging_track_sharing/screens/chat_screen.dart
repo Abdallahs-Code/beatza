@@ -887,10 +887,19 @@ class _MessageBubble extends StatelessWidget {
               final isTrack = _isTrackMessage(message.content);
               debugPrint('[MessageBubble.build] id="${message.id}" isTrack=$isTrack content="${message.content.length > 60 ? "${message.content.substring(0, 60)}..." : message.content}"');
               if (isTrack) {
-                final pl = message.content.trim().substring('track::'.length);
-                debugPrint('[MessageBubble.build] → TrackCardBubble permalink="$pl"');
+                final raw = message.content.trim().substring('track::'.length);
+                // New format: "track::{artistId}::{permalink}"
+                // Old format: "track::{permalink}" (no second "::")
+                final sepIdx = raw.indexOf('::');
+                final artistId = sepIdx >= 0 ? raw.substring(0, sepIdx) : '';
+                final pl = sepIdx >= 0 ? raw.substring(sepIdx + 2) : raw;
+                debugPrint('[MessageBubble.build] → TrackCardBubble raw="$raw" sepIdx=$sepIdx artistId="$artistId" permalink="$pl"');
+                if (artistId.isEmpty) {
+                  debugPrint('[MessageBubble.build] ⚠️ No artistId in message (old format) — will fall back to current user profileLink');
+                }
                 return _TrackCardBubble(
                   key: ValueKey(message.content),
+                  artistId: artistId,
                   permalink: pl,
                   isMe: isMe,
                 );
@@ -942,10 +951,16 @@ class _MessageBubble extends StatelessWidget {
 // ── Track card bubble (shared track message) ────────────────────────────────────
 
 class _TrackCardBubble extends StatefulWidget {
+  final String artistId; // posterId of the track's uploader (empty on old messages)
   final String permalink;
   final bool isMe;
 
-  const _TrackCardBubble({super.key, required this.permalink, required this.isMe});
+  const _TrackCardBubble({
+    super.key,
+    required this.artistId,
+    required this.permalink,
+    required this.isMe,
+  });
 
   static final Map<String, PlaybackTrackModel?> _cache = {};
 
@@ -957,13 +972,15 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   PlaybackTrackModel? _track;
   bool _loaded = false;
 
+  String get _cacheKey => '${widget.artistId}::${widget.permalink}';
+
   @override
   void initState() {
     super.initState();
     debugPrint('━━━ [TrackCardBubble.initState] ━━━');
-    debugPrint('[TrackCardBubble.initState] permalink="${widget.permalink}"');
-    if (_TrackCardBubble._cache.containsKey(widget.permalink)) {
-      _track = _TrackCardBubble._cache[widget.permalink];
+    debugPrint('[TrackCardBubble.initState] artistId="${widget.artistId}" permalink="${widget.permalink}" cacheKey="$_cacheKey"');
+    if (_TrackCardBubble._cache.containsKey(_cacheKey)) {
+      _track = _TrackCardBubble._cache[_cacheKey];
       _loaded = true;
       debugPrint('[TrackCardBubble.initState] Cache HIT → track=${_track == null ? "null (fallback text)" : "\"${_track!.title}\""}');
     } else {
@@ -975,10 +992,11 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   @override
   void didUpdateWidget(_TrackCardBubble old) {
     super.didUpdateWidget(old);
-    if (old.permalink != widget.permalink) {
-      debugPrint('[TrackCardBubble.didUpdateWidget] permalink changed: "${old.permalink}" → "${widget.permalink}"');
-      if (_TrackCardBubble._cache.containsKey(widget.permalink)) {
-        setState(() { _track = _TrackCardBubble._cache[widget.permalink]; _loaded = true; });
+    final oldKey = '${old.artistId}::${old.permalink}';
+    if (oldKey != _cacheKey) {
+      debugPrint('[TrackCardBubble.didUpdateWidget] cacheKey changed: "$oldKey" → "$_cacheKey"');
+      if (_TrackCardBubble._cache.containsKey(_cacheKey)) {
+        setState(() { _track = _TrackCardBubble._cache[_cacheKey]; _loaded = true; });
       } else {
         setState(() { _track = null; _loaded = false; });
         _load();
@@ -987,31 +1005,39 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   }
 
   Future<void> _load() async {
-    // widget.permalink = the raw track permalink (e.g. "my-track-newer-pro").
-    // We fetch the current user's profileLink at render time via the profile API
-    // so any message — old or new — can resolve the track card.
     debugPrint('━━━ [TrackCardBubble._load] ━━━');
-    debugPrint('[TrackCardBubble._load] permalink="${widget.permalink}"');
+    debugPrint('[TrackCardBubble._load] artistId="${widget.artistId}" permalink="${widget.permalink}" cacheKey="$_cacheKey"');
     try {
       final api = MessagingApiService();
       final auth = AuthApiService();
 
-      // Step 1 — get current userId from local storage
-      final userId = await auth.getStoredUserId() ?? '';
-      debugPrint('[TrackCardBubble._load] userId="$userId" (empty=${userId.isEmpty})');
-      if (userId.isEmpty) {
-        debugPrint('[TrackCardBubble._load] ❌ No userId in storage — cannot fetch profileLink');
-        _TrackCardBubble._cache[widget.permalink] = null;
+      // Step 1 — determine which userId to use for the profile lookup.
+      // New messages embed the track's posterId (artistId) so we look up the
+      // TRACK OWNER's profileLink. Old messages have no artistId, so fall back
+      // to the current user's id (best-effort — may 404 if they don't own it).
+      String resolvedUserId;
+      if (widget.artistId.isNotEmpty) {
+        resolvedUserId = widget.artistId;
+        debugPrint('[TrackCardBubble._load] Using track artistId="$resolvedUserId" (posterId) for profile lookup');
+      } else {
+        resolvedUserId = await auth.getStoredUserId() ?? '';
+        debugPrint('[TrackCardBubble._load] No artistId in message (old format) — falling back to current userId="$resolvedUserId"');
+      }
+
+      if (resolvedUserId.isEmpty) {
+        debugPrint('[TrackCardBubble._load] ❌ resolvedUserId is empty — cannot fetch profileLink');
+        _TrackCardBubble._cache[_cacheKey] = null;
         if (mounted) setState(() { _track = null; _loaded = true; });
         return;
       }
 
-      // Step 2 — fetch current user's profileLink from GET /api/profile/v1/{userId}
-      final profileLink = await api.getUserProfileLink(userId: userId);
-      debugPrint('[TrackCardBubble._load] profileLink="$profileLink"');
+      // Step 2 — fetch profileLink from GET /api/profile/v1/{resolvedUserId}
+      debugPrint('[TrackCardBubble._load] Fetching profileLink for userId="$resolvedUserId"');
+      final profileLink = await api.getUserProfileLink(userId: resolvedUserId);
+      debugPrint('[TrackCardBubble._load] profileLink="$profileLink" (for userId="$resolvedUserId")');
       if (profileLink == null || profileLink.isEmpty) {
-        debugPrint('[TrackCardBubble._load] ❌ profileLink is null/empty — getUserProfileLink failed');
-        _TrackCardBubble._cache[widget.permalink] = null;
+        debugPrint('[TrackCardBubble._load] ❌ profileLink is null/empty — getUserProfileLink failed for userId="$resolvedUserId"');
+        _TrackCardBubble._cache[_cacheKey] = null;
         if (mounted) setState(() { _track = null; _loaded = true; });
         return;
       }
@@ -1023,12 +1049,12 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
         permalink: widget.permalink,
       );
       debugPrint('[TrackCardBubble._load] result=${result == null ? "NULL — showing fallback text" : "✅ id=${result.id} title=${result.title}"}');
-      _TrackCardBubble._cache[widget.permalink] = result;
+      _TrackCardBubble._cache[_cacheKey] = result;
       if (mounted) setState(() { _track = result; _loaded = true; });
     } catch (e, stack) {
       debugPrint('[TrackCardBubble._load] ❌ EXCEPTION: $e');
       debugPrint('[TrackCardBubble._load] stack: $stack');
-      _TrackCardBubble._cache[widget.permalink] = null;
+      _TrackCardBubble._cache[_cacheKey] = null;
       if (mounted) setState(() { _track = null; _loaded = true; });
     }
   }

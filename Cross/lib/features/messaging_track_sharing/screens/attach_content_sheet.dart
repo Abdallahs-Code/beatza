@@ -36,6 +36,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   bool _loadingUploads = true;
 
   String? _selectedTrackLink;
+  String? _selectedArtistId; // posterId of the selected track's uploader
 
   @override
   void initState() {
@@ -142,12 +143,22 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           GestureDetector(
             onTap: _selectedTrackLink != null
                 ? () {
-                    // Send just track::{permalink} — the card renderer fetches
-                    // the sender's profileLink at display time via the profile API.
-                    final payload = 'track::${_selectedTrackLink!}';
+                    // Embed posterId (artistId) so the card renderer can call
+                    // GET /api/profile/v1/{artistId} to get the TRACK OWNER's profileLink,
+                    // then GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}.
+                    // Format: track::{artistId}::{permalink}
+                    final artistId = _selectedArtistId ?? '';
+                    final permalink = _selectedTrackLink!;
+                    final payload = artistId.isNotEmpty
+                        ? 'track::$artistId::$permalink'
+                        : 'track::$permalink';
                     debugPrint('[AttachContentSheet] Done tapped.');
-                    debugPrint('[AttachContentSheet]   selectedPermalink="${_selectedTrackLink!}"');
+                    debugPrint('[AttachContentSheet]   selectedPermalink="$permalink"');
+                    debugPrint('[AttachContentSheet]   artistId(posterId)="$artistId" (empty=${artistId.isEmpty})');
                     debugPrint('[AttachContentSheet]   payload="$payload"');
+                    if (artistId.isEmpty) {
+                      debugPrint('[AttachContentSheet] ⚠️ artistId is empty — posterId was not on the track model. Card may fail to load.');
+                    }
                     widget.onSelected(payload);
                   }
                 : null,
@@ -212,7 +223,11 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       itemBuilder: (ctx, i) {
         final track = tracks[i];
         final audioLink = track.permalink ?? '';
-        debugPrint('[AttachContentSheet] track="${track.title}" id="${track.id}" permalink="$audioLink" artistId="${track.artistId}"');
+        final artistId = track.artistId ?? '';
+        debugPrint('[AttachContentSheet] track="${track.title}" id="${track.id}" permalink="$audioLink" artistId="$artistId" (posterId)');
+        if (artistId.isEmpty) {
+          debugPrint('[AttachContentSheet] ⚠️ track "${track.title}" has no artistId — posterId missing from API response');
+        }
         final isSelected = _selectedTrackLink == audioLink;
         return ListTile(
           contentPadding:
@@ -235,8 +250,14 @@ class _AttachContentSheetState extends State<AttachContentSheet>
           ),
           trailing: GestureDetector(
             onTap: () => setState(() {
-              _selectedTrackLink =
-                  isSelected ? null : (audioLink.isNotEmpty ? audioLink : null);
+              if (isSelected) {
+                _selectedTrackLink = null;
+                _selectedArtistId = null;
+              } else if (audioLink.isNotEmpty) {
+                _selectedTrackLink = audioLink;
+                _selectedArtistId = artistId.isNotEmpty ? artistId : null;
+                debugPrint('[AttachContentSheet] Selected: permalink="$audioLink" artistId="$artistId"');
+              }
             }),
             child: Container(
               width: 24,
@@ -256,8 +277,14 @@ class _AttachContentSheetState extends State<AttachContentSheet>
             ),
           ),
           onTap: () => setState(() {
-            _selectedTrackLink =
-                isSelected ? null : (audioLink.isNotEmpty ? audioLink : null);
+            if (isSelected) {
+              _selectedTrackLink = null;
+              _selectedArtistId = null;
+            } else if (audioLink.isNotEmpty) {
+              _selectedTrackLink = audioLink;
+              _selectedArtistId = artistId.isNotEmpty ? artistId : null;
+              debugPrint('[AttachContentSheet] Selected (onTap): permalink="$audioLink" artistId="$artistId"');
+            }
           }),
         );
       },
