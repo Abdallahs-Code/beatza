@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,15 +8,37 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // ─── Top-level helpers (accessible from background isolate) ──────────────────
 
+// The Socket.io service passes the notification object directly as a Map.
+// FCM data values are all strings, so the backend either:
+//   (A) JSON-encodes the whole notification under one key, or
+//   (B) flattens the top-level fields as strings with actor/target JSON-encoded.
+// We try (A) first with the most likely key names, then fall back to (B).
 ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
+  // (A) — full JSON string under a single key
+  for (final key in ['notification', 'payload', 'data']) {
+    try {
+      final raw = data[key];
+      if (raw is String && raw.isNotEmpty) {
+        return ActivityNotificationModel.fromJson(
+          Map<String, dynamic>.from(jsonDecode(raw) as Map),
+        );
+      }
+    } catch (_) {}
+  }
+
+  // (B) — flattened fields, actor/target are JSON-encoded strings
   try {
-    final raw = data['notification'];
-    if (raw is String && raw.isNotEmpty) {
-      return ActivityNotificationModel.fromJson(
-        Map<String, dynamic>.from(jsonDecode(raw) as Map),
-      );
+    final actorRaw = data['actor'];
+    final targetRaw = data['target'];
+    if (actorRaw is String && targetRaw is String) {
+      final merged = Map<String, dynamic>.from(data);
+      merged['actor'] = jsonDecode(actorRaw);
+      merged['target'] = jsonDecode(targetRaw);
+      merged['read'] = data['read'] == 'true';
+      return ActivityNotificationModel.fromJson(merged);
     }
   } catch (_) {}
+
   return null;
 }
 
@@ -112,25 +135,27 @@ class PushNotificationService {
   static const _msgNotificationDetails = NotificationDetails(android: _msgAndroidDetails);
 
   Future<void> initialize() async {
-    // Must be registered before runApp — called from main() before runApp.
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Must be registered before runApp — called from main() before runApp.
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // flutter_local_notifications setup
+      // FCM permission request
+      await FirebaseMessaging.instance.requestPermission();
+
+      // Foreground FCM messages — show via local notifications
+      // (Socket.io handles the in-app activity feed refresh separately)
+      FirebaseMessaging.onMessage.listen((message) {
+        final notification = _parseFromData(message.data);
+        if (notification != null) show(notification);
+      });
+    }
+
+    // flutter_local_notifications setup (used on all platforms that support it)
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(const InitializationSettings(android: androidSettings));
     await _plugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
-
-    // FCM permission request
-    await FirebaseMessaging.instance.requestPermission();
-
-    // Foreground FCM messages — show via local notifications
-    // (Socket.io handles the in-app activity feed refresh separately)
-    FirebaseMessaging.onMessage.listen((message) {
-      final notification = _parseFromData(message.data);
-      if (notification != null) show(notification);
-    });
   }
 
   Future<void> showMessage({

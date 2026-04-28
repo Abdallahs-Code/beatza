@@ -10,6 +10,11 @@ set(BINARY_NAME "Beatza")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# Firebase C++ SDK ships a CMakeLists.txt that declares cmake_minimum_required
+# with a version below 3.5, which CMake 3.30+ rejects. Setting this variable
+# here makes CMake treat that old minimum as 3.5 and continue.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
