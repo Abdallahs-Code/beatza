@@ -25,7 +25,7 @@
 //   - Like / comment wired via FeedCard widget (see CLAUDE CODE TODOs there)
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
 
 import '../models/feed_item_model.dart';
@@ -35,7 +35,6 @@ import '../widgets/feed_card.dart';
 
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity_routes.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -49,7 +48,6 @@ class _FeedScreenState extends State<FeedScreen>
   // ── State ──────────────────────────────────────────────────────────────────
   late TabController _tabController;
   final FeedSearchApiService _service = FeedSearchApiService();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   // Mute state shared across all FeedCards
   final ValueNotifier<bool> _isMuted = ValueNotifier<bool>(true);
@@ -181,19 +179,7 @@ class _FeedScreenState extends State<FeedScreen>
 
   /// Navigate to actor's profile.
   Future<void> _openActorProfile(String actorId) async {
-    final token = await _storage.read(key: 'access_token') ?? '';
-    final currentUserId = await _storage.read(key: 'user_id');
-    if (!mounted) return;
-    Navigator.pushNamed(
-      context,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': actorId,
-        'token': token,
-        'currentUserId': currentUserId,
-        'initialIsFollowing': false,
-      },
-    );
+    await ProfileNavigator.push(context, actorId);
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────

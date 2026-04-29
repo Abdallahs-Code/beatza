@@ -2,13 +2,12 @@
 import 'package:flutter/material.dart';
 
 // Package imports
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class UserTile extends StatelessWidget {
   final Follower follower;
   final String? currentUserId;
-  final String? accessToken;
   final VoidCallback? onFollowTap;
   final VoidCallback? onBlockTap;
   final VoidCallback? onUnblockTap;
@@ -19,7 +18,6 @@ class UserTile extends StatelessWidget {
     super.key,
     required this.follower,
     this.currentUserId,
-    this.accessToken,
     this.onFollowTap,
     this.onBlockTap,
     this.onUnblockTap,
@@ -38,21 +36,9 @@ class UserTile extends StatelessWidget {
 
     final bool canOpenProfile = !follower.isBlocked && normalizedFollowerUserId.isNotEmpty;
 
-    void openProfile() {
+    Future<void> openProfile() async {
       if (!canOpenProfile) return;
-
-      Navigator.pushNamed(
-        context,
-        UserProfileSocialIdentityRoutes.userProfileRoute,
-        arguments: {
-          'userId': normalizedFollowerUserId,
-          'token': accessToken ?? '',
-          'currentUserId':
-              normalizedCurrentUserId.isEmpty ? null : normalizedCurrentUserId,
-          'initialIsFollowing': follower.isFollowing,
-          'initialIsBlocked': follower.isBlocked,
-        },
-      );
+      await ProfileNavigator.push(context, normalizedFollowerUserId);
     }
 
     Widget buildActionButton() {

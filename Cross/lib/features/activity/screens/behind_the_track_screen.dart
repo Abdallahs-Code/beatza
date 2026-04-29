@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
+import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 const _kBg = Color(0xFF111111);
 const _kSurface = Color(0xFF1C1C1C);
@@ -241,39 +242,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   Future<void> _navigateToArtist() async {
     final ownerId = widget.trackOwnerId;
     if (ownerId.isEmpty) return;
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId();
-    if (!mounted) return;
-    Navigator.pushNamed(
-      context,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': ownerId,
-        'token': token,
-        'currentUserId':
-            (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
-        'initialIsFollowing': _ownerIsFollowed,
-        'initialIsBlocked': false,
-      },
-    );
+    await ProfileNavigator.push(context, ownerId);
   }
 
   Future<void> _navigateToActor() async {
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId();
-    if (!mounted) return;
-    Navigator.pushNamed(
-      context,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': widget.actorUserId,
-        'token': token,
-        'currentUserId':
-            (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
-        'initialIsFollowing': false,
-        'initialIsBlocked': false,
-      },
-    );
+    await ProfileNavigator.push(context, widget.actorUserId);
   }
 
   Future<void> _toggleOwnerFollow() async {
