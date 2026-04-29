@@ -1567,7 +1567,7 @@ Future<void> _showShareSheet(
 
   // Re-read context after the async gap — the original capture may be stale.
   final BuildContext? freshContext = appNavigatorKey.currentContext;
-  if (freshContext == null) return;
+  if (freshContext == null || !freshContext.mounted) return;
 
   _isTransientSheetOpening.value = true;
   try {
