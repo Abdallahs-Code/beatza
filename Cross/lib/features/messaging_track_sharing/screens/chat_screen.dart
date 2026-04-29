@@ -116,6 +116,29 @@ class _ChatScreenState extends State<ChatScreen> {
       await _socket.connect(token: token);
       _socket.onMessageInRoom = _onIncomingMessage;
     }
+    // Check blockingMe from public profile — covers the case where the receiver
+    // has blocked us but the messages API hasn't reflected it yet.
+    await _checkReceiverBlockingMe();
+  }
+
+  Future<void> _checkReceiverBlockingMe() async {
+    final rid = _receiverId;
+    debugPrint('━━━ [ChatScreen._checkReceiverBlockingMe] ━━━');
+    debugPrint('[ChatScreen._checkReceiverBlockingMe] receiverId="$rid" (null=${rid == null})');
+    if (rid == null || rid.isEmpty) {
+      debugPrint('[ChatScreen._checkReceiverBlockingMe] ⚠️ receiverId unknown — skipping blockingMe check');
+      return;
+    }
+    try {
+      final blockingMe = await _api.getPublicProfileBlockingMe(userId: rid);
+      debugPrint('[ChatScreen._checkReceiverBlockingMe] blockingMe=$blockingMe  current _isBlockedByReceiver=$_isBlockedByReceiver');
+      if (blockingMe && mounted && !_isBlockedByReceiver) {
+        debugPrint('[ChatScreen._checkReceiverBlockingMe] → receiver is blocking us — setting _isBlockedByReceiver=true');
+        setState(() => _isBlockedByReceiver = true);
+      }
+    } catch (e) {
+      debugPrint('[ChatScreen._checkReceiverBlockingMe] ❌ EXCEPTION: $e');
+    }
   }
 
   Future<void> _loadMessages({bool loadMore = false}) async {
@@ -469,11 +492,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      // ✅ Intercept hardware back button to ensure we always return true
-      onWillPop: () async {
-        _closeChat();
-        return false; // We already handled the pop, so prevent default behavior
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closeChat();
       },
       child: Scaffold(
         backgroundColor: _kBg,

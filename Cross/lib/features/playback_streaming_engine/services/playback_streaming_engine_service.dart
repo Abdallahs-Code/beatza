@@ -154,6 +154,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     if (track.accessState == PlaybackAccessState.blocked) {
+      _ignorePlayerStateUpdates = true;
+      await _audioPlayerClient.stop();
       _ignorePlayerStateUpdates = false;
       _previewLimitReached = false;
       _updateState(
@@ -170,6 +172,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     final String trimmedUrl = track.playbackUrl.trim();
     if (trimmedUrl.isEmpty) {
+      _ignorePlayerStateUpdates = true;
+      await _audioPlayerClient.stop();
       _ignorePlayerStateUpdates = false;
       _updateState(
         _state.copyWith(

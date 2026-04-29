@@ -132,6 +132,25 @@ class LibraryHistoryApiService {
         .toList();
   }
 
+  Future<void> deleteUserHistory(String accessToken) async {
+    final response = await _client.delete(
+      Uri.parse('$_servicePath/history/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+        'User-Agent': 'Android',
+      },
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to delete listening history. '
+        'Status code: ${response.statusCode}. '
+        'Body: ${response.body}',
+      );
+    }
+  }
+
   void dispose() {
     _client.close();
   }

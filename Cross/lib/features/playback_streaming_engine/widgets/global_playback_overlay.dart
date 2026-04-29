@@ -186,6 +186,7 @@ class _MiniPlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlaybackTrackModel track = state.currentTrack!;
+    final bool isBlocked = state.status == PlaybackStatus.blocked;
 
     return Material(
       color: Colors.transparent,
@@ -202,24 +203,30 @@ class _MiniPlayerCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
-                // Left circle — ad icon when ad is playing, play/pause otherwise.
+                // Left circle — ad icon when ad is playing, blocked icon when unavailable, play/pause otherwise.
                 GestureDetector(
-                  onTap: isAdPlaying ? null : onPlayPauseTap,
+                  onTap: isAdPlaying || isBlocked ? null : onPlayPauseTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: isAdPlaying ? Colors.white12 : Colors.white,
+                      color: isAdPlaying || isBlocked
+                          ? Colors.white12
+                          : Colors.white,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       isAdPlaying
                           ? Icons.campaign_rounded
-                          : (state.isPlaying
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded),
-                      color: isAdPlaying ? Colors.white54 : Colors.black,
+                          : isBlocked
+                              ? Icons.music_off_rounded
+                              : (state.isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded),
+                      color: isAdPlaying || isBlocked
+                          ? Colors.white38
+                          : Colors.black,
                       size: 26,
                     ),
                   ),
@@ -244,11 +251,15 @@ class _MiniPlayerCard extends StatelessWidget {
                       Text(
                         isAdPlaying
                             ? '$adRemainingSeconds s remaining'
-                            : track.artistName,
+                            : isBlocked
+                                ? 'Not available'
+                                : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white60,
+                        style: TextStyle(
+                          color: isBlocked
+                              ? Colors.orange.withValues(alpha: 0.7)
+                              : Colors.white60,
                           fontSize: 12,
                         ),
                       ),
@@ -707,12 +718,14 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
   bool _isPlaying = false;
   Duration _position = Duration.zero;
   bool _isSkipping = false;
+  bool _isBlocked = false;
 
   @override
   void initState() {
     super.initState();
     _isPlaying = _globalPlayer.state.isPlaying;
     _position = _globalPlayer.state.currentPosition;
+    _isBlocked = _globalPlayer.state.status == PlaybackStatus.blocked;
     _globalPlayer.addListener(_handlePlayerUpdate);
   }
 
@@ -725,11 +738,16 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
   void _handlePlayerUpdate() {
     final bool nextPlaying = _globalPlayer.state.isPlaying;
     final Duration nextPosition = _globalPlayer.state.currentPosition;
+    final bool nextBlocked =
+        _globalPlayer.state.status == PlaybackStatus.blocked;
 
-    if (_isPlaying != nextPlaying || _position != nextPosition) {
+    if (_isPlaying != nextPlaying ||
+        _position != nextPosition ||
+        _isBlocked != nextBlocked) {
       setState(() {
         _isPlaying = nextPlaying;
         _position = nextPosition;
+        _isBlocked = nextBlocked;
       });
     }
   }
@@ -760,6 +778,46 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isBlocked) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _PlayerActionButton(
+            icon: Icons.skip_previous_rounded,
+            enabled: !_isSkipping,
+            onTap: _skipPrevious,
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.music_off_rounded, color: Colors.white38, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Not available',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _PlayerActionButton(
+            icon: Icons.skip_next_rounded,
+            enabled: !_isSkipping,
+            onTap: _skipNext,
+          ),
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [

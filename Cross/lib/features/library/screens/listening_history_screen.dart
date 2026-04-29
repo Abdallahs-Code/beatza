@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 // Package imports
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/library/services/library_history_api_service.dart';
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
@@ -19,6 +21,8 @@ class ListeningHistoryScreen extends StatefulWidget {
 
 class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
   late List<PlaybackTrackModel> _tracks;
+  final AuthApiService _authApiService = AuthApiService();
+  final LibraryHistoryApiService _historyApiService = LibraryHistoryApiService();
 
   @override
   void initState() {
@@ -113,9 +117,18 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
     );
 
     if (confirmed == true) {
-      setState(() {
-        _tracks = [];
-      });
+      try {
+        final String? token = await _authApiService.getStoredAccessToken();
+        if (token == null || token.trim().isEmpty) return;
+        await _historyApiService.deleteUserHistory(token);
+        if (!mounted) return;
+        setState(() => _tracks = []);
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to clear history. Try again.')),
+        );
+      }
     }
   }
 
