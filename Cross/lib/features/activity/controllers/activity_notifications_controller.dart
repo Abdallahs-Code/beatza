@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:cross_team5/features/activity/services/activity_notifications_api_service.dart';
 import 'package:cross_team5/features/activity/services/activity_notifications_socket_service.dart';
@@ -58,6 +60,9 @@ class ActivityNotificationsController extends ChangeNotifier {
       }
 
       _currentUserId ??= await AuthApiService().getStoredUserId();
+
+      // Register/refresh FCM token with backend on every launch.
+      unawaited(PushNotificationService.shared.registerFcmToken(token));
 
       final shouldDoInitialLoad =
           !_hasInitialized || _activeToken == null || _activeToken != token;

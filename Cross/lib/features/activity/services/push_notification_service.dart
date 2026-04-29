@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 
 // ─── Top-level helpers (accessible from background isolate) ──────────────────
 
@@ -156,6 +159,36 @@ class PushNotificationService {
     await _plugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+  }
+
+  // Call after login (and on every app launch while logged in).
+  // The backend docs say: "call this on every app launch and on token refresh".
+  Future<void> registerFcmToken(String accessToken) async {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken == null) return;
+      await _postFcmToken(accessToken, fcmToken);
+
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        final fresh = await AuthApiService().getStoredAccessToken();
+        if (fresh != null) await _postFcmToken(fresh, newToken);
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _postFcmToken(String accessToken, String fcmToken) async {
+    try {
+      await http.post(
+        Uri.parse('${ApiServices().baseUrl}/api/notifications/v1/fcm-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          'User-Agent': 'Android',
+        },
+        body: jsonEncode({'token': fcmToken, 'platform': 'android'}),
+      ).timeout(const Duration(seconds: 10));
+    } catch (_) {}
   }
 
   Future<void> showMessage({
