@@ -57,7 +57,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
 
       if (statusCode == 200) {
         setState(() {
-          _playlists = playlists;
+          _playlists = playlists.where((p) => !p.isAlbum).toList();
           _isLoading = false;
         });
       } else if (statusCode == 401) {
