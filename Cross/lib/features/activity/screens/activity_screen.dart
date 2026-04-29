@@ -1,3 +1,4 @@
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
@@ -9,7 +10,6 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/messaging_track_sharing/widgets/messages_tab.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 import 'package:flutter/material.dart';
 
 const _kBg = Color(0xFF111111);
@@ -812,26 +812,7 @@ class _NotificationTileState extends State<_NotificationTile> {
   }
 
   Future<void> _navigateToUserProfile(String userId) async {
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId();
-    // Use cached follow state if this is the actor we already checked.
-    final isFollowing = (n.activityType == 'user_followed' &&
-            userId == n.actor.userId)
-        ? _isFollowing
-        : false;
-    if (!mounted) return;
-    Navigator.pushNamed(
-      context,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': userId,
-        'token': token,
-        'currentUserId':
-            (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
-        'initialIsFollowing': isFollowing,
-        'initialIsBlocked': false,
-      },
-    );
+    await ProfileNavigator.push(context, userId);
   }
 
   void _navigateToBehindTheTrack() {

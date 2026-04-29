@@ -11,6 +11,7 @@ import '../services/playback_track_api_service.dart';
 import '../services/waveform_extractor.dart';
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
@@ -2356,18 +2357,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     Navigator.pop(context);
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId() ?? '';
-    if (!navCtx.mounted) return;
-    Navigator.pushNamed(
-      navCtx,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': artistId,
-        'token': token,
-        'currentUserId': currentUserId,
-      },
-    );
+    await ProfileNavigator.push(navCtx, artistId);
   }
 
   Future<void> _openComments() async {

@@ -26,7 +26,6 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
   String? _errorMessage;
 
   String? _currentUserId;
-  String? _accessToken;
 
   static final RouteObserver<ModalRoute<void>> routeObserver =
       RouteObserver<ModalRoute<void>>();
@@ -70,7 +69,6 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
     });
 
     final storedCurrentUserId = await _authApiService.getStoredUserId();
-    final storedAccessToken = await _authApiService.getStoredAccessToken();
     final result = await _socialApiService.getBlockedUsers();
 
     if (!mounted) return;
@@ -80,7 +78,6 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
       _isRefreshing = false;
 
       _currentUserId = storedCurrentUserId;
-      _accessToken = storedAccessToken;
 
       if (result.$1 == 200) {
         _blockedUsers = List<Follower>.from(result.$2 as List<Follower>);
@@ -178,7 +175,6 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
                       return UserTile(
                         follower: user,
                         currentUserId: _currentUserId,
-                        accessToken: _accessToken,
                         onFollowTap: null,
                         showBlockOption: false,
                         showUnblockOption: true,

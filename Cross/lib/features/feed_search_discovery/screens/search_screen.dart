@@ -39,8 +39,7 @@ import '../widgets/search_history_tile.dart';
 
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity_routes.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 
 enum _SearchState { idle, typing, results }
 
@@ -273,21 +272,7 @@ class _SearchScreenState extends State<SearchScreen>
         }
       }
     } else if (item.type == 'user') {
-      final storage = const FlutterSecureStorage();
-      final token = await storage.read(key: 'access_token') ?? '';
-      final currentUserId = await storage.read(key: 'user_id');
-      if (mounted) {
-        Navigator.pushNamed(
-          context,
-          UserProfileSocialIdentityRoutes.userProfileRoute,
-          arguments: {
-            'userId': item.id,
-            'token': token,
-            'currentUserId': currentUserId,
-            'initialIsFollowing': false,
-          },
-        );
-      }
+      await ProfileNavigator.push(context, item.id);
     } else {
       // Playlist / Album — TODO Module 7
       if (mounted) {
