@@ -13,11 +13,10 @@
 // bottom of list when there are more results (offset-based, max 50/page).
 
 import 'package:flutter/material.dart';
-import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/widgets/engagement_user_tile.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 
 class LikersScreen extends StatefulWidget {
   final String trackId;
@@ -32,10 +31,7 @@ class LikersScreen extends StatefulWidget {
 class _LikersScreenState extends State<LikersScreen>
     with SingleTickerProviderStateMixin {
   final EngagementApiService _service = EngagementApiService();
-  final AuthApiService _authService = AuthApiService();
   late TabController _tabController;
-
-  String? _currentUserId;
 
   // ── Likers state ─────────────────────────────
   List<EngagementUser> _likers = [];
@@ -60,32 +56,13 @@ class _LikersScreenState extends State<LikersScreen>
       vsync: this,
       initialIndex: widget.initialTab,
     );
-    _loadCurrentUser();
     // Load both lists simultaneously on open.
     _loadLikers();
     _loadReposters();
   }
 
-  Future<void> _loadCurrentUser() async {
-    final userId = await _authService.getStoredUserId();
-    if (mounted && userId != null) setState(() => _currentUserId = userId);
-  }
-
   Future<void> _navigateToProfile(String userId) async {
-    if (userId.trim().isEmpty) return;
-    try {
-      final token = await _authService.getStoredAccessToken() ?? '';
-      if (!mounted) return;
-      Navigator.pushNamed(
-        context,
-        UserProfileSocialIdentityRoutes.userProfileRoute,
-        arguments: {
-          'userId': userId,
-          'token': token,
-          'currentUserId': _currentUserId ?? '',
-        },
-      );
-    } catch (_) {}
+    await ProfileNavigator.push(context, userId);
   }
 
   @override

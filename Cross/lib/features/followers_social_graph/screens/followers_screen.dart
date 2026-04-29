@@ -25,7 +25,6 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
   bool _isLoading = true;
   String? _errorMessage;
   String? _currentUserId;
-  String? _accessToken;
   Set<String> _blockedUserIds = {};
 
   static final RouteObserver<ModalRoute<void>> routeObserver =
@@ -87,7 +86,6 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
     });
 
     final storedCurrentUserId = await _authApiService.getStoredUserId();
-    final storedAccessToken = await _authApiService.getStoredAccessToken();
 
     final followersResult = await _socialApiService.getFollowers(
       userId: widget.userId,
@@ -99,7 +97,6 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
     setState(() {
       _isLoading = false;
       _currentUserId = storedCurrentUserId;
-      _accessToken = storedAccessToken;
       _blockedUserIds = blockedUserIds;
 
       if (followersResult.$1 == 200) {
@@ -359,7 +356,6 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
                   return UserTile(
                     follower: follower,
                     currentUserId: _currentUserId,
-                    accessToken: _accessToken,
                     showBlockOption: !follower.isBlocked,
                     showUnblockOption: follower.isBlocked,
                     onFollowTap: follower.isBlocked
