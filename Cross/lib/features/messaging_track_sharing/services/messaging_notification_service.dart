@@ -60,6 +60,7 @@ class MessagingNotificationService {
       senderName: senderName,
       content: lm.content,
       chatId: chat.id,
+      receiverPhotoUrl: chat.otherPerson?.photoUrl ?? '',
     );
   }
 }

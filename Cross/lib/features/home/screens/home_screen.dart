@@ -9,6 +9,7 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
+import 'package:cross_team5/core/navigation/notification_navigation_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
@@ -43,6 +44,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _publicTracksPagingService.loadInitial(limit: 20);
     _loadQuickPickTracks();
     _loadDisplayName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationNavigationService.shared.executePendingIfAny();
+    });
   }
 
   @override
