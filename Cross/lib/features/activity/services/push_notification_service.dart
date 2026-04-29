@@ -66,9 +66,6 @@ String _buildBody(ActivityNotificationModel n) {
   }
 }
 
-// Serialises just the fields needed for navigation into a compact JSON string
-// that can be stored as a local-notification payload.
-// Must be top-level so the background isolate can call it.
 String _buildActivityPayload(ActivityNotificationModel n) {
   return jsonEncode({
     't': 'a',
@@ -83,21 +80,17 @@ String _buildActivityPayload(ActivityNotificationModel n) {
   });
 }
 
-// Called when a data-only FCM message arrives while the app is in the
-// background or killed.  FCM auto-shows messages that carry a `notification`
-// field — this handler only runs when there is NO notification field.
+// Handles data-only FCM messages while the app is in the background / killed.
+// FCM auto-shows messages that carry a `notification` field — this handler
+// only runs when there is NO notification field.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
-  if (message.notification != null) return; // FCM already showed it
+  if (message.notification != null) return;
 
   final notification = _parseFromData(message.data);
   if (notification == null) return;
-
-  // Include the payload so that a tap on this notification can be routed
-  // correctly by the main isolate's _onLocalNotificationTap / getNotificationAppLaunchDetails.
-  final payload = _buildActivityPayload(notification);
 
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(const InitializationSettings(
@@ -117,7 +110,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         icon: '@mipmap/ic_launcher',
       ),
     ),
-    payload: payload,
+    payload: _buildActivityPayload(notification),
   );
 }
 
@@ -164,10 +157,18 @@ class PushNotificationService {
       NotificationDetails(android: _msgAndroidDetails);
 
   Future<void> initialize() async {
+    // ── Step 1: capture launch-from-local-notification details BEFORE
+    //   calling _plugin.initialize().  On Android (flutter_local_notifications
+    //   v15+) calling getNotificationAppLaunchDetails() after initialize()
+    //   always returns null.
+    NotificationAppLaunchDetails? localLaunchDetails;
     if (Platform.isAndroid || Platform.isIOS) {
-      // Must be registered before runApp.
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      localLaunchDetails = await _plugin.getNotificationAppLaunchDetails();
+    }
 
+    // ── Step 2: FCM setup ────────────────────────────────────────────────────
+    if (Platform.isAndroid || Platform.isIOS) {
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
       await FirebaseMessaging.instance.requestPermission();
 
       // Foreground FCM message → show via local notification.
@@ -185,21 +186,13 @@ class PushNotificationService {
         }
       });
 
-      // App was KILLED → user tapped a system FCM notification that woke us.
-      // Navigator is not ready yet, so the service queues it as pending and
-      // HomeScreen executes it after its first frame.
-      final initial = await FirebaseMessaging.instance.getInitialMessage();
-      if (initial != null) {
-        final notification = _parseFromData(initial.data);
-        if (notification != null) {
-          unawaited(NotificationNavigationService.shared
-              .handleActivityNotification(notification));
-        }
-      }
+      // NOTE: getInitialMessage() is intentionally NOT called here.
+      // The Firebase Flutter plugin requires it to be called from a widget
+      // (after runApp) to reliably receive the initial message on Android.
+      // It is called from HomeScreen via handleInitialFcmMessage() below.
     }
 
-    // flutter_local_notifications — handles taps on in-app (foreground /
-    // background) notifications shown by this service.
+    // ── Step 3: initialise local-notifications plugin ────────────────────────
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
@@ -211,17 +204,31 @@ class PushNotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
 
-    // Handles the case where the app was KILLED and re-launched by tapping a
-    // local notification (e.g. one shown by _firebaseMessagingBackgroundHandler
-    // for a data-only FCM message).  getInitialMessage() covers FCM-delivered
-    // notifications; this covers our own locally-shown ones.
-    if (Platform.isAndroid || Platform.isIOS) {
-      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
-      if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
-        final response = launchDetails.notificationResponse;
-        if (response != null) _onLocalNotificationTap(response);
-      }
+    // ── Step 4: handle app launched from a local notification (data-only FCM
+    //   shown by the background handler).  Details were captured in Step 1.
+    if (localLaunchDetails != null && localLaunchDetails.didNotificationLaunchApp) {
+      final response = localLaunchDetails.notificationResponse;
+      if (response != null) _onLocalNotificationTap(response);
     }
+  }
+
+  /// Call this from HomeScreen.initState (inside addPostFrameCallback).
+  ///
+  /// The Firebase Flutter plugin requires getInitialMessage() to be called
+  /// from a widget after the app is running, not from main() before runApp().
+  /// Calling it too early returns null on Android even when the app was
+  /// genuinely opened by tapping an FCM notification.
+  Future<void> handleInitialFcmMessage() async {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial == null) return;
+      final notification = _parseFromData(initial.data);
+      if (notification != null) {
+        await NotificationNavigationService.shared
+            .handleActivityNotification(notification);
+      }
+    } catch (_) {}
   }
 
   void _onLocalNotificationTap(NotificationResponse response) {
@@ -264,7 +271,6 @@ class PushNotificationService {
     } catch (_) {}
   }
 
-  // Call after login (and on every app launch while logged in).
   Future<void> registerFcmToken(String accessToken) async {
     if (!Platform.isAndroid && !Platform.isIOS) return;
     try {
