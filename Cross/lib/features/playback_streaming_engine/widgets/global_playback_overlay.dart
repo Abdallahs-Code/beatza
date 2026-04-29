@@ -124,6 +124,7 @@ class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
                           builder: (context, _) => _MiniPlayerCard(
                             state: state,
                             isAdPlaying: AdService.shared.isAdPlaying,
+                            adRemainingSeconds: AdService.shared.remainingSeconds,
                             onTap: () => _openExpandedPlayer(context),
                             onPlayPauseTap: globalPlayer.togglePlayPause,
                             onDeviceTap: () => _showDeviceSheet(context),
@@ -168,6 +169,7 @@ Future<void> _openExpandedPlayer(BuildContext context) async {
 class _MiniPlayerCard extends StatelessWidget {
   final PlaybackStateModel state;
   final bool isAdPlaying;
+  final int adRemainingSeconds;
   final VoidCallback onTap;
   final VoidCallback onPlayPauseTap;
   final VoidCallback onDeviceTap;
@@ -175,6 +177,7 @@ class _MiniPlayerCard extends StatelessWidget {
   const _MiniPlayerCard({
     required this.state,
     required this.isAdPlaying,
+    required this.adRemainingSeconds,
     required this.onTap,
     required this.onPlayPauseTap,
     required this.onDeviceTap,
@@ -569,7 +572,8 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                       ),
                       // Ad overlay — covers the entire player when an ad is active.
                       if (_isAdPlaying)
-                        const Positioned.fill(child: AdOverlay()),
+                        const Positioned.fill(child: AdPlayerWidget()),
+                        //const Positioned.fill(child: AdOverlay()),
                     ],
                   ),
                 ),
@@ -1564,7 +1568,7 @@ Future<void> _showShareSheet(
 
   // Re-read context after the async gap — the original capture may be stale.
   final BuildContext? freshContext = appNavigatorKey.currentContext;
-  if (freshContext == null || !freshContext.mounted) return;
+  if (freshContext == null) return;
 
   _isTransientSheetOpening.value = true;
   try {
