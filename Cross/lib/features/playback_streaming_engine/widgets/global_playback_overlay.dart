@@ -1732,7 +1732,7 @@ Future<void> _showShareSheet(
   }
 }
 
-Future<void> showTrackOptionsSheet(
+Future<void> _showTrackOptionsSheet(
   BuildContext context,
   PlaybackTrackModel track,
 ) async {
