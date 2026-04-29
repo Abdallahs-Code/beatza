@@ -165,7 +165,9 @@ class PlaylistModel {
           .map((e) => e.toString())
           .toList(),
       permalink: json['permalink']?.toString() ?? '',
-      type: json['type']?.toString() ?? 'public',
+      // Some endpoints return `isPrivate` boolean instead of `type` string.
+      type: json['type']?.toString() ??
+          (json['isPrivate'] == true ? 'private' : 'public'),
       numOfLikes: json['numOfLikes'] as int? ?? 0,
       numOfReposts: json['numOfReposts'] as int? ?? 0,
       playlistType: json['playlistType']?.toString() ?? 'playlist',

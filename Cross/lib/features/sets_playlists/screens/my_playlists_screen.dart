@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/screens/playlist_detail_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_card.dart';
@@ -159,6 +160,63 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     ).then((_) => _loadPlaylists());
   }
 
+  void _onEditPlaylist(PlaylistModel playlist) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditPlaylistScreen(playlist: playlist),
+      ),
+    ).then((updated) {
+      if (updated == true) _loadPlaylists();
+    });
+  }
+
+  Future<void> _onDeletePlaylist(PlaylistModel playlist) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: const Text('Delete Playlist',
+            style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Delete "${playlist.title}"? This cannot be undone.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel',
+                style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final (statusCode, deleted) =
+        await _playlistService.deletePlaylist(playlistId: playlist.id);
+
+    if (!mounted) return;
+    if (statusCode == 200 && deleted) {
+      setState(() => _playlists.removeWhere((p) => p.id == playlist.id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Playlist deleted.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete playlist. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -223,6 +281,8 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
                   child: PlaylistCard(
                     playlist: _playlists[index],
                     onTap: () => _onPlaylistTap(_playlists[index]),
+                    onMenuEdit: () => _onEditPlaylist(_playlists[index]),
+                    onMenuDelete: () => _onDeletePlaylist(_playlists[index]),
                   ),
                 ),
                 childCount: _playlists.length,
