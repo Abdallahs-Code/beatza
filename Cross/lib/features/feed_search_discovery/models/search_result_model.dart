@@ -1,5 +1,5 @@
 // Model: SearchResultModel
-// Shape from GET /api/feed/v1/search
+// Shape from GET /api/public/feed/v1/search
 // Response:
 // {
 //   "counts": { "tracks": 0, "users": 0, "playlists": 0, "albums": 0 },
