@@ -84,7 +84,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
     // ── Step 4: get followers ────────────────────────────────────────────────
     debugPrint('[SendTo] STEP 4 — calling SocialApiService().getFollowers(userId=$currentUserId)');
-    debugPrint('[SendTo] STEP 4   URL will be: [baseUrl]/api/social/v1/followers/$currentUserId');
+    debugPrint('[SendTo] STEP 4   URL will be: [baseUrl]/api/public/social/v1/followers/$currentUserId');
     try {
       final result = await SocialApiService().getFollowers(userId: currentUserId);
       debugPrint('[SendTo] STEP 4 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
