@@ -1189,6 +1189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             ..._editableBannerLinks.asMap().entries.map(
                               (entry) => _LinkedProfileRow(
+                                index: entry.key,
                                 label: entry.value.title.trim().isEmpty
                                     ? 'Link'
                                     : entry.value.title,
@@ -1285,7 +1286,7 @@ class _LinkedProfileRow extends StatelessWidget {
     required this.value,
     required this.onTap,
     required this.index, this.onDelete,
-  , this.labelKey, this.valueKey});
+    this.labelKey, this.valueKey});
 
   @override
   Widget build(BuildContext context) {
