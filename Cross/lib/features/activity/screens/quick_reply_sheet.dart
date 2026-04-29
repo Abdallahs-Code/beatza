@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/activity/screens/quick_reply_options_menu.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
@@ -343,21 +344,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   }
 
   Future<void> _navigateToProfile(String userId) async {
-    if (userId.isEmpty) return;
-    final token = await _authApi.getStoredAccessToken() ?? '';
-    final currentUserId = await _authApi.getStoredUserId();
-    if (!mounted) return;
-    Navigator.pushNamed(
-      context,
-      '/user_profile',
-      arguments: {
-      'userId': userId,
-      'token': token,
-      'currentUserId':
-          (currentUserId?.trim().isEmpty ?? true) ? null : currentUserId,
-      'initialIsFollowing': false,
-      'initialIsBlocked': false,
-    });
+    await ProfileNavigator.push(context, userId);
   }
 
   Future<void> _toggleReplies(Comment comment) async {

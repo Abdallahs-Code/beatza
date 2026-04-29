@@ -6,11 +6,14 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 
 import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
+import '../services/ad_service.dart';
 import '../services/playback_streaming_engine_service.dart';
+import 'ad_overlay.dart';
 import '../services/playback_track_api_service.dart';
 import '../services/waveform_extractor.dart';
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
@@ -24,6 +27,7 @@ import 'package:cross_team5/features/user_profile_social_identity/user_profile_s
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import '../services/public_tracks_paging_service.dart';
 
@@ -42,8 +46,45 @@ final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(null
 final Map<String, List<double>> _expandedWaveformCache =
     <String, List<double>>{};
 
-class GlobalPlaybackOverlay extends StatelessWidget {
+class GlobalPlaybackOverlay extends StatefulWidget {
   const GlobalPlaybackOverlay({super.key});
+
+  @override
+  State<GlobalPlaybackOverlay> createState() => _GlobalPlaybackOverlayState();
+}
+
+class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
+  // Track the previous ad state so we only open the player on the
+  // false→true transition, not on every countdown tick.
+  bool _wasAdPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _wasAdPlaying = AdService.shared.isAdPlaying;
+    AdService.shared.addListener(_onAdStateChanged);
+  }
+
+  @override
+  void dispose() {
+    AdService.shared.removeListener(_onAdStateChanged);
+    super.dispose();
+  }
+
+  void _onAdStateChanged() {
+    final bool isAdPlaying = AdService.shared.isAdPlaying;
+    final bool justStarted = isAdPlaying && !_wasAdPlaying;
+    _wasAdPlaying = isAdPlaying;
+
+    if (justStarted && !_isExpandedPlayerVisible.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (AdService.shared.isAdPlaying && !_isExpandedPlayerVisible.value) {
+          _openExpandedPlayer(context);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,11 +119,16 @@ class GlobalPlaybackOverlay extends StatelessWidget {
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
-                        child: _MiniPlayerCard(
-                          state: state,
-                          onTap: () => _openExpandedPlayer(context),
-                          onPlayPauseTap: globalPlayer.togglePlayPause,
-                          onDeviceTap: () => _showDeviceSheet(context),
+                        child: AnimatedBuilder(
+                          animation: AdService.shared,
+                          builder: (context, _) => _MiniPlayerCard(
+                            state: state,
+                            isAdPlaying: AdService.shared.isAdPlaying,
+                            adRemainingSeconds: AdService.shared.remainingSeconds,
+                            onTap: () => _openExpandedPlayer(context),
+                            onPlayPauseTap: globalPlayer.togglePlayPause,
+                            onDeviceTap: () => _showDeviceSheet(context),
+                          ),
                         ),
                       ),
                     ),
@@ -122,12 +168,16 @@ Future<void> _openExpandedPlayer(BuildContext context) async {
 // ─────────────────────────────────────────────────────────
 class _MiniPlayerCard extends StatelessWidget {
   final PlaybackStateModel state;
+  final bool isAdPlaying;
+  final int adRemainingSeconds;
   final VoidCallback onTap;
   final VoidCallback onPlayPauseTap;
   final VoidCallback onDeviceTap;
 
   const _MiniPlayerCard({
     required this.state,
+    required this.isAdPlaying,
+    required this.adRemainingSeconds,
     required this.onTap,
     required this.onPlayPauseTap,
     required this.onDeviceTap,
@@ -152,21 +202,24 @@ class _MiniPlayerCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
+                // Left circle — ad icon when ad is playing, play/pause otherwise.
                 GestureDetector(
-                  onTap: onPlayPauseTap,
+                  onTap: isAdPlaying ? null : onPlayPauseTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: isAdPlaying ? Colors.white12 : Colors.white,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      state.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                      color: Colors.black,
+                      isAdPlaying
+                          ? Icons.campaign_rounded
+                          : (state.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded),
+                      color: isAdPlaying ? Colors.white54 : Colors.black,
                       size: 26,
                     ),
                   ),
@@ -178,7 +231,7 @@ class _MiniPlayerCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        track.title,
+                        isAdPlaying ? 'Ad playing' : track.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -189,7 +242,9 @@ class _MiniPlayerCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        track.artistName,
+                        isAdPlaying
+                            ? '$adRemainingSeconds s remaining'
+                            : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -200,18 +255,20 @@ class _MiniPlayerCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 4),
-                IconButton(
-                  onPressed: onDeviceTap,
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(
-                    Icons.devices,
-                    color: AppColors.brilliantOrange,
-                    size: 26,
+                if (!isAdPlaying) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: onDeviceTap,
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(
+                      Icons.devices,
+                      color: AppColors.brilliantOrange,
+                      size: 26,
+                    ),
                   ),
-                ),
-                _MiniLikeButton(trackId: track.id),
+                  _MiniLikeButton(trackId: track.id),
+                ],
               ],
             ),
           ),
@@ -224,8 +281,34 @@ class _MiniPlayerCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 //  EXPANDED PLAYER — matches SoundCloud's now-playing screen
 // ─────────────────────────────────────────────────────────
-class _ExpandedPlayerSheet extends StatelessWidget {
+class _ExpandedPlayerSheet extends StatefulWidget {
   const _ExpandedPlayerSheet();
+
+  @override
+  State<_ExpandedPlayerSheet> createState() => _ExpandedPlayerSheetState();
+}
+
+class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
+  bool _isAdPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAdPlaying = AdService.shared.isAdPlaying;
+    AdService.shared.addListener(_onAdStateChanged);
+  }
+
+  @override
+  void dispose() {
+    AdService.shared.removeListener(_onAdStateChanged);
+    super.dispose();
+  }
+
+  void _onAdStateChanged() {
+    if (!mounted) return;
+    final bool next = AdService.shared.isAdPlaying;
+    if (_isAdPlaying != next) setState(() => _isAdPlaying = next);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -476,18 +559,22 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                         bottom: 48,
                         child: _ExpandedVolumeSlider(),
                       ),
+                      // Ad overlay — covers the entire player when an ad is active.
+                      if (_isAdPlaying)
+                        const Positioned.fill(child: AdPlayerWidget()),
                     ],
                   ),
                 ),
-                Container(
-                  color: Colors.black,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
-                  child: _ExpandedEngagementBar(
-                    track: track,
-                    onShareTap: () => _showShareSheet(context, track),
-                    onMoreTap: () => _showTrackOptionsSheet(context, track),
+                if (!_isAdPlaying)
+                  Container(
+                    color: Colors.black,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
+                    child: _ExpandedEngagementBar(
+                      track: track,
+                      onShareTap: () => _showShareSheet(context, track),
+                      onMoreTap: () => _showTrackOptionsSheet(context, track),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -1401,14 +1488,37 @@ Future<void> _showShareSheet(
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;
 
+  // Fetch track owner's profileLink so both sender and receiver can load the card.
+  final String permalink = track.permalink ?? '';
+  final String artistId = track.artistId ?? '';
+  String profileLink = '';
+  if (permalink.isNotEmpty && artistId.isNotEmpty) {
+    debugPrint('[_showShareSheet] Fetching profileLink for artistId="$artistId"');
+    try {
+      profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+      debugPrint('[_showShareSheet] profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+    } catch (e) {
+      debugPrint('[_showShareSheet] ❌ getUserProfileLink threw: $e');
+    }
+  } else {
+    debugPrint('[_showShareSheet] ⚠️ permalink="$permalink" artistId="$artistId" — one is empty, skipping profileLink fetch');
+  }
+  final String trackLink = permalink.isNotEmpty
+      ? 'track::permalink:"$permalink",profilelink:"$profileLink"'
+      : '';
+
+  // Re-read context after the async gap — the original capture may be stale.
+  final BuildContext? freshContext = appNavigatorKey.currentContext;
+  if (freshContext == null) return;
+
   _isTransientSheetOpening.value = true;
   try {
     await showModalBottomSheet<void>(
-      context: navigatorContext,
+      context: freshContext,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
           decoration: const BoxDecoration(
             color: Color(0xFF090909),
@@ -1455,7 +1565,7 @@ Future<void> _showShareSheet(
                               ? Image.network(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => const Icon(
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
                                     Icons.album_rounded,
                                     color: Colors.black54,
                                     size: 34,
@@ -1509,28 +1619,43 @@ Future<void> _showShareSheet(
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const SingleChildScrollView(
+                  SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
                         _ShareAction(
                           icon: Icons.send_outlined,
                           label: 'Message',
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            final ctx = appNavigatorKey.currentContext;
+                            if (ctx == null) return;
+                            showModalBottomSheet<void>(
+                              context: ctx,
+                              useRootNavigator: true,
+                              backgroundColor: Colors.transparent,
+                              isScrollControlled: true,
+                              builder: (_) => SendToSheet(
+                                trackLink: trackLink,
+                                trackTitle: track.title,
+                              ),
+                            );
+                          },
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.copy_outlined,
                           label: 'Copy link',
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.qr_code_2_outlined,
                           label: 'QR code',
                         ),
-                        _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
-                        _ShareAction(
+                        const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
+                        const _ShareAction(
                           icon: Icons.chat_bubble_outline,
                           label: 'WhatsApp',
                         ),
-                        _ShareAction(
+                        const _ShareAction(
                           icon: Icons.camera_alt_outlined,
                           label: 'Stories',
                         ),
@@ -2129,13 +2254,36 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     }
     debugPrint('[SendTo] STEP 1 ✅ OK');
 
-    // Step 2: resolve track link
-    debugPrint('[SendTo] STEP 2 — resolving track link');
-    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}"');
+    // Step 2: resolve permalink and artistId
+    debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
+    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"');
     final link = widget.track.permalink ?? '';
-    debugPrint('[SendTo] STEP 2 ✅ resolved link="$link"');
+    final artistId = widget.track.artistId ?? '';
+    debugPrint('[SendTo] STEP 2 ✅ permalink="$link" artistId="$artistId"');
 
-    // Step 3: fetch followers
+    // Step 3: fetch track owner's profileLink
+    debugPrint('[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"');
+    String profileLink = '';
+    if (artistId.isNotEmpty) {
+      try {
+        profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+        debugPrint('[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+        if (profileLink.isEmpty) {
+          debugPrint('[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
+        }
+      } catch (e) {
+        debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
+      }
+    } else {
+      debugPrint('[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.');
+    }
+
+    String buildPayload() {
+      if (link.isEmpty) return '';
+      return 'track::permalink:"$link",profilelink:"$profileLink"';
+    }
+
+    // Step 4: fetch followers
     debugPrint('[SendTo] STEP 3 — calling getFollowers(userId=$currentUserId)');
     debugPrint('[SendTo] STEP 3   URL: [baseUrl]/api/social/v1/followers/$currentUserId');
     try {
@@ -2144,7 +2292,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
       if (result.$1 != 200) {
         debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"');
-        if (mounted) setState(() => _trackLink = link.isNotEmpty ? 'track::$link' : '');
+        if (mounted) setState(() => _trackLink = buildPayload());
         return;
       }
       debugPrint('[SendTo] STEP 3 ✅ status 200');
@@ -2195,13 +2343,13 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
           .toList();
       setState(() {
         _recentContacts = contacts;
-        _trackLink = link.isNotEmpty ? 'track::$link' : '';
+        _trackLink = buildPayload();
       });
       debugPrint('[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}');
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo]   stack: $stack');
-      if (mounted) setState(() => _trackLink = link.isNotEmpty ? 'track::$link' : '');
+      if (mounted) setState(() => _trackLink = buildPayload());
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
@@ -2294,18 +2442,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     Navigator.pop(context);
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId() ?? '';
-    if (!navCtx.mounted) return;
-    Navigator.pushNamed(
-      navCtx,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': artistId,
-        'token': token,
-        'currentUserId': currentUserId,
-      },
-    );
+    await ProfileNavigator.push(navCtx, artistId);
   }
 
   Future<void> _openComments() async {
@@ -2798,6 +2935,7 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
   final SocialApiService _socialService = SocialApiService();
   bool _isFollowing = false;
   bool _isLoading = false;
+  String? _currentUserId;
 
   @override
   void initState() {
@@ -2820,10 +2958,14 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
+      final userId = await AuthApiService().getStoredUserId();
       final profile =
           await UserProfileService().getUserProfile(artistId, token);
       if (!mounted) return;
-      setState(() => _isFollowing = profile.isFollowed);
+      setState(() {
+        _currentUserId = userId;
+        _isFollowing = profile.isFollowed;
+      });
     } catch (_) {}
   }
 
@@ -2847,6 +2989,11 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (_currentUserId != null &&
+        _currentUserId!.isNotEmpty &&
+        _currentUserId == widget.track.artistId) {
+      return const SizedBox.shrink();
+    }
     return IconButton(
       onPressed: _toggleFollow,
       padding: EdgeInsets.zero,

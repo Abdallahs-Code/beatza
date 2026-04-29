@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/library/screens/listening_history_screen.dart';
@@ -116,33 +117,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _openProfile(BuildContext context) async {
     try {
-      final token = await _authApiService.getStoredAccessToken();
       final userId = await _authApiService.getStoredUserId();
-
-      final safeToken = (token == null || token.trim().isEmpty)
-          ? 'mock_token'
-          : token;
-      final safeUserId = (userId == null || userId.trim().isEmpty)
-          ? 'mock_user_id'
-          : userId;
-
-      if (!context.mounted) {
-        return;
-      }
-
-      Navigator.pushNamed(
-        context,
-        UserProfileSocialIdentityRoutes.userProfileRoute,
-        arguments: {
-          'userId': safeUserId,
-          'token': safeToken,
-          'currentUserId': safeUserId,
-        },
-      ).then((_) {
-        setState(() {
-          _profileFuture = _loadUserProfile();
-        });
-      });
+      if (userId == null || userId.trim().isEmpty) return;
+      if (!context.mounted) return;
+      await ProfileNavigator.push(context, userId);
+      if (mounted) setState(() => _profileFuture = _loadUserProfile());
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(

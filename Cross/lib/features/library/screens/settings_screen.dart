@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/library/screens/account_settings_screen.dart';
+import 'package:cross_team5/features/library/screens/notification_settings_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
@@ -233,10 +235,22 @@ class SettingsScreen extends StatelessWidget {
                       initialSwitchValue: false,
                     ),
                     const _SettingsTile(title: 'Import my music'),
-                    const _SettingsTile(title: 'Account'),
+                    _SettingsTile(
+                      title: 'Account',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AccountSettingsScreen()),
+                      ),
+                    ),
                     const _SettingsTile(title: 'Inbox'),
                     const _SettingsTile(title: 'Social'),
-                    const _SettingsTile(title: 'Notifications'),
+                    _SettingsTile(
+                      title: 'Notifications',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()),
+                      ),
+                    ),
                     const _SettingsTile(title: 'App Icon'),
                     const _SettingsTile(title: 'App Language'),
                     const _SettingsTile(title: 'Storage'),
