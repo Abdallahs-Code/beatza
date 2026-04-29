@@ -42,7 +42,6 @@ class _FollowingScreenState extends State<FollowingScreen>
   String? _suggestedError;
 
   String? _currentUserId;
-  String? _accessToken;
   Set<String> _blockedUserIds = {};
 
   static final RouteObserver<ModalRoute<void>> routeObserver =
@@ -117,14 +116,12 @@ class _FollowingScreenState extends State<FollowingScreen>
 
   Future<void> _loadAll() async {
     final storedCurrentUserId = await _authApiService.getStoredUserId();
-    final storedAccessToken = await _authApiService.getStoredAccessToken();
     final blockedUserIds = await _loadBlockedUserIds();
 
     if (!mounted) return;
 
     setState(() {
       _currentUserId = storedCurrentUserId;
-      _accessToken = storedAccessToken;
       _blockedUserIds = blockedUserIds;
     });
 
@@ -436,7 +433,6 @@ class _FollowingScreenState extends State<FollowingScreen>
                 return UserTile(
                   follower: follower,
                   currentUserId: _currentUserId,
-                  accessToken: _accessToken,
                   showBlockOption: !follower.isBlocked,
                   showUnblockOption: follower.isBlocked,
                   onFollowTap: follower.isBlocked
@@ -499,7 +495,6 @@ class _FollowingScreenState extends State<FollowingScreen>
                 return UserTile(
                   follower: follower,
                   currentUserId: _currentUserId,
-                  accessToken: _accessToken,
                   showBlockOption: !follower.isBlocked,
                   showUnblockOption: follower.isBlocked,
                   onFollowTap: follower.isBlocked

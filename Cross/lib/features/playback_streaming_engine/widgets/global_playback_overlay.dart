@@ -6,11 +6,14 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 
 import '../models/playback_state_model.dart';
 import '../models/playback_track_model.dart';
+import '../services/ad_service.dart';
 import '../services/playback_streaming_engine_service.dart';
+import 'ad_overlay.dart';
 import '../services/playback_track_api_service.dart';
 import '../services/waveform_extractor.dart';
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
@@ -43,8 +46,45 @@ final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(null
 final Map<String, List<double>> _expandedWaveformCache =
     <String, List<double>>{};
 
-class GlobalPlaybackOverlay extends StatelessWidget {
+class GlobalPlaybackOverlay extends StatefulWidget {
   const GlobalPlaybackOverlay({super.key});
+
+  @override
+  State<GlobalPlaybackOverlay> createState() => _GlobalPlaybackOverlayState();
+}
+
+class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
+  // Track the previous ad state so we only open the player on the
+  // false→true transition, not on every countdown tick.
+  bool _wasAdPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _wasAdPlaying = AdService.shared.isAdPlaying;
+    AdService.shared.addListener(_onAdStateChanged);
+  }
+
+  @override
+  void dispose() {
+    AdService.shared.removeListener(_onAdStateChanged);
+    super.dispose();
+  }
+
+  void _onAdStateChanged() {
+    final bool isAdPlaying = AdService.shared.isAdPlaying;
+    final bool justStarted = isAdPlaying && !_wasAdPlaying;
+    _wasAdPlaying = isAdPlaying;
+
+    if (justStarted && !_isExpandedPlayerVisible.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (AdService.shared.isAdPlaying && !_isExpandedPlayerVisible.value) {
+          _openExpandedPlayer(context);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +119,16 @@ class GlobalPlaybackOverlay extends StatelessWidget {
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
-                        child: _MiniPlayerCard(
-                          state: state,
-                          onTap: () => _openExpandedPlayer(context),
-                          onPlayPauseTap: globalPlayer.togglePlayPause,
-                          onDeviceTap: () => _showDeviceSheet(context),
+                        child: AnimatedBuilder(
+                          animation: AdService.shared,
+                          builder: (context, _) => _MiniPlayerCard(
+                            state: state,
+                            isAdPlaying: AdService.shared.isAdPlaying,
+                            adRemainingSeconds: AdService.shared.remainingSeconds,
+                            onTap: () => _openExpandedPlayer(context),
+                            onPlayPauseTap: globalPlayer.togglePlayPause,
+                            onDeviceTap: () => _showDeviceSheet(context),
+                          ),
                         ),
                       ),
                     ),
@@ -123,12 +168,16 @@ Future<void> _openExpandedPlayer(BuildContext context) async {
 // ─────────────────────────────────────────────────────────
 class _MiniPlayerCard extends StatelessWidget {
   final PlaybackStateModel state;
+  final bool isAdPlaying;
+  final int adRemainingSeconds;
   final VoidCallback onTap;
   final VoidCallback onPlayPauseTap;
   final VoidCallback onDeviceTap;
 
   const _MiniPlayerCard({
     required this.state,
+    required this.isAdPlaying,
+    required this.adRemainingSeconds,
     required this.onTap,
     required this.onPlayPauseTap,
     required this.onDeviceTap,
@@ -137,6 +186,7 @@ class _MiniPlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlaybackTrackModel track = state.currentTrack!;
+    final bool isBlocked = state.status == PlaybackStatus.blocked;
 
     return Material(
       color: Colors.transparent,
@@ -153,21 +203,30 @@ class _MiniPlayerCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
+                // Left circle — ad icon when ad is playing, blocked icon when unavailable, play/pause otherwise.
                 GestureDetector(
-                  onTap: onPlayPauseTap,
+                  onTap: isAdPlaying || isBlocked ? null : onPlayPauseTap,
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: isAdPlaying || isBlocked
+                          ? Colors.white12
+                          : Colors.white,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      state.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                      color: Colors.black,
+                      isAdPlaying
+                          ? Icons.campaign_rounded
+                          : isBlocked
+                              ? Icons.music_off_rounded
+                              : (state.isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded),
+                      color: isAdPlaying || isBlocked
+                          ? Colors.white38
+                          : Colors.black,
                       size: 26,
                     ),
                   ),
@@ -179,7 +238,7 @@ class _MiniPlayerCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        track.title,
+                        isAdPlaying ? 'Ad playing' : track.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -190,29 +249,37 @@ class _MiniPlayerCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        track.artistName,
+                        isAdPlaying
+                            ? '$adRemainingSeconds s remaining'
+                            : isBlocked
+                                ? 'Not available'
+                                : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white60,
+                        style: TextStyle(
+                          color: isBlocked
+                              ? Colors.orange.withValues(alpha: 0.7)
+                              : Colors.white60,
                           fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 4),
-                IconButton(
-                  onPressed: onDeviceTap,
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(
-                    Icons.devices,
-                    color: AppColors.brilliantOrange,
-                    size: 26,
+                if (!isAdPlaying) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: onDeviceTap,
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(
+                      Icons.devices,
+                      color: AppColors.brilliantOrange,
+                      size: 26,
+                    ),
                   ),
-                ),
-                _MiniLikeButton(trackId: track.id),
+                  _MiniLikeButton(trackId: track.id),
+                ],
               ],
             ),
           ),
@@ -225,8 +292,34 @@ class _MiniPlayerCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 //  EXPANDED PLAYER — matches SoundCloud's now-playing screen
 // ─────────────────────────────────────────────────────────
-class _ExpandedPlayerSheet extends StatelessWidget {
+class _ExpandedPlayerSheet extends StatefulWidget {
   const _ExpandedPlayerSheet();
+
+  @override
+  State<_ExpandedPlayerSheet> createState() => _ExpandedPlayerSheetState();
+}
+
+class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
+  bool _isAdPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAdPlaying = AdService.shared.isAdPlaying;
+    AdService.shared.addListener(_onAdStateChanged);
+  }
+
+  @override
+  void dispose() {
+    AdService.shared.removeListener(_onAdStateChanged);
+    super.dispose();
+  }
+
+  void _onAdStateChanged() {
+    if (!mounted) return;
+    final bool next = AdService.shared.isAdPlaying;
+    if (_isAdPlaying != next) setState(() => _isAdPlaying = next);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -477,18 +570,22 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                         bottom: 48,
                         child: _ExpandedVolumeSlider(),
                       ),
+                      // Ad overlay — covers the entire player when an ad is active.
+                      if (_isAdPlaying)
+                        const Positioned.fill(child: AdPlayerWidget()),
                     ],
                   ),
                 ),
-                Container(
-                  color: Colors.black,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
-                  child: _ExpandedEngagementBar(
-                    track: track,
-                    onShareTap: () => _showShareSheet(context, track),
-                    onMoreTap: () => _showTrackOptionsSheet(context, track),
+                if (!_isAdPlaying)
+                  Container(
+                    color: Colors.black,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
+                    child: _ExpandedEngagementBar(
+                      track: track,
+                      onShareTap: () => _showShareSheet(context, track),
+                      onMoreTap: () => _showTrackOptionsSheet(context, track),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -621,12 +718,14 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
   bool _isPlaying = false;
   Duration _position = Duration.zero;
   bool _isSkipping = false;
+  bool _isBlocked = false;
 
   @override
   void initState() {
     super.initState();
     _isPlaying = _globalPlayer.state.isPlaying;
     _position = _globalPlayer.state.currentPosition;
+    _isBlocked = _globalPlayer.state.status == PlaybackStatus.blocked;
     _globalPlayer.addListener(_handlePlayerUpdate);
   }
 
@@ -639,11 +738,16 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
   void _handlePlayerUpdate() {
     final bool nextPlaying = _globalPlayer.state.isPlaying;
     final Duration nextPosition = _globalPlayer.state.currentPosition;
+    final bool nextBlocked =
+        _globalPlayer.state.status == PlaybackStatus.blocked;
 
-    if (_isPlaying != nextPlaying || _position != nextPosition) {
+    if (_isPlaying != nextPlaying ||
+        _position != nextPosition ||
+        _isBlocked != nextBlocked) {
       setState(() {
         _isPlaying = nextPlaying;
         _position = nextPosition;
+        _isBlocked = nextBlocked;
       });
     }
   }
@@ -674,6 +778,46 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isBlocked) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _PlayerActionButton(
+            icon: Icons.skip_previous_rounded,
+            enabled: !_isSkipping,
+            onTap: _skipPrevious,
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.music_off_rounded, color: Colors.white38, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Not available',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _PlayerActionButton(
+            icon: Icons.skip_next_rounded,
+            enabled: !_isSkipping,
+            onTap: _skipNext,
+          ),
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -2356,18 +2500,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     Navigator.pop(context);
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId() ?? '';
-    if (!navCtx.mounted) return;
-    Navigator.pushNamed(
-      navCtx,
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': artistId,
-        'token': token,
-        'currentUserId': currentUserId,
-      },
-    );
+    await ProfileNavigator.push(navCtx, artistId);
   }
 
   Future<void> _openComments() async {

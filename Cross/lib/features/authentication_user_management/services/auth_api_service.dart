@@ -1,5 +1,8 @@
 // Dart imports
 import "dart:convert";
+import "dart:io";
+
+import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 import "package:http/http.dart" as http;
 import "package:cross_team5/core/services/api_services.dart";
@@ -36,6 +39,24 @@ class AuthApiService {
   }
 
   Future<void> _clearTokens() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        final accessToken = await _storage.read(key: 'access_token');
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (accessToken != null && fcmToken != null) {
+          await _client.delete(
+            Uri.parse('${_apiServices.baseUrl}/api/notifications/v1/fcm-token'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $accessToken',
+              'User-Agent': 'Android',
+            },
+            body: jsonEncode({'token': fcmToken}),
+          ).timeout(const Duration(seconds: 5));
+        }
+      } catch (_) {}
+    }
+
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
     await _storage.delete(key: 'token_time');

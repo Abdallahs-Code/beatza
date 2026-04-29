@@ -532,8 +532,7 @@ class MessagingApiService {
     return [];
   }
 
-  // GET /api/profile/v1/{userId} — returns the user's profileLink slug
-  // Mimics the same auth pattern used throughout the project (Bearer token + Android UA)
+  // GET /api/public/profile/v1/{userId} — returns the user's profileLink slug
   Future<String?> getUserProfileLink({required String userId}) async {
     debugPrint('━━━ [getUserProfileLink] ━━━');
     debugPrint('[getUserProfileLink] userId="$userId" (empty=${userId.isEmpty})');
@@ -542,7 +541,7 @@ class MessagingApiService {
       return null;
     }
     final token = await _token();
-    final uri = Uri.parse('${_apiServices.baseUrl}/api/profile/v1/$userId');
+    final uri = Uri.parse('${_apiServices.baseUrl}/api/public/profile/v1/$userId');
     debugPrint('[getUserProfileLink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getUserProfileLink] status=${res.statusCode}');
@@ -555,6 +554,36 @@ class MessagingApiService {
     final profileLink = data['profileLink']?.toString().trim() ?? '';
     debugPrint('[getUserProfileLink] ✅ profileLink="$profileLink"');
     return profileLink.isEmpty ? null : profileLink;
+  }
+
+  // GET /api/public/profile/v1/{userId} — returns blockingMe field.
+  // Used when opening a chat to detect if the receiver has blocked the current user.
+  Future<bool> getPublicProfileBlockingMe({required String userId}) async {
+    debugPrint('━━━ [getPublicProfileBlockingMe] ━━━');
+    debugPrint('[getPublicProfileBlockingMe] userId="$userId" (empty=${userId.isEmpty})');
+    if (userId.isEmpty) {
+      debugPrint('[getPublicProfileBlockingMe] ❌ Empty userId — aborting');
+      return false;
+    }
+    try {
+      final token = await _token();
+      final uri = Uri.parse('${_apiServices.baseUrl}/api/public/profile/v1/$userId');
+      debugPrint('[getPublicProfileBlockingMe] GET $uri');
+      final res = await _client.get(uri, headers: _headers(token));
+      debugPrint('[getPublicProfileBlockingMe] status=${res.statusCode}');
+      debugPrint('[getPublicProfileBlockingMe] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}');
+      final data = _decode(res);
+      if (res.statusCode != 200 || data is! Map) {
+        debugPrint('[getPublicProfileBlockingMe] ❌ Non-200 or non-Map. status=${res.statusCode}');
+        return false;
+      }
+      final blockingMe = data['blockingMe'] == true;
+      debugPrint('[getPublicProfileBlockingMe] ✅ blockingMe=$blockingMe isBlocked=${data['isBlocked']}');
+      return blockingMe;
+    } catch (e) {
+      debugPrint('[getPublicProfileBlockingMe] ❌ EXCEPTION: $e');
+      return false;
+    }
   }
 
   // GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}

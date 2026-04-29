@@ -119,7 +119,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/profile/v1/{userId} ─────────────────────────────────────────
+  // ── GET /api/public/profile/v1/{userId} ──────────────────────────────────
   // Fetches public profile details by user ID (display name, avatar, etc.)
   // Returns: (200, Map<String, dynamic>) | (404, message) | (500, message)
   Future<(int, dynamic)> getUserById(String userId) async {
@@ -128,7 +128,7 @@ class FeedSearchApiService {
       if (token == null) return (401, 'No access token');
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/profile/v1/$userId',
+        '${_apiServices.baseUrl}/api/public/profile/v1/$userId',
       );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
