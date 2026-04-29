@@ -124,6 +124,7 @@ class AdPlayerWidget extends StatelessWidget {
     required int remaining,
     required int secsUntilSkip,
   }) {
+    // No skips left — tell the user immediately, no countdown needed.
     if (!canSkip) return _Pill('No skips remaining');
 
     if (!skipReady) {
