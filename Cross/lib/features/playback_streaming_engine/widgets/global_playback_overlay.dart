@@ -486,7 +486,7 @@ class _ExpandedPlayerSheet extends StatelessWidget {
                   child: _ExpandedEngagementBar(
                     track: track,
                     onShareTap: () => _showShareSheet(context, track),
-                    onMoreTap: () => _showTrackOptionsSheet(context, track),
+                    onMoreTap: () => showTrackOptionsSheet(context, track),
                   ),
                 ),
               ],
@@ -1588,7 +1588,7 @@ Future<void> _showShareSheet(
   }
 }
 
-Future<void> _showTrackOptionsSheet(
+Future<void> showTrackOptionsSheet(
   BuildContext context,
   PlaybackTrackModel track,
 ) async {

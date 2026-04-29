@@ -350,6 +350,34 @@ class FeedSearchApiService {
     }
   }
 
+  // ── GET /api/tracks/v2/ ──────────────────────────────────────────────────
+  // Returns: (200, Map<String,dynamic> data) with {tracks:[...], paginationInfo:{...}}
+  // Query params: page (int, default 1), limit (int, default 30)
+  Future<(int, dynamic)> getPublicTracks({int page = 1, int limit = 30}) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, 'No access token');
+
+      final uri = Uri.parse(
+        '${_apiServices.baseUrl}/api/tracks/v2/',
+      ).replace(queryParameters: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      });
+
+      final response = await _client.get(uri, headers: _authHeaders(token));
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final data = body['data'] as Map<String, dynamic>?;
+        return (200, data ?? body);
+      }
+      return (response.statusCode, body['message'] ?? 'Error');
+    } catch (err) {
+      return (500, 'Network error: $err');
+    }
+  }
+
   // ── DELETE /api/feed/v1/search/history/{historyId} ────────────────────────
   // Returns: (204, null) | (401, message) | (404, message) | (500, message)
   Future<(int, dynamic)> deleteSearchHistoryItem(String historyId) async {
