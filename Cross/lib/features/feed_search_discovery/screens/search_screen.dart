@@ -68,6 +68,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   // History (while typing)
   List<SearchHistoryItemModel> _history = [];
+  Map<String, String?> _historyImages = {};
   bool _historyLoading = false;
 
   // Results (after submit)
@@ -171,8 +172,33 @@ class _SearchScreenState extends State<SearchScreen>
     final (code, data) = await _service.getSearchHistory();
     if (!mounted) return;
     if (code == 200 && data is List) {
+      final items = SearchHistoryItemModel.listFromJson(data);
+
+      // API stores only id+type; fetch images client-side for items missing one
+      final images = <String, String?>{};
+      await Future.wait(items.map((item) async {
+        if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+          images[item.id] = item.imageUrl;
+          return;
+        }
+        if (item.type == 'track') {
+          final (c, trackData) = await _service.getTrackById(item.id);
+          if (c == 200 && trackData is Map<String, dynamic>) {
+            final img = trackData['image'] as Map<String, dynamic>? ?? {};
+            images[item.id] = img['imgLink']?.toString();
+          }
+        } else if (item.type == 'user') {
+          final (c, userData) = await _service.getUserById(item.id);
+          if (c == 200 && userData is Map<String, dynamic>) {
+            images[item.id] = userData['profileImgLink']?.toString();
+          }
+        }
+      }));
+
+      if (!mounted) return;
       setState(() {
-        _history = SearchHistoryItemModel.listFromJson(data);
+        _history = items;
+        _historyImages = images;
         _historyLoading = false;
       });
     } else {
@@ -397,7 +423,7 @@ class _SearchScreenState extends State<SearchScreen>
               id: item.id,
               title: item.title,
               subtitle: item.metadata,
-              imageUrl: item.imageUrl,
+              imageUrl: _historyImages[item.id] ?? item.imageUrl,
               type: item.type,
               onTap: () {
                 _searchController.text = item.title;
