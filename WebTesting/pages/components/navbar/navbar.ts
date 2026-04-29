@@ -79,18 +79,9 @@ export class Navbar {
         await this.profileBtn.click()
         await this.profileDropdown.profile.click()
     }
-    // async AfterLoginAssertions() {
-    //     await expect(this.signIn).toBeHidden()
-    //     await expect(this.createAccount).toBeHidden()
-
-    //     await expect(this.upload).toBeVisible();
-    //     await expect(this.profileBtn).toBeVisible();
-    //     await expect(this.nofications).toBeVisible();
-    //     await expect(this.messages).toBeVisible();
-    //     await this.ClickMore();
-    //     await this.moreDropdown.expectVisible();
-    //     await expect(this.moreDropdown.settings).toBeVisible();
-    //     await expect(this.moreDropdown.signOut).toBeVisible();
-    // }
+    async GoToSubscription() {
+        await this.ClickMore()
+        await this.moreDropdown.subscription.click()
+    }
 
 }
