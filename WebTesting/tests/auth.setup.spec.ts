@@ -10,6 +10,8 @@ const artist1File = 'playwright/.auth/artist1.json';
 const artist2File = 'playwright/.auth/artist2.json';
 const listener1File = 'playwright/.auth/artist3.json';
 const listener2File = 'playwright/.auth/listener2.json';
+const listener3File = 'playwright/.auth/listener3.json';
+const listener4File = 'playwright/.auth/listener4.json';
 
 setup('Authenticate Artist 1', async ({ page }) => {
     await page.goto('https://beatza.me/');

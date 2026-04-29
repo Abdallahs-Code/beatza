@@ -17,7 +17,7 @@ export class Navbar {
 
     //signed in
     tryArtistProLink: Locator;
-    forArtistLink: Locator;
+    artistStudio: Locator;
 
     upload: Locator;
     more_btn: Locator;
@@ -46,7 +46,7 @@ export class Navbar {
 
         this.tryArtistProLink = navbar.getByRole("link", { name: "Try Artist Pro" })
 
-        this.forArtistLink = navbar.getByRole("link", { name: "For Artist" })
+        this.artistStudio = navbar.getByTestId("for_artists")
 
         this.more_btn = navbar.getByTestId("more_button")
 
