@@ -1,5 +1,5 @@
 // Model: SearchHistoryItemModel
-// Shape from GET /api/feed/v1/search/history
+// Shape from GET /api/public/feed/v1/search/history
 // Response:
 // [ { "id": "string", "type": "track", "title": "string",
 //     "imageUrl": "string", "metadata": "string" } ]

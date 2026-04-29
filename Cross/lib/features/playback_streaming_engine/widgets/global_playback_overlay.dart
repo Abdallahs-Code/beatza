@@ -1749,6 +1749,12 @@ Future<void> _showTrackOptionsSheet(
   );
 }
 
+/// Public entry point for opening the track options sheet from outside this file.
+Future<void> showTrackOptionsSheet(
+  BuildContext context,
+  PlaybackTrackModel track,
+) => _showTrackOptionsSheet(context, track);
+
 class _TrackOptionsHeaderCard extends StatelessWidget {
   final PlaybackTrackModel track;
 

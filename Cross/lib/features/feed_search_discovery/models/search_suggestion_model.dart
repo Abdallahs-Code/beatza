@@ -1,5 +1,5 @@
 // Model: SearchSuggestionModel
-// Shape from GET /api/feed/v1/search/suggestions
+// Shape from GET /api/public/feed/v1/search/suggestions
 // Response:
 // [ { "id": "string", "type": "track", "title": "string",
 //     "imgLink": "string", "isPersonalized": true } ]
