@@ -26,6 +26,10 @@ class UserProfileService {
     _servicePath = "${_apiServices.baseUrl}/api/profile/v1";
   }
 
+  // Public base path used for GET profile lookups (no auth required by backend).
+  // PATCH operations (updateUserProfile, updateProfileImages) use _servicePath (authenticated).
+  String get _publicServicePath => "${_apiServices.baseUrl}/api/public/profile/v1";
+
   String _extractErrorMessage(Map<String, dynamic> data, String defaultMsg) {
     String msg = data["message"] ?? defaultMsg;
     if (data.containsKey("errors") && data["errors"] != null) {
@@ -41,7 +45,7 @@ class UserProfileService {
 
   Future<UserProfileModel> getUserProfile(String userId, String token) async {
     try {
-      final url = "$_servicePath/$userId";
+      final url = "$_publicServicePath/$userId";
       final response = await http
           .get(
             Uri.parse(url),

@@ -87,7 +87,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   }
 
   // Called when the user taps "Done".
-  // Fetches the track owner's profileLink via GET /api/profile/v1/{artistId},
+  // Fetches the track owner's profileLink via GET /api/public/profile/v1/{artistId},
   // then composes: track::permalink:"...",profilelink:"..."
   Future<void> _handleDone() async {
     final permalink = _selectedTrackLink!;

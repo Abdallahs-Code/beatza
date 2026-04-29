@@ -11,7 +11,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
-// ─── Top-level helpers (accessible from background isolate) ──────────────────
+// ─── Top-level helpers (must be accessible from background isolate) ───────────
 
 ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
   // (A) — full JSON string under a single key
@@ -26,7 +26,8 @@ ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
     } catch (_) {}
   }
 
-  // (B) — flattened fields, actor/target are JSON-encoded strings
+  // (B) — flattened fields; actor/target are JSON-encoded strings
+  // (FCM delivers all data values as strings, so this is the common path)
   try {
     final actorRaw = data['actor'];
     final targetRaw = data['target'];
@@ -65,7 +66,26 @@ String _buildBody(ActivityNotificationModel n) {
   }
 }
 
-// Called when a data-only FCM message arrives while the app is killed/background.
+// Serialises just the fields needed for navigation into a compact JSON string
+// that can be stored as a local-notification payload.
+// Must be top-level so the background isolate can call it.
+String _buildActivityPayload(ActivityNotificationModel n) {
+  return jsonEncode({
+    't': 'a',
+    'at': n.activityType,
+    'auid': n.actor.userId,
+    'adn': n.actor.displayName,
+    'aau': n.actor.avatarUrl,
+    'tid': n.target.targetId,
+    'trkid': n.target.trackId ?? '',
+    'ttl': n.target.title ?? '',
+    'to': n.to,
+  });
+}
+
+// Called when a data-only FCM message arrives while the app is in the
+// background or killed.  FCM auto-shows messages that carry a `notification`
+// field — this handler only runs when there is NO notification field.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -74,6 +94,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final notification = _parseFromData(message.data);
   if (notification == null) return;
+
+  // Include the payload so that a tap on this notification can be routed
+  // correctly by the main isolate's _onLocalNotificationTap / getNotificationAppLaunchDetails.
+  final payload = _buildActivityPayload(notification);
 
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(const InitializationSettings(
@@ -93,8 +117,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         icon: '@mipmap/ic_launcher',
       ),
     ),
-    // No payload here — the tap will be captured by getInitialMessage/onMessageOpenedApp
-    // since this notification was triggered by FCM data, not by local plugin.
+    payload: payload,
   );
 }
 
@@ -147,13 +170,13 @@ class PushNotificationService {
 
       await FirebaseMessaging.instance.requestPermission();
 
-      // Foreground FCM message — show via local notification.
+      // Foreground FCM message → show via local notification.
       FirebaseMessaging.onMessage.listen((message) {
         final notification = _parseFromData(message.data);
         if (notification != null) show(notification);
       });
 
-      // App was in BACKGROUND — user tapped the system notification.
+      // App was in BACKGROUND → user tapped the system FCM notification.
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
         final notification = _parseFromData(message.data);
         if (notification != null) {
@@ -162,19 +185,21 @@ class PushNotificationService {
         }
       });
 
-      // App was KILLED — user tapped the system notification that launched us.
+      // App was KILLED → user tapped a system FCM notification that woke us.
+      // Navigator is not ready yet, so the service queues it as pending and
+      // HomeScreen executes it after its first frame.
       final initial = await FirebaseMessaging.instance.getInitialMessage();
       if (initial != null) {
         final notification = _parseFromData(initial.data);
         if (notification != null) {
-          // Navigator is not yet ready — stored as pending and executed from HomeScreen.
           unawaited(NotificationNavigationService.shared
               .handleActivityNotification(notification));
         }
       }
     }
 
-    // flutter_local_notifications — handles taps on foreground (in-app) notifications.
+    // flutter_local_notifications — handles taps on in-app (foreground /
+    // background) notifications shown by this service.
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
@@ -185,6 +210,18 @@ class PushNotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+
+    // Handles the case where the app was KILLED and re-launched by tapping a
+    // local notification (e.g. one shown by _firebaseMessagingBackgroundHandler
+    // for a data-only FCM message).  getInitialMessage() covers FCM-delivered
+    // notifications; this covers our own locally-shown ones.
+    if (Platform.isAndroid || Platform.isIOS) {
+      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+      if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
+        final response = launchDetails.notificationResponse;
+        if (response != null) _onLocalNotificationTap(response);
+      }
+    }
   }
 
   void _onLocalNotificationTap(NotificationResponse response) {
@@ -277,23 +314,12 @@ class PushNotificationService {
 
   Future<void> show(ActivityNotificationModel notification) async {
     final id = notification.notificationId.hashCode.abs() % 100000;
-    final payload = jsonEncode({
-      't': 'a',
-      'at': notification.activityType,
-      'auid': notification.actor.userId,
-      'adn': notification.actor.displayName,
-      'aau': notification.actor.avatarUrl,
-      'tid': notification.target.targetId,
-      'trkid': notification.target.trackId ?? '',
-      'ttl': notification.target.title ?? '',
-      'to': notification.to,
-    });
     await _plugin.show(
       id,
       notification.actor.displayName,
       _buildBody(notification),
       _notificationDetails,
-      payload: payload,
+      payload: _buildActivityPayload(notification),
     );
   }
 }

@@ -532,8 +532,7 @@ class MessagingApiService {
     return [];
   }
 
-  // GET /api/profile/v1/{userId} — returns the user's profileLink slug
-  // Mimics the same auth pattern used throughout the project (Bearer token + Android UA)
+  // GET /api/public/profile/v1/{userId} — returns the user's profileLink slug
   Future<String?> getUserProfileLink({required String userId}) async {
     debugPrint('━━━ [getUserProfileLink] ━━━');
     debugPrint('[getUserProfileLink] userId="$userId" (empty=${userId.isEmpty})');
@@ -542,7 +541,7 @@ class MessagingApiService {
       return null;
     }
     final token = await _token();
-    final uri = Uri.parse('${_apiServices.baseUrl}/api/profile/v1/$userId');
+    final uri = Uri.parse('${_apiServices.baseUrl}/api/public/profile/v1/$userId');
     debugPrint('[getUserProfileLink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getUserProfileLink] status=${res.statusCode}');
