@@ -331,7 +331,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                     child: const LibraryMenuItem(title: AppText.playlists),
                   ),
-                  const LibraryMenuItem(title: AppText.albums),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/albums');
+                    },
+                    child: const LibraryMenuItem(title: AppText.albums),
+                  ),
                   InkWell(
                     onTap: _openFollowingScreen,
                     child: const LibraryMenuItem(title: AppText.following),
