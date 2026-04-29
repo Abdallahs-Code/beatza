@@ -40,6 +40,7 @@ import 'package:cross_team5/features/engagement_social_interactions/services/eng
 import 'package:cross_team5/features/engagement_social_interactions/widgets/comment_tile.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class CommentsScreen extends StatefulWidget {
@@ -256,19 +257,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   Future<void> _navigateToProfile(String userId) async {
-    try {
-      final token = await _authService.getStoredAccessToken() ?? '';
-      if (!mounted) return;
-      Navigator.pushNamed(
-        context,
-        UserProfileSocialIdentityRoutes.userProfileRoute,
-        arguments: {
-          'userId': userId,
-          'token': token,
-          'currentUserId': _currentUserId ?? '',
-        },
-      );
-    } catch (_) {}
+    await ProfileNavigator.push(
+      context,
+      userId,
+    );
   }
 
   Future<void> _fetchTotalCommentCount() async {
