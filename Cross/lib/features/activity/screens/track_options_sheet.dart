@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
-import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';
 
 class TrackOptionsSheet extends StatefulWidget {
   final PlaybackTrackModel track;
@@ -187,40 +187,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     if (artistId == null || artistId.isEmpty) return;
     final nav = Navigator.of(context, rootNavigator: true);
     nav.pop();
-    final token = await AuthApiService().getStoredAccessToken() ?? '';
-    final currentUserId = await AuthApiService().getStoredUserId() ?? '';
-
-    bool initialIsFollowing = false;
-    bool initialIsBlocked = false;
-    if (currentUserId.isNotEmpty) {
-      try {
-        final following = await SocialApiService().getFollowing(
-          userId: currentUserId,
-        );
-        if (following.$1 == 200 && following.$2 is List) {
-          final list = following.$2 as List;
-          initialIsFollowing = list.any((u) {
-            if (u is Map) return u['userId']?.toString() == artistId;
-            try {
-              return (u as dynamic).userId?.toString() == artistId;
-            } catch (_) {
-              return false;
-            }
-          });
-        }
-      } catch (_) {}
-    }
-
-    nav.pushNamed(
-      UserProfileSocialIdentityRoutes.userProfileRoute,
-      arguments: {
-        'userId': artistId,
-        'token': token,
-        'currentUserId': currentUserId.isEmpty ? null : currentUserId,
-        'initialIsFollowing': initialIsFollowing,
-        'initialIsBlocked': initialIsBlocked,
-      },
-    );
+    await ProfileNavigator.pushViaState(nav, artistId);
   }
 
   void _viewComments() {

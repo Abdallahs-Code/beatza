@@ -22,7 +22,6 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   String? _currentUserId;
-  String? _accessToken;
   Set<String> _blockedUserIds = {};
 
   @override
@@ -56,7 +55,6 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
     });
 
     final storedCurrentUserId = await _authApiService.getStoredUserId();
-    final storedAccessToken = await _authApiService.getStoredAccessToken();
 
     final results = await Future.wait([
       _socialApiService.getFollowers(userId: widget.userId),
@@ -97,7 +95,6 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
     setState(() {
       _isLoading = false;
       _currentUserId = storedCurrentUserId;
-      _accessToken = storedAccessToken;
       _blockedUserIds = blockedIds;
       _trueFriends = trueFriends;
       _applyBlockedState(_trueFriends);
@@ -253,7 +250,6 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
                   return UserTile(
                     follower: friend,
                     currentUserId: _currentUserId,
-                    accessToken: _accessToken,
                     showBlockOption: !friend.isBlocked,
                     showUnblockOption: friend.isBlocked,
                     onFollowTap: friend.isBlocked
