@@ -521,47 +521,50 @@ class PlaylistApiService {
     }
   }
 
-  // PATCH /api/playlists/v1/{playlistId}/tracks/{trackId}
-  Future<(int, String)> addTrackToPlaylist({
-    required String playlistId,
-    required String trackId,
-  }) async {
-    try {
-      final token = await _getToken();
-      if (token == null) return (401, "Unauthorized");
-
-      final response = await _client.patch(
-        Uri.parse("$_authBase/$playlistId/tracks/$trackId"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "User-Agent": "Android",
-        },
-      );
-
-      debugPrint("PATCH $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}");
-
-      final data = jsonDecode(response.body);
-      return (
-        response.statusCode,
-        data["message"]?.toString() ?? "Failed to add track",
-      );
-    } catch (err) {
-      return (500, "Network error: $err");
-    }
-  }
-
-  // POST /api/v1/playlists
   Future<(int, PlaylistModel?)> createPlaylist({
-    required String playlistName,
-    List<String> tracks = const [],
-    bool isPrivate = false,
-  }) async {
-    try {
-      final token = await _getToken();
-      if (token == null) return (401, null);
+  required String playlistName,
+  List<String> tracks = const [],
+  bool isPrivate = false,
+}) async {
+  try {
+    final token = await _getToken();
+    if (token == null) return (401, null);
 
-      final response = await _client.post(
+    // DEBUG: Log the exact URL being called
+    debugPrint("🔍 POST to: $_authBase");
+
+    final response = await _client.post(
+      Uri.parse(_authBase), // ✅ FIXED: Use consistent base
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "User-Agent": "Android",
+      },
+      body: jsonEncode({
+        "playlistName": playlistName,
+        "tracks": tracks,
+        "isPrivate": isPrivate,
+      }),
+    );
+
+    debugPrint("🔍 Response: ${response.statusCode} - ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      // Use consistent parsing with rest of file
+      final playlists = PlaylistModel.listFromResponse(data);
+      return (200, playlists.isNotEmpty ? playlists.first : null);
+    }
+
+    return (response.statusCode, null);
+  } catch (err, stack) {
+    debugPrint("❌ createPlaylist error: $err\n$stack");
+    return (500, null);
+  }
+}
+  
+  
+  final response = await _client.post(
         Uri.parse("${_apiServices.baseUrl}/api/v1/playlists"),
         headers: {
           "Authorization": "Bearer $token",
@@ -576,6 +579,57 @@ class PlaylistApiService {
       );
 
       debugPrint("POST ${_apiServices.baseUrl}/api/v1/playlists -> ${response.statusCode}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final playlistsRaw = data["data"]?["playlists"] as List<dynamic>?;
+        if (playlistsRaw != null && playlistsRaw.isNotEmpty) {
+          return (
+            response.statusCode,
+            PlaylistModel.fromJson(playlistsRaw.first as Map<String, dynamic>),
+          );
+        }
+        return (response.statusCode, null);
+      }
+
+      return (response.statusCode, null);
+    } catch (err) {
+      return (500, null);
+    }
+  }
+
+  // POST /api/v1/playlists/with-image  (multipart — title, description, isPrivate, listOfTracks[], image)
+  Future<(int, PlaylistModel?)> createPlaylistWithImage({
+    required String title,
+    String description = '',
+    bool isPrivate = false,
+    List<String> listOfTracks = const [],
+    required String imagePath,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, null);
+
+      final request = http.MultipartRequest(
+        "POST",
+        Uri.parse("${_apiServices.baseUrl}/api/v1/playlists/with-image"),
+      )..headers.addAll({
+          "Authorization": "Bearer $token",
+          "User-Agent": "Android",
+        });
+
+      request.fields["title"] = title;
+      request.fields["description"] = description;
+      request.fields["isPrivate"] = isPrivate.toString();
+      for (final id in listOfTracks) {
+        request.fields["listOfTracks"] = id;
+      }
+      request.files.add(await http.MultipartFile.fromPath("image", imagePath));
+
+      final streamed = await _client.send(request);
+      final response = await http.Response.fromStream(streamed);
+
+      debugPrint("POST ${_apiServices.baseUrl}/api/v1/playlists/with-image -> ${response.statusCode}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;

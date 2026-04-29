@@ -1,8 +1,6 @@
-// Widget: CreatePlaylistSheet
-// Bottom sheet for creating a new playlist (API #19).
-// Shows playlistName input + privacy toggle.
-
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
@@ -20,24 +18,49 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
   final PlaylistApiService _service = PlaylistApiService();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _descController = TextEditingController();
   bool _isPrivate = false;
   bool _isCreating = false;
+  String? _imagePath;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _descController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked != null && mounted) {
+      setState(() => _imagePath = picked.path);
+    }
   }
 
   Future<void> _create() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isCreating = true);
 
-    final (statusCode, playlist) = await _service.createPlaylist(
-      playlistName: _nameController.text.trim(),
-      isPrivate: _isPrivate,
-    );
+    final int statusCode;
+    final PlaylistModel? playlist;
+
+    if (_imagePath != null) {
+      (statusCode, playlist) = await _service.createPlaylistWithImage(
+        title: _nameController.text.trim(),
+        description: _descController.text.trim(),
+        isPrivate: _isPrivate,
+        imagePath: _imagePath!,
+      );
+    } else {
+      (statusCode, playlist) = await _service.createPlaylist(
+        playlistName: _nameController.text.trim(),
+        isPrivate: _isPrivate,
+      );
+    }
 
     if (!mounted) return;
     setState(() => _isCreating = false);
@@ -71,7 +94,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
         child: Form(
           key: _formKey,
           child: Column(
@@ -100,6 +123,43 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               ),
               const SizedBox(height: 20),
 
+              // Image picker
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardDark,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _imagePath != null
+                            ? AppColors.crusta
+                            : Colors.white24,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: _imagePath != null
+                        ? Image.file(File(_imagePath!), fit: BoxFit.cover)
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate_outlined,
+                                  color: Colors.white38, size: 32),
+                              SizedBox(height: 6),
+                              Text(
+                                'Add cover',
+                                style: TextStyle(
+                                    color: Colors.white38, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
               // Name field
               TextFormField(
                 controller: _nameController,
@@ -116,15 +176,35 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide:
-                        const BorderSide(color: AppColors.crusta),
+                    borderSide: const BorderSide(color: AppColors.crusta),
                   ),
                 ),
-                validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Please enter a name'
-                    : null,
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Please enter a name' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+
+              // Description field (only shown when image is picked, since it maps to the with-image endpoint)
+              TextFormField(
+                controller: _descController,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
+                decoration: InputDecoration(
+                  hintText: 'Description (optional)',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  filled: true,
+                  fillColor: AppColors.cardDark,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.crusta),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Privacy toggle
               Row(
@@ -141,7 +221,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Create button
               SizedBox(
