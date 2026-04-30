@@ -101,7 +101,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                     children: [
                       Text(
                         _error!,
-                        style: const TextStyle(
+                        style:  TextStyle(
                             color: AppColors.white60, fontSize: 14),
                         textAlign: TextAlign.center,
                       ),
@@ -219,11 +219,11 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new,
+                icon:  Icon(Icons.arrow_back_ios_new,
                     color: AppColors.whiteSmoke, size: 20),
               ),
             ),
-            const Center(
+             Center(
               child: Text(
                 'Privacy',
                 style: TextStyle(
@@ -245,7 +245,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       children: [
         Text(
           title.toUpperCase(),
-          style: const TextStyle(
+          style:  TextStyle(
               color: AppColors.white60,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -299,7 +299,7 @@ class _PrivacyRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style:  TextStyle(
                       color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w500),
@@ -307,7 +307,7 @@ class _PrivacyRow extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style:  TextStyle(
                       color: AppColors.white60,
                       fontSize: 12,
                       height: 1.4),
