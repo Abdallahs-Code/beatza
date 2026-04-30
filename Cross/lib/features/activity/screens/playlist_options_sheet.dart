@@ -52,16 +52,19 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
   @override
   void initState() {
     super.initState();
+    // Pre-populate before first build so Message button always has a link.
+    final rawPermalink = widget.playlist.permalink.trim();
+    if (rawPermalink.isNotEmpty) {
+      _playlistPermalink = 'playlist::permalink:"$rawPermalink",profilelink:""';
+    }
     _loadSendToData();
   }
 
   Future<void> _loadSendToData() async {
+    final rawPermalink = widget.playlist.permalink.trim();
+
     final currentUserId = await AuthApiService().getStoredUserId();
     if (currentUserId == null || currentUserId.isEmpty) return;
-
-    final permalink = widget.playlist.permalink.isNotEmpty
-        ? widget.playlist.permalink
-        : null;
 
     String profileLink = '';
     if (widget.playlist.artistId.isNotEmpty) {
@@ -74,24 +77,19 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
       } catch (_) {}
     }
 
-    String buildPayload() {
-      if (permalink == null) return '';
-      return 'playlist::permalink:"$permalink",profilelink:"$profileLink"';
+    // Update with full profileLink now that we have it
+    if (rawPermalink.isNotEmpty && mounted) {
+      setState(() => _playlistPermalink = 'playlist::permalink:"$rawPermalink",profilelink:"$profileLink"');
     }
 
     try {
       final result = await SocialApiService().getFollowers(
         userId: currentUserId,
       );
-      if (result.$1 != 200) {
-        if (mounted) setState(() => _playlistPermalink = buildPayload());
-        return;
-      }
+      if (result.$1 != 200) return;
       final rawList = result.$2;
-      List<Follower> followers = [];
-      if (rawList is List) {
-        followers = rawList.whereType<Follower>().toList();
-      }
+      final List<Follower> followers =
+          rawList is List ? List<Follower>.from(rawList) : [];
       final valid = followers.where((f) => f.userId.isNotEmpty).toList();
       if (!mounted) return;
       setState(() {
@@ -105,11 +103,8 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
               ),
             )
             .toList();
-        _playlistPermalink = buildPayload();
       });
-    } catch (_) {
-      if (mounted) setState(() => _playlistPermalink = buildPayload());
-    }
+    } catch (_) {}
   }
 
   void _openSendToSheet() {

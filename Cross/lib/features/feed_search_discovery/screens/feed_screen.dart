@@ -249,6 +249,7 @@ class _FeedScreenState extends State<FeedScreen>
           displayName: basicInfo['title']?.toString() ?? 'Unknown',
           actorName: artists.isNotEmpty ? artists.first : 'Unknown Artist',
           actorId: trackData['posterId']?.toString() ?? '',
+          permalink: basicInfo['permalink']?.toString(),
           isFollowing: false,
           likeCount: trackData['numLikes'] as int? ?? 0,
           commentCount: trackData['numComments'] as int? ?? 0,
@@ -314,8 +315,9 @@ class _FeedScreenState extends State<FeedScreen>
               ?.toString(),
           imgLink: image['imgLink']?.toString(),
           displayName: basicInfo['title']?.toString() ?? 'Unknown',
-          actorName: item.displayName, // who posted / reposted
+          actorName: item.displayName,
           actorId: item.actorId,
+          permalink: basicInfo['permalink']?.toString(),
           isFollowing: true,
           likeCount: trackData['numLikes'] as int? ?? 0,
           commentCount: trackData['numComments'] as int? ?? 0,
