@@ -20,7 +20,9 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions_routes.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
-import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
+import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
+
 
 class FeedCard extends StatefulWidget {
   final String itemId;
@@ -202,7 +204,7 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
-  // ── Track options sheet (same as global track card) ────────────────────────
+  // ── Track options sheet — feed variant ────────────────────────────────────
 
   void _openOptions(BuildContext context) {
     final track = PlaybackTrackModel(
@@ -213,7 +215,31 @@ class _FeedCardState extends State<FeedCard> {
       artworkUrl: widget.imgLink,
       artistId: widget.actorId.isNotEmpty ? widget.actorId : null,
     );
-    showTrackOptionsSheet(context, track);
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        variant: TrackOptionsVariant.feedTrack,
+        onBehindThisTrack: () => Navigator.of(
+          context,
+          rootNavigator: true,
+        ).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BehindTheTrackScreen(
+              trackId: track.id,
+              actorName: track.artistName,
+              actorAvatarUrl: track.artworkUrl ?? '',
+              actorUserId: track.artistId ?? '',
+              activityType: 'new_track',
+              trackOwnerId: track.artistId ?? '',
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

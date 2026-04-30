@@ -1,3 +1,4 @@
+import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
@@ -1424,9 +1425,27 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   void _showOptions(BuildContext context, PlaybackTrackModel track) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TrackOptionsSheet(track: track),
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        onBehindThisTrack: () => Navigator.of(
+          context,
+          rootNavigator: true,
+        ).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BehindTheTrackScreen(
+              trackId: track.id,
+              actorName: track.artistName,
+              actorAvatarUrl: track.artworkUrl ?? '',
+              actorUserId: track.artistId ?? '',
+              activityType: 'new_track',
+              trackOwnerId: track.artistId ?? '',
+            ),
+          ),
+        ),
+      ),
     );
   }
 

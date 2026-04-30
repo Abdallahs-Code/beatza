@@ -9,6 +9,7 @@ export 'screens/activity_screen.dart';
 export 'screens/behind_the_track_screen.dart';
 export 'screens/quick_reply_options_menu.dart';
 export 'screens/quick_reply_sheet.dart';
+export 'screens/playlist_options_sheet.dart';
 export 'screens/track_options_sheet.dart';
 
 // services
