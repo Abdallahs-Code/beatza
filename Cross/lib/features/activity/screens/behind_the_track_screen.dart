@@ -8,6 +8,13 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class BehindTheTrackScreen extends StatefulWidget {
@@ -348,8 +355,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               ),
             )
           : _error != null
-          ? _buildError()
-          : _buildBody(),
+              ? _buildError()
+              : _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 

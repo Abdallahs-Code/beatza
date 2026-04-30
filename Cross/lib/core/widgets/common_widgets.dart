@@ -1,6 +1,7 @@
 // Dart imports
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/features/library/library_routes.dart';
 import 'package:cross_team5/features/feed_search_discovery/feed_search_discovery_routes.dart';
@@ -18,9 +19,25 @@ class CommonBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: miniPlayerHeightNotifier,
+      builder: (ctx, miniPlayerH, _) {
+        final double spacer = (miniPlayerH - kNavBarHeight).clamp(0.0, double.infinity);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: spacer),
+            _buildBar(ctx),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBar(BuildContext context) {
     return Container(
-      height: 84,
-      decoration: BoxDecoration(
+      height: kNavBarHeight,
+      decoration:  BoxDecoration(
         color: AppColors.chineseBlack,
         border: Border(top: BorderSide(color: AppColors.white10)),
       ),

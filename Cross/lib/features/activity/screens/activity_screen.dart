@@ -11,6 +11,7 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/messaging_track_sharing/widgets/messages_tab.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:flutter/material.dart';
 
 class ActivityScreen extends StatefulWidget {
@@ -270,6 +271,7 @@ class _ActivityScreenState extends State<ActivityScreen>
         controller: _tabController,
         children: [_buildNotificationsTab(), _buildMessagesTab()],
       ),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 

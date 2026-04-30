@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/library/screens/account_settings_screen.dart';
 import 'package:cross_team5/features/library/screens/notification_settings_screen.dart';
+import 'package:cross_team5/features/library/screens/content_settings_screen.dart';
+import 'package:cross_team5/features/library/screens/privacy_settings_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
@@ -335,6 +337,62 @@ class SettingsScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (_) => const NotificationSettingsScreen(),
                         ),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Privacy',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Content',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Privacy',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Content',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Privacy',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Content',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Privacy',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Content',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
                       ),
                     ),
                     const _SettingsTile(title: 'App Icon'),
