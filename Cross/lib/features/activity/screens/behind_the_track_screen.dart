@@ -468,10 +468,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Widget _buildFanLeaderboard() {
     debugPrint('━━━ [_buildFanLeaderboard] START ━━━');
-
+    
     final stats = _trackStats;
     debugPrint('[_buildFanLeaderboard] _trackStats is null: ${stats == null}');
-
+    
     if (stats == null) {
       debugPrint('[_buildFanLeaderboard] ⚠️ No stats available - returning empty widget');
       debugPrint('━━━ [_buildFanLeaderboard] END (no stats) ━━━');
@@ -481,7 +481,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     final fans = _showTopFans ? stats.topFans : stats.firstFans;
     debugPrint('[_buildFanLeaderboard] Showing: ${_showTopFans ? "Top Fans" : "First Fans"}');
     debugPrint('[_buildFanLeaderboard] Fan count: ${fans.length}');
-
+    
     if (fans.isEmpty) {
       debugPrint('[_buildFanLeaderboard] ⚠️ No fans in this category');
       debugPrint('[_buildFanLeaderboard] topFans total: ${stats.topFans.length}');
@@ -489,7 +489,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     } else {
       debugPrint('[_buildFanLeaderboard] First fan: ${fans.first.displayName} (${fans.first.totalNumberOfPlay} plays)');
     }
-
+    
     debugPrint('━━━ [_buildFanLeaderboard] END ━━━');
 
     return Padding(
