@@ -610,7 +610,7 @@ class MessagingApiService {
     }
     final token = await _token();
     final uri = Uri.parse(
-      '${_apiServices.baseUrl}/api/public/profile/v1/$userId',
+      '${_apiServices.baseUrl}/api/profile/v1/$userId',
     );
     debugPrint('[getUserProfileLink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
@@ -644,7 +644,7 @@ class MessagingApiService {
     try {
       final token = await _token();
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/public/profile/v1/$userId',
+        '${_apiServices.baseUrl}/api/profile/v1/$userId',
       );
       debugPrint('[getPublicProfileBlockingMe] GET $uri');
       final res = await _client.get(uri, headers: _headers(token));
