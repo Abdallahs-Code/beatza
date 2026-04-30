@@ -152,8 +152,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     );
     if (!confirmed) return;
 
-    final (statusCode, deleted) =
-        await _service.deletePlaylist(playlistId: widget.playlistId);
+    final (statusCode, deleted) = await _service.deletePlaylist(
+      playlistId: widget.playlistId,
+    );
 
     if (!mounted) return;
     if (statusCode == 200 && deleted) {
@@ -189,8 +190,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -209,9 +212,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     if (_album == null) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => EditPlaylistScreen(playlist: _album!),
-      ),
+      MaterialPageRoute(builder: (_) => EditPlaylistScreen(playlist: _album!)),
     ).then((updated) {
       if (updated == true) _loadAlbum();
     });
@@ -263,8 +264,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   children: [
                     Icon(Icons.delete_outline, color: Colors.red, size: 18),
                     SizedBox(width: 8),
-                    Text('Delete album',
-                        style: TextStyle(color: Colors.red)),
+                    Text('Delete album', style: TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -291,15 +291,18 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
             children: [
               const Icon(Icons.error_outline, color: Colors.white54, size: 48),
               const SizedBox(height: 16),
-              Text(_error!,
-                  style: const TextStyle(color: Colors.white54),
-                  textAlign: TextAlign.center),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.white54),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadAlbum,
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.crusta,
-                    foregroundColor: Colors.white),
+                  backgroundColor: AppColors.crusta,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -324,7 +327,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 padding: EdgeInsets.all(16),
                 child: Center(
                   child: CircularProgressIndicator(
-                      color: AppColors.crusta, strokeWidth: 2),
+                    color: AppColors.crusta,
+                    strokeWidth: 2,
+                  ),
                 ),
               ),
             ),
@@ -414,8 +419,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: a.isPrivate
                       ? AppColors.cardDark2
@@ -443,8 +447,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
             const SizedBox(height: 10),
             Text(
               a.description,
-              style:
-                  const TextStyle(color: Colors.white54, fontSize: 13),
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -455,16 +458,23 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           // Stats row
           Row(
             children: [
-              const Icon(Icons.favorite_border,
-                  color: Colors.white54, size: 18),
+              const Icon(
+                Icons.favorite_border,
+                color: Colors.white54,
+                size: 18,
+              ),
               const SizedBox(width: 4),
-              Text('${a.numOfLikes}',
-                  style: const TextStyle(color: Colors.white54)),
+              Text(
+                '${a.numOfLikes}',
+                style: const TextStyle(color: Colors.white54),
+              ),
               const SizedBox(width: 16),
               const Icon(Icons.repeat, color: Colors.white54, size: 18),
               const SizedBox(width: 4),
-              Text('${a.numOfReposts}',
-                  style: const TextStyle(color: Colors.white54)),
+              Text(
+                '${a.numOfReposts}',
+                style: const TextStyle(color: Colors.white54),
+              ),
             ],
           ),
         ],

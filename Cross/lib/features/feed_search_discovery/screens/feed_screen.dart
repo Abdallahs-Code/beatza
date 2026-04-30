@@ -82,8 +82,9 @@ class _FeedScreenState extends State<FeedScreen>
 
     if (statusCode == 200 && data is List) {
       final ids = TrendingItemModel.listFromJson(data);
-      final results =
-          await Future.wait(ids.map((item) => _service.getTrackById(item.id)));
+      final results = await Future.wait(
+        ids.map((item) => _service.getTrackById(item.id)),
+      );
 
       final tracks = <Map<String, dynamic>>[];
       for (final (code, trackData) in results) {
@@ -119,11 +120,11 @@ class _FeedScreenState extends State<FeedScreen>
       final items = FeedItemModel.listFromJson(data);
 
       // Fetch full track details concurrently for each feed item
-      final results =
-          await Future.wait(items.map((item) => _service.getTrackById(item.id)));
+      final results = await Future.wait(
+        items.map((item) => _service.getTrackById(item.id)),
+      );
 
-      final enriched =
-          <({FeedItemModel item, Map<String, dynamic> track})>[];
+      final enriched = <({FeedItemModel item, Map<String, dynamic> track})>[];
       for (int i = 0; i < items.length; i++) {
         final (code, trackData) = results[i];
         if (code == 200 && trackData is Map<String, dynamic>) {
@@ -167,10 +168,7 @@ class _FeedScreenState extends State<FeedScreen>
       body: TabBarView(
         controller: _tabController,
         physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _buildDiscoverTab(),
-          _buildFollowingTab(),
-        ],
+        children: [_buildDiscoverTab(), _buildFollowingTab()],
       ),
       bottomNavigationBar: const CommonBottomNavBar(
         currentItem: AppNavItem.feed,
@@ -234,27 +232,22 @@ class _FeedScreenState extends State<FeedScreen>
       itemCount: _discoverTracks.length,
       itemBuilder: (context, index) {
         final trackData = _discoverTracks[index];
-        final basicInfo =
-            trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+        final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
         final image = trackData['image'] as Map<String, dynamic>? ?? {};
-        final artists =
-            (basicInfo['mainArtists'] as List<dynamic>? ?? [])
-                .map((e) => e.toString())
-                .toList();
+        final artists = (basicInfo['mainArtists'] as List<dynamic>? ?? [])
+            .map((e) => e.toString())
+            .toList();
 
         return FeedCard(
           key: ValueKey('discover_$index'),
-          itemId:
-              (trackData['trackId'] ?? trackData['_id'] ?? '').toString(),
+          itemId: (trackData['trackId'] ?? trackData['_id'] ?? '').toString(),
           isCurrent: index == _discoverCurrentPage,
           isMuted: _isMuted,
-          audioUrl: (trackData['audio']
-                  as Map<String, dynamic>?)?['audioLink']
+          audioUrl: (trackData['audio'] as Map<String, dynamic>?)?['audioLink']
               ?.toString(),
           imgLink: image['imgLink']?.toString(),
           displayName: basicInfo['title']?.toString() ?? 'Unknown',
-          actorName:
-              artists.isNotEmpty ? artists.first : 'Unknown Artist',
+          actorName: artists.isNotEmpty ? artists.first : 'Unknown Artist',
           actorId: trackData['posterId']?.toString() ?? '',
           isFollowing: false,
           likeCount: trackData['numLikes'] as int? ?? 0,
@@ -308,19 +301,16 @@ class _FeedScreenState extends State<FeedScreen>
         final entry = _feedItems[index];
         final item = entry.item;
         final trackData = entry.track;
-        final basicInfo =
-            trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+        final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
         final image = trackData['image'] as Map<String, dynamic>? ?? {};
 
         return FeedCard(
           key: ValueKey('feed_${item.id}_$index'),
-          itemId:
-              (trackData['trackId'] ?? trackData['_id'] ?? item.id)
-                  .toString(),
+          itemId: (trackData['trackId'] ?? trackData['_id'] ?? item.id)
+              .toString(),
           isCurrent: index == _feedCurrentPage,
           isMuted: _isMuted,
-          audioUrl: (trackData['audio']
-                  as Map<String, dynamic>?)?['audioLink']
+          audioUrl: (trackData['audio'] as Map<String, dynamic>?)?['audioLink']
               ?.toString(),
           imgLink: image['imgLink']?.toString(),
           displayName: basicInfo['title']?.toString() ?? 'Unknown',

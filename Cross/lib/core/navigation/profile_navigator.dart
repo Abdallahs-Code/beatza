@@ -44,8 +44,9 @@ class ProfileNavigator {
     return {
       'userId': userId,
       'token': token,
-      'currentUserId':
-          normalizedCurrentUserId.isEmpty ? null : normalizedCurrentUserId,
+      'currentUserId': normalizedCurrentUserId.isEmpty
+          ? null
+          : normalizedCurrentUserId,
       'initialIsFollowing': initialIsFollowing,
       'initialIsBlocked': initialIsBlocked,
     };

@@ -425,8 +425,9 @@ class _FollowingScreenState extends State<FollowingScreen>
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: _following.length + 1,
-              separatorBuilder: (context, index) =>
-                  index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
+              separatorBuilder: (context, index) => index == 0
+                  ? const SizedBox.shrink()
+                  : const Divider(height: 1),
               itemBuilder: (context, index) {
                 if (index == 0) return _buildTrueFriendsBanner();
                 final follower = _following[index - 1];

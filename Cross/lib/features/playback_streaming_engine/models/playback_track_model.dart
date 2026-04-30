@@ -151,8 +151,9 @@ class PlaybackTrackModel {
 
     // ── ID resolution: API returns 'trackId' on list/single endpoints
     //    and '_id' on liked/posted list endpoints. Accept both.
-    final String resolvedId =
-        (json['trackId'] ?? json['_id'] ?? '').toString().trim();
+    final String resolvedId = (json['trackId'] ?? json['_id'] ?? '')
+        .toString()
+        .trim();
 
     // ── Artist ID: API now uses 'posterId' — add as first candidate.
     final String? resolvedArtistId =

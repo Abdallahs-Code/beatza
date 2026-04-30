@@ -20,7 +20,7 @@ class FeedSearchDiscoveryRoutes {
   static const String search = '/search';
 
   static Map<String, WidgetBuilder> get routes => {
-        feed: (_) => const FeedScreen(),
-        search: (_) => const SearchScreen(),
-      };
+    feed: (_) => const FeedScreen(),
+    search: (_) => const SearchScreen(),
+  };
 }

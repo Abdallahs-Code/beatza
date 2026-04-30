@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
@@ -21,7 +22,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
 
     if (iconType == 'amplify') {
       modalIcon = Icons.flash_on;
-      iconColor = const Color(0xFFD47AFA);
+      iconColor = AppColors.flashPurple;
       topLabel = 'AMPLIFY';
     } else if (iconType == 'upload') {
       modalIcon = Icons.cloud_upload;
@@ -35,7 +36,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -164,9 +165,9 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         title: const Text(
           'Artist Studio',
@@ -206,7 +207,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF381E4B), Color(0xFF1E1E1E)],
+                    colors: [Color(0xFF381E4B), AppColors.surfaceMid],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -302,7 +303,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
+                      color: AppColors.surfaceMid,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
@@ -318,7 +319,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: AppColors.surfaceMid,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -490,7 +491,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 Expanded(
                   child: _CreditCard(
                     icon: Icons.flash_on,
-                    iconColor: const Color(0xFFD47AFA),
+                    iconColor: AppColors.flashPurple,
                     title: 'Amplify',
                     subtitle: 'TRY IT',
                     onTap: () => _showProModal(
@@ -642,7 +643,7 @@ class _GridItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
+          color: AppColors.surfaceMid,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -687,7 +688,7 @@ class _CreditCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
+          color: AppColors.surfaceMid,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(

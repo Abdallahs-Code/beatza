@@ -17,16 +17,22 @@ class MessagingNotificationService {
     _currentUserId = await AuthApiService().getStoredUserId();
     final token = await AuthApiService().getStoredAccessToken() ?? '';
 
-    debugPrint('[MessagingNotificationService] initialize — userId=$_currentUserId');
+    debugPrint(
+      '[MessagingNotificationService] initialize — userId=$_currentUserId',
+    );
 
     if (token.isEmpty) {
-      debugPrint('[MessagingNotificationService] No token — skipping socket connect');
+      debugPrint(
+        '[MessagingNotificationService] No token — skipping socket connect',
+      );
       return;
     }
 
     await MessagingSocketService.shared.connect(token: token);
     MessagingSocketService.shared.onMessageNotifyPush = _onIncoming;
-    debugPrint('[MessagingNotificationService] Listening for push notifications');
+    debugPrint(
+      '[MessagingNotificationService] Listening for push notifications',
+    );
   }
 
   /// Call on logout so we stop showing notifications.
@@ -54,7 +60,9 @@ class MessagingNotificationService {
     if (_activeChatId != null && _activeChatId == chat.id) return;
 
     final senderName = chat.otherPerson?.displayName ?? 'New message';
-    debugPrint('[MessagingNotificationService] Showing push for chatId=${chat.id} from="$senderName" content="${lm.content}"');
+    debugPrint(
+      '[MessagingNotificationService] Showing push for chatId=${chat.id} from="$senderName" content="${lm.content}"',
+    );
 
     PushNotificationService.shared.showMessage(
       senderName: senderName,

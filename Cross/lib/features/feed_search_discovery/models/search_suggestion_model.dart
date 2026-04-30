@@ -37,8 +37,10 @@ class SearchSuggestionModel {
 
   static List<SearchSuggestionModel> listFromJson(List<dynamic> list) {
     return list
-        .map((item) =>
-            SearchSuggestionModel.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) =>
+              SearchSuggestionModel.fromJson(item as Map<String, dynamic>),
+        )
         .toList();
   }
 }

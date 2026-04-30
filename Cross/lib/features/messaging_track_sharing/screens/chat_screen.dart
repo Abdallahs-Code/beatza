@@ -10,10 +10,7 @@ import 'package:cross_team5/features/messaging_track_sharing/services/messaging_
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:flutter/material.dart';
-
-const _kBg = Color(0xFF111111);
-const _kSurface = Color(0xFF1C1C1C);
-const _kOrange = Color(0xFFFF5500);
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class ChatScreen extends StatefulWidget {
   // For existing conversations (from messages list)
@@ -83,31 +80,52 @@ class _ChatScreenState extends State<ChatScreen> {
         widget.receiverId != null &&
         widget.receiverId!.isNotEmpty) {
       try {
-        debugPrint('[ChatScreen._init] No chatId. Calling findOrCreateChat for receiverId=${widget.receiverId}');
-        final foundId = await _api.findOrCreateChat(receiverId: widget.receiverId!);
+        debugPrint(
+          '[ChatScreen._init] No chatId. Calling findOrCreateChat for receiverId=${widget.receiverId}',
+        );
+        final foundId = await _api.findOrCreateChat(
+          receiverId: widget.receiverId!,
+        );
         if (foundId != null && foundId.isNotEmpty) {
-          debugPrint('[ChatScreen._init] findOrCreateChat returned chatId=$foundId');
+          debugPrint(
+            '[ChatScreen._init] findOrCreateChat returned chatId=$foundId',
+          );
           _chatId = foundId;
           MessagingNotificationService.shared.setActiveChatId(foundId);
         } else {
-          debugPrint('[ChatScreen._init] findOrCreateChat returned null → new conversation');
+          debugPrint(
+            '[ChatScreen._init] findOrCreateChat returned null → new conversation',
+          );
         }
       } catch (e) {
-        debugPrint('[ChatScreen._init] findOrCreateChat error: $e → falling back to new conversation');
+        debugPrint(
+          '[ChatScreen._init] findOrCreateChat error: $e → falling back to new conversation',
+        );
       }
     }
 
-    debugPrint('[ChatScreen._init] _chatId=$_chatId  _receiverId=$_receiverId  _currentUserId=$_currentUserId');
+    debugPrint(
+      '[ChatScreen._init] _chatId=$_chatId  _receiverId=$_receiverId  _currentUserId=$_currentUserId',
+    );
     if (_chatId != null) {
       debugPrint('[ChatScreen._init] Has chatId → calling _loadMessages');
       await _loadMessages();
-      debugPrint('[ChatScreen._init] After _loadMessages → _isReceiverBlocked=$_isReceiverBlocked  _isBlockedByReceiver=$_isBlockedByReceiver');
-      debugPrint('[ChatScreen._init] Calling markChatAsRead for chatId=$_chatId');
-      _api.markChatAsRead(chatId: _chatId!).then((_) {
-        debugPrint('[ChatScreen._init] markChatAsRead SUCCESS for $_chatId');
-      }).catchError((e) {
-        debugPrint('[ChatScreen._init] markChatAsRead FAILED: $e');
-      });
+      debugPrint(
+        '[ChatScreen._init] After _loadMessages → _isReceiverBlocked=$_isReceiverBlocked  _isBlockedByReceiver=$_isBlockedByReceiver',
+      );
+      debugPrint(
+        '[ChatScreen._init] Calling markChatAsRead for chatId=$_chatId',
+      );
+      _api
+          .markChatAsRead(chatId: _chatId!)
+          .then((_) {
+            debugPrint(
+              '[ChatScreen._init] markChatAsRead SUCCESS for $_chatId',
+            );
+          })
+          .catchError((e) {
+            debugPrint('[ChatScreen._init] markChatAsRead FAILED: $e');
+          });
       await _socket.connect(token: token);
       _socket.onMessageInRoom = _onIncomingMessage;
       _socket.joinChat(_chatId!);
@@ -124,16 +142,24 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _checkReceiverBlockingMe() async {
     final rid = _receiverId;
     debugPrint('━━━ [ChatScreen._checkReceiverBlockingMe] ━━━');
-    debugPrint('[ChatScreen._checkReceiverBlockingMe] receiverId="$rid" (null=${rid == null})');
+    debugPrint(
+      '[ChatScreen._checkReceiverBlockingMe] receiverId="$rid" (null=${rid == null})',
+    );
     if (rid == null || rid.isEmpty) {
-      debugPrint('[ChatScreen._checkReceiverBlockingMe] ⚠️ receiverId unknown — skipping blockingMe check');
+      debugPrint(
+        '[ChatScreen._checkReceiverBlockingMe] ⚠️ receiverId unknown — skipping blockingMe check',
+      );
       return;
     }
     try {
       final blockingMe = await _api.getPublicProfileBlockingMe(userId: rid);
-      debugPrint('[ChatScreen._checkReceiverBlockingMe] blockingMe=$blockingMe  current _isBlockedByReceiver=$_isBlockedByReceiver');
+      debugPrint(
+        '[ChatScreen._checkReceiverBlockingMe] blockingMe=$blockingMe  current _isBlockedByReceiver=$_isBlockedByReceiver',
+      );
       if (blockingMe && mounted && !_isBlockedByReceiver) {
-        debugPrint('[ChatScreen._checkReceiverBlockingMe] → receiver is blocking us — setting _isBlockedByReceiver=true');
+        debugPrint(
+          '[ChatScreen._checkReceiverBlockingMe] → receiver is blocking us — setting _isBlockedByReceiver=true',
+        );
         setState(() => _isBlockedByReceiver = true);
       }
     } catch (e) {
@@ -143,7 +169,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _loadMessages({bool loadMore = false}) async {
     if (!loadMore) {
-      if (mounted) setState(() { _isLoading = true; _error = null; });
+      if (mounted)
+        setState(() {
+          _isLoading = true;
+          _error = null;
+        });
     } else {
       if (_loadingMore || !_hasMore) return;
       if (mounted) setState(() => _loadingMore = true);
@@ -151,10 +181,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       debugPrint('━━━ [ChatScreen._loadMessages] ━━━');
-      debugPrint('[ChatScreen._loadMessages] _chatId="$_chatId" (empty=${_chatId?.isEmpty}) loadMore=$loadMore');
+      debugPrint(
+        '[ChatScreen._loadMessages] _chatId="$_chatId" (empty=${_chatId?.isEmpty}) loadMore=$loadMore',
+      );
       // For load-more, fetch older messages before the oldest we have
-      final before =
-          loadMore && _messages.isNotEmpty ? _messages.first.id : null;
+      final before = loadMore && _messages.isNotEmpty
+          ? _messages.first.id
+          : null;
       final result = await _api.getChatMessages(
         chatId: _chatId!,
         limit: 20,
@@ -171,12 +204,16 @@ class _ChatScreenState extends State<ChatScreen> {
         for (final msg in allMsgs) {
           if (msg.senderId.isNotEmpty && msg.senderId != _currentUserId) {
             _receiverId = msg.senderId;
-            debugPrint('[ChatScreen._loadMessages] Extracted receiverId from messages: $_receiverId');
+            debugPrint(
+              '[ChatScreen._loadMessages] Extracted receiverId from messages: $_receiverId',
+            );
             break;
           }
         }
         if (_receiverId == null || _receiverId!.isEmpty) {
-          debugPrint('[ChatScreen._loadMessages] Could not extract receiverId — all ${allMsgs.length} messages are from currentUser or list is empty');
+          debugPrint(
+            '[ChatScreen._loadMessages] Could not extract receiverId — all ${allMsgs.length} messages are from currentUser or list is empty',
+          );
         }
       }
 
@@ -190,7 +227,9 @@ class _ChatScreenState extends State<ChatScreen> {
         }
         _isReceiverBlocked = result.isReceiverBlocked;
         _isBlockedByReceiver = result.isBlockedByReceiver;
-        debugPrint('[ChatScreen._loadMessages] BLOCK STATE → isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver');
+        debugPrint(
+          '[ChatScreen._loadMessages] BLOCK STATE → isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver',
+        );
         _isLoading = false;
         _loadingMore = false;
       });
@@ -206,9 +245,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _onIncomingMessage(ChatModel chat) {
     final lm = chat.lastMessage;
-    debugPrint('[ChatScreen._onIncomingMessage] event. chatId=${chat.id}, content="${lm?.content}", senderId=${lm?.senderId}, _currentUserId=$_currentUserId, _chatId=$_chatId');
+    debugPrint(
+      '[ChatScreen._onIncomingMessage] event. chatId=${chat.id}, content="${lm?.content}", senderId=${lm?.senderId}, _currentUserId=$_currentUserId, _chatId=$_chatId',
+    );
     if (lm == null || _chatId == null) {
-      debugPrint('[ChatScreen._onIncomingMessage] Skipped: lm=${lm == null ? "null" : "ok"}, _chatId=${_chatId ?? "null"}');
+      debugPrint(
+        '[ChatScreen._onIncomingMessage] Skipped: lm=${lm == null ? "null" : "ok"}, _chatId=${_chatId ?? "null"}',
+      );
       return;
     }
     if (lm.senderId == _currentUserId) {
@@ -232,20 +275,31 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
     }
     // Issue 1: mark as read because user is actively viewing this chat
-    debugPrint('[ChatScreen._onIncomingMessage] Calling markChatAsRead for $_chatId');
-    _api.markChatAsRead(chatId: _chatId!).then((_) {
-      debugPrint('[ChatScreen._onIncomingMessage] markChatAsRead SUCCESS');
-    }).catchError((e) {
-      debugPrint('[ChatScreen._onIncomingMessage] markChatAsRead FAILED: $e');
-    });
+    debugPrint(
+      '[ChatScreen._onIncomingMessage] Calling markChatAsRead for $_chatId',
+    );
+    _api
+        .markChatAsRead(chatId: _chatId!)
+        .then((_) {
+          debugPrint('[ChatScreen._onIncomingMessage] markChatAsRead SUCCESS');
+        })
+        .catchError((e) {
+          debugPrint(
+            '[ChatScreen._onIncomingMessage] markChatAsRead FAILED: $e',
+          );
+        });
   }
 
   Future<void> _send() async {
     final content = _inputCtrl.text.trim();
     debugPrint('━━━ [ChatScreen._send] ━━━');
-    debugPrint('[ChatScreen._send] content="$content" (empty=${content.isEmpty}) isSending=$_isSending chatId="$_chatId"');
+    debugPrint(
+      '[ChatScreen._send] content="$content" (empty=${content.isEmpty}) isSending=$_isSending chatId="$_chatId"',
+    );
     if (content.isEmpty || _isSending) {
-      debugPrint('[ChatScreen._send] EARLY EXIT: empty=${ content.isEmpty} isSending=$_isSending');
+      debugPrint(
+        '[ChatScreen._send] EARLY EXIT: empty=${content.isEmpty} isSending=$_isSending',
+      );
       return;
     }
 
@@ -254,7 +308,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       if (_chatId == null) {
-        debugPrint('[ChatScreen._send] No chatId → sending via HTTP (new chat) receiverId=${widget.receiverId}');
+        debugPrint(
+          '[ChatScreen._send] No chatId → sending via HTTP (new chat) receiverId=${widget.receiverId}',
+        );
         final chat = await _api.sendMessage(
           receiverId: widget.receiverId!,
           content: content,
@@ -272,7 +328,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _socket.joinChat(newChatId);
         await _loadMessages();
       } else {
-        debugPrint('[ChatScreen._send] Existing chat=$_chatId → sending via socket. isTrack=${_MessageBubble._isTrackMessage(content)}');
+        debugPrint(
+          '[ChatScreen._send] Existing chat=$_chatId → sending via socket. isTrack=${_MessageBubble._isTrackMessage(content)}',
+        );
         _socket.sendMessage(chatId: _chatId!, content: content);
         final now = DateTime.now();
         final optimistic = MessageModel(
@@ -283,7 +341,9 @@ class _ChatScreenState extends State<ChatScreen> {
           seenBy: [_currentUserId ?? ''],
           createdAt: now,
         );
-        debugPrint('[ChatScreen._send] Optimistic message added. id=${optimistic.id} content="${optimistic.content}"');
+        debugPrint(
+          '[ChatScreen._send] Optimistic message added. id=${optimistic.id} content="${optimistic.content}"',
+        );
         if (mounted) {
           setState(() => _messages = [..._messages, optimistic]);
           _scrollToBottom();
@@ -293,11 +353,17 @@ class _ChatScreenState extends State<ChatScreen> {
       debugPrint('[ChatScreen._send] ERROR: $e');
       if (!mounted) return;
       final msg = e.toString().toLowerCase();
-      final isBlockError = msg.contains('block') || msg.contains('forbidden') || msg.contains('cannot send') || msg.contains('disabled');
+      final isBlockError =
+          msg.contains('block') ||
+          msg.contains('forbidden') ||
+          msg.contains('cannot send') ||
+          msg.contains('disabled');
       debugPrint('[ChatScreen._send] isBlockError=$isBlockError  raw="$e"');
       if (isBlockError) {
         setState(() => _isBlockedByReceiver = true);
-        debugPrint('[ChatScreen._send] → set _isBlockedByReceiver=true, showing banner');
+        debugPrint(
+          '[ChatScreen._send] → set _isBlockedByReceiver=true, showing banner',
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -312,14 +378,12 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-
-    /// Closes the chat and signals to the parent that a refresh is needed
+  /// Closes the chat and signals to the parent that a refresh is needed
   void _closeChat() {
-    Navigator.of(context).pop(true); // Return true to trigger MessagesTab refresh
+    Navigator.of(
+      context,
+    ).pop(true); // Return true to trigger MessagesTab refresh
   }
-
-
-
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -334,12 +398,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _openOptions() async {
-    debugPrint('[ChatScreen._openOptions] _isReceiverBlocked=$_isReceiverBlocked, _receiverId=$_receiverId');
+    debugPrint(
+      '[ChatScreen._openOptions] _isReceiverBlocked=$_isReceiverBlocked, _receiverId=$_receiverId',
+    );
     final chatId = _chatId;
     final isBlocked = _isReceiverBlocked;
     final action = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -367,7 +433,8 @@ class _ChatScreenState extends State<ChatScreen> {
               _OptionItem(
                 icon: isBlocked ? Icons.lock_open_rounded : Icons.block_rounded,
                 label: isBlocked ? 'Unblock' : 'Block',
-                onTap: () => Navigator.pop(ctx, isBlocked ? 'unblock' : 'block'),
+                onTap: () =>
+                    Navigator.pop(ctx, isBlocked ? 'unblock' : 'block'),
               ),
               if (chatId != null)
                 _OptionItem(
@@ -398,7 +465,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Successfully archived conversation'),
-            backgroundColor: Color(0xFF222222),
+            backgroundColor: AppColors.cardDark2,
           ),
         );
         Navigator.of(context).pop(true);
@@ -416,7 +483,10 @@ class _ChatScreenState extends State<ChatScreen> {
         await _api.markChatAsUnread(chatId: chatId);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Marked as unread'), backgroundColor: Color(0xFF222222)),
+          const SnackBar(
+            content: Text('Marked as unread'),
+            backgroundColor: AppColors.cardDark2,
+          ),
         );
       } catch (_) {}
     }
@@ -424,17 +494,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _block() async {
     final rid = _receiverId;
-    debugPrint('[ChatScreen._block] Attempting block. receiverId=$rid, current _isReceiverBlocked=$_isReceiverBlocked');
+    debugPrint(
+      '[ChatScreen._block] Attempting block. receiverId=$rid, current _isReceiverBlocked=$_isReceiverBlocked',
+    );
     if (rid == null || rid.isEmpty) {
       debugPrint('[ChatScreen._block] SKIPPED: receiverId is null or empty');
       return;
     }
     try {
       final result = await _social.blockUser(targetUserId: rid);
-      debugPrint('[ChatScreen._block] API result: status=${result.$1}, body=${result.$2}');
+      debugPrint(
+        '[ChatScreen._block] API result: status=${result.$1}, body=${result.$2}',
+      );
       if (result.$1 >= 200 && result.$1 < 300) {
         if (mounted) setState(() => _isReceiverBlocked = true);
-        debugPrint('[ChatScreen._block] Block successful → _isReceiverBlocked=true');
+        debugPrint(
+          '[ChatScreen._block] Block successful → _isReceiverBlocked=true',
+        );
       } else {
         debugPrint('[ChatScreen._block] Block returned non-2xx: ${result.$1}');
       }
@@ -452,12 +528,18 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     try {
       final result = await _social.unblockUser(targetUserId: rid);
-      debugPrint('[ChatScreen._unblock] API result: status=${result.$1}, body=${result.$2}');
+      debugPrint(
+        '[ChatScreen._unblock] API result: status=${result.$1}, body=${result.$2}',
+      );
       if (result.$1 >= 200 && result.$1 < 300) {
         if (mounted) setState(() => _isReceiverBlocked = false);
-        debugPrint('[ChatScreen._unblock] Unblock successful → _isReceiverBlocked=false');
+        debugPrint(
+          '[ChatScreen._unblock] Unblock successful → _isReceiverBlocked=false',
+        );
       } else {
-        debugPrint('[ChatScreen._unblock] Unblock returned non-2xx: ${result.$1}');
+        debugPrint(
+          '[ChatScreen._unblock] Unblock returned non-2xx: ${result.$1}',
+        );
       }
     } catch (e) {
       debugPrint('[ChatScreen._unblock] Exception: $e');
@@ -471,8 +553,12 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => AttachContentSheet(
         onSelected: (link) {
-          debugPrint('[AttachSheet] onSelected link="$link" length=${link.length}');
-          debugPrint('[AttachSheet] _isTrackMessage=${_MessageBubble._isTrackMessage(link)}');
+          debugPrint(
+            '[AttachSheet] onSelected link="$link" length=${link.length}',
+          );
+          debugPrint(
+            '[AttachSheet] _isTrackMessage=${_MessageBubble._isTrackMessage(link)}',
+          );
           _inputCtrl.text = link;
           Navigator.of(context).pop();
         },
@@ -498,17 +584,22 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!didPop) _closeChat();
       },
       child: Scaffold(
-        backgroundColor: _kBg,
+        backgroundColor: AppColors.backgroundDark,
         appBar: _buildAppBar(),
         body: Column(
           children: [
             Expanded(child: _buildBody()),
-            Builder(builder: (ctx) {
-              debugPrint('[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId');
-              if (_isReceiverBlocked) return _buildBlockBanner();
-              if (_isBlockedByReceiver) return _buildBlockedByReceiverBanner();
-              return _buildInputBar();
-            }),
+            Builder(
+              builder: (ctx) {
+                debugPrint(
+                  '[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId',
+                );
+                if (_isReceiverBlocked) return _buildBlockBanner();
+                if (_isBlockedByReceiver)
+                  return _buildBlockedByReceiverBanner();
+                return _buildInputBar();
+              },
+            ),
           ],
         ),
       ),
@@ -518,27 +609,33 @@ class _ChatScreenState extends State<ChatScreen> {
   PreferredSizeWidget _buildAppBar() {
     final photoUrl = widget.receiverPhotoUrl;
     return AppBar(
-      backgroundColor: _kBg,
+      backgroundColor: AppColors.backgroundDark,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: _closeChat, // ✅ Use the new method instead of direct pop
+      leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colors.white,
+          size: 20,
         ),
+        onPressed: _closeChat, // ✅ Use the new method instead of direct pop
+      ),
       title: Row(
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFF2A2A2A),
-            backgroundImage:
-                photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+            backgroundColor: AppColors.containerMid,
+            backgroundImage: photoUrl.isNotEmpty
+                ? NetworkImage(photoUrl)
+                : null,
             child: photoUrl.isEmpty
                 ? Text(
                     _initials(widget.receiverName),
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700),
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
                   )
                 : null,
           ),
@@ -568,7 +665,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2));
+        child: CircularProgressIndicator(
+          color: AppColors.primaryOrange,
+          strokeWidth: 2,
+        ),
+      );
     }
 
     if (_error != null && _messages.isEmpty) {
@@ -583,7 +684,9 @@ class _ChatScreenState extends State<ChatScreen> {
       onNotification: (n) {
         if (n is ScrollUpdateNotification &&
             _scrollCtrl.hasClients &&
-            _scrollCtrl.position.maxScrollExtent - _scrollCtrl.position.pixels <= 100 &&
+            _scrollCtrl.position.maxScrollExtent -
+                    _scrollCtrl.position.pixels <=
+                100 &&
             _hasMore &&
             !_loadingMore) {
           _loadMessages(loadMore: true);
@@ -602,8 +705,11 @@ class _ChatScreenState extends State<ChatScreen> {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                  child: CircularProgressIndicator(
-                      color: _kOrange, strokeWidth: 2)),
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryOrange,
+                  strokeWidth: 2,
+                ),
+              ),
             );
           }
           final msg = _messages[_messages.length - 1 - i];
@@ -613,8 +719,8 @@ class _ChatScreenState extends State<ChatScreen> {
           // In reversed list, "older" = higher index = earlier in _messages.
           final olderIdx = _messages.length - 2 - i;
           final olderMsg = olderIdx >= 0 ? _messages[olderIdx] : null;
-          final showDate = olderMsg == null ||
-              !_sameDay(olderMsg.createdAt, msg.createdAt);
+          final showDate =
+              olderMsg == null || !_sameDay(olderMsg.createdAt, msg.createdAt);
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -657,12 +763,14 @@ class _ChatScreenState extends State<ChatScreen> {
               foregroundColor: Colors.white,
               side: const BorderSide(color: Colors.white38),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: const Text('Say Hi 👋',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Say Hi 👋',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -674,20 +782,28 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              color: Colors.white38, size: 42),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: Colors.white38,
+            size: 42,
+          ),
           const SizedBox(height: 12),
-          Text(_error!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54, fontSize: 14)),
+          Text(
+            _error!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54, fontSize: 14),
+          ),
           const SizedBox(height: 20),
           TextButton(
             onPressed: _loadMessages,
-            child: const Text('Try again',
-                style: TextStyle(
-                    color: _kOrange,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Try again',
+              style: TextStyle(
+                color: AppColors.primaryOrange,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -710,16 +826,23 @@ class _ChatScreenState extends State<ChatScreen> {
             const Expanded(
               child: Text(
                 "You've blocked this account and can't send messages to them.",
-                style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.4),
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
               ),
             ),
             TextButton(
               onPressed: _unblock,
-              child: const Text('Unblock',
-                  style: TextStyle(
-                      color: _kOrange,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Unblock',
+                style: TextStyle(
+                  color: AppColors.primaryOrange,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -747,7 +870,11 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Text(
                 'This profile has disabled receiving messages.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white38, fontSize: 13, height: 1.4),
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
               ),
             ),
           ],
@@ -773,17 +900,21 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
-                color: Color(0xFF2A2A2A),
+                color: AppColors.containerMid,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.add_rounded, color: Colors.white70, size: 22),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Colors.white70,
+                size: 22,
+              ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: _kSurface,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(22),
               ),
               child: TextField(
@@ -795,8 +926,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   hintText: 'Type your message...',
                   hintStyle: TextStyle(color: Colors.white38, fontSize: 15),
                   border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ),
@@ -812,17 +945,24 @@ class _ChatScreenState extends State<ChatScreen> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: hasText ? _kOrange : const Color(0xFF2A2A2A),
+                    color: hasText
+                        ? AppColors.primaryOrange
+                        : AppColors.containerMid,
                     shape: BoxShape.circle,
                   ),
                   child: _isSending
                       ? const Padding(
                           padding: EdgeInsets.all(8),
                           child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 18),
+                      : const Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                 );
               },
             ),
@@ -874,8 +1014,18 @@ class _DateSeparator extends StatelessWidget {
       return 'Today';
     }
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${local.day} ${months[local.month - 1]} ${local.year}';
   }
@@ -902,44 +1052,63 @@ class _MessageBubble extends StatelessWidget {
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
-            Builder(builder: (ctx) {
-              final isTrack = _isTrackMessage(message.content);
-              debugPrint('[MessageBubble.build] id="${message.id}" isTrack=$isTrack content="${message.content.length > 60 ? "${message.content.substring(0, 60)}..." : message.content}"');
-              if (isTrack) {
-                final raw = message.content.trim().substring('track::'.length);
-                // Current format:  permalink:"<pl>",profilelink:"<profileLink>"
-                // Legacy format A: <artistId>::<permalink>
-                // Legacy format B: <permalink>  (no "::")
-                String parsedPermalink = '';
-                String parsedProfileLink = '';
-
-                if (raw.contains('permalink:"')) {
-                  // Current format — parse both fields via regex
-                  final plMatch = RegExp(r'permalink:"([^"]*)"').firstMatch(raw);
-                  final profMatch = RegExp(r'profilelink:"([^"]*)"').firstMatch(raw);
-                  parsedPermalink = plMatch?.group(1) ?? '';
-                  parsedProfileLink = profMatch?.group(1) ?? '';
-                  debugPrint('[MessageBubble.build] Current format → permalink="$parsedPermalink" profilelink="$parsedProfileLink"');
-                } else {
-                  // Legacy format — no profilelink embedded
-                  final sepIdx = raw.indexOf('::');
-                  parsedPermalink = sepIdx >= 0 ? raw.substring(sepIdx + 2) : raw;
-                  debugPrint('[MessageBubble.build] Legacy format (raw="$raw") → permalink="$parsedPermalink" (no profilelink — will fall back to current user)');
-                }
-
-                debugPrint('[MessageBubble.build] → TrackCardBubble permalink="$parsedPermalink" profilelink="$parsedProfileLink"');
-                return _TrackCardBubble(
-                  key: ValueKey(message.content),
-                  permalink: parsedPermalink,
-                  profileLink: parsedProfileLink,
-                  isMe: isMe,
+            Builder(
+              builder: (ctx) {
+                final isTrack = _isTrackMessage(message.content);
+                debugPrint(
+                  '[MessageBubble.build] id="${message.id}" isTrack=$isTrack content="${message.content.length > 60 ? "${message.content.substring(0, 60)}..." : message.content}"',
                 );
-              }
-              return _buildTextBubble(maxBubbleWidth);
-            }),
+                if (isTrack) {
+                  final raw = message.content.trim().substring(
+                    'track::'.length,
+                  );
+                  // Current format:  permalink:"<pl>",profilelink:"<profileLink>"
+                  // Legacy format A: <artistId>::<permalink>
+                  // Legacy format B: <permalink>  (no "::")
+                  String parsedPermalink = '';
+                  String parsedProfileLink = '';
+
+                  if (raw.contains('permalink:"')) {
+                    // Current format — parse both fields via regex
+                    final plMatch = RegExp(
+                      r'permalink:"([^"]*)"',
+                    ).firstMatch(raw);
+                    final profMatch = RegExp(
+                      r'profilelink:"([^"]*)"',
+                    ).firstMatch(raw);
+                    parsedPermalink = plMatch?.group(1) ?? '';
+                    parsedProfileLink = profMatch?.group(1) ?? '';
+                    debugPrint(
+                      '[MessageBubble.build] Current format → permalink="$parsedPermalink" profilelink="$parsedProfileLink"',
+                    );
+                  } else {
+                    // Legacy format — no profilelink embedded
+                    final sepIdx = raw.indexOf('::');
+                    parsedPermalink = sepIdx >= 0
+                        ? raw.substring(sepIdx + 2)
+                        : raw;
+                    debugPrint(
+                      '[MessageBubble.build] Legacy format (raw="$raw") → permalink="$parsedPermalink" (no profilelink — will fall back to current user)',
+                    );
+                  }
+
+                  debugPrint(
+                    '[MessageBubble.build] → TrackCardBubble permalink="$parsedPermalink" profilelink="$parsedProfileLink"',
+                  );
+                  return _TrackCardBubble(
+                    key: ValueKey(message.content),
+                    permalink: parsedPermalink,
+                    profileLink: parsedProfileLink,
+                    isMe: isMe,
+                  );
+                }
+                return _buildTextBubble(maxBubbleWidth);
+              },
+            ),
             const SizedBox(height: 3),
             Text(
               time,
@@ -956,7 +1125,7 @@ class _MessageBubble extends StatelessWidget {
       constraints: BoxConstraints(maxWidth: maxWidth),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: isMe ? _kOrange : const Color(0xFF2A2A2A),
+        color: isMe ? AppColors.primaryOrange : AppColors.containerMid,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(18),
           topRight: const Radius.circular(18),
@@ -966,8 +1135,7 @@ class _MessageBubble extends StatelessWidget {
       ),
       child: Text(
         message.content,
-        style: const TextStyle(
-            color: Colors.white, fontSize: 15, height: 1.35),
+        style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.35),
       ),
     );
   }
@@ -985,7 +1153,8 @@ class _MessageBubble extends StatelessWidget {
 // ── Track card bubble (shared track message) ────────────────────────────────────
 
 class _TrackCardBubble extends StatefulWidget {
-  final String profileLink; // track owner's profileLink (empty on legacy messages)
+  final String
+  profileLink; // track owner's profileLink (empty on legacy messages)
   final String permalink;
   final bool isMe;
 
@@ -1012,11 +1181,15 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   void initState() {
     super.initState();
     debugPrint('━━━ [TrackCardBubble.initState] ━━━');
-    debugPrint('[TrackCardBubble.initState] profileLink="${widget.profileLink}" permalink="${widget.permalink}" cacheKey="$_cacheKey"');
+    debugPrint(
+      '[TrackCardBubble.initState] profileLink="${widget.profileLink}" permalink="${widget.permalink}" cacheKey="$_cacheKey"',
+    );
     if (_TrackCardBubble._cache.containsKey(_cacheKey)) {
       _track = _TrackCardBubble._cache[_cacheKey];
       _loaded = true;
-      debugPrint('[TrackCardBubble.initState] Cache HIT → track=${_track == null ? "null (fallback text)" : "\"${_track!.title}\""}');
+      debugPrint(
+        '[TrackCardBubble.initState] Cache HIT → track=${_track == null ? "null (fallback text)" : "\"${_track!.title}\""}',
+      );
     } else {
       debugPrint('[TrackCardBubble.initState] Cache MISS → calling _load()');
       _load();
@@ -1028,11 +1201,19 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
     super.didUpdateWidget(old);
     final oldKey = '${old.profileLink}::${old.permalink}';
     if (oldKey != _cacheKey) {
-      debugPrint('[TrackCardBubble.didUpdateWidget] cacheKey changed: "$oldKey" → "$_cacheKey"');
+      debugPrint(
+        '[TrackCardBubble.didUpdateWidget] cacheKey changed: "$oldKey" → "$_cacheKey"',
+      );
       if (_TrackCardBubble._cache.containsKey(_cacheKey)) {
-        setState(() { _track = _TrackCardBubble._cache[_cacheKey]; _loaded = true; });
+        setState(() {
+          _track = _TrackCardBubble._cache[_cacheKey];
+          _loaded = true;
+        });
       } else {
-        setState(() { _track = null; _loaded = false; });
+        setState(() {
+          _track = null;
+          _loaded = false;
+        });
         _load();
       }
     }
@@ -1040,7 +1221,9 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
 
   Future<void> _load() async {
     debugPrint('━━━ [TrackCardBubble._load] ━━━');
-    debugPrint('[TrackCardBubble._load] profileLink="${widget.profileLink}" permalink="${widget.permalink}" cacheKey="$_cacheKey"');
+    debugPrint(
+      '[TrackCardBubble._load] profileLink="${widget.profileLink}" permalink="${widget.permalink}" cacheKey="$_cacheKey"',
+    );
     try {
       final api = MessagingApiService();
 
@@ -1051,41 +1234,72 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
       String resolvedProfileLink = widget.profileLink;
 
       if (resolvedProfileLink.isEmpty) {
-        debugPrint('[TrackCardBubble._load] profileLink empty (legacy message) — fetching current user profileLink as fallback');
+        debugPrint(
+          '[TrackCardBubble._load] profileLink empty (legacy message) — fetching current user profileLink as fallback',
+        );
         final auth = AuthApiService();
         final userId = await auth.getStoredUserId() ?? '';
-        debugPrint('[TrackCardBubble._load] Fallback userId="$userId" (empty=${userId.isEmpty})');
+        debugPrint(
+          '[TrackCardBubble._load] Fallback userId="$userId" (empty=${userId.isEmpty})',
+        );
         if (userId.isEmpty) {
-          debugPrint('[TrackCardBubble._load] ❌ userId also empty — cannot resolve profileLink');
+          debugPrint(
+            '[TrackCardBubble._load] ❌ userId also empty — cannot resolve profileLink',
+          );
           _TrackCardBubble._cache[_cacheKey] = null;
-          if (mounted) setState(() { _track = null; _loaded = true; });
+          if (mounted)
+            setState(() {
+              _track = null;
+              _loaded = true;
+            });
           return;
         }
-        resolvedProfileLink = await api.getUserProfileLink(userId: userId) ?? '';
-        debugPrint('[TrackCardBubble._load] Fallback profileLink="$resolvedProfileLink" (empty=${resolvedProfileLink.isEmpty})');
+        resolvedProfileLink =
+            await api.getUserProfileLink(userId: userId) ?? '';
+        debugPrint(
+          '[TrackCardBubble._load] Fallback profileLink="$resolvedProfileLink" (empty=${resolvedProfileLink.isEmpty})',
+        );
       }
 
       if (resolvedProfileLink.isEmpty) {
-        debugPrint('[TrackCardBubble._load] ❌ resolvedProfileLink is still empty — cannot call permalink API');
+        debugPrint(
+          '[TrackCardBubble._load] ❌ resolvedProfileLink is still empty — cannot call permalink API',
+        );
         _TrackCardBubble._cache[_cacheKey] = null;
-        if (mounted) setState(() { _track = null; _loaded = true; });
+        if (mounted)
+          setState(() {
+            _track = null;
+            _loaded = true;
+          });
         return;
       }
 
       // Step 2 — call GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}
-      debugPrint('[TrackCardBubble._load] calling getTrackByPermalink(profileLink="$resolvedProfileLink", permalink="${widget.permalink}")');
+      debugPrint(
+        '[TrackCardBubble._load] calling getTrackByPermalink(profileLink="$resolvedProfileLink", permalink="${widget.permalink}")',
+      );
       final result = await api.getTrackByPermalink(
         profileLink: resolvedProfileLink,
         permalink: widget.permalink,
       );
-      debugPrint('[TrackCardBubble._load] result=${result == null ? "NULL — showing fallback text" : "✅ id=${result.id} title=${result.title}"}');
+      debugPrint(
+        '[TrackCardBubble._load] result=${result == null ? "NULL — showing fallback text" : "✅ id=${result.id} title=${result.title}"}',
+      );
       _TrackCardBubble._cache[_cacheKey] = result;
-      if (mounted) setState(() { _track = result; _loaded = true; });
+      if (mounted)
+        setState(() {
+          _track = result;
+          _loaded = true;
+        });
     } catch (e, stack) {
       debugPrint('[TrackCardBubble._load] ❌ EXCEPTION: $e');
       debugPrint('[TrackCardBubble._load] stack: $stack');
       _TrackCardBubble._cache[_cacheKey] = null;
-      if (mounted) setState(() { _track = null; _loaded = true; });
+      if (mounted)
+        setState(() {
+          _track = null;
+          _loaded = true;
+        });
     }
   }
 
@@ -1105,7 +1319,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
         constraints: const BoxConstraints(maxWidth: 280),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: widget.isMe ? _kOrange : const Color(0xFF2A2A2A),
+          color: widget.isMe ? AppColors.primaryOrange : AppColors.containerMid,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -1113,8 +1327,14 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
             bottomRight: Radius.circular(widget.isMe ? 4 : 18),
           ),
         ),
-        child: Text(widget.permalink,
-            style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.35)),
+        child: Text(
+          widget.permalink,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            height: 1.35,
+          ),
+        ),
       );
     }
 
@@ -1128,7 +1348,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
           maxWidth: MediaQuery.of(context).size.width * 0.72,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFF1C1C1C),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Padding(
@@ -1144,7 +1364,8 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
                         width: 52,
                         height: 52,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, _) => _artworkPlaceholder(),
+                        errorBuilder: (context, error, _) =>
+                            _artworkPlaceholder(),
                       )
                     : _artworkPlaceholder(),
               ),
@@ -1186,7 +1407,11 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
                 onTap: () => _showOptions(context, track),
                 child: const Padding(
                   padding: EdgeInsets.all(4),
-                  child: Icon(Icons.more_horiz, color: Colors.white54, size: 18),
+                  child: Icon(
+                    Icons.more_horiz,
+                    color: Colors.white54,
+                    size: 18,
+                  ),
                 ),
               ),
             ],
@@ -1207,9 +1432,14 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
 
   Widget _artworkPlaceholder() {
     return Container(
-      width: 52, height: 52,
-      color: const Color(0xFF2A2A2A),
-      child: const Icon(Icons.graphic_eq_rounded, color: Colors.white24, size: 24),
+      width: 52,
+      height: 52,
+      color: AppColors.containerMid,
+      child: const Icon(
+        Icons.graphic_eq_rounded,
+        color: Colors.white24,
+        size: 24,
+      ),
     );
   }
 
@@ -1218,13 +1448,17 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
       width: 240,
       height: 72,
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: const Center(
         child: SizedBox(
-          width: 18, height: 18,
-          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2),
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            color: AppColors.primaryOrange,
+            strokeWidth: 2,
+          ),
         ),
       ),
     );
@@ -1248,8 +1482,10 @@ class _OptionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: Colors.white70, size: 22),
-      title: Text(label,
-          style: const TextStyle(color: Colors.white, fontSize: 15)),
+      title: Text(
+        label,
+        style: const TextStyle(color: Colors.white, fontSize: 15),
+      ),
       onTap: onTap,
     );
   }

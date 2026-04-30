@@ -39,8 +39,10 @@ class AudioUploadService {
     await Future.delayed(const Duration(seconds: 1));
 
     TrackVisibility visibility = TrackVisibility.public;
-    if (metadata['visibility'] == 'private') visibility = TrackVisibility.private;
-    if (metadata['visibility'] == 'unlisted') visibility = TrackVisibility.unlisted;
+    if (metadata['visibility'] == 'private')
+      visibility = TrackVisibility.private;
+    if (metadata['visibility'] == 'unlisted')
+      visibility = TrackVisibility.unlisted;
 
     final localId = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -87,7 +89,9 @@ class AudioUploadService {
       final list = List<TrackModel>.from(globalMockTracksNotifier.value);
       final idx = list.indexWhere((t) => t.id == localId);
       if (idx != -1) {
-        list[idx] = list[idx].copyWith(processingState: TrackProcessingState.finished);
+        list[idx] = list[idx].copyWith(
+          processingState: TrackProcessingState.finished,
+        );
         globalMockTracksNotifier.value = list;
       }
     });

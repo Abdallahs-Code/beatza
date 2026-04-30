@@ -4,9 +4,7 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_socket_service.dart';
 import 'package:flutter/material.dart';
-
-const _kSurface = Color(0xFF1C1C1C);
-const _kOrange = Color(0xFFFF5500);
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 enum MessageFilter { all, unreadOnly }
 
@@ -50,15 +48,23 @@ class _MessagesTabState extends State<MessagesTab> {
   }
 
   Future<void> _load() async {
-    debugPrint('[MessagesTab._load] Fetching chats. currentUserId=$_currentUserId');
-    if (mounted) setState(() { _isLoading = true; _error = null; });
+    debugPrint(
+      '[MessagesTab._load] Fetching chats. currentUserId=$_currentUserId',
+    );
+    if (mounted)
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
     try {
       final chats = await _api.getChats();
       if (!mounted) return;
       debugPrint('[MessagesTab._load] Got ${chats.length} chats');
       for (final c in chats) {
         final lm = c.lastMessage;
-        debugPrint('[MessagesTab._load] → chat ${c.id}: isUnread=${c.isUnread(_currentUserId ?? "")} senderId=${lm?.senderId} seenBy=${lm?.seenBy}');
+        debugPrint(
+          '[MessagesTab._load] → chat ${c.id}: isUnread=${c.isUnread(_currentUserId ?? "")} senderId=${lm?.senderId} seenBy=${lm?.seenBy}',
+        );
       }
       setState(() {
         _chats = chats;
@@ -168,12 +174,18 @@ class _MessagesTabState extends State<MessagesTab> {
   //   }
   // }
 
-    Future<void> _openChat(ChatModel chat) async {
+  Future<void> _openChat(ChatModel chat) async {
     debugPrint('━━━ [MessagesTab._openChat] ━━━');
-    debugPrint('[MessagesTab._openChat] chat.id="${chat.id}" (empty=${chat.id.isEmpty})');
+    debugPrint(
+      '[MessagesTab._openChat] chat.id="${chat.id}" (empty=${chat.id.isEmpty})',
+    );
     debugPrint('[MessagesTab._openChat] participants=${chat.participants}');
-    debugPrint('[MessagesTab._openChat] otherPerson.userId="${chat.otherPerson?.userId}" name="${chat.otherPerson?.displayName}"');
-    debugPrint('[MessagesTab._openChat] isUnread=${chat.isUnread(_currentUserId ?? "")}');
+    debugPrint(
+      '[MessagesTab._openChat] otherPerson.userId="${chat.otherPerson?.userId}" name="${chat.otherPerson?.displayName}"',
+    );
+    debugPrint(
+      '[MessagesTab._openChat] isUnread=${chat.isUnread(_currentUserId ?? "")}',
+    );
 
     // Optimistically mark as read in local state so the unread dot disappears immediately
     if (_currentUserId != null) {
@@ -181,7 +193,9 @@ class _MessagesTabState extends State<MessagesTab> {
       if (idx >= 0) {
         final lm = _chats[idx].lastMessage;
         if (lm != null && !lm.seenBy.contains(_currentUserId)) {
-          debugPrint('[MessagesTab._openChat] Optimistically marking chat ${chat.id} as read');
+          debugPrint(
+            '[MessagesTab._openChat] Optimistically marking chat ${chat.id} as read',
+          );
           setState(() {
             _chats[idx] = _chats[idx].copyWith(
               lastMessage: LastMessageModel(
@@ -209,10 +223,12 @@ class _MessagesTabState extends State<MessagesTab> {
         ),
       ),
     );
-    
+
     // ✅ ALWAYS refresh the messages list when returning from chat
     if (mounted) {
-      debugPrint('[MessagesTab._openChat] Chat closed, refreshing messages list');
+      debugPrint(
+        '[MessagesTab._openChat] Chat closed, refreshing messages list',
+      );
       await _load();
     }
   }
@@ -221,7 +237,11 @@ class _MessagesTabState extends State<MessagesTab> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2));
+        child: CircularProgressIndicator(
+          color: AppColors.primaryOrange,
+          strokeWidth: 2,
+        ),
+      );
     }
 
     if (_error != null && _chats.isEmpty) {
@@ -235,20 +255,19 @@ class _MessagesTabState extends State<MessagesTab> {
     }
 
     return RefreshIndicator(
-      color: _kOrange,
-      backgroundColor: _kSurface,
+      color: AppColors.primaryOrange,
+      backgroundColor: AppColors.surface,
       onRefresh: _load,
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: chats.length,
         separatorBuilder: (context, index) =>
             const Divider(height: 1, color: Colors.white10, indent: 74),
-        itemBuilder: (ctx, i) =>
-            _ChatTile(
-              chat: chats[i],
-              currentUserId: _currentUserId ?? '',
-              onTap: () => _openChat(chats[i]),
-            ),
+        itemBuilder: (ctx, i) => _ChatTile(
+          chat: chats[i],
+          currentUserId: _currentUserId ?? '',
+          onTap: () => _openChat(chats[i]),
+        ),
       ),
     );
   }
@@ -258,8 +277,7 @@ class _MessagesTabState extends State<MessagesTab> {
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         const SizedBox(height: 120),
-        const Icon(Icons.mail_outline_rounded,
-            color: Colors.white24, size: 60),
+        const Icon(Icons.mail_outline_rounded, color: Colors.white24, size: 60),
         const SizedBox(height: 20),
         Text(
           widget.filter == MessageFilter.unreadOnly
@@ -267,9 +285,10 @@ class _MessagesTabState extends State<MessagesTab> {
               : 'No messages yet',
           textAlign: TextAlign.center,
           style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700),
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 10),
         const Padding(
@@ -277,8 +296,7 @@ class _MessagesTabState extends State<MessagesTab> {
           child: Text(
             'Your conversations will appear here.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-                color: Colors.white38, fontSize: 14, height: 1.5),
+            style: TextStyle(color: Colors.white38, fontSize: 14, height: 1.5),
           ),
         ),
       ],
@@ -292,21 +310,28 @@ class _MessagesTabState extends State<MessagesTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                color: Colors.white38, size: 42),
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.white38,
+              size: 42,
+            ),
             const SizedBox(height: 16),
-            Text(_error!,
-                textAlign: TextAlign.center,
-                style:
-                    const TextStyle(color: Colors.white54, fontSize: 14)),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white54, fontSize: 14),
+            ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: _load,
-              child: const Text('Try again',
-                  style: TextStyle(
-                      color: _kOrange,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Try again',
+                style: TextStyle(
+                  color: AppColors.primaryOrange,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -345,9 +370,8 @@ class _ChatTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 26,
-              backgroundColor: const Color(0xFF2A2A2A),
-              backgroundImage:
-                  photo.isNotEmpty ? NetworkImage(photo) : null,
+              backgroundColor: AppColors.containerMid,
+              backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
               child: photo.isEmpty
                   ? Text(
                       _initials(name),
@@ -369,9 +393,7 @@ class _ChatTile extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
-                      fontWeight: isUnread
-                          ? FontWeight.w700
-                          : FontWeight.w500,
+                      fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
                   if (lm != null) ...[
@@ -381,8 +403,7 @@ class _ChatTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color:
-                            isUnread ? Colors.white70 : Colors.white38,
+                        color: isUnread ? Colors.white70 : Colors.white38,
                         fontSize: 13,
                         fontWeight: isUnread
                             ? FontWeight.w500
@@ -401,7 +422,9 @@ class _ChatTile extends StatelessWidget {
                   Text(
                     _timeAgo(lm.createdAt),
                     style: TextStyle(
-                      color: isUnread ? _kOrange : Colors.white38,
+                      color: isUnread
+                          ? AppColors.primaryOrange
+                          : Colors.white38,
                       fontSize: 12,
                     ),
                   ),
@@ -411,7 +434,7 @@ class _ChatTile extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: _kOrange,
+                      color: AppColors.primaryOrange,
                       shape: BoxShape.circle,
                     ),
                   ),

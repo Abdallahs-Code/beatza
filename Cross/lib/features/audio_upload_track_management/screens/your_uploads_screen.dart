@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/audio_upload_service.dart';
@@ -76,9 +77,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   }
 
   List<Track> _filteredTracks() {
-    var list = _serverTracks.where(
-      (t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase()),
-    ).toList();
+    var list = _serverTracks
+        .where(
+          (t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
 
     if (_filter == _Filter.public) {
       list = list.where((t) => !t.isPrivate).toList();
@@ -101,7 +104,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     final result = await showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(pos.dx, pos.dy + 50, 16, 0),
-      color: const Color(0xFF2A2A2A),
+      color: AppColors.containerMid,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       items: [
         _menuItem('recent', 'Recently added', _sort == _Sort.recentlyAdded),
@@ -135,7 +138,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 ? const Icon(Icons.check, color: Colors.white, size: 18)
                 : null,
           ),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 15)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+          ),
         ],
       ),
     );
@@ -153,7 +159,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Could not load "${track.title}".'),
-          backgroundColor: const Color(0xFF2A2A2A),
+          backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -167,7 +173,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('"${track.title}" has no playable audio.'),
-          backgroundColor: const Color(0xFF2A2A2A),
+          backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -203,11 +209,16 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     if (!isPro && _serverTracks.length >= 3) {
       ScaffoldMessenger.of(ctx).showSnackBar(
         const SnackBar(
-          content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+          content: Text(
+            'Free tier limited to 3 uploads. Please upgrade to Pro.',
+          ),
           backgroundColor: Colors.orange,
         ),
       );
-      Navigator.push(ctx, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+      Navigator.push(
+        ctx,
+        MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+      );
       return;
     }
     final file = await AudioUploadService().pickAudioFile();
@@ -229,18 +240,22 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     final tracks = _filteredTracks();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: AppColors.homeBackground,
       body: SafeArea(
         top: false,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverAppBar(
-              backgroundColor: const Color(0xFF0A0A0A),
+              backgroundColor: AppColors.homeBackground,
               expandedHeight: 120,
               pinned: true,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                icon: const Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
               flexibleSpace: FlexibleSpaceBar(
@@ -269,7 +284,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(60),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -285,7 +303,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
                               hintText: 'Search tracks',
-                              prefixIcon: Icon(Icons.search, color: Colors.white54),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: Colors.white54,
+                              ),
                               border: InputBorder.none,
                             ),
                           ),
@@ -331,7 +352,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             ),
                           ),
                         GestureDetector(
-                          onTap: tracks.isNotEmpty ? () => _onTrackTap(tracks.first) : null,
+                          onTap: tracks.isNotEmpty
+                              ? () => _onTrackTap(tracks.first)
+                              : null,
                           child: Container(
                             width: 44,
                             height: 44,
@@ -339,7 +362,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.play_arrow, color: Colors.black),
+                            child: const Icon(
+                              Icons.play_arrow,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ],
@@ -358,21 +384,36 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning_amber, color: Colors.orange, size: 16),
+                        const Icon(
+                          Icons.warning_amber,
+                          color: Colors.orange,
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Could not load your tracks.',
-                            style: TextStyle(color: Colors.orange[300], fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.orange[300],
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                         TextButton(
                           onPressed: _loadServerTracks,
-                          child: const Text('Retry', style: TextStyle(color: Colors.orange, fontSize: 12)),
+                          child: const Text(
+                            'Retry',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -388,7 +429,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                     child: SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        color: Colors.orange,
+                        strokeWidth: 2,
+                      ),
                     ),
                   ),
                 ),
@@ -400,7 +444,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                   final t = tracks[i];
                   final isFetching = _fetchingPlaybackId == t.id;
                   return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     leading: _thumb(networkUrl: t.imageUrl),
                     title: Text(
                       t.title,
@@ -415,13 +462,25 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       children: [
                         Text(
                           t.isPrivate ? 'Private' : 'Public',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
                         ),
                         if (t.numPlays > 0) ...[
-                          Text(' · ', style: TextStyle(color: Colors.grey[700], fontSize: 12)),
+                          Text(
+                            ' · ',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 12,
+                            ),
+                          ),
                           Text(
                             '${_fmt(t.numPlays)} plays',
-                            style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ],
@@ -430,10 +489,16 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.orange,
+                              strokeWidth: 2,
+                            ),
                           )
                         : IconButton(
-                            icon: const Icon(Icons.more_horiz, color: Colors.white54),
+                            icon: const Icon(
+                              Icons.more_horiz,
+                              color: Colors.white54,
+                            ),
                             onPressed: () => _trackOptions(ctx, t),
                           ),
                     onTap: () => _onTrackTap(t),
@@ -447,7 +512,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.cloud_upload_outlined, color: Colors.grey[700], size: 60),
+                      Icon(
+                        Icons.cloud_upload_outlined,
+                        color: Colors.grey[700],
+                        size: 60,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'No uploads yet',
@@ -455,7 +524,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
                       const SizedBox(height: 12),
                       IconButton(
-                        icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
+                        icon: const Icon(
+                          Icons.cloud_upload_outlined,
+                          color: Colors.white,
+                        ),
                         onPressed: () => _pickAndUpload(context),
                       ),
                     ],
@@ -475,7 +547,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(4),
       ),
       child: ClipRRect(
@@ -495,7 +567,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   void _trackOptions(BuildContext ctx, Track track) {
     showModalBottomSheet(
       context: ctx,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -514,7 +586,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: Colors.white),
-              title: const Text('Update track', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Update track',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () async {
                 Navigator.pop(ctx);
                 await Navigator.push(
@@ -529,7 +604,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Delete track', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Delete track',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _deleteTrack(track);
@@ -545,8 +623,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Delete track', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.container,
+        title: const Text(
+          'Delete track',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Delete "${track.title}"? This cannot be undone.',
           style: const TextStyle(color: Colors.grey),
@@ -593,7 +674,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Track deleted'),
-          backgroundColor: Color(0xFF2A2A2A),
+          backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
         ),
       );

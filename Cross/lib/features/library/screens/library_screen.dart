@@ -1,4 +1,4 @@
-﻿// Dart imports
+// Dart imports
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
@@ -29,7 +29,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final AuthApiService _authApiService = AuthApiService();
   final UserProfileService _userProfileService = UserProfileService();
   final LibraryHistoryApiService _historyApiService =
-  LibraryHistoryApiService();
+      LibraryHistoryApiService();
 
   late Future<UserProfileModel?> _profileFuture;
 
@@ -44,7 +44,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       subtitle: 'Abdessamad Hamidallah',
       metadata: '0 · 1 track',
       imageUrl:
-      'https://res.cloudinary.com/dr1sqiouu/image/upload/v1775770962/audio/file_owxgue.jpg',
+          'https://res.cloudinary.com/dr1sqiouu/image/upload/v1775770962/audio/file_owxgue.jpg',
     ),
     RecentlyPlayedMockItem(
       type: RecentlyPlayedMockItemType.profile,
@@ -133,13 +133,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _openListeningHistoryPage() async {
     final List<PlaybackTrackModel>? updatedTracks =
-    await Navigator.push<List<PlaybackTrackModel>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ListeningHistoryScreen(initialTracks: _historyTracks),
-      ),
-    );
+        await Navigator.push<List<PlaybackTrackModel>>(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ListeningHistoryScreen(initialTracks: _historyTracks),
+          ),
+        );
 
     if (updatedTracks != null && mounted) {
       setState(() {
@@ -176,7 +176,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-        const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
+            const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
       ),
     );
   }
@@ -188,7 +188,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: _LibraryEmptyStateCard(
           title: 'No recently played items yet',
           subtitle:
-          'Profiles and playlists you interact with will show up here.',
+              'Profiles and playlists you interact with will show up here.',
         ),
       );
     }
@@ -201,10 +201,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           children: _mockRecentlyPlayedItems
               .map(
                 (item) => Padding(
-              padding: const EdgeInsets.only(right: 18),
-              child: RecentlyPlayedPreviewCard(item: item),
-            ),
-          )
+                  padding: const EdgeInsets.only(right: 18),
+                  child: RecentlyPlayedPreviewCard(item: item),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -376,7 +376,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const OfflineDownloadsScreen(),
+                              builder: (context) =>
+                                  const OfflineDownloadsScreen(),
                             ),
                           );
                         },
@@ -406,7 +407,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                   const SizedBox(height: 14),
                   _buildHistoryPreviewSection(),
-
                 ],
               ),
             ),
@@ -441,10 +441,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                               : null,
                           child: imageUrl.isEmpty
                               ? const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 22,
-                          )
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 22,
+                                )
                               : null,
                         ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class ProRestrictionsScreen extends StatelessWidget {
   const ProRestrictionsScreen({super.key});
@@ -6,9 +7,9 @@ class ProRestrictionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
@@ -121,7 +122,7 @@ class ArtistTermsScreen extends StatelessWidget {
             const Text(
               'Terms of Use for Artist Subscriptions',
               style: TextStyle(
-                color: Color(0xFF1B64D1),
+                color: AppColors.primaryBlue,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),

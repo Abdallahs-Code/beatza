@@ -118,9 +118,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _buildScrollableMessage({
-    required Widget child,
-  }) {
+  Widget _buildScrollableMessage({required Widget child}) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [

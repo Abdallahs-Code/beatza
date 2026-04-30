@@ -16,9 +16,9 @@ class PlaylistApiService {
     ApiServices? apiServices,
     http.Client? client,
     FlutterSecureStorage? storage,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage() {
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _client = client ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage() {
     _authBase = '${_apiServices.baseUrl}/api/playlists/v1';
     _publicBase = '${_apiServices.baseUrl}/api/public/playlists/v1';
   }
@@ -39,11 +39,14 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, null);
       final uri = Uri.parse('$_authBase/$playlistId');
-      final response = await _client.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -61,10 +64,10 @@ class PlaylistApiService {
   }) async {
     try {
       final uri = Uri.parse('$_publicBase/$playlistId');
-      final response = await _client.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -82,11 +85,14 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, <PlaylistModel>[]);
       final uri = Uri.parse('$_authBase/my-playlists');
-      final response = await _client.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -104,11 +110,14 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, <PlaylistModel>[]);
       final uri = Uri.parse(_authBase);
-      final response = await _client.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -124,10 +133,10 @@ class PlaylistApiService {
   Future<(int, List<PlaylistModel>)> getPublicPlaylistsGuest() async {
     try {
       final uri = Uri.parse(_publicBase);
-      final response = await _client.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -147,11 +156,14 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, <PlaylistModel>[]);
       final uri = Uri.parse('$_authBase/playlists/$artistId');
-      final response = await _client.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -169,10 +181,10 @@ class PlaylistApiService {
   }) async {
     try {
       final uri = Uri.parse('$_publicBase/playlists/$artistId');
-      final response = await _client.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -227,11 +239,14 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, <PlaylistModel>[]);
       final uri = Uri.parse('$_authBase/$playlistId/recommend/$artistId');
-      final response = await _client.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+        },
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -250,10 +265,10 @@ class PlaylistApiService {
   }) async {
     try {
       final uri = Uri.parse('$_publicBase/$playlistId/recommend/$artistId');
-      final response = await _client.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -271,10 +286,10 @@ class PlaylistApiService {
   }) async {
     try {
       final uri = Uri.parse('$_publicBase/creator/$artistId/albums');
-      final response = await _client.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -292,10 +307,10 @@ class PlaylistApiService {
   }) async {
     try {
       final uri = Uri.parse('$_publicBase/permalink/$permalink');
-      final response = await _client.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      });
+      final response = await _client.get(
+        uri,
+        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+      );
       debugPrint('GET $uri -> ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -342,12 +357,15 @@ class PlaylistApiService {
         // Try standard list wrapper first
         final playlistsRaw = data['data']?['playlists'] as List<dynamic>?;
         if (playlistsRaw != null && playlistsRaw.isNotEmpty) {
-          return (response.statusCode,
-              PlaylistModel.fromJson(playlistsRaw.first as Map<String, dynamic>));
+          return (
+            response.statusCode,
+            PlaylistModel.fromJson(playlistsRaw.first as Map<String, dynamic>),
+          );
         }
         // Try single object wrapper
         final single = data['data']?['playlist'] as Map<String, dynamic>?;
-        if (single != null) return (response.statusCode, PlaylistModel.fromJson(single));
+        if (single != null)
+          return (response.statusCode, PlaylistModel.fromJson(single));
         return (response.statusCode, null);
       }
       return (response.statusCode, null);
@@ -394,11 +412,14 @@ class PlaylistApiService {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final playlistsRaw = data['data']?['playlists'] as List<dynamic>?;
         if (playlistsRaw != null && playlistsRaw.isNotEmpty) {
-          return (response.statusCode,
-              PlaylistModel.fromJson(playlistsRaw.first as Map<String, dynamic>));
+          return (
+            response.statusCode,
+            PlaylistModel.fromJson(playlistsRaw.first as Map<String, dynamic>),
+          );
         }
         final single = data['data']?['playlist'] as Map<String, dynamic>?;
-        if (single != null) return (response.statusCode, PlaylistModel.fromJson(single));
+        if (single != null)
+          return (response.statusCode, PlaylistModel.fromJson(single));
         return (response.statusCode, null);
       }
       return (response.statusCode, null);
@@ -434,13 +455,12 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, 'Unauthorized');
 
-      final request = http.MultipartRequest(
-        'PUT',
-        Uri.parse('$_authBase/$playlistId'),
-      )..headers.addAll({
-          'Authorization': 'Bearer $token',
-          'User-Agent': 'Android',
-        });
+      final request =
+          http.MultipartRequest('PUT', Uri.parse('$_authBase/$playlistId'))
+            ..headers.addAll({
+              'Authorization': 'Bearer $token',
+              'User-Agent': 'Android',
+            });
 
       void addField(String key, String? value) {
         if (value != null) request.fields[key] = value;
@@ -477,7 +497,9 @@ class PlaylistApiService {
         request.fields['licensing'] = jsonEncode(licensing);
       }
       if (imagePath != null && imagePath.isNotEmpty) {
-        request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+        request.files.add(
+          await http.MultipartFile.fromPath('image', imagePath),
+        );
       }
 
       final streamed = await _client.send(request);
@@ -486,7 +508,10 @@ class PlaylistApiService {
       debugPrint('PUT $_authBase/$playlistId -> ${response.statusCode}');
 
       final data = jsonDecode(response.body);
-      return (response.statusCode, data['message']?.toString() ?? 'Update failed');
+      return (
+        response.statusCode,
+        data['message']?.toString() ?? 'Update failed',
+      );
     } catch (e) {
       return (500, 'Network error: $e');
     }
@@ -501,27 +526,32 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, null);
 
-      final request = http.MultipartRequest(
-        'PATCH',
-        Uri.parse('$_authBase/$playlistId/image'),
-      )..headers.addAll({
-          'Authorization': 'Bearer $token',
-          'User-Agent': 'Android',
-        });
+      final request =
+          http.MultipartRequest(
+              'PATCH',
+              Uri.parse('$_authBase/$playlistId/image'),
+            )
+            ..headers.addAll({
+              'Authorization': 'Bearer $token',
+              'User-Agent': 'Android',
+            });
 
       request.files.add(await http.MultipartFile.fromPath('image', imagePath));
 
       final streamed = await _client.send(request);
       final response = await http.Response.fromStream(streamed);
 
-      debugPrint('PATCH $_authBase/$playlistId/image -> ${response.statusCode}');
+      debugPrint(
+        'PATCH $_authBase/$playlistId/image -> ${response.statusCode}',
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final playlistJson =
-            data['data']?['playlist'] as Map<String, dynamic>?;
-        return (200,
-            playlistJson != null ? PlaylistModel.fromJson(playlistJson) : null);
+        final playlistJson = data['data']?['playlist'] as Map<String, dynamic>?;
+        return (
+          200,
+          playlistJson != null ? PlaylistModel.fromJson(playlistJson) : null,
+        );
       }
       return (response.statusCode, null);
     } catch (e) {
@@ -556,11 +586,15 @@ class PlaylistApiService {
         }),
       );
 
-      debugPrint('PATCH $_authBase/$playlistId/tracks -> ${response.statusCode}');
+      debugPrint(
+        'PATCH $_authBase/$playlistId/tracks -> ${response.statusCode}',
+      );
 
       final data = jsonDecode(response.body);
-      return (response.statusCode,
-          data['message']?.toString() ?? 'Failed to reorder track');
+      return (
+        response.statusCode,
+        data['message']?.toString() ?? 'Failed to reorder track',
+      );
     } catch (e) {
       return (500, 'Network error: $e');
     }
@@ -585,11 +619,14 @@ class PlaylistApiService {
       );
 
       debugPrint(
-          'PATCH $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}');
+        'PATCH $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}',
+      );
 
       final data = jsonDecode(response.body);
-      return (response.statusCode,
-          data['message']?.toString() ?? 'Failed to add track');
+      return (
+        response.statusCode,
+        data['message']?.toString() ?? 'Failed to add track',
+      );
     } catch (e) {
       return (500, 'Network error: $e');
     }
@@ -614,11 +651,14 @@ class PlaylistApiService {
       );
 
       debugPrint(
-          'DELETE $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}');
+        'DELETE $_authBase/$playlistId/tracks/$trackId -> ${response.statusCode}',
+      );
 
       final data = jsonDecode(response.body);
-      return (response.statusCode,
-          data['message']?.toString() ?? 'Failed to remove track');
+      return (
+        response.statusCode,
+        data['message']?.toString() ?? 'Failed to remove track',
+      );
     } catch (e) {
       return (500, 'Network error: $e');
     }

@@ -7,6 +7,7 @@ import 'package:cross_team5/features/user_profile_social_identity/models/user_pr
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
@@ -215,7 +216,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.container,
         title: Text(title, style: const TextStyle(color: Colors.white)),
         content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
@@ -231,7 +232,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _showImageOptions(TextEditingController controller, String title) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -315,7 +316,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       isScrollControlled: true,
       builder: (context) {
         final bottom = MediaQuery.of(context).viewInsets.bottom;
@@ -346,7 +347,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   hintText: hint,
                   hintStyle: const TextStyle(color: Colors.white38),
                   filled: true,
-                  fillColor: const Color(0xFF1A1A1A),
+                  fillColor: AppColors.container,
                   counterText: "",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -402,7 +403,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickCountry() async {
     final result = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
@@ -500,7 +501,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final result = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
@@ -547,7 +548,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Colors.white54,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFF1A1A1A),
+                          fillColor: AppColors.container,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide.none,
@@ -620,7 +621,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (result != null) {
       setState(() {
-        _cityController.text = result;  // '' clears, non-empty sets
+        _cityController.text = result; // '' clears, non-empty sets
       });
     }
   }
@@ -689,7 +690,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final result = await showModalBottomSheet<ProfileLinkModel>(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       isScrollControlled: true,
       builder: (bottomSheetContext) {
         final bottom = MediaQuery.of(bottomSheetContext).viewInsets.bottom;
@@ -716,7 +717,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   hintText: 'Link name',
                   hintStyle: const TextStyle(color: Colors.white38),
                   filled: true,
-                  fillColor: const Color(0xFF1A1A1A),
+                  fillColor: AppColors.container,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -732,7 +733,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   hintText: 'https://...',
                   hintStyle: const TextStyle(color: Colors.white38),
                   filled: true,
-                  fillColor: const Color(0xFF1A1A1A),
+                  fillColor: AppColors.container,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -977,7 +978,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0B0B0B),
+                          color: AppColors.backgroundVeryDark,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
@@ -993,7 +994,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   child: Container(
                                     height: 104,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF090909),
+                                      color: AppColors.backgroundDeepest,
                                       image:
                                           _bannerController.text
                                               .trim()
@@ -1215,7 +1216,7 @@ class _EditSection extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0B),
+        color: AppColors.backgroundVeryDark,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1267,7 +1268,7 @@ class _LinkedProfileRow extends StatelessWidget {
         shownValue,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: Color(0xFF9A9A9A)),
+        style: const TextStyle(color: AppColors.greyMedium),
       ),
       trailing: onDelete == null
           ? const Icon(Icons.chevron_right, color: Colors.white54)
@@ -1314,9 +1315,9 @@ class _EditRow extends StatelessWidget {
         value == 'Tell the world a bit about yourself';
 
     final textColor = !enabled
-        ? const Color(0xFF6E6E6E)
+        ? AppColors.greyDark
         : isPlaceholder
-        ? const Color(0xFFCACACA)
+        ? AppColors.greyEnabled
         : Colors.white;
 
     return InkWell(
@@ -1334,8 +1335,8 @@ class _EditRow extends StatelessWidget {
                     label,
                     style: TextStyle(
                       color: enabled
-                          ? const Color(0xFF9A9A9A)
-                          : const Color(0xFF6E6E6E),
+                          ? AppColors.greyMedium
+                          : AppColors.greyDark,
                       fontSize: 13,
                     ),
                   ),
@@ -1356,7 +1357,7 @@ class _EditRow extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2),
                 child: Icon(
                   Icons.chevron_right,
-                  color: enabled ? Colors.white54 : const Color(0xFF6E6E6E),
+                  color: enabled ? Colors.white54 : AppColors.greyDark,
                 ),
               ),
           ],

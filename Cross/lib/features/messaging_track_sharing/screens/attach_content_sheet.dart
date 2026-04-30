@@ -2,18 +2,12 @@ import 'package:cross_team5/features/messaging_track_sharing/services/messaging_
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-const _kBg = Color(0xFF111111);
-const _kSurface = Color(0xFF1C1C1C);
-const _kOrange = Color(0xFFFF5500);
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class AttachContentSheet extends StatefulWidget {
   final void Function(String link) onSelected;
 
-  const AttachContentSheet({
-    super.key,
-    required this.onSelected,
-  });
+  const AttachContentSheet({super.key, required this.onSelected});
 
   @override
   State<AttachContentSheet> createState() => _AttachContentSheetState();
@@ -32,7 +26,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   bool _loadingUploads = true;
 
   String? _selectedTrackLink; // permalink of selected track
-  String? _selectedArtistId;  // posterId of selected track's uploader
+  String? _selectedArtistId; // posterId of selected track's uploader
   bool _attachingTrack = false; // true while fetching profileLink on Done tap
 
   @override
@@ -50,32 +44,58 @@ class _AttachContentSheetState extends State<AttachContentSheet>
 
   Future<void> _loadData() async {
     // ── 1. Get userId from local storage (mimics AuthApiService.getStoredUserId) ──
-    debugPrint('[AttachContentSheet._loadData] Reading userId from secure storage (key="user_id")...');
+    debugPrint(
+      '[AttachContentSheet._loadData] Reading userId from secure storage (key="user_id")...',
+    );
     final userId = await _storage.read(key: 'user_id') ?? '';
-    debugPrint('[AttachContentSheet._loadData] userId="$userId" (empty=${userId.isEmpty})');
+    debugPrint(
+      '[AttachContentSheet._loadData] userId="$userId" (empty=${userId.isEmpty})',
+    );
     if (userId.isEmpty) {
-      debugPrint('[AttachContentSheet._loadData] ❌ userId is EMPTY — cannot load tracks.');
-      if (mounted) setState(() { _loadingLikes = false; _loadingUploads = false; });
+      debugPrint(
+        '[AttachContentSheet._loadData] ❌ userId is EMPTY — cannot load tracks.',
+      );
+      if (mounted)
+        setState(() {
+          _loadingLikes = false;
+          _loadingUploads = false;
+        });
       return;
     }
 
     // ── 2. Fetch liked + uploaded tracks in parallel ──
-    debugPrint('[AttachContentSheet._loadData] Fetching liked + uploaded tracks for userId=$userId');
+    debugPrint(
+      '[AttachContentSheet._loadData] Fetching liked + uploaded tracks for userId=$userId',
+    );
     final results = await Future.wait([
-      _api.getLikedTracks(userId: userId).then((t) {
-        debugPrint('[AttachContentSheet._loadData] Liked tracks: ${t.length}');
-        return t;
-      }).catchError((e) {
-        debugPrint('[AttachContentSheet._loadData] getLikedTracks ERROR: $e');
-        return <PlaybackTrackModel>[];
-      }),
-      _api.getUserPostedTracks(userId: userId).then((t) {
-        debugPrint('[AttachContentSheet._loadData] Uploaded tracks: ${t.length}');
-        return t;
-      }).catchError((e) {
-        debugPrint('[AttachContentSheet._loadData] getUserPostedTracks ERROR: $e');
-        return <PlaybackTrackModel>[];
-      }),
+      _api
+          .getLikedTracks(userId: userId)
+          .then((t) {
+            debugPrint(
+              '[AttachContentSheet._loadData] Liked tracks: ${t.length}',
+            );
+            return t;
+          })
+          .catchError((e) {
+            debugPrint(
+              '[AttachContentSheet._loadData] getLikedTracks ERROR: $e',
+            );
+            return <PlaybackTrackModel>[];
+          }),
+      _api
+          .getUserPostedTracks(userId: userId)
+          .then((t) {
+            debugPrint(
+              '[AttachContentSheet._loadData] Uploaded tracks: ${t.length}',
+            );
+            return t;
+          })
+          .catchError((e) {
+            debugPrint(
+              '[AttachContentSheet._loadData] getUserPostedTracks ERROR: $e',
+            );
+            return <PlaybackTrackModel>[];
+          }),
     ]);
     if (!mounted) return;
     setState(() {
@@ -93,31 +113,45 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     final permalink = _selectedTrackLink!;
     final artistId = _selectedArtistId ?? '';
     debugPrint('━━━ [AttachContentSheet._handleDone] ━━━');
-    debugPrint('[AttachContentSheet._handleDone] permalink="$permalink" artistId="$artistId"');
+    debugPrint(
+      '[AttachContentSheet._handleDone] permalink="$permalink" artistId="$artistId"',
+    );
 
     if (mounted) setState(() => _attachingTrack = true);
 
     String profileLink = '';
     try {
       if (artistId.isNotEmpty) {
-        debugPrint('[AttachContentSheet._handleDone] Fetching profileLink for artistId="$artistId"');
+        debugPrint(
+          '[AttachContentSheet._handleDone] Fetching profileLink for artistId="$artistId"',
+        );
         profileLink = await _api.getUserProfileLink(userId: artistId) ?? '';
-        debugPrint('[AttachContentSheet._handleDone] profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+        debugPrint(
+          '[AttachContentSheet._handleDone] profileLink="$profileLink" (empty=${profileLink.isEmpty})',
+        );
         if (profileLink.isEmpty) {
-          debugPrint('[AttachContentSheet._handleDone] ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
+          debugPrint(
+            '[AttachContentSheet._handleDone] ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"',
+          );
         }
       } else {
-        debugPrint('[AttachContentSheet._handleDone] ⚠️ artistId is empty — no posterId on track model. profileLink will be empty.');
+        debugPrint(
+          '[AttachContentSheet._handleDone] ⚠️ artistId is empty — no posterId on track model. profileLink will be empty.',
+        );
       }
     } catch (e) {
-      debugPrint('[AttachContentSheet._handleDone] ❌ getUserProfileLink threw: $e');
+      debugPrint(
+        '[AttachContentSheet._handleDone] ❌ getUserProfileLink threw: $e',
+      );
     }
 
     // Build payload: track::permalink:"...",profilelink:"..."
     final payload = 'track::permalink:"$permalink",profilelink:"$profileLink"';
     debugPrint('[AttachContentSheet._handleDone] payload="$payload"');
     if (profileLink.isEmpty) {
-      debugPrint('[AttachContentSheet._handleDone] ⚠️ profileLink is empty in payload — receiver may not be able to load the track card');
+      debugPrint(
+        '[AttachContentSheet._handleDone] ⚠️ profileLink is empty in payload — receiver may not be able to load the track card',
+      );
     }
 
     if (mounted) {
@@ -134,7 +168,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       maxChildSize: 0.95,
       builder: (ctx, scrollCtrl) => Container(
         decoration: const BoxDecoration(
-          color: _kBg,
+          color: AppColors.backgroundDark,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: Column(
@@ -165,34 +199,41 @@ class _AttachContentSheetState extends State<AttachContentSheet>
         children: [
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.white70, fontSize: 15)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white70, fontSize: 15),
+            ),
           ),
           const Spacer(),
           const Text(
             'Attach content',
             style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600),
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const Spacer(),
           GestureDetector(
             onTap: (_selectedTrackLink != null && !_attachingTrack)
-                ? () { _handleDone(); }
+                ? () {
+                    _handleDone();
+                  }
                 : null,
             child: _attachingTrack
                 ? const SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        color: _kOrange, strokeWidth: 2),
+                      color: AppColors.primaryOrange,
+                      strokeWidth: 2,
+                    ),
                   )
                 : Text(
                     'Done',
                     style: TextStyle(
                       color: _selectedTrackLink != null
-                          ? _kOrange
+                          ? AppColors.primaryOrange
                           : Colors.white38,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -211,10 +252,11 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       indicatorWeight: 2,
       labelColor: Colors.white,
       unselectedLabelColor: Colors.white38,
-      labelStyle:
-          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      unselectedLabelStyle:
-          const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+      labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      unselectedLabelStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
       tabs: const [
         Tab(text: 'Likes'),
         Tab(text: 'Playlists'),
@@ -231,7 +273,11 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   ) {
     if (loading) {
       return const Center(
-          child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2));
+        child: CircularProgressIndicator(
+          color: AppColors.primaryOrange,
+          strokeWidth: 2,
+        ),
+      );
     }
 
     if (tracks.isEmpty) {
@@ -250,23 +296,30 @@ class _AttachContentSheetState extends State<AttachContentSheet>
         final track = tracks[i];
         final audioLink = track.permalink ?? '';
         final artistId = track.artistId ?? '';
-        debugPrint('[AttachContentSheet] track="${track.title}" id="${track.id}" permalink="$audioLink" artistId="$artistId" (posterId)');
+        debugPrint(
+          '[AttachContentSheet] track="${track.title}" id="${track.id}" permalink="$audioLink" artistId="$artistId" (posterId)',
+        );
         if (artistId.isEmpty) {
-          debugPrint('[AttachContentSheet] ⚠️ track "${track.title}" has no artistId — posterId missing from API response');
+          debugPrint(
+            '[AttachContentSheet] ⚠️ track "${track.title}" has no artistId — posterId missing from API response',
+          );
         }
         final isSelected = _selectedTrackLink == audioLink;
         return ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
+          ),
           leading: _TrackThumb(artworkUrl: track.artworkUrl),
           title: Text(
             track.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500),
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           subtitle: Text(
             track.artistName,
@@ -282,7 +335,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
               } else if (audioLink.isNotEmpty) {
                 _selectedTrackLink = audioLink;
                 _selectedArtistId = artistId.isNotEmpty ? artistId : null;
-                debugPrint('[AttachContentSheet] Selected (trailing): permalink="$audioLink" artistId="$artistId"');
+                debugPrint(
+                  '[AttachContentSheet] Selected (trailing): permalink="$audioLink" artistId="$artistId"',
+                );
               }
             }),
             child: Container(
@@ -291,14 +346,19 @@ class _AttachContentSheetState extends State<AttachContentSheet>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? _kOrange : Colors.white38,
+                  color: isSelected ? AppColors.primaryOrange : Colors.white38,
                   width: 2,
                 ),
-                color: isSelected ? _kOrange : Colors.transparent,
+                color: isSelected
+                    ? AppColors.primaryOrange
+                    : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 14)
+                  ? const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    )
                   : null,
             ),
           ),
@@ -309,7 +369,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
             } else if (audioLink.isNotEmpty) {
               _selectedTrackLink = audioLink;
               _selectedArtistId = artistId.isNotEmpty ? artistId : null;
-              debugPrint('[AttachContentSheet] Selected (onTap): permalink="$audioLink" artistId="$artistId"');
+              debugPrint(
+                '[AttachContentSheet] Selected (onTap): permalink="$audioLink" artistId="$artistId"',
+              );
             }
           }),
         );
@@ -351,9 +413,12 @@ class _TrackThumb extends StatelessWidget {
     return Container(
       width: 48,
       height: 48,
-      color: _kSurface,
-      child: const Icon(Icons.graphic_eq_rounded,
-          color: Colors.white24, size: 24),
+      color: AppColors.surface,
+      child: const Icon(
+        Icons.graphic_eq_rounded,
+        color: Colors.white24,
+        size: 24,
+      ),
     );
   }
 }

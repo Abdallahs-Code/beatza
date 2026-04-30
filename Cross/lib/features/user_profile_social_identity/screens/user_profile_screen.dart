@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
@@ -79,7 +80,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final storedCurrentUserId = await _authApiService.getStoredUserId();
 
     _resolvedCurrentUserId =
-    (widget.currentUserId != null && widget.currentUserId!.trim().isNotEmpty)
+        (widget.currentUserId != null &&
+            widget.currentUserId!.trim().isNotEmpty)
         ? widget.currentUserId!.trim()
         : storedCurrentUserId?.trim();
 
@@ -87,24 +89,30 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<List<PlaybackTrackModel>> _loadLikedTracks() async {
-    final result = await _trackApiService.getUserLikedTracks(userId: widget.userId);
+    final result = await _trackApiService.getUserLikedTracks(
+      userId: widget.userId,
+    );
     if (result.$1 != 200) return [];
     final tracks = result.$2 as List<Track>;
-    return tracks.map((t) => PlaybackTrackModel(
-      id: t.id,
-      title: t.title,
-      artistName: t.displayArtist,
-      artworkUrl: t.imageUrl,
-      accessState: PlaybackAccessState.playable,
-      sourceType: PlaybackSourceType.network,
-      isPrivate: t.isPrivate,
-      numLikes: t.numLikes,
-      numPlays: t.numPlays,
-      numReposts: t.numReposts,
-      numComments: t.numComments,
-      genre: t.genre,
-      tags: t.tags,
-    )).toList();
+    return tracks
+        .map(
+          (t) => PlaybackTrackModel(
+            id: t.id,
+            title: t.title,
+            artistName: t.displayArtist,
+            artworkUrl: t.imageUrl,
+            accessState: PlaybackAccessState.playable,
+            sourceType: PlaybackSourceType.network,
+            isPrivate: t.isPrivate,
+            numLikes: t.numLikes,
+            numPlays: t.numPlays,
+            numReposts: t.numReposts,
+            numComments: t.numComments,
+            genre: t.genre,
+            tags: t.tags,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -128,7 +136,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final result = await _trackApiService.getTrackById(trackId: track.id);
     if (result.$1 != 200) return;
     final fullTrack = result.$2 as Track;
-    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) return;
+    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty)
+      return;
     final playbackTrack = PlaybackTrackModel(
       id: fullTrack.id,
       title: fullTrack.title,
@@ -200,7 +209,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void _showTrackOptions(TrackModel track) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -228,15 +237,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       color: Colors.grey[800],
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: track.coverImagePath != null &&
-                        track.coverImagePath!.isNotEmpty
+                    child:
+                        track.coverImagePath != null &&
+                            track.coverImagePath!.isNotEmpty
                         ? ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.file(
-                        File(track.coverImagePath!),
-                        fit: BoxFit.cover,
-                      ),
-                    )
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.file(
+                              File(track.coverImagePath!),
+                              fit: BoxFit.cover,
+                            ),
+                          )
                         : const Icon(Icons.music_note, color: Colors.white54),
                   ),
                   title: Text(
@@ -315,7 +325,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1C1C1C),
+          backgroundColor: AppColors.surface,
           title: const Text(
             'Edit Track',
             style: TextStyle(color: Colors.white),
@@ -358,7 +368,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF5500),
+                backgroundColor: AppColors.primaryOrange,
               ),
               onPressed: () {
                 _updateTrackData(track.id, titleCtrl.text, genreCtrl.text);
@@ -480,9 +490,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _openFollowingScreen(
-      String profileUserId, {
-        int tabIndex = 0,
-      }) async {
+    String profileUserId, {
+    int tabIndex = 0,
+  }) async {
     await Navigator.pushNamed(
       context,
       FollowersSocialGraphRoutes.following,
@@ -506,7 +516,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (trimmed.isEmpty) return;
 
     final normalized =
-    trimmed.startsWith('http://') || trimmed.startsWith('https://')
+        trimmed.startsWith('http://') || trimmed.startsWith('https://')
         ? trimmed
         : 'https://$trimmed';
 
@@ -544,7 +554,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void _showInfoSheet(UserProfileModel profile) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0B0B0B),
+      backgroundColor: AppColors.backgroundVeryDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -572,16 +582,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: const Color(0xFF1C1C1C),
+                      backgroundColor: AppColors.surface,
                       backgroundImage: profile.profileImgLink.trim().isNotEmpty
                           ? NetworkImage(profile.profileImgLink)
                           : null,
                       child: profile.profileImgLink.trim().isEmpty
                           ? const Icon(
-                        Icons.person,
-                        color: Colors.white38,
-                        size: 22,
-                      )
+                              Icons.person,
+                              color: Colors.white38,
+                              size: 22,
+                            )
                           : null,
                     ),
                     const SizedBox(width: 12),
@@ -601,7 +611,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const Text(
                   'Location',
                   style: TextStyle(
-                    color: Color(0xFF9A9A9A),
+                    color: AppColors.greyMedium,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -615,7 +625,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const Text(
                   'Role',
                   style: TextStyle(
-                    color: Color(0xFF9A9A9A),
+                    color: AppColors.greyMedium,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -629,7 +639,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const Text(
                   'Bio',
                   style: TextStyle(
-                    color: Color(0xFF9A9A9A),
+                    color: AppColors.greyMedium,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -650,7 +660,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   const Text(
                     'Favorite genres',
                     style: TextStyle(
-                      color: Color(0xFF9A9A9A),
+                      color: AppColors.greyMedium,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -666,14 +676,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF171717),
+                          color: AppColors.cardDark3,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: Colors.white12),
                         ),
                         child: Text(
                           genre,
                           style: const TextStyle(
-                            color: Color(0xFFCCCCCC),
+                            color: AppColors.greyLight,
                             fontSize: 11.5,
                             fontWeight: FontWeight.w500,
                           ),
@@ -693,7 +703,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void _showShareSheet(UserProfileModel profile, {required bool isOwner}) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0B0B0B),
+      backgroundColor: AppColors.backgroundVeryDark,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
@@ -713,29 +723,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           const _SheetAction(
             label: 'SMS',
             icon: Icons.chat_bubble,
-            bgColor: Color(0xFF32D74B),
+            bgColor: AppColors.whatsAppGreen,
           ),
           const _SheetAction(
             label: 'WhatsApp',
             icon: Icons.phone,
-            bgColor: Color(0xFF25D366),
+            bgColor: AppColors.messagingGreen,
           ),
           const _SheetAction(
             label: 'Stories',
             icon: Icons.camera_alt_outlined,
-            bgColor: Color(0xFFE1306C),
+            bgColor: AppColors.instagramPink,
           ),
           const _SheetAction(
             label: 'Snapchat',
             icon: Icons.circle,
-            bgColor: Color(0xFFFFFC00),
+            bgColor: AppColors.snapchatYellow,
             iconColor: Colors.black,
           ),
           const _SheetAction(label: 'X', icon: Icons.close),
           const _SheetAction(
             label: 'Messenger',
             icon: Icons.message,
-            bgColor: Color(0xFF8B5CF6),
+            bgColor: AppColors.glowPurple,
           ),
           const _SheetAction(label: 'More', icon: Icons.more_horiz),
         ];
@@ -760,16 +770,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 18),
                 CircleAvatar(
                   radius: 52,
-                  backgroundColor: const Color(0xFF141414),
+                  backgroundColor: AppColors.backgroundDark2,
                   backgroundImage: profile.profileImgLink.trim().isNotEmpty
                       ? NetworkImage(profile.profileImgLink)
                       : null,
                   child: profile.profileImgLink.trim().isEmpty
                       ? const Icon(
-                    Icons.person,
-                    color: Colors.white38,
-                    size: 38,
-                  )
+                          Icons.person,
+                          color: Colors.white38,
+                          size: 38,
+                        )
                       : null,
                 ),
                 const SizedBox(height: 14),
@@ -785,7 +795,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 Text(
                   '${profile.followersCount} followers',
                   style: const TextStyle(
-                    color: Color(0xFFB3B3B3),
+                    color: AppColors.greyButton,
                     fontSize: 14,
                   ),
                 ),
@@ -823,7 +833,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                   ...linkedProfiles.map(
-                        (link) => ListTile(
+                    (link) => ListTile(
                       onTap: () async {
                         Navigator.pop(context);
                         await _openUrl(link.normalizedUrl);
@@ -831,7 +841,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       dense: true,
                       leading: CircleAvatar(
                         radius: 18,
-                        backgroundColor: const Color(0xFF1E1E1E),
+                        backgroundColor: AppColors.surfaceMid,
                         child: Icon(
                           _iconForLink(link),
                           color: Colors.white,
@@ -846,7 +856,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         link.link,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Color(0xFF9A9A9A)),
+                        style: const TextStyle(color: AppColors.greyMedium),
                       ),
                     ),
                   ),
@@ -1016,18 +1026,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             likedTracks: likedTracks,
                             repostedTracks: repostedTracks,
                             isLoadingLikedTracks:
-                            tracksSnapshot.connectionState ==
+                                tracksSnapshot.connectionState ==
                                 ConnectionState.waiting,
                             likedTracksError: tracksSnapshot.hasError
                                 ? tracksSnapshot.error.toString()
                                 : null,
                             onFollowersTap: () =>
                                 _openFollowersScreen(profile.userId),
-                            onFollowingTap: () =>
-                                _openFollowingScreen(
-                                  profile.userId,
-                                  tabIndex: 0,
-                                ),
+                            onFollowingTap: () => _openFollowingScreen(
+                              profile.userId,
+                              tabIndex: 0,
+                            ),
                             isFollowing: _isFollowing,
                             isFollowActionLoading: _isFollowActionLoading,
                             onFollowToggle: _toggleFollowUser,
@@ -1139,7 +1148,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
     setState(() => _fetchingPlaybackId = null);
     if (result.$1 != 200) return;
     final fullTrack = result.$2 as Track;
-    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) return;
+    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty)
+      return;
     final playbackTrack = PlaybackTrackModel(
       id: fullTrack.id,
       title: fullTrack.title,
@@ -1282,7 +1292,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
           if (!widget.isOwner) return false;
 
           final String visibility = track.visibility.toString().toLowerCase();
-          if (visibility.contains('private') || visibility.contains('unlisted')) {
+          if (visibility.contains('private') ||
+              visibility.contains('unlisted')) {
             return false;
           }
           return true;
@@ -1311,59 +1322,60 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                 painter: item == null ? DottedBorderPainter() : null,
                 child: item != null
                     ? Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: item.imageUrl != null &&
-                          item.imageUrl!.isNotEmpty
-                          ? (item.imageUrl!.startsWith('http')
-                          ? Image.network(
-                        item.imageUrl!,
-                        fit: BoxFit.cover,
-                      )
-                          : Image.file(
-                        File(item.imageUrl!),
-                        fit: BoxFit.cover,
-                      ))
-                          : Container(
-                        color: Colors.grey[800],
-                        child: const Icon(
-                          Icons.music_note,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    if (widget.isOwner)
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              spotlightItems[index] = null;
-                            });
-                          },
-                          child: const CircleAvatar(
-                            radius: 12,
-                            backgroundColor: Colors.black54,
-                            child: Icon(
-                              Icons.close,
-                              size: 14,
-                              color: Colors.white,
-                            ),
+                        fit: StackFit.expand,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child:
+                                item.imageUrl != null &&
+                                    item.imageUrl!.isNotEmpty
+                                ? (item.imageUrl!.startsWith('http')
+                                      ? Image.network(
+                                          item.imageUrl!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(item.imageUrl!),
+                                          fit: BoxFit.cover,
+                                        ))
+                                : Container(
+                                    color: Colors.grey[800],
+                                    child: const Icon(
+                                      Icons.music_note,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
+                          if (widget.isOwner)
+                            Positioned(
+                              top: 6,
+                              right: 6,
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    spotlightItems[index] = null;
+                                  });
+                                },
+                                child: const CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: Colors.black54,
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.lock_outline,
+                          color: Colors.white54,
+                          size: 28,
                         ),
                       ),
-                  ],
-                )
-                    : const Center(
-                  child: Icon(
-                    Icons.lock_outline,
-                    color: Colors.white54,
-                    size: 28,
-                  ),
-                ),
               ),
             ),
           );
@@ -1396,13 +1408,13 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                 fit: StackFit.expand,
                 children: [
                   Container(
-                    color: const Color(0xFF121212),
+                    color: AppColors.chineseBlack,
                     child: widget.profile.bannerImgLink.trim().isNotEmpty
                         ? Image.network(
-                      widget.profile.bannerImgLink,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    )
+                            widget.profile.bannerImgLink,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                          )
                         : _AutoBannerFromAvatar(widget.profile.profileImgLink),
                   ),
                   Container(color: Colors.black.withValues(alpha: 0.18)),
@@ -1459,7 +1471,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
               builder: (context) {
                 final bool shouldShowSpotlight =
                     widget.profile.trackCount > 0 &&
-                        (widget.showArtistSections || widget.isOwner);
+                    (widget.showArtistSections || widget.isOwner);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1480,30 +1492,37 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             alignment: Alignment.center,
                             child: CircleAvatar(
                               radius: 48,
-                              backgroundColor: const Color(0xFF1C1C1C),
+                              backgroundColor: AppColors.surface,
                               backgroundImage:
-                              widget.profile.profileImgLink.trim().isNotEmpty
+                                  widget.profile.profileImgLink
+                                      .trim()
+                                      .isNotEmpty
                                   ? NetworkImage(widget.profile.profileImgLink)
                                   : null,
-                              child: widget.profile.profileImgLink.trim().isEmpty
+                              child:
+                                  widget.profile.profileImgLink.trim().isEmpty
                                   ? const Icon(
-                                Icons.person,
-                                color: Colors.white38,
-                                size: 42,
-                              )
+                                      Icons.person,
+                                      color: Colors.white38,
+                                      size: 42,
+                                    )
                                   : null,
                             ),
                           ),
                           ValueListenableBuilder<SubscriptionState>(
-                            valueListenable: PaymentService.subscriptionSuccessNotifier,
+                            valueListenable:
+                                PaymentService.subscriptionSuccessNotifier,
                             builder: (context, state, child) {
                               if (state.isPro) {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 16.0),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1E1E1E),
+                                      color: AppColors.surfaceMid,
                                       borderRadius: BorderRadius.circular(4),
                                       border: Border.all(color: Colors.white12),
                                     ),
@@ -1513,10 +1532,14 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                         Container(
                                           padding: const EdgeInsets.all(2),
                                           decoration: const BoxDecoration(
-                                            color: Color(0xFFFF5500),
+                                            color: AppColors.primaryOrange,
                                             shape: BoxShape.circle,
                                           ),
-                                          child: const Icon(Icons.star, color: Colors.white, size: 10),
+                                          child: const Icon(
+                                            Icons.star,
+                                            color: Colors.white,
+                                            size: 10,
+                                          ),
                                         ),
                                         const SizedBox(width: 6),
                                         const Text(
@@ -1535,7 +1558,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               }
                               return const SizedBox.shrink();
                             },
-                          ),                        ],
+                          ),
+                        ],
                       ),
                     ),
                     Padding(
@@ -1554,7 +1578,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       child: Text(
                         widget.profile.resolvedLocation,
                         style: const TextStyle(
-                          color: Color(0xFFB3B3B3),
+                          color: AppColors.greyButton,
                           fontSize: 14,
                         ),
                       ),
@@ -1568,7 +1592,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             child: Text(
                               '${widget.profile.followersCount} Followers',
                               style: const TextStyle(
-                                color: Color(0xFFB3B3B3),
+                                color: AppColors.greyButton,
                                 fontSize: 13,
                               ),
                             ),
@@ -1576,7 +1600,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                           const Text(
                             ' • ',
                             style: TextStyle(
-                              color: Color(0xFFB3B3B3),
+                              color: AppColors.greyButton,
                               fontSize: 13,
                             ),
                           ),
@@ -1585,7 +1609,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             child: Text(
                               '${widget.profile.followingsCount} Following',
                               style: const TextStyle(
-                                color: Color(0xFFB3B3B3),
+                                color: AppColors.greyButton,
                                 fontSize: 13,
                               ),
                             ),
@@ -1596,17 +1620,19 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
                       child: ValueListenableBuilder<SubscriptionState>(
-                        valueListenable: PaymentService.subscriptionSuccessNotifier,
+                        valueListenable:
+                            PaymentService.subscriptionSuccessNotifier,
                         builder: (context, state, _) {
                           final displayRole =
                               (state.isPro &&
-                                  widget.profile.role.toLowerCase() == 'listener')
-                                  ? 'Artist'
-                                  : widget.profile.role;
+                                  widget.profile.role.toLowerCase() ==
+                                      'listener')
+                              ? 'Artist'
+                              : widget.profile.role;
                           return Text(
                             displayRole,
                             style: const TextStyle(
-                              color: Color(0xFFB3B3B3),
+                              color: AppColors.greyButton,
                               fontSize: 13,
                             ),
                           );
@@ -1651,8 +1677,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                       : widget.onFollowToggle,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: widget.isFollowing
-                                        ? const Color(0xFF2A2A2A)
-                                        : const Color(0xFFFF5500),
+                                        ? AppColors.containerMid
+                                        : AppColors.primaryOrange,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(24),
@@ -1660,20 +1686,20 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                   ),
                                   child: widget.isFollowActionLoading
                                       ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
                                       : Text(
-                                    widget.isFollowing
-                                        ? 'Following'
-                                        : 'Follow',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                                          widget.isFollowing
+                                              ? 'Following'
+                                              : 'Follow',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ),
@@ -1760,14 +1786,14 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                 vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF171717),
+                                color: AppColors.cardDark3,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(color: Colors.white12),
                               ),
                               child: Text(
                                 genre,
                                 style: const TextStyle(
-                                  color: Color(0xFFCCCCCC),
+                                  color: AppColors.greyLight,
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1902,7 +1928,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         child: Text(
                           'Pin your gems to your profile',
                           style: TextStyle(
-                            color: Color(0xFFB3B3B3),
+                            color: AppColors.greyButton,
                             fontSize: 14,
                           ),
                         ),
@@ -1957,7 +1983,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               width: 46,
                               height: 46,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1C1C1C),
+                                color: AppColors.surface,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: ClipRRect(
@@ -1967,17 +1993,23 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                         track.imageUrl!,
                                         fit: BoxFit.cover,
                                         errorBuilder: (context, error, stack) =>
-                                            const Icon(Icons.music_note,
-                                                color: Colors.white24),
+                                            const Icon(
+                                              Icons.music_note,
+                                              color: Colors.white24,
+                                            ),
                                       )
-                                    : const Icon(Icons.music_note,
-                                        color: Colors.white24),
+                                    : const Icon(
+                                        Icons.music_note,
+                                        color: Colors.white24,
+                                      ),
                               ),
                             ),
                             title: Text(
                               track.title,
                               style: TextStyle(
-                                color: isFetching ? Colors.orange : Colors.white,
+                                color: isFetching
+                                    ? Colors.orange
+                                    : Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
@@ -2026,7 +2058,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               title: 'Songs',
                               subtitle: 'darus 123',
                               imageUrl:
-                              'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
+                                  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
                             ),
                           ),
                         ],
@@ -2039,13 +2071,13 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       onActionTap: widget.repostedTracks.isEmpty
                           ? null
                           : () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => _AllRepostsScreen(
-                            tracks: widget.repostedTracks,
-                          ),
-                        ),
-                      ),
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => _AllRepostsScreen(
+                                  tracks: widget.repostedTracks,
+                                ),
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 10),
                     Padding(
@@ -2063,13 +2095,12 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       onActionTap: widget.likedTracks.isEmpty
                           ? null
                           : () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => _AllLikesScreen(
-                                    tracks: widget.likedTracks,
-                                  ),
-                                ),
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    _AllLikesScreen(tracks: widget.likedTracks),
                               ),
+                            ),
                     ),
                     const SizedBox(height: 10),
                     Padding(
@@ -2086,7 +2117,6 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                 );
               },
             ),
-
           ),
         ),
       ],
@@ -2148,10 +2178,7 @@ class _CompleteProfileCard extends StatelessWidget {
   final _ProfileCompletionCardData data;
   final VoidCallback? onPressed;
 
-  const _CompleteProfileCard({
-    required this.data,
-    required this.onPressed,
-  });
+  const _CompleteProfileCard({required this.data, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -2170,18 +2197,18 @@ class _CompleteProfileCard extends StatelessWidget {
             alignment: Alignment.topRight,
             child: data.isComplete
                 ? Container(
-              width: 34,
-              height: 34,
-              decoration: const BoxDecoration(
-                color: Color(0xFF49D17D),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.black,
-                size: 22,
-              ),
-            )
+                    width: 34,
+                    height: 34,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF49D17D),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.black,
+                      size: 22,
+                    ),
+                  )
                 : const SizedBox(width: 34, height: 34),
           ),
           const SizedBox(height: 12),
@@ -2278,7 +2305,7 @@ class _SectionHeader extends StatelessWidget {
               child: Text(
                 actionText,
                 style: const TextStyle(
-                  color: Color(0xFFB3B3B3),
+                  color: AppColors.greyButton,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -2309,57 +2336,57 @@ class _PlaylistCard extends StatelessWidget {
         Container(
           height: 140,
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: AppColors.surfaceMid,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white10),
           ),
           child: imageUrl.isEmpty
               ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.cloud, color: Colors.white24, size: 42),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 16,
-                      color: Colors.white24,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                    ),
-                    Container(
-                      width: 4,
-                      height: 24,
-                      color: Colors.white24,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                    ),
-                    Container(
-                      width: 4,
-                      height: 16,
-                      color: Colors.white24,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                    ),
-                    Container(
-                      width: 4,
-                      height: 8,
-                      color: Colors.white24,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          )
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.cloud, color: Colors.white24, size: 42),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 16,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                          Container(
+                            width: 4,
+                            height: 24,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                          Container(
+                            width: 4,
+                            height: 16,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                          Container(
+                            width: 4,
+                            height: 8,
+                            color: Colors.white24,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
               : ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
-            ),
-          ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -2375,7 +2402,7 @@ class _PlaylistCard extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 13),
+          style: const TextStyle(color: AppColors.greyButton, fontSize: 13),
         ),
       ],
     );
@@ -2409,13 +2436,17 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF121212),
+          color: AppColors.chineseBlack,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
         child: const Text(
           'Could not load reposted tracks right now.',
-          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
+          style: TextStyle(
+            color: AppColors.greyButton,
+            fontSize: 13,
+            height: 1.4,
+          ),
         ),
       );
     }
@@ -2424,13 +2455,17 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF121212),
+          color: AppColors.chineseBlack,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
         child: const Text(
           'No reposts yet.',
-          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
+          style: TextStyle(
+            color: AppColors.greyButton,
+            fontSize: 13,
+            height: 1.4,
+          ),
         ),
       );
     }
@@ -2460,9 +2495,9 @@ class _AllRepostsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: AppColors.homeBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0A),
+        backgroundColor: AppColors.homeBackground,
         foregroundColor: Colors.white,
         title: Text(
           '${tracks.length} Reposts',
@@ -2472,17 +2507,17 @@ class _AllRepostsScreen extends StatelessWidget {
       ),
       body: tracks.isEmpty
           ? const Center(
-        child: Text(
-          'No reposts yet.',
-          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 15),
-        ),
-      )
+              child: Text(
+                'No reposts yet.',
+                style: TextStyle(color: AppColors.greyButton, fontSize: 15),
+              ),
+            )
           : ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-        itemCount: tracks.length,
-        separatorBuilder: (_, i) => const SizedBox(height: 16),
-        itemBuilder: (_, index) => _TrackRow(track: tracks[index]),
-      ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+              itemCount: tracks.length,
+              separatorBuilder: (_, i) => const SizedBox(height: 16),
+              itemBuilder: (_, index) => _TrackRow(track: tracks[index]),
+            ),
     );
   }
 }
@@ -2508,7 +2543,8 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
     setState(() => _fetchingId = null);
     if (result.$1 != 200) return;
     final fullTrack = result.$2 as Track;
-    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) return;
+    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty)
+      return;
     final playbackTrack = PlaybackTrackModel(
       id: fullTrack.id,
       title: fullTrack.title,
@@ -2535,9 +2571,9 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: AppColors.homeBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0A),
+        backgroundColor: AppColors.homeBackground,
         foregroundColor: Colors.white,
         title: Text(
           '${widget.tracks.length} Likes',
@@ -2549,7 +2585,7 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
           ? const Center(
               child: Text(
                 'No likes yet.',
-                style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 15),
+                style: TextStyle(color: AppColors.greyButton, fontSize: 15),
               ),
             )
           : ListView.separated(
@@ -2612,13 +2648,17 @@ class _ProfileLikesTracksSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF121212),
+          color: AppColors.chineseBlack,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
         child: const Text(
           'Could not load liked tracks right now.',
-          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
+          style: TextStyle(
+            color: AppColors.greyButton,
+            fontSize: 13,
+            height: 1.4,
+          ),
         ),
       );
     }
@@ -2627,13 +2667,17 @@ class _ProfileLikesTracksSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF121212),
+          color: AppColors.chineseBlack,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
         child: const Text(
           'No likes yet.',
-          style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 13, height: 1.4),
+          style: TextStyle(
+            color: AppColors.greyButton,
+            fontSize: 13,
+            height: 1.4,
+          ),
         ),
       );
     }
@@ -2650,14 +2694,14 @@ class _ProfileLikesTracksSection extends StatelessWidget {
             bottom: index == visibleTracks.length - 1 ? 0 : 16,
           ),
           child:
-          track.accessState == PlaybackAccessState.blocked ||
-              onTrackTap == null
+              track.accessState == PlaybackAccessState.blocked ||
+                  onTrackTap == null
               ? row
               : GestureDetector(
-            onTap: () => onTrackTap!(track, index),
-            behavior: HitTestBehavior.opaque,
-            child: row,
-          ),
+                  onTap: () => onTrackTap!(track, index),
+                  behavior: HitTestBehavior.opaque,
+                  child: row,
+                ),
         );
       }),
     );
@@ -2754,7 +2798,7 @@ class _TrackRow extends StatelessWidget {
                 Text(
                   track.artistName,
                   style: const TextStyle(
-                    color: Color(0xFFB3B3B3),
+                    color: AppColors.greyButton,
                     fontSize: 13,
                   ),
                 ),
@@ -2762,7 +2806,7 @@ class _TrackRow extends StatelessWidget {
                 Text(
                   _buildMeta(),
                   style: const TextStyle(
-                    color: Color(0xFFB3B3B3),
+                    color: AppColors.greyButton,
                     fontSize: 13,
                   ),
                 ),
@@ -2825,22 +2869,18 @@ class _SquareImage extends StatelessWidget {
           imageUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, _, _) =>
-          const Icon(Icons.music_note, color: Colors.white24),
+              const Icon(Icons.music_note, color: Colors.white24),
         ),
       ),
     );
   }
 }
 
-
 class _RoundIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _RoundIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _RoundIconButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -2851,7 +2891,7 @@ class _RoundIconButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: const BoxDecoration(
-          color: Color(0xFF2A2A2A),
+          color: AppColors.containerMid,
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.white, size: 18),
@@ -2869,7 +2909,7 @@ class _SmallAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: 10,
-      backgroundColor: const Color(0xFF1C1C1C),
+      backgroundColor: AppColors.surface,
       backgroundImage: imageUrl.trim().isNotEmpty
           ? NetworkImage(imageUrl)
           : null,
@@ -2941,13 +2981,13 @@ class _PrivateProfileView extends StatelessWidget {
                   Container(
                     height: 260,
                     width: double.infinity,
-                    color: const Color(0xFF111111),
+                    color: AppColors.backgroundDark,
                     child: profile.bannerImgLink.trim().isNotEmpty
                         ? Image.network(
-                      profile.bannerImgLink,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    )
+                            profile.bannerImgLink,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                          )
                         : null,
                   ),
                   Container(
@@ -2983,17 +3023,17 @@ class _PrivateProfileView extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundColor: const Color(0xFF1C1C1C),
+                        backgroundColor: AppColors.surface,
                         backgroundImage:
-                        profile.profileImgLink.trim().isNotEmpty
+                            profile.profileImgLink.trim().isNotEmpty
                             ? NetworkImage(profile.profileImgLink)
                             : null,
                         child: profile.profileImgLink.trim().isEmpty
                             ? const Icon(
-                          Icons.person,
-                          color: Colors.white38,
-                          size: 44,
-                        )
+                                Icons.person,
+                                color: Colors.white38,
+                                size: 44,
+                              )
                             : null,
                       ),
                       const SizedBox(height: 18),
@@ -3009,7 +3049,7 @@ class _PrivateProfileView extends StatelessWidget {
                       Text(
                         profile.resolvedLocation,
                         style: const TextStyle(
-                          color: Color(0xFFB3B3B3),
+                          color: AppColors.greyButton,
                           fontSize: 14,
                         ),
                       ),
@@ -3021,7 +3061,7 @@ class _PrivateProfileView extends StatelessWidget {
                             child: Text(
                               '${profile.followersCount} Followers',
                               style: const TextStyle(
-                                color: Color(0xFFB3B3B3),
+                                color: AppColors.greyButton,
                                 fontSize: 14,
                               ),
                             ),
@@ -3029,7 +3069,7 @@ class _PrivateProfileView extends StatelessWidget {
                           const Text(
                             ' • ',
                             style: TextStyle(
-                              color: Color(0xFFB3B3B3),
+                              color: AppColors.greyButton,
                               fontSize: 14,
                             ),
                           ),
@@ -3038,7 +3078,7 @@ class _PrivateProfileView extends StatelessWidget {
                             child: Text(
                               '${profile.followingsCount} Following',
                               style: const TextStyle(
-                                color: Color(0xFFB3B3B3),
+                                color: AppColors.greyButton,
                                 fontSize: 14,
                               ),
                             ),
@@ -3055,28 +3095,28 @@ class _PrivateProfileView extends StatelessWidget {
                               : onFollowToggle,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isFollowing
-                                ? const Color(0xFF2A2A2A)
-                                : const Color(0xFF4F5DFF),
+                                ? AppColors.containerMid
+                                : AppColors.profileAccentBlue,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: isFollowActionLoading
                               ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : Text(
-                            isFollowing ? 'Following' : 'Follow',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                                  isFollowing ? 'Following' : 'Follow',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 26),
@@ -3105,7 +3145,7 @@ class _PrivateProfileView extends StatelessWidget {
                           'Follow this account to see their tracks\nand activity.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Color(0xFF9A9A9A),
+                            color: AppColors.greyMedium,
                             fontSize: 16,
                             height: 1.4,
                           ),
@@ -3137,7 +3177,7 @@ class _ShareActionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = action.bgColor ?? const Color(0xFF2A2A2A);
+    final bgColor = action.bgColor ?? AppColors.containerMid;
     final iconColor = action.iconColor ?? Colors.white;
 
     return InkWell(
@@ -3187,8 +3227,5 @@ class _ProfileViewState {
   final UserProfileModel profile;
   final bool isOwner;
 
-  const _ProfileViewState({
-    required this.profile,
-    required this.isOwner,
-  });
+  const _ProfileViewState({required this.profile, required this.isOwner});
 }

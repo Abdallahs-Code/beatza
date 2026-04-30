@@ -49,15 +49,11 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
 
     if (code == 200 && data is Map<String, dynamic>) {
       final rawList = data['tracks'] as List<dynamic>? ?? [];
-      final filtered = rawList
-          .whereType<Map<String, dynamic>>()
-          .where((t) {
-            final info = t['basicInfo'];
-            final genre =
-                (info is Map ? (info['genre'] ?? '') : '').toString();
-            return genre.toLowerCase() == widget.genre.toLowerCase();
-          })
-          .toList();
+      final filtered = rawList.whereType<Map<String, dynamic>>().where((t) {
+        final info = t['basicInfo'];
+        final genre = (info is Map ? (info['genre'] ?? '') : '').toString();
+        return genre.toLowerCase() == widget.genre.toLowerCase();
+      }).toList();
 
       setState(() {
         _tracks = filtered;
@@ -136,21 +132,16 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
       itemCount: _tracks.length,
       itemBuilder: (context, index) {
         final track = _tracks[index];
-        final basicInfo =
-            track['basicInfo'] as Map<String, dynamic>? ?? {};
-        final image =
-            track['image'] as Map<String, dynamic>? ?? {};
-        final artists =
-            (basicInfo['mainArtists'] as List<dynamic>? ?? []);
-        final id =
-            (track['trackId'] ?? track['_id'] ?? '').toString();
+        final basicInfo = track['basicInfo'] as Map<String, dynamic>? ?? {};
+        final image = track['image'] as Map<String, dynamic>? ?? {};
+        final artists = (basicInfo['mainArtists'] as List<dynamic>? ?? []);
+        final id = (track['trackId'] ?? track['_id'] ?? '').toString();
 
         return SearchResultTile(
           id: id,
           type: 'track',
           title: basicInfo['title']?.toString() ?? id,
-          subtitle:
-              artists.isNotEmpty ? artists.first.toString() : null,
+          subtitle: artists.isNotEmpty ? artists.first.toString() : null,
           imageUrl: image['imgLink']?.toString(),
           onTap: () => _onTrackTap(track),
         );

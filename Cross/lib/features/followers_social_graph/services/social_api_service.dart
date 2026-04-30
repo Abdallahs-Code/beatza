@@ -26,7 +26,8 @@ class SocialApiService {
 
   // Public base path for read-only social endpoints (followers/following).
   // Authenticated mutation endpoints (follow, unfollow, block, etc.) use _servicePath.
-  String get _publicServicePath => "${_apiServices.baseUrl}/api/public/social/v1";
+  String get _publicServicePath =>
+      "${_apiServices.baseUrl}/api/public/social/v1";
 
   int _parseInt(dynamic value) {
     if (value is int) return value;
@@ -157,10 +158,7 @@ class SocialApiService {
 
       return (
         response.statusCode,
-        _extractMessage(
-          response,
-          fallbackMessage: "Failed to fetch followers",
-        ),
+        _extractMessage(response, fallbackMessage: "Failed to fetch followers"),
       );
     } catch (err) {
       return (500, "Request failed: $err");
@@ -190,10 +188,7 @@ class SocialApiService {
 
       return (
         response.statusCode,
-        _extractMessage(
-          response,
-          fallbackMessage: "Failed to fetch following",
-        ),
+        _extractMessage(response, fallbackMessage: "Failed to fetch following"),
       );
     } catch (err) {
       return (500, "Request failed: $err");

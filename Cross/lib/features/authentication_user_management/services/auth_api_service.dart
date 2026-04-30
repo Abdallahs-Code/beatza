@@ -7,7 +7,7 @@ import "package:flutter_secure_storage/flutter_secure_storage.dart";
 import "package:http/http.dart" as http;
 import "package:cross_team5/core/services/api_services.dart";
 import "package:cross_team5/features/authentication_user_management/models/user.dart"
-as user_model;
+    as user_model;
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
@@ -24,8 +24,8 @@ class AuthApiService {
     http.Client? client,
     FlutterSecureStorage? storage,
   }) : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage() {
+       _client = client ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage() {
     _servicePath = "${_apiServices.baseUrl}/api/auth/v1";
   }
 
@@ -44,15 +44,19 @@ class AuthApiService {
         final accessToken = await _storage.read(key: 'access_token');
         final fcmToken = await FirebaseMessaging.instance.getToken();
         if (accessToken != null && fcmToken != null) {
-          await _client.delete(
-            Uri.parse('${_apiServices.baseUrl}/api/notifications/v1/fcm-token'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $accessToken',
-              'User-Agent': 'Android',
-            },
-            body: jsonEncode({'token': fcmToken}),
-          ).timeout(const Duration(seconds: 5));
+          await _client
+              .delete(
+                Uri.parse(
+                  '${_apiServices.baseUrl}/api/notifications/v1/fcm-token',
+                ),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer $accessToken',
+                  'User-Agent': 'Android',
+                },
+                body: jsonEncode({'token': fcmToken}),
+              )
+              .timeout(const Duration(seconds: 5));
         }
       } catch (_) {}
     }
@@ -118,8 +122,8 @@ class AuthApiService {
           return (200, data["message"] ?? "Login successful");
         } else {
           return (
-          response.statusCode,
-          data["message"] ?? "Login failed: Tokens missing",
+            response.statusCode,
+            data["message"] ?? "Login failed: Tokens missing",
           );
         }
       }
@@ -150,8 +154,8 @@ class AuthApiService {
 
       final data = jsonDecode(response.body);
       return (
-      response.statusCode,
-      data["message"] ?? "Signup request processed",
+        response.statusCode,
+        data["message"] ?? "Signup request processed",
       );
     } catch (err) {
       return (500, "Network error: $err");
@@ -230,8 +234,8 @@ class AuthApiService {
           return (200, "Token refreshed successfully");
         } else {
           return (
-          response.statusCode,
-          data["message"] ?? "Token refresh failed: Tokens missing",
+            response.statusCode,
+            data["message"] ?? "Token refresh failed: Tokens missing",
           );
         }
       }
@@ -294,13 +298,13 @@ class AuthApiService {
     try {
       final response = await _client
           .post(
-        Uri.parse('$_servicePath/cross/desktop/poll'),
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Android',
-        },
-        body: jsonEncode({'qrCode': qrData}),
-      )
+            Uri.parse('$_servicePath/cross/desktop/poll'),
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'Android',
+            },
+            body: jsonEncode({'qrCode': qrData}),
+          )
           .timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(response.body);
@@ -317,7 +321,7 @@ class AuthApiService {
             return {
               'status': 'waiting',
               'message':
-              data['message'] ??
+                  data['message'] ??
                   'QR code not scanned, waiting for approval.',
             };
           }
@@ -379,14 +383,14 @@ class AuthApiService {
 
       if (response.statusCode == 200) {
         return (
-        200,
-        data["message"] ?? "Password reset email sent successfully",
+          200,
+          data["message"] ?? "Password reset email sent successfully",
         );
       }
 
       return (
-      response.statusCode,
-      data["message"] ?? "Failed to send password reset email",
+        response.statusCode,
+        data["message"] ?? "Failed to send password reset email",
       );
     } catch (err) {
       return (500, "Network error: $err");
@@ -411,14 +415,14 @@ class AuthApiService {
 
       if (response.statusCode == 200) {
         return (
-        200,
-        data["message"] ?? "Email existence check completed successfully",
+          200,
+          data["message"] ?? "Email existence check completed successfully",
         );
       }
 
       return (
-      response.statusCode,
-      data["message"] ?? "Failed to resend verification email",
+        response.statusCode,
+        data["message"] ?? "Failed to resend verification email",
       );
     } catch (err) {
       return (500, "Network error: $err");
@@ -468,8 +472,8 @@ class AuthApiService {
       }
 
       return (
-      response.statusCode,
-      data["message"] ?? "Google code verification failed",
+        response.statusCode,
+        data["message"] ?? "Google code verification failed",
       );
     } catch (err) {
       return (500, "Network error: $err");
@@ -531,8 +535,8 @@ class AuthApiService {
       }
 
       return (
-      response.statusCode,
-      data["message"] ?? "Google signup completion failed",
+        response.statusCode,
+        data["message"] ?? "Google signup completion failed",
       );
     } catch (err) {
       return (500, "Network error: $err");
@@ -568,14 +572,14 @@ class AuthApiService {
         await PlaybackStreamingEngineService.shared.clearSessionState();
         PaymentService.subscriptionSuccessNotifier.reset();
         return (
-        response.statusCode,
-        data?["message"] ?? "Account deleted successfully",
+          response.statusCode,
+          data?["message"] ?? "Account deleted successfully",
         );
       }
 
       return (
-      response.statusCode,
-      data?["message"] ?? "Failed to delete account",
+        response.statusCode,
+        data?["message"] ?? "Failed to delete account",
       );
     } catch (err) {
       return (500, "Network error: $err");
@@ -609,10 +613,10 @@ class AuthApiService {
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return (
-        response.statusCode,
-        message == "Failed to resend Google verification code"
-            ? "Verification code resent"
-            : message,
+          response.statusCode,
+          message == "Failed to resend Google verification code"
+              ? "Verification code resent"
+              : message,
         );
       }
 

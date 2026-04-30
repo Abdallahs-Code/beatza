@@ -161,9 +161,9 @@ class _FeedCardState extends State<FeedCard> {
           _isLiked = prevLiked;
           _likeCount = prevCount;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update like')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to update like')));
       }
     });
   }
@@ -172,8 +172,9 @@ class _FeedCardState extends State<FeedCard> {
 
   Future<void> _fetchCommentCount() async {
     try {
-      final count =
-          await _engagementService.getTrackCommentCount(widget.itemId);
+      final count = await _engagementService.getTrackCommentCount(
+        widget.itemId,
+      );
       if (mounted) setState(() => _commentCount = count);
     } catch (_) {}
   }
@@ -268,11 +269,7 @@ class _FeedCardState extends State<FeedCard> {
         ),
 
         // ── Right-side action column ────────────────────────────────────────
-        Positioned(
-          right: 12,
-          bottom: 140,
-          child: _buildActionColumn(context),
-        ),
+        Positioned(right: 12, bottom: 140, child: _buildActionColumn(context)),
 
         // ── Bottom info bar ─────────────────────────────────────────────────
         Positioned(
@@ -449,9 +446,7 @@ class _FeedCardState extends State<FeedCard> {
             );
           },
           child: const Column(
-            children: [
-              Icon(Icons.playlist_add, color: Colors.white, size: 30),
-            ],
+            children: [Icon(Icons.playlist_add, color: Colors.white, size: 30)],
           ),
         ),
         const SizedBox(height: 24),

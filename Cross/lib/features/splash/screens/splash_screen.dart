@@ -37,8 +37,10 @@ class _SplashScreenState extends State<SplashScreen> {
       _isChecking = true;
     });
 
-    final bool hasInternet = await ConnectivityService.instance.hasInternetConnection();
-    final bool isPro = PaymentService.subscriptionSuccessNotifier.isPro;    if (!mounted) return;
+    final bool hasInternet = await ConnectivityService.instance
+        .hasInternetConnection();
+    final bool isPro = PaymentService.subscriptionSuccessNotifier.isPro;
+    if (!mounted) return;
     if (!hasInternet && !isPro) {
       setState(() {
         _isChecking = false;
@@ -81,6 +83,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacementNamed(context, AuthenticationRoutes.welcome);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

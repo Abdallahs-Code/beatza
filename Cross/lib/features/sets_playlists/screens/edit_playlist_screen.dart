@@ -1,4 +1,4 @@
-﻿// Screen: EditPlaylistScreen
+// Screen: EditPlaylistScreen
 // Allows the owner to update playlist metadata (API #3).
 // Supports title, description, genre, type (public/private), image.
 
@@ -53,7 +53,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 85);
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
@@ -85,10 +87,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     }
   }
@@ -116,7 +115,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.crusta),
+                      strokeWidth: 2,
+                      color: AppColors.crusta,
+                    ),
                   )
                 : const Text(
                     'Save',
@@ -142,20 +143,22 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: _pickedImage != null
-                          ? Image.file(_pickedImage!,
+                          ? Image.file(
+                              _pickedImage!,
                               width: 160,
                               height: 160,
-                              fit: BoxFit.cover)
+                              fit: BoxFit.cover,
+                            )
                           : (widget.playlist.image?.imgLink.isNotEmpty == true
-                              ? Image.network(
-                                  widget.playlist.image!.imgLink,
-                                  width: 160,
-                                  height: 160,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) =>
-                                      _placeholderArt(),
-                                )
-                              : _placeholderArt()),
+                                ? Image.network(
+                                    widget.playlist.image!.imgLink,
+                                    width: 160,
+                                    height: 160,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) =>
+                                        _placeholderArt(),
+                                  )
+                                : _placeholderArt()),
                     ),
                     Positioned(
                       bottom: 8,
@@ -166,8 +169,11 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                           color: AppColors.crusta,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Icon(Icons.camera_alt,
-                            color: Colors.white, size: 16),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -178,8 +184,10 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             Center(
               child: TextButton(
                 onPressed: _pickImage,
-                child: const Text('Change Image',
-                    style: TextStyle(color: AppColors.crusta)),
+                child: const Text(
+                  'Change Image',
+                  style: TextStyle(color: AppColors.crusta),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -224,12 +232,15 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Private playlist',
-                        style: TextStyle(color: Colors.white, fontSize: 15)),
+                    Text(
+                      'Private playlist',
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
                     SizedBox(height: 2),
-                    Text('Only you can see this playlist',
-                        style:
-                            TextStyle(color: Colors.white54, fontSize: 12)),
+                    Text(
+                      'Only you can see this playlist',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
                   ],
                 ),
                 Switch(
@@ -279,8 +290,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       width: 160,
       height: 160,
       color: AppColors.cardDark,
-      child: const Icon(Icons.queue_music,
-          color: Colors.white24, size: 60),
+      child: const Icon(Icons.queue_music, color: Colors.white24, size: 60),
     );
   }
 }

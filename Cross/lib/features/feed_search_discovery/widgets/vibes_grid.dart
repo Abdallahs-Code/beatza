@@ -5,30 +5,47 @@
 // GenreTracksScreen with tracks filtered by that genre.
 
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import '../screens/genre_tracks_screen.dart';
 
 class VibesGrid extends StatelessWidget {
   const VibesGrid({super.key});
 
   static const List<_VibeItem> _vibes = [
-    _VibeItem('Alternative Rock', Color(0xFFC0392B), Color(0xFF922B21)),
-    _VibeItem('Ambient',          Color(0xFF0097A7), Color(0xFF006064)),
-    _VibeItem('Classical',        Color(0xFF546E7A), Color(0xFF37474F)),
-    _VibeItem('Country',          Color(0xFFF57F17), Color(0xFFE65100)),
-    _VibeItem('Electronic',       Color(0xFFE91E63), Color(0xFFAD1457)),
-    _VibeItem('Hip-Hop',          Color(0xFF6B2FBA), Color(0xFF4A148C)),
-    _VibeItem('House',            Color(0xFFFF5722), Color(0xFFBF360C)),
-    _VibeItem('Indie',            Color(0xFF388E3C), Color(0xFF1B5E20)),
-    _VibeItem('Jazz',             Color(0xFF795548), Color(0xFF3E2723)),
-    _VibeItem('Latin',            Color(0xFFF44336), Color(0xFFB71C1C)),
-    _VibeItem('Metal',            Color(0xFF455A64), Color(0xFF263238)),
-    _VibeItem('Pop',              Color(0xFFFFD600), Color(0xFFFFC107)),
-    _VibeItem('R&B',              Color(0xFF00BCD4), Color(0xFF006064)),
-    _VibeItem('Reggae',           Color(0xFF2E7D32), Color(0xFF1B5E20)),
-    _VibeItem('Rock',             Color(0xFFD32F2F), Color(0xFFB71C1C)),
-    _VibeItem('Soul',             Color(0xFF7B1FA2), Color(0xFF4A148C)),
-    _VibeItem('Trap',             Color(0xFF283593), Color(0xFF1A237E)),
-    _VibeItem('World Music',      Color(0xFF00695C), Color(0xFF004D40)),
+    _VibeItem(
+      'Alternative Rock',
+      AppColors.vibeAltRockStart,
+      AppColors.vibeAltRockEnd,
+    ),
+    _VibeItem('Ambient', AppColors.vibeAmbientStart, AppColors.vibeAmbientEnd),
+    _VibeItem(
+      'Classical',
+      AppColors.vibeClassicalStart,
+      AppColors.vibeClassicalEnd,
+    ),
+    _VibeItem('Country', AppColors.vibeCountryStart, AppColors.vibeCountryEnd),
+    _VibeItem(
+      'Electronic',
+      AppColors.vibeElectronicStart,
+      AppColors.vibeElectronicEnd,
+    ),
+    _VibeItem('Hip-Hop', AppColors.vibeHipHopStart, AppColors.vibeHipHopEnd),
+    _VibeItem('House', AppColors.vibeHouseStart, AppColors.vibeHouseEnd),
+    _VibeItem('Indie', AppColors.vibeIndieStart, AppColors.vibeIndieEnd),
+    _VibeItem('Jazz', AppColors.vibeJazzStart, AppColors.vibeJazzEnd),
+    _VibeItem('Latin', AppColors.vibeLatinStart, AppColors.vibeLatinEnd),
+    _VibeItem('Metal', AppColors.vibeMetalStart, AppColors.vibeMetalEnd),
+    _VibeItem('Pop', AppColors.vibePopStart, AppColors.vibePopEnd),
+    _VibeItem('R&B', AppColors.vibeRnBStart, AppColors.vibeRnBEnd),
+    _VibeItem('Reggae', AppColors.vibeReggaeStart, AppColors.vibeReggaeEnd),
+    _VibeItem('Rock', AppColors.vibeRockStart, AppColors.vibeRockEnd),
+    _VibeItem('Soul', AppColors.vibeSoulStart, AppColors.vibeSoulEnd),
+    _VibeItem('Trap', AppColors.vibeTrapStart, AppColors.vibeTrapEnd),
+    _VibeItem(
+      'World Music',
+      AppColors.vibeWorldMusicStart,
+      AppColors.vibeWorldMusicEnd,
+    ),
   ];
 
   @override

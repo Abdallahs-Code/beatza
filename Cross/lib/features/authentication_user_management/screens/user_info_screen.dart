@@ -162,7 +162,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             if (token != null) {
               await AccountSettingsApiService().updateSettings(
                 token,
-                AccountSettings(theme: 'Dark', dateOfBirth: dateOfBirth, gender: gender),
+                AccountSettings(
+                  theme: 'Dark',
+                  dateOfBirth: dateOfBirth,
+                  gender: gender,
+                ),
               );
             }
           } catch (_) {}
@@ -222,7 +226,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         );
       }
     } catch (e) {
-
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: AppColors.anger),
@@ -274,18 +277,18 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     return DropdownButtonFormField<T>(
       initialValue: value,
       isExpanded: true,
-      dropdownColor: const Color(0xFF121212),
+      dropdownColor: AppColors.chineseBlack,
       style: const TextStyle(
         color: Colors.white,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
-      icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFFB3B3B3)),
+      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.greyButton),
       decoration: _inputDecoration(),
       hint: Text(
         hint,
         style: const TextStyle(
-          color: Color(0xFFB3B3B3),
+          color: AppColors.greyButton,
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
@@ -372,7 +375,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 decoration: InputDecoration(
                   hintText: "Display name",
                   hintStyle: const TextStyle(
-                    color: Color(0xFFB3B3B3),
+                    color: AppColors.greyButton,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -404,7 +407,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               const Text(
                 "Your display name can be anything you like. Your name or artist name are good choices.",
                 style: TextStyle(
-                  color: Color(0xFFB3B3B3),
+                  color: AppColors.greyButton,
                   fontSize: 14,
                   height: 1.45,
                 ),
@@ -507,7 +510,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               const Text(
                 "Your date of birth is used to verify your age and is not shared publicly.",
                 style: TextStyle(
-                  color: Color(0xFFB3B3B3),
+                  color: AppColors.greyButton,
                   fontSize: 14,
                   height: 1.45,
                 ),
@@ -537,8 +540,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSubmit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB3B3B3),
-                    disabledBackgroundColor: const Color(0xFFB3B3B3),
+                    backgroundColor: AppColors.greyButton,
+                    disabledBackgroundColor: AppColors.greyButton,
                     foregroundColor: Colors.black,
                     disabledForegroundColor: Colors.black,
                     elevation: 0,

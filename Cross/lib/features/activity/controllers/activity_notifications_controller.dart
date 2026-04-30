@@ -89,9 +89,7 @@ class ActivityNotificationsController extends ChangeNotifier {
         ..clear()
         ..addAll(page.notifications.where(_isNotSelfAction));
 
-      _notifications.sort(
-        (a, b) => b.createdAt.compareTo(a.createdAt),
-      );
+      _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       // Use the filtered list count so badge always matches what is visible.
       _unreadCount = _notifications.where((item) => !item.read).length;
@@ -133,9 +131,7 @@ class ActivityNotificationsController extends ChangeNotifier {
       _notifications.insert(0, notification);
     }
 
-    _notifications.sort(
-      (a, b) => b.createdAt.compareTo(a.createdAt),
-    );
+    _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     _unreadCount = _notifications.where((item) => !item.read).length;
     _errorMessage = null;
@@ -154,7 +150,7 @@ class ActivityNotificationsController extends ChangeNotifier {
     setFilter(ActivityNotificationFilter.all);
   }
 
-    Future<void> reconnectIfNeeded() async {
+  Future<void> reconnectIfNeeded() async {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || token.trim().isEmpty) {
@@ -168,10 +164,11 @@ class ActivityNotificationsController extends ChangeNotifier {
     } catch (_) {}
   }
 
-    Future<void> onAppResumed() async {
+  Future<void> onAppResumed() async {
     await reconnectIfNeeded();
   }
-    Future<void> ensureFreshState() async {
+
+  Future<void> ensureFreshState() async {
     await reconnectIfNeeded();
     await refresh();
   }
@@ -188,11 +185,15 @@ class ActivityNotificationsController extends ChangeNotifier {
     notifyListeners();
   }
 
-    Future<void> markAllAsRead() async {
-    final unreadNotifications = _notifications.where((item) => !item.read).toList();
+  Future<void> markAllAsRead() async {
+    final unreadNotifications = _notifications
+        .where((item) => !item.read)
+        .toList();
     if (unreadNotifications.isEmpty) return;
 
-    final originalNotifications = List<ActivityNotificationModel>.from(_notifications);
+    final originalNotifications = List<ActivityNotificationModel>.from(
+      _notifications,
+    );
     final originalUnreadCount = _unreadCount;
 
     for (var i = 0; i < _notifications.length; i++) {

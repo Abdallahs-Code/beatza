@@ -11,11 +11,12 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _showManageSubscriptionSheet(BuildContext context) {
-    final currentPriceId = PaymentService.subscriptionSuccessNotifier.currentPriceId;
+    final currentPriceId =
+        PaymentService.subscriptionSuccessNotifier.currentPriceId;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
       ),
@@ -42,28 +43,43 @@ class SettingsScreen extends StatelessWidget {
                   return FutureBuilder<Map<String, dynamic>?>(
                     future: PaymentService.getCurrentSubscriptionDetails(),
                     builder: (context, subSnapshot) {
-                      if (plansSnapshot.connectionState == ConnectionState.waiting || subSnapshot.connectionState == ConnectionState.waiting) {
+                      if (plansSnapshot.connectionState ==
+                              ConnectionState.waiting ||
+                          subSnapshot.connectionState ==
+                              ConnectionState.waiting) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Center(child: CircularProgressIndicator(color: AppColors.brilliantOrange)),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.brilliantOrange,
+                            ),
+                          ),
                         );
                       }
 
                       if (!subSnapshot.hasData || subSnapshot.data == null) {
                         return const Text(
                           'Active Plan (Details unavailable)',
-                          style: TextStyle(color: AppColors.white60, fontSize: 14),
+                          style: TextStyle(
+                            color: AppColors.white60,
+                            fontSize: 14,
+                          ),
                         );
                       }
 
                       final subData = subSnapshot.data!;
                       final apiPlans = plansSnapshot.data ?? {};
                       final String? periodEndStr = subData['currentPeriodEnd'];
-                      final DateTime? expiryDate = periodEndStr != null ? DateTime.parse(periodEndStr).toLocal() : null;
-                      final int daysLeft = expiryDate != null ? expiryDate.difference(DateTime.now()).inDays : 0;
+                      final DateTime? expiryDate = periodEndStr != null
+                          ? DateTime.parse(periodEndStr).toLocal()
+                          : null;
+                      final int daysLeft = expiryDate != null
+                          ? expiryDate.difference(DateTime.now()).inDays
+                          : 0;
                       Map<String, dynamic>? currentPlanData;
                       apiPlans.forEach((key, value) {
-                        if (value['priceId'] == currentPriceId || key == currentPriceId) {
+                        if (value['priceId'] == currentPriceId ||
+                            key == currentPriceId) {
                           currentPlanData = value;
                         }
                       });
@@ -76,33 +92,57 @@ class SettingsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: AppColors.surfaceMid,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: isPro ? const Color(0xFF8E24AA) : AppColors.tileDark3),
+                              border: Border.all(
+                                color: isPro
+                                    ? AppColors.proBadgePurple
+                                    : AppColors.tileDark3,
+                              ),
                             ),
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
-                                            Text(planName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                            Text(
+                                              planName,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                             if (isPro)
                                               const Padding(
-                                                padding: EdgeInsets.only(left: 6),
-                                                child: Icon(Icons.stars, color: Color(0xFFFF3D00), size: 16),
+                                                padding: EdgeInsets.only(
+                                                  left: 6,
+                                                ),
+                                                child: Icon(
+                                                  Icons.stars,
+                                                  color: AppColors
+                                                      .primaryOrangeAccent,
+                                                  size: 16,
+                                                ),
                                               ),
                                           ],
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
-                                          daysLeft > 0 ? 'Expires in $daysLeft days' : 'Expires today',
+                                          daysLeft > 0
+                                              ? 'Expires in $daysLeft days'
+                                              : 'Expires today',
                                           style: TextStyle(
-                                            color: daysLeft < 5 ? Colors.redAccent : const Color(0xFF00D632),
+                                            color: daysLeft < 5
+                                                ? Colors.redAccent
+                                                : AppColors.successGreen,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -115,12 +155,25 @@ class SettingsScreen extends StatelessWidget {
                                 const Divider(color: Colors.white10),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('Renewal Date', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                                    const Text(
+                                      'Renewal Date',
+                                      style: TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                     Text(
-                                      expiryDate != null ? '${expiryDate.day}/${expiryDate.month}/${expiryDate.year}' : '--/--/--',
-                                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                      expiryDate != null
+                                          ? '${expiryDate.day}/${expiryDate.month}/${expiryDate.year}'
+                                          : '--/--/--',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -137,17 +190,34 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.sync_alt_rounded, color: AppColors.whiteSmoke),
-                title: const Text('Change or Upgrade Plan', style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16)),
+                leading: const Icon(
+                  Icons.sync_alt_rounded,
+                  color: AppColors.whiteSmoke,
+                ),
+                title: const Text(
+                  'Change or Upgrade Plan',
+                  style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
+                ),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PremiumSubscriptionScreen(),
+                    ),
+                  );
                 },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
-                title: const Text('Cancel Subscription', style: TextStyle(color: Colors.redAccent, fontSize: 16)),
+                leading: const Icon(
+                  Icons.cancel_outlined,
+                  color: Colors.redAccent,
+                ),
+                title: const Text(
+                  'Cancel Subscription',
+                  style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
 
@@ -157,7 +227,11 @@ class SettingsScreen extends StatelessWidget {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (dialogContext) => const Center(child: CircularProgressIndicator(color: AppColors.brilliantOrange)),
+                    builder: (dialogContext) => const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.brilliantOrange,
+                      ),
+                    ),
                   );
 
                   try {
@@ -169,13 +243,19 @@ class SettingsScreen extends StatelessWidget {
                     nav.pop();
 
                     messenger.showSnackBar(
-                      const SnackBar(content: Text('Subscription cancelled successfully')),
+                      const SnackBar(
+                        content: Text('Subscription cancelled successfully'),
+                      ),
                     );
                   } catch (e) {
                     nav.pop();
 
                     messenger.showSnackBar(
-                      SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+                      SnackBar(
+                        content: Text(
+                          e.toString().replaceAll('Exception: ', ''),
+                        ),
+                      ),
                     );
                   }
                 },
@@ -202,7 +282,8 @@ class SettingsScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     ValueListenableBuilder<SubscriptionState>(
-                      valueListenable: PaymentService.subscriptionSuccessNotifier,
+                      valueListenable:
+                          PaymentService.subscriptionSuccessNotifier,
                       builder: (context, state, child) {
                         if (state.isPro) {
                           return _SettingsTile(
@@ -216,7 +297,8 @@ class SettingsScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const PremiumSubscriptionScreen(),
+                                  builder: (_) =>
+                                      const PremiumSubscriptionScreen(),
                                 ),
                               );
                             },
@@ -239,7 +321,9 @@ class SettingsScreen extends StatelessWidget {
                       title: 'Account',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const AccountSettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const AccountSettingsScreen(),
+                        ),
                       ),
                     ),
                     const _SettingsTile(title: 'Inbox'),
@@ -248,7 +332,9 @@ class SettingsScreen extends StatelessWidget {
                       title: 'Notifications',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationSettingsScreen(),
+                        ),
                       ),
                     ),
                     const _SettingsTile(title: 'App Icon'),
@@ -279,14 +365,14 @@ class SettingsScreen extends StatelessWidget {
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           AuthenticationRoutes.welcome,
-                              (route) => false,
+                          (route) => false,
                         );
                       },
                     ),
                     const SizedBox(height: 12),
                     _PrimaryActionButton(
                       title: 'Delete account',
-                      backgroundColor: const Color(0xFFC62828),
+                      backgroundColor: AppColors.deepRed,
                       textColor: Colors.white,
                       onTap: () {
                         showDialog(
@@ -495,7 +581,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
       Navigator.pushNamedAndRemoveUntil(
         context,
         AuthenticationRoutes.welcome,
-            (route) => false,
+        (route) => false,
       );
     } else {
       setState(() {
@@ -513,7 +599,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.backgroundDark,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(22),
@@ -563,10 +649,10 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   onChanged: _isDeleting
                       ? null
                       : (value) {
-                    setState(() {
-                      _confirmed = value ?? false;
-                    });
-                  },
+                          setState(() {
+                            _confirmed = value ?? false;
+                          });
+                        },
                   activeColor: Colors.redAccent,
                   checkColor: Colors.white,
                   side: const BorderSide(color: AppColors.white60),
@@ -619,7 +705,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                         ? _handleDeleteAccount
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC62828),
+                      backgroundColor: AppColors.deepRed,
                       disabledBackgroundColor: const Color(0xFF5C1F1F),
                       foregroundColor: Colors.white,
                       elevation: 0,
@@ -629,17 +715,17 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     ),
                     child: _isDeleting
                         ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text(
-                      'Delete my account',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
+                            'Delete my account',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
                   ),
                 ),
               ],

@@ -109,9 +109,11 @@ class TrackModel {
       recordLabel: recordLabel ?? this.recordLabel,
       publisher: publisher ?? this.publisher,
       isrc: isrc ?? this.isrc,
-      containsExplicitContent: containsExplicitContent ?? this.containsExplicitContent,
+      containsExplicitContent:
+          containsExplicitContent ?? this.containsExplicitContent,
       pLine: pLine ?? this.pLine,
-      enableDirectDownloads: enableDirectDownloads ?? this.enableDirectDownloads,
+      enableDirectDownloads:
+          enableDirectDownloads ?? this.enableDirectDownloads,
       offlineListening: offlineListening ?? this.offlineListening,
       includeInRssFeed: includeInRssFeed ?? this.includeInRssFeed,
       displayEmbedCode: displayEmbedCode ?? this.displayEmbedCode,

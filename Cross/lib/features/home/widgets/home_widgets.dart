@@ -31,17 +31,22 @@ class TopHeader extends StatelessWidget {
               Icons.cloud_upload_outlined,
               onTap: () async {
                 final AudioUploadService audioService = AudioUploadService();
-                final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
+                final int currentUploads =
+                    AudioUploadService.globalMockTracksNotifier.value.length;
                 if (!isPro && currentUploads >= 3) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+                      content: Text(
+                        'Free tier limited to 3 uploads. Please upgrade to Pro.',
+                      ),
                       backgroundColor: Colors.orange,
                     ),
                   );
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const PremiumSubscriptionScreen(),
+                    ),
                   );
                   return;
                 }
@@ -60,7 +65,8 @@ class TopHeader extends StatelessWidget {
               },
             );
           },
-        ),        const SizedBox(width: 10),
+        ),
+        const SizedBox(width: 10),
         const HeaderIcon(Icons.more_horiz),
       ],
     );
@@ -158,7 +164,12 @@ class MiniTrackCard extends StatelessWidget {
   final String subtitle;
   final String? artworkUrl;
 
-  const MiniTrackCard({super.key, required this.title, required this.subtitle, this.artworkUrl});
+  const MiniTrackCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.artworkUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +240,12 @@ class WideTrackCard extends StatelessWidget {
   final String subtitle;
   final String? artworkUrl;
 
-  const WideTrackCard({super.key, required this.title, required this.subtitle, this.artworkUrl});
+  const WideTrackCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.artworkUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -254,8 +270,10 @@ class WideTrackCard extends StatelessWidget {
                 ? Image.network(
                     artworkUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        const Icon(Icons.album_outlined, color: AppColors.white54),
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.album_outlined,
+                      color: AppColors.white54,
+                    ),
                   )
                 : const Icon(Icons.album_outlined, color: AppColors.white54),
           ),

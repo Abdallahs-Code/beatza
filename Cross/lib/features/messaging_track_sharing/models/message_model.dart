@@ -21,7 +21,8 @@ class MessageModel {
       chatId: json['chatId']?.toString() ?? '',
       senderId: json['senderId']?.toString() ?? '',
       content: json['content']?.toString() ?? '',
-      seenBy: (json['seenBy'] as List<dynamic>?)
+      seenBy:
+          (json['seenBy'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],

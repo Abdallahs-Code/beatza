@@ -49,8 +49,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     });
 
     try {
-      final (statusCode, playlists) =
-          await _playlistService.getMyPlaylists();
+      final (statusCode, playlists) = await _playlistService.getMyPlaylists();
 
       debugPrint("GET /api/playlists/v1/my-playlists -> $statusCode");
 
@@ -86,8 +85,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     return state.isPro;
   }
 
-  bool get _atFreeLimit =>
-      !_isPro && _playlists.length >= _freeUserLimit;
+  bool get _atFreeLimit => !_isPro && _playlists.length >= _freeUserLimit;
 
   void _onCreatePlaylist() {
     if (_atFreeLimit) {
@@ -113,12 +111,13 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.crusta),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.crusta),
             onPressed: () {
               Navigator.pop(ctx);
               // Navigate to premium screen
@@ -152,10 +151,8 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PlaylistDetailScreen(
-          playlistId: playlist.id,
-          isOwner: true,
-        ),
+        builder: (_) =>
+            PlaylistDetailScreen(playlistId: playlist.id, isOwner: true),
       ),
     ).then((_) => _loadPlaylists());
   }
@@ -163,9 +160,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
   void _onEditPlaylist(PlaylistModel playlist) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => EditPlaylistScreen(playlist: playlist),
-      ),
+      MaterialPageRoute(builder: (_) => EditPlaylistScreen(playlist: playlist)),
     ).then((updated) {
       if (updated == true) _loadPlaylists();
     });
@@ -176,8 +171,10 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
-        title: const Text('Delete Playlist',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Delete Playlist',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Delete "${playlist.title}"? This cannot be undone.',
           style: const TextStyle(color: Colors.white70),
@@ -185,8 +182,10 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -198,15 +197,16 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     );
     if (confirmed != true || !mounted) return;
 
-    final (statusCode, deleted) =
-        await _playlistService.deletePlaylist(playlistId: playlist.id);
+    final (statusCode, deleted) = await _playlistService.deletePlaylist(
+      playlistId: playlist.id,
+    );
 
     if (!mounted) return;
     if (statusCode == 200 && deleted) {
       setState(() => _playlists.removeWhere((p) => p.id == playlist.id));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Playlist deleted.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Playlist deleted.')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -239,8 +239,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _onCreatePlaylist,
-        backgroundColor:
-            _atFreeLimit ? Colors.grey : AppColors.crusta,
+        backgroundColor: _atFreeLimit ? Colors.grey : AppColors.crusta,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _buildBody(),
@@ -267,13 +266,9 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       color: AppColors.crusta,
       child: CustomScrollView(
         slivers: [
-          if (_atFreeLimit)
-            SliverToBoxAdapter(
-              child: _buildFreeLimitBanner(),
-            ),
+          if (_atFreeLimit) SliverToBoxAdapter(child: _buildFreeLimitBanner()),
           SliverPadding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
@@ -306,8 +301,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.lock_outline,
-              color: AppColors.crusta, size: 20),
+          const Icon(Icons.lock_outline, color: AppColors.crusta, size: 20),
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
@@ -317,8 +311,10 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
           ),
           TextButton(
             onPressed: _showUpgradeDialog,
-            child: const Text('Upgrade',
-                style: TextStyle(color: AppColors.crusta)),
+            child: const Text(
+              'Upgrade',
+              style: TextStyle(color: AppColors.crusta),
+            ),
           ),
         ],
       ),
@@ -358,14 +354,19 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
                 backgroundColor: AppColors.crusta,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 14),
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
               onPressed: _onCreatePlaylist,
               icon: const Icon(Icons.add),
-              label: const Text('Create Playlist',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
+              label: const Text(
+                'Create Playlist',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -380,8 +381,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline,
-                color: Colors.white54, size: 48),
+            const Icon(Icons.error_outline, color: Colors.white54, size: 48),
             const SizedBox(height: 16),
             Text(
               _error!,
@@ -392,8 +392,9 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
             ElevatedButton(
               onPressed: _loadPlaylists,
               style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.crusta,
-                  foregroundColor: Colors.white),
+                backgroundColor: AppColors.crusta,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Retry'),
             ),
           ],

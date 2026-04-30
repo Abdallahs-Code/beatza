@@ -81,7 +81,7 @@ class TextInputField extends StatelessWidget {
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.white54),
         filled: true,
-        fillColor: const Color(0xFF333333),
+        fillColor: AppColors.inputFill,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.white54),

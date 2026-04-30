@@ -22,8 +22,8 @@ class SetsPlaylistsRoutes {
     myAlbums: (context) => const MyAlbumsScreen(),
 
     playlistDetail: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments
-          as Map<String, dynamic>;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return PlaylistDetailScreen(
         playlistId: args['playlistId'] as String,
         isOwner: (args['isOwner'] ?? false) as bool,
@@ -31,8 +31,8 @@ class SetsPlaylistsRoutes {
     },
 
     albumDetail: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments
-          as Map<String, dynamic>;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return AlbumDetailScreen(
         playlistId: args['playlistId'] as String,
         isOwner: (args['isOwner'] ?? false) as bool,
@@ -40,11 +40,9 @@ class SetsPlaylistsRoutes {
     },
 
     editPlaylist: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments
-          as Map<String, dynamic>;
-      return EditPlaylistScreen(
-        playlist: args['playlist'] as PlaylistModel,
-      );
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      return EditPlaylistScreen(playlist: args['playlist'] as PlaylistModel);
     },
   };
 }

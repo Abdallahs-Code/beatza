@@ -73,7 +73,8 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Free plan limit reached. Upgrade to Pro for unlimited playlists.'),
+            'Free plan limit reached. Upgrade to Pro for unlimited playlists.',
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -145,13 +146,18 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                         : const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_photo_alternate_outlined,
-                                  color: Colors.white38, size: 32),
+                              Icon(
+                                Icons.add_photo_alternate_outlined,
+                                color: Colors.white38,
+                                size: 32,
+                              ),
                               SizedBox(height: 6),
                               Text(
                                 'Add cover',
                                 style: TextStyle(
-                                    color: Colors.white38, fontSize: 11),
+                                  color: Colors.white38,
+                                  fontSize: 11,
+                                ),
                               ),
                             ],
                           ),
@@ -179,8 +185,9 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                     borderSide: const BorderSide(color: AppColors.crusta),
                   ),
                 ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Please enter a name' : null,
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'Please enter a name'
+                    : null,
               ),
               const SizedBox(height: 12),
 
@@ -241,7 +248,9 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text(
                           'Create Playlist',

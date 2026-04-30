@@ -78,14 +78,9 @@ class ActivityNotificationsApiService {
       if (read != null) 'read': '$read',
     };
 
-    final uri = Uri.parse(
-      _servicePath,
-    ).replace(queryParameters: query);
+    final uri = Uri.parse(_servicePath).replace(queryParameters: query);
 
-    final response = await _client.get(
-      uri,
-      headers: _headers(accessToken),
-    );
+    final response = await _client.get(uri, headers: _headers(accessToken));
     final data = _decodeBody(response);
 
     if (response.statusCode == 200 && data is Map) {
@@ -94,42 +89,28 @@ class ActivityNotificationsApiService {
       );
     }
 
-    throw _buildError(
-      response,
-      data,
-      'Failed to fetch notifications',
-    );
+    throw _buildError(response, data, 'Failed to fetch notifications');
   }
 
   Future<int> getUnreadCount() async {
     final accessToken = await _requireAccessToken();
 
     final uri = Uri.parse('$_servicePath/unread-count');
-    final response = await _client.get(
-      uri,
-      headers: _headers(accessToken),
-    );
+    final response = await _client.get(uri, headers: _headers(accessToken));
     final data = _decodeBody(response);
 
     if (response.statusCode == 200 && data is Map) {
       return (data['unreadCount'] as num?)?.toInt() ?? 0;
     }
 
-    throw _buildError(
-      response,
-      data,
-      'Failed to fetch unread count',
-    );
+    throw _buildError(response, data, 'Failed to fetch unread count');
   }
 
   Future<int> markAllAsRead() async {
     final accessToken = await _requireAccessToken();
 
     final uri = Uri.parse('$_servicePath/read-all');
-    final response = await _client.patch(
-      uri,
-      headers: _headers(accessToken),
-    );
+    final response = await _client.patch(uri, headers: _headers(accessToken));
     final data = _decodeBody(response);
 
     if (response.statusCode == 200 && data is Map) {
@@ -147,20 +128,13 @@ class ActivityNotificationsApiService {
     final accessToken = await _requireAccessToken();
 
     final uri = Uri.parse('$_servicePath/$notificationId/read');
-    final response = await _client.patch(
-      uri,
-      headers: _headers(accessToken),
-    );
+    final response = await _client.patch(uri, headers: _headers(accessToken));
     final data = _decodeBody(response);
 
     if (response.statusCode == 200) {
       return;
     }
 
-    throw _buildError(
-      response,
-      data,
-      'Failed to mark notification as read',
-    );
+    throw _buildError(response, data, 'Failed to mark notification as read');
   }
 }

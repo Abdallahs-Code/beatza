@@ -59,7 +59,9 @@ class PublicTracksApiService {
         'Body: ${response.body}',
       );
     }
-    debugPrint('[PublicTracksApiService] raw body (first 400): ${response.body.substring(0, response.body.length.clamp(0, 400))}');
+    debugPrint(
+      '[PublicTracksApiService] raw body (first 400): ${response.body.substring(0, response.body.length.clamp(0, 400))}',
+    );
 
     final dynamic decoded = jsonDecode(response.body);
 
@@ -152,7 +154,7 @@ class PublicTracksApiService {
           (raw['uploader'] as Map<String, dynamic>?) ??
           {};
       for (final dynamic candidate in [
-        raw['posterId'],   // new API field
+        raw['posterId'], // new API field
         raw['userId'],
         raw['user_id'],
         raw['creator'],

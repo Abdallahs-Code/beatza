@@ -65,10 +65,7 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AlbumDetailScreen(
-          playlistId: album.id,
-          isOwner: true,
-        ),
+        builder: (_) => AlbumDetailScreen(playlistId: album.id, isOwner: true),
       ),
     ).then((_) => _loadAlbums());
   }
@@ -165,7 +162,11 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
               const SizedBox(height: 10),
               const Text(
                 'When you add a playlist where all tracks are from the same artist, it will appear here as an album.',
-                style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.5),
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

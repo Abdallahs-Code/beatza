@@ -105,10 +105,12 @@ class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
                         ),
                         child: _isRetrying
                             ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text('Retry'),
                       ),
                     ],
@@ -120,4 +122,5 @@ class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
         );
       },
     );
-  }}
+  }
+}

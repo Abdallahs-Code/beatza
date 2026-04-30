@@ -34,11 +34,14 @@ class NotificationSettings {
     return NotificationSettings(
       newFollower: (json['newFollower'] ?? 'off').toString(),
       repostOfYourPost: (json['repostOfYourPost'] ?? 'off').toString(),
-      newPostByFollowedUser: (json['newPostByFollowedUser'] ?? 'off').toString(),
-      likesAndPlaysOnYourPost: (json['likesAndPlaysOnYourPost'] ?? 'off').toString(),
+      newPostByFollowedUser: (json['newPostByFollowedUser'] ?? 'off')
+          .toString(),
+      likesAndPlaysOnYourPost: (json['likesAndPlaysOnYourPost'] ?? 'off')
+          .toString(),
       commentOnYourPost: (json['commentOnYourPost'] ?? 'off').toString(),
       recommendedContent: (json['recommendedContent'] ?? 'off').toString(),
-      updatesFromSoundcloud: (json['updatesFromSoundcloud'] ?? 'off').toString(),
+      updatesFromSoundcloud: (json['updatesFromSoundcloud'] ?? 'off')
+          .toString(),
       soundcloudFeatureUpdatesEducation:
           (json['soundcloudFeatureUpdatesEducation'] ?? 'off').toString(),
       surveysAndFeedback: (json['surveysAndFeedback'] ?? 'off').toString(),
@@ -51,43 +54,50 @@ class NotificationSettings {
   }
 
   Map<String, dynamic> toJson() => {
-        'newFollower': newFollower,
-        'repostOfYourPost': repostOfYourPost,
-        'newPostByFollowedUser': newPostByFollowedUser,
-        'likesAndPlaysOnYourPost': likesAndPlaysOnYourPost,
-        'commentOnYourPost': commentOnYourPost,
-        'recommendedContent': recommendedContent,
-        'updatesFromSoundcloud': updatesFromSoundcloud,
-        'soundcloudFeatureUpdatesEducation': soundcloudFeatureUpdatesEducation,
-        'surveysAndFeedback': surveysAndFeedback,
-        'promotionalPartnershipContent': promotionalPartnershipContent,
-        'soundcloudNewsletter': soundcloudNewsletter,
-        'newMessage': {
-          'email': newMessageEmail,
-          'devices': newMessageDevices,
-        },
-      };
+    'newFollower': newFollower,
+    'repostOfYourPost': repostOfYourPost,
+    'newPostByFollowedUser': newPostByFollowedUser,
+    'likesAndPlaysOnYourPost': likesAndPlaysOnYourPost,
+    'commentOnYourPost': commentOnYourPost,
+    'recommendedContent': recommendedContent,
+    'updatesFromSoundcloud': updatesFromSoundcloud,
+    'soundcloudFeatureUpdatesEducation': soundcloudFeatureUpdatesEducation,
+    'surveysAndFeedback': surveysAndFeedback,
+    'promotionalPartnershipContent': promotionalPartnershipContent,
+    'soundcloudNewsletter': soundcloudNewsletter,
+    'newMessage': {'email': newMessageEmail, 'devices': newMessageDevices},
+  };
 
   static bool hasDevices(String v) => v == 'devices' || v == 'both';
   static bool hasEmail(String v) => v == 'email' || v == 'both';
 
   static String toggleDevices(String current) {
     switch (current) {
-      case 'off':     return 'devices';
-      case 'email':   return 'both';
-      case 'devices': return 'off';
-      case 'both':    return 'email';
-      default:        return 'devices';
+      case 'off':
+        return 'devices';
+      case 'email':
+        return 'both';
+      case 'devices':
+        return 'off';
+      case 'both':
+        return 'email';
+      default:
+        return 'devices';
     }
   }
 
   static String toggleEmail(String current) {
     switch (current) {
-      case 'off':     return 'email';
-      case 'devices': return 'both';
-      case 'email':   return 'off';
-      case 'both':    return 'devices';
-      default:        return 'email';
+      case 'off':
+        return 'email';
+      case 'devices':
+        return 'both';
+      case 'email':
+        return 'off';
+      case 'both':
+        return 'devices';
+      default:
+        return 'email';
     }
   }
 
@@ -105,22 +115,23 @@ class NotificationSettings {
     String? soundcloudNewsletter,
     bool? newMessageEmail,
     String? newMessageDevices,
-  }) =>
-      NotificationSettings(
-        newFollower: newFollower ?? this.newFollower,
-        repostOfYourPost: repostOfYourPost ?? this.repostOfYourPost,
-        newPostByFollowedUser: newPostByFollowedUser ?? this.newPostByFollowedUser,
-        likesAndPlaysOnYourPost: likesAndPlaysOnYourPost ?? this.likesAndPlaysOnYourPost,
-        commentOnYourPost: commentOnYourPost ?? this.commentOnYourPost,
-        recommendedContent: recommendedContent ?? this.recommendedContent,
-        updatesFromSoundcloud: updatesFromSoundcloud ?? this.updatesFromSoundcloud,
-        soundcloudFeatureUpdatesEducation:
-            soundcloudFeatureUpdatesEducation ?? this.soundcloudFeatureUpdatesEducation,
-        surveysAndFeedback: surveysAndFeedback ?? this.surveysAndFeedback,
-        promotionalPartnershipContent:
-            promotionalPartnershipContent ?? this.promotionalPartnershipContent,
-        soundcloudNewsletter: soundcloudNewsletter ?? this.soundcloudNewsletter,
-        newMessageEmail: newMessageEmail ?? this.newMessageEmail,
-        newMessageDevices: newMessageDevices ?? this.newMessageDevices,
-      );
+  }) => NotificationSettings(
+    newFollower: newFollower ?? this.newFollower,
+    repostOfYourPost: repostOfYourPost ?? this.repostOfYourPost,
+    newPostByFollowedUser: newPostByFollowedUser ?? this.newPostByFollowedUser,
+    likesAndPlaysOnYourPost:
+        likesAndPlaysOnYourPost ?? this.likesAndPlaysOnYourPost,
+    commentOnYourPost: commentOnYourPost ?? this.commentOnYourPost,
+    recommendedContent: recommendedContent ?? this.recommendedContent,
+    updatesFromSoundcloud: updatesFromSoundcloud ?? this.updatesFromSoundcloud,
+    soundcloudFeatureUpdatesEducation:
+        soundcloudFeatureUpdatesEducation ??
+        this.soundcloudFeatureUpdatesEducation,
+    surveysAndFeedback: surveysAndFeedback ?? this.surveysAndFeedback,
+    promotionalPartnershipContent:
+        promotionalPartnershipContent ?? this.promotionalPartnershipContent,
+    soundcloudNewsletter: soundcloudNewsletter ?? this.soundcloudNewsletter,
+    newMessageEmail: newMessageEmail ?? this.newMessageEmail,
+    newMessageDevices: newMessageDevices ?? this.newMessageDevices,
+  );
 }

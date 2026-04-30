@@ -147,7 +147,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
         height: 76,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFFD9D9D9),
+          color: AppColors.greyInputDark,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -264,8 +264,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleVerify,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB3B3B3),
-                          disabledBackgroundColor: const Color(0xFFB3B3B3),
+                          backgroundColor: AppColors.greyButton,
+                          disabledBackgroundColor: AppColors.greyButton,
                           foregroundColor: Colors.black,
                           disabledForegroundColor: Colors.black,
                           elevation: 0,
@@ -300,7 +300,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       child: Text(
                         _isSendingAgain ? "Sending..." : "Send again",
                         style: const TextStyle(
-                          color: Color(0xFF2F7CF6),
+                          color: AppColors.blueAccent,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),

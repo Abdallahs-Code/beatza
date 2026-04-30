@@ -35,6 +35,7 @@
 //   (matching Image 2), using the parent's ScaffoldMessenger.
 
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/repost_status.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 
@@ -193,7 +194,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: AppColors.container,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -217,7 +218,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
       ),
       child: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF1A1A1A),
+          color: AppColors.container,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: SafeArea(
@@ -261,7 +262,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                 ),
               ),
 
-              const Divider(color: Color(0xFF2A2A2A), height: 1),
+              const Divider(color: AppColors.containerMid, height: 1),
 
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -314,7 +315,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                                   ),
                                 ),
                                 filled: true,
-                                fillColor: const Color(0xFF252525),
+                                fillColor: AppColors.containerDark,
                                 contentPadding: const EdgeInsets.all(12),
                               ),
                             ),
@@ -325,7 +326,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF252525),
+                        color: AppColors.containerDark,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(

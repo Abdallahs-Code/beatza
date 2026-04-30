@@ -27,8 +27,7 @@ class AdPlayerWidget extends StatelessWidget {
         final bool skipReady = AdService.shared.skipReady;
         final bool canSkip = AdService.shared.canSkipAd;
         final int secsUntilSkip =
-            AdService.skipAfterSeconds -
-            (AdService.totalAdSeconds - remaining);
+            AdService.skipAfterSeconds - (AdService.totalAdSeconds - remaining);
 
         return Material(
           color: Colors.black,

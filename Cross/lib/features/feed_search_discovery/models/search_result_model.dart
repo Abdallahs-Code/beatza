@@ -58,8 +58,9 @@ class SearchResultModel {
         json['counts'] as Map<String, dynamic>? ?? {},
       ),
       results: (json['results'] as List<dynamic>? ?? [])
-          .map((item) =>
-              SearchResultItem.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => SearchResultItem.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
     );
   }

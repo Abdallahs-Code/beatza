@@ -22,7 +22,7 @@ enum TrackRepeatMode { none, all, one }
 
 class PlaybackStreamingEngineService extends ChangeNotifier {
   static final PlaybackStreamingEngineService shared =
-  PlaybackStreamingEngineService._shared();
+      PlaybackStreamingEngineService._shared();
 
   final AudioPlayerClient _audioPlayerClient;
   final FlutterSecureStorage _storage;
@@ -55,9 +55,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   TrackRepeatMode _repeatMode = TrackRepeatMode.none;
 
   PlaybackStreamingEngineService._shared()
-      : _audioPlayerClient = AudioplayersClient(),
-        _storage = const FlutterSecureStorage(),
-        _httpClient = http.Client() {
+    : _audioPlayerClient = AudioplayersClient(),
+      _storage = const FlutterSecureStorage(),
+      _httpClient = http.Client() {
     _bindPlayerStreams();
   }
 
@@ -65,9 +65,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     AudioPlayerClient? audioPlayerClient,
     FlutterSecureStorage? storage,
     http.Client? httpClient,
-  })  : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
-        _storage = storage ?? const FlutterSecureStorage(),
-        _httpClient = httpClient ?? http.Client() {
+  }) : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
+       _storage = storage ?? const FlutterSecureStorage(),
+       _httpClient = httpClient ?? http.Client() {
     _bindPlayerStreams();
   }
 
@@ -83,12 +83,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   TrackRepeatMode get repeatMode => _repeatMode;
 
   Future<void> playTrack(
-      PlaybackTrackModel track, {
-        List<PlaybackTrackModel>? queue,
-        int? startIndex,
-        Future<bool> Function()? ensureNextTrackAvailable,
-        bool countForAd = true,
-      }) async {
+    PlaybackTrackModel track, {
+    List<PlaybackTrackModel>? queue,
+    int? startIndex,
+    Future<bool> Function()? ensureNextTrackAvailable,
+    bool countForAd = true,
+  }) async {
     // Never interrupt an ad. When the ad finishes its onAdFinished callback
     // calls playTrack with countForAd:false, bypassing this guard because
     // isAdPlaying is already false at that point.
@@ -98,13 +98,15 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     // Using countForAd:false for the post-ad resume call avoids double-counting.
     if (countForAd && !PaymentService.subscriptionSuccessNotifier.isPro) {
       final bool adScheduled = AdService.shared.checkAndScheduleAd(
-        onAdFinished: () => unawaited(playTrack(
-          track,
-          queue: queue,
-          startIndex: startIndex,
-          ensureNextTrackAvailable: ensureNextTrackAvailable,
-          countForAd: false,
-        )),
+        onAdFinished: () => unawaited(
+          playTrack(
+            track,
+            queue: queue,
+            startIndex: startIndex,
+            ensureNextTrackAvailable: ensureNextTrackAvailable,
+            countForAd: false,
+          ),
+        ),
       );
       if (adScheduled) {
         _outputLevelRequestId++;
@@ -140,7 +142,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       );
     } else {
       final int existingIndex = _activeQueue.indexWhere(
-            (item) => item.id == track.id,
+        (item) => item.id == track.id,
       );
       if (existingIndex >= 0) {
         _currentQueueIndex = existingIndex;
@@ -162,7 +164,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         _state.copyWith(
           currentTrack: track,
           status: PlaybackStatus.blocked,
-          message: track.blockedReason ?? 'This track is currently unavailable.',
+          message:
+              track.blockedReason ?? 'This track is currently unavailable.',
           currentPosition: Duration.zero,
           totalDuration: track.duration ?? Duration.zero,
         ),
@@ -212,7 +215,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
       PlaybackTrackModel trackToPlay = track;
       try {
-        final localPath = await OfflineDownloadService.shared.getLocalTrackPath(track.id);
+        final localPath = await OfflineDownloadService.shared.getLocalTrackPath(
+          track.id,
+        );
         if (seq != _playSeq) return;
         if (localPath != null && await File(localPath).exists()) {
           if (seq != _playSeq) return;
@@ -231,7 +236,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
       // This call won the race — confirm playback and restore event processing.
       _ignorePlayerStateUpdates = false;
-      _updateState(_state.copyWith(status: PlaybackStatus.playing, clearMessage: true));
+      _updateState(
+        _state.copyWith(status: PlaybackStatus.playing, clearMessage: true),
+      );
       _reportTrackPlayedIfNeeded();
       await _enforceCurrentOutputLevelForTrack(track.id);
     } catch (error) {
@@ -345,8 +352,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   Future<void> stop() async {
     _outputLevelRequestId++;
-    _playSeq++;                        // cancel any in-progress playTrack
-    _ignorePlayerStateUpdates = false; // restore so the stopped event is processed
+    _playSeq++; // cancel any in-progress playTrack
+    _ignorePlayerStateUpdates =
+        false; // restore so the stopped event is processed
     await _audioPlayerClient.stop();
     _previewLimitReached = false;
     _updateState(
@@ -423,10 +431,10 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   void _setQueueContext(
-      List<PlaybackTrackModel> queue, {
-        String? preferredTrackId,
-        int? preferredIndex,
-      }) {
+    List<PlaybackTrackModel> queue, {
+    String? preferredTrackId,
+    int? preferredIndex,
+  }) {
     _activeQueue = List<PlaybackTrackModel>.from(queue);
 
     if (_activeQueue.isEmpty) {
@@ -477,7 +485,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     final int currentIndexInPagedTracks = pagedTracks.indexWhere(
-          (item) => item.id == currentTrack.id,
+      (item) => item.id == currentTrack.id,
     );
 
     if (currentIndexInPagedTracks < 0) {
@@ -512,13 +520,13 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     final PlaybackStatus nextStatus = switch (playerState) {
       PlayerState.playing => PlaybackStatus.playing,
       PlayerState.paused =>
-      _previewLimitReached
-          ? PlaybackStatus.previewEnded
-          : PlaybackStatus.paused,
+        _previewLimitReached
+            ? PlaybackStatus.previewEnded
+            : PlaybackStatus.paused,
       PlayerState.stopped =>
-      _previewLimitReached
-          ? PlaybackStatus.previewEnded
-          : PlaybackStatus.stopped,
+        _previewLimitReached
+            ? PlaybackStatus.previewEnded
+            : PlaybackStatus.stopped,
       PlayerState.completed => PlaybackStatus.completed,
       PlayerState.disposed => PlaybackStatus.stopped,
     };
@@ -697,19 +705,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     final PlaybackTrackModel? currentTrack =
         _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length
-            ? _activeQueue[_currentQueueIndex]
-            : null;
+        ? _activeQueue[_currentQueueIndex]
+        : null;
 
     if (!_isShuffled) {
       _originalQueue = List<PlaybackTrackModel>.from(_activeQueue);
-      final List<PlaybackTrackModel> remaining =
-          List<PlaybackTrackModel>.from(_activeQueue);
+      final List<PlaybackTrackModel> remaining = List<PlaybackTrackModel>.from(
+        _activeQueue,
+      );
       if (currentTrack != null) remaining.removeAt(_currentQueueIndex);
       remaining.shuffle(Random());
-      _activeQueue = [
-        ?currentTrack,
-        ...remaining,
-      ];
+      _activeQueue = [?currentTrack, ...remaining];
       _currentQueueIndex = 0;
       _isShuffled = true;
     } else {
@@ -740,8 +746,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     if (absoluteIndex < 0 || absoluteIndex >= _activeQueue.length) return;
     if (absoluteIndex == _currentQueueIndex) return;
 
-    final List<PlaybackTrackModel> queue =
-        List<PlaybackTrackModel>.from(_activeQueue);
+    final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+      _activeQueue,
+    );
     queue.removeAt(absoluteIndex);
     _activeQueue = queue;
 
@@ -763,8 +770,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     if (absNew < 0 || absNew >= _activeQueue.length) return;
     if (absOld == absNew) return;
 
-    final List<PlaybackTrackModel> queue =
-        List<PlaybackTrackModel>.from(_activeQueue);
+    final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+      _activeQueue,
+    );
     final PlaybackTrackModel item = queue.removeAt(absOld);
     queue.insert(absNew, item);
     _activeQueue = queue;
@@ -777,8 +785,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _activeQueue = [track];
       _currentQueueIndex = 0;
     } else {
-      final List<PlaybackTrackModel> queue =
-          List<PlaybackTrackModel>.from(_activeQueue);
+      final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+        _activeQueue,
+      );
       queue.insert(_currentQueueIndex + 1, track);
       _activeQueue = queue;
     }
@@ -786,8 +795,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   void addToQueueLast(PlaybackTrackModel track) {
-    final List<PlaybackTrackModel> queue =
-        List<PlaybackTrackModel>.from(_activeQueue);
+    final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+      _activeQueue,
+    );
     queue.add(track);
     _activeQueue = queue;
     notifyListeners();

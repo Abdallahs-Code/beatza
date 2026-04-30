@@ -45,7 +45,9 @@ class PlaybackTrackApiService {
         'Body: ${response.body}',
       );
     }
-    debugPrint('[PlaybackTrackApiService] raw body: ${response.body.substring(0, response.body.length.clamp(0, 400))}');
+    debugPrint(
+      '[PlaybackTrackApiService] raw body: ${response.body.substring(0, response.body.length.clamp(0, 400))}',
+    );
 
     final dynamic decoded = jsonDecode(response.body);
 

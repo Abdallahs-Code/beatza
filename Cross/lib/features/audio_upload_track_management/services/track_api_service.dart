@@ -156,8 +156,15 @@ class TrackApiService {
       final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
 
       if (response.statusCode == 201) {
-        final trackId = (data['data'] as Map<String, dynamic>?)?['_id']?.toString();
-        return (201, {'message': data['message'] ?? 'Track created successfully', 'trackId': trackId});
+        final trackId = (data['data'] as Map<String, dynamic>?)?['_id']
+            ?.toString();
+        return (
+          201,
+          {
+            'message': data['message'] ?? 'Track created successfully',
+            'trackId': trackId,
+          },
+        );
       } else if (response.statusCode == 400) {
         return (400, data['errors'] ?? data['message'] ?? 'Validation failed');
       }

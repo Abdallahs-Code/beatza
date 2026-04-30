@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class MetadataFormWidget extends StatelessWidget {
   final TextEditingController titleController;
@@ -21,7 +22,7 @@ class MetadataFormWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -31,9 +32,9 @@ class MetadataFormWidget extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle: const TextStyle(color: Color(0xFF555555)),
-          labelStyle: const TextStyle(color: Color(0xFF9A9A9A)),
-          prefixIcon: Icon(icon, color: const Color(0xFF9A9A9A), size: 20),
+          hintStyle: const TextStyle(color: AppColors.greyDark3),
+          labelStyle: const TextStyle(color: AppColors.greyMedium),
+          prefixIcon: Icon(icon, color: AppColors.greyMedium, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,

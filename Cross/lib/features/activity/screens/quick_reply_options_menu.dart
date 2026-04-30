@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 
@@ -16,7 +17,7 @@ class QuickReplyOptionsMenu {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -35,7 +36,10 @@ class QuickReplyOptionsMenu {
             ),
             if (comment.timestamp > 0)
               ListTile(
-                leading: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                leading: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                ),
                 title: Text(
                   'Play from ${comment.formattedTimestamp}',
                   style: const TextStyle(color: Colors.white),
@@ -79,14 +83,20 @@ class QuickReplyOptionsMenu {
               ),
             if (!isOwn && comment.userId.isNotEmpty) ...[
               ListTile(
-                leading: const Icon(Icons.outlined_flag_rounded, color: Colors.white),
-                title: const Text('Report', style: TextStyle(color: Colors.white)),
+                leading: const Icon(
+                  Icons.outlined_flag_rounded,
+                  color: Colors.white,
+                ),
+                title: const Text(
+                  'Report',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Comment reported'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -103,7 +113,7 @@ class QuickReplyOptionsMenu {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Comment reported as spam'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -126,12 +136,14 @@ class QuickReplyOptionsMenu {
   }
 
   static Future<void> _confirmBlock(
-      BuildContext context, Comment comment) async {
+    BuildContext context,
+    Comment comment,
+  ) async {
     final bool confirmed =
         await showDialog<bool>(
           context: context,
           builder: (dialogCtx) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A1A),
+            backgroundColor: AppColors.container,
             title: const Text(
               'Block user?',
               style: TextStyle(color: Colors.white),
@@ -180,7 +192,7 @@ class QuickReplyOptionsMenu {
               ? '${comment.displayName} has been blocked'
               : (result.$2?.toString() ?? 'Could not block user'),
         ),
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.container,
         duration: const Duration(seconds: 3),
       ),
     );

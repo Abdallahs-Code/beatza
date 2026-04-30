@@ -37,8 +37,10 @@ class SearchHistoryItemModel {
 
   static List<SearchHistoryItemModel> listFromJson(List<dynamic> list) {
     return list
-        .map((item) =>
-            SearchHistoryItemModel.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) =>
+              SearchHistoryItemModel.fromJson(item as Map<String, dynamic>),
+        )
         .toList();
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
 import '../services/audio_upload_service.dart';
@@ -109,7 +110,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showProUpgradeModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -198,7 +199,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF5500),
+                              color: AppColors.primaryOrange,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -273,7 +274,13 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                           ),
                           onPressed: () {
                             Navigator.pop(context);
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const PremiumSubscriptionScreen(),
+                              ),
+                            );
                           },
                           child: const Text(
                             'View Plans',
@@ -290,7 +297,13 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         child: TextButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const PremiumSubscriptionScreen(),
+                              ),
+                            );
                           },
                           child: const Text(
                             'See all plans',
@@ -316,7 +329,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showInsightsInfoModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.chineseBlack,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -384,7 +397,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                                 children: [
                                   TextSpan(
                                     text:
-                                    'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
+                                        'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
                                   ),
                                   TextSpan(
                                     text: 'Beatza Distribution.',
@@ -434,7 +447,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        backgroundColor: const Color(0xFF121212),
+                        backgroundColor: AppColors.chineseBlack,
                       ),
                       child: const Text(
                         'Close',
@@ -458,7 +471,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showFilterDropdown(BuildContext context) async {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
-    Overlay.of(context).context.findRenderObject() as RenderBox;
+        Overlay.of(context).context.findRenderObject() as RenderBox;
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -473,7 +486,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
     final result = await showMenu<String>(
       context: context,
       position: position,
-      color: const Color(0xFF2A2A2A),
+      color: AppColors.containerMid,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       items: _filterOptions.map((String choice) {
         return PopupMenuItem<String>(
@@ -507,9 +520,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
@@ -563,7 +576,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     else if (_activeTab == InsightTab.allPlatforms)
                       _buildAllPlatformsPromo()
                     else if (_activeTab == InsightTab.fans)
-                        _buildFansTabWrapper(),
+                      _buildFansTabWrapper(),
                   ],
                 ),
               );
@@ -613,9 +626,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               if (isNew) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF5500).withValues(alpha: 0.8),
+                    color: AppColors.primaryOrange.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
@@ -627,7 +643,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     ),
                   ),
                 ),
-              ]
+              ],
             ],
           ),
           const SizedBox(height: 8),
@@ -667,7 +683,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             child: Container(
               height: 260,
               width: double.infinity,
-              color: const Color(0xFF1A1A1A),
+              color: AppColors.container,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -696,15 +712,22 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.people_outline, color: Colors.white, size: 50),
+                        const Icon(
+                          Icons.people_outline,
+                          color: Colors.white,
+                          size: 50,
+                        ),
                         const SizedBox(height: 12),
                         const Text(
                           'Waiting for data...',
-                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -729,11 +752,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Share your tracks and encourage listeners to play, like, comment, repost, or download. Once you build enough activity over 30 days, you\'ll see your most engaged fans here.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              height: 1.5,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
           ),
         ),
         const SizedBox(height: 24),
@@ -746,7 +765,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const UploadTrackScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const UploadTrackScreen(),
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -823,6 +844,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
       ],
     );
   }
+
   Widget _buildFilterDropdown() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -839,7 +861,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2A),
+                    color: AppColors.containerMid,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -869,6 +891,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
       ),
     );
   }
+
   Widget _buildFansLockedContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -882,7 +905,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               height: 180,
               width: 180,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
+                color: AppColors.surfaceMid,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -914,7 +937,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PremiumSubscriptionScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
@@ -999,9 +1027,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                   child: SizedBox(
                     height: 180,
                     width: double.infinity,
-                    child: CustomPaint(
-                      painter: OrangeMixerPainter(),
-                    ),
+                    child: CustomPaint(painter: OrangeMixerPainter()),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -1070,12 +1096,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   }
 
   Widget _buildSoundCloudView(
-      List<TrackModel> tracks,
-      int plays,
-      int likes,
-      int comments,
-      int reposts,
-      ) {
+    List<TrackModel> tracks,
+    int plays,
+    int likes,
+    int comments,
+    int reposts,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1160,7 +1186,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isActive ? Colors.white : const Color(0xFF2A2A2A),
+          color: isActive ? Colors.white : AppColors.containerMid,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -1243,7 +1269,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             decoration: BoxDecoration(
               color: _selectedFilter == 'All time'
-                  ? const Color(0xFF2A2A2A)
+                  ? AppColors.containerMid
                   : Colors.white,
               borderRadius: BorderRadius.circular(4),
             ),
@@ -1325,17 +1351,17 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  color: AppColors.surfaceMid,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: t.coverImagePath != null && t.coverImagePath!.isNotEmpty
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.file(
-                    File(t.coverImagePath!),
-                    fit: BoxFit.cover,
-                  ),
-                )
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.file(
+                          File(t.coverImagePath!),
+                          fit: BoxFit.cover,
+                        ),
+                      )
                     : const Icon(Icons.music_note, color: Colors.white24),
               ),
               title: Text(
@@ -1354,8 +1380,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     _selectedStat == 'plays'
                         ? Icons.play_arrow_outlined
                         : (_selectedStat == 'likes'
-                        ? Icons.favorite
-                        : Icons.chat_bubble_outline),
+                              ? Icons.favorite
+                              : Icons.chat_bubble_outline),
                     color: Colors.white54,
                     size: 16,
                   ),
@@ -1594,7 +1620,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -1714,9 +1740,9 @@ class TopTracksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
@@ -1801,23 +1827,23 @@ class TopTracksScreen extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E),
+                          color: AppColors.surfaceMid,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child:
-                        track.coverImagePath != null &&
-                            track.coverImagePath!.isNotEmpty
+                            track.coverImagePath != null &&
+                                track.coverImagePath!.isNotEmpty
                             ? ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: Image.file(
-                            File(track.coverImagePath!),
-                            fit: BoxFit.cover,
-                          ),
-                        )
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.file(
+                                  File(track.coverImagePath!),
+                                  fit: BoxFit.cover,
+                                ),
+                              )
                             : const Icon(
-                          Icons.music_note,
-                          color: Colors.white24,
-                        ),
+                                Icons.music_note,
+                                color: Colors.white24,
+                              ),
                       ),
                       title: Text(
                         track.title,
@@ -1859,7 +1885,7 @@ class TopTracksScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
+        color: AppColors.containerMid,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -1884,7 +1910,7 @@ class WaveformGraphicPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final borderPaint = Paint()
-      ..color = const Color(0xFFD47AFA).withValues(alpha: 0.5)
+      ..color = AppColors.flashPurple.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
@@ -1936,7 +1962,7 @@ class WaveformGraphicPainter extends CustomPainter {
     canvas.restore();
     final wirePaint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFFD47AFA), Color(0xFF4A90E2)],
+        colors: [AppColors.flashPurple, Color(0xFF4A90E2)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
@@ -1973,13 +1999,13 @@ class OrangeMixerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final orangePaint = Paint()
-      ..color = const Color(0xFFFF5500)
+      ..color = AppColors.primaryOrange
       ..style = PaintingStyle.fill;
     final whitePaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
     final borderPaint = Paint()
-      ..color = const Color(0xFFFF5500)
+      ..color = AppColors.primaryOrange
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.save();

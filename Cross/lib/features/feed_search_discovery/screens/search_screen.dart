@@ -148,7 +148,10 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   Future<void> _loadSuggestions(String query) async {
-    setState(() { _suggestionsLoading = true; _suggestionsError = null; });
+    setState(() {
+      _suggestionsLoading = true;
+      _suggestionsError = null;
+    });
     final (code, data) = await _service.getSearchSuggestions(query);
     if (!mounted) return;
     if (code == 200 && data is List) {
@@ -175,24 +178,26 @@ class _SearchScreenState extends State<SearchScreen>
 
       // API stores only id+type; fetch images client-side for items missing one
       final images = <String, String?>{};
-      await Future.wait(items.map((item) async {
-        if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
-          images[item.id] = item.imageUrl;
-          return;
-        }
-        if (item.type == 'track') {
-          final (c, trackData) = await _service.getTrackById(item.id);
-          if (c == 200 && trackData is Map<String, dynamic>) {
-            final img = trackData['image'] as Map<String, dynamic>? ?? {};
-            images[item.id] = img['imgLink']?.toString();
+      await Future.wait(
+        items.map((item) async {
+          if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+            images[item.id] = item.imageUrl;
+            return;
           }
-        } else if (item.type == 'user') {
-          final (c, userData) = await _service.getUserById(item.id);
-          if (c == 200 && userData is Map<String, dynamic>) {
-            images[item.id] = userData['profileImgLink']?.toString();
+          if (item.type == 'track') {
+            final (c, trackData) = await _service.getTrackById(item.id);
+            if (c == 200 && trackData is Map<String, dynamic>) {
+              final img = trackData['image'] as Map<String, dynamic>? ?? {};
+              images[item.id] = img['imgLink']?.toString();
+            }
+          } else if (item.type == 'user') {
+            final (c, userData) = await _service.getUserById(item.id);
+            if (c == 200 && userData is Map<String, dynamic>) {
+              images[item.id] = userData['profileImgLink']?.toString();
+            }
           }
-        }
-      }));
+        }),
+      );
 
       if (!mounted) return;
       setState(() {
@@ -235,30 +240,36 @@ class _SearchScreenState extends State<SearchScreen>
 
       // Concurrently fetch display details for each result item
       final enriched = <String, Map<String, dynamic>>{};
-      await Future.wait(parsed.results.map((item) async {
-        if (item.type == 'track') {
-          final (c, trackData) = await _service.getTrackById(item.id);
-          if (c == 200 && trackData is Map<String, dynamic>) {
-            final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
-            final image = trackData['image'] as Map<String, dynamic>? ?? {};
-            final artists = (basicInfo['mainArtists'] as List<dynamic>? ?? []);
-            enriched[item.id] = {
-              'title': basicInfo['title'] ?? item.id,
-              'imageUrl': image['imgLink'],
-              'subtitle': artists.isNotEmpty ? artists.first.toString() : 'Track',
-            };
+      await Future.wait(
+        parsed.results.map((item) async {
+          if (item.type == 'track') {
+            final (c, trackData) = await _service.getTrackById(item.id);
+            if (c == 200 && trackData is Map<String, dynamic>) {
+              final basicInfo =
+                  trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+              final image = trackData['image'] as Map<String, dynamic>? ?? {};
+              final artists =
+                  (basicInfo['mainArtists'] as List<dynamic>? ?? []);
+              enriched[item.id] = {
+                'title': basicInfo['title'] ?? item.id,
+                'imageUrl': image['imgLink'],
+                'subtitle': artists.isNotEmpty
+                    ? artists.first.toString()
+                    : 'Track',
+              };
+            }
+          } else if (item.type == 'user') {
+            final (c, userData) = await _service.getUserById(item.id);
+            if (c == 200 && userData is Map<String, dynamic>) {
+              enriched[item.id] = {
+                'title': userData['displayName'] ?? item.id,
+                'imageUrl': userData['profileImgLink'],
+                'subtitle': userData['profileLink'] ?? 'User',
+              };
+            }
           }
-        } else if (item.type == 'user') {
-          final (c, userData) = await _service.getUserById(item.id);
-          if (c == 200 && userData is Map<String, dynamic>) {
-            enriched[item.id] = {
-              'title': userData['displayName'] ?? item.id,
-              'imageUrl': userData['profileImgLink'],
-              'subtitle': userData['profileLink'] ?? 'User',
-            };
-          }
-        }
-      }));
+        }),
+      );
 
       if (!mounted) return;
       setState(() {
@@ -300,9 +311,7 @@ class _SearchScreenState extends State<SearchScreen>
       // Playlist / Album — TODO Module 7
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${item.type} detail screen coming soon'),
-          ),
+          SnackBar(content: Text('${item.type} detail screen coming soon')),
         );
       }
     }
@@ -332,9 +341,7 @@ class _SearchScreenState extends State<SearchScreen>
             ),
 
             // ── Body depending on state ─────────────────────────────────────
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -379,7 +386,9 @@ class _SearchScreenState extends State<SearchScreen>
           if (_suggestionsLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.orange),
+              ),
             )
           else if (hasSuggestions)
             ..._suggestions.map(
@@ -431,14 +440,19 @@ class _SearchScreenState extends State<SearchScreen>
           ),
         ],
 
-        if (!_suggestionsLoading && !hasSuggestions && !hasHistory && query.isNotEmpty)
+        if (!_suggestionsLoading &&
+            !hasSuggestions &&
+            !hasHistory &&
+            query.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Center(
               child: Text(
                 _suggestionsError ?? 'No suggestions found',
                 style: TextStyle(
-                  color: _suggestionsError != null ? Colors.orange : AppColors.white54,
+                  color: _suggestionsError != null
+                      ? Colors.orange
+                      : AppColors.white54,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -466,7 +480,10 @@ class _SearchScreenState extends State<SearchScreen>
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => _submitSearch(_activeQuery),
-              child: const Text('Retry', style: TextStyle(color: Colors.orange)),
+              child: const Text(
+                'Retry',
+                style: TextStyle(color: Colors.orange),
+              ),
             ),
           ],
         ),
@@ -512,10 +529,7 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildResultList(List<SearchResultItem> items) {
     if (items.isEmpty) {
       return const Center(
-        child: Text(
-          'No results',
-          style: TextStyle(color: AppColors.white54),
-        ),
+        child: Text('No results', style: TextStyle(color: AppColors.white54)),
       );
     }
 

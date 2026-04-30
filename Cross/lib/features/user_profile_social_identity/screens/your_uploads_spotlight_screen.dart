@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../models/spotlight_models.dart';
@@ -181,9 +182,9 @@ class _YourUploadsSpotlightScreenState
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF0F0F0F),
+          backgroundColor: AppColors.backgroundDark3,
           elevation: 0,
           leading: const SizedBox.shrink(),
           leadingWidth: 0,

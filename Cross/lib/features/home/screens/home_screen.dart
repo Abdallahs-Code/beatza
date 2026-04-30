@@ -100,7 +100,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('This track does not have a playable audio source yet.'),
+          content: Text(
+            'This track does not have a playable audio source yet.',
+          ),
         ),
       );
       return;
@@ -121,12 +123,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _handleUpload(BuildContext context) async {
     final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
-    final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
+    final int currentUploads =
+        AudioUploadService.globalMockTracksNotifier.value.length;
 
     if (!isPro && currentUploads >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+          content: Text(
+            'Free tier limited to 3 uploads. Please upgrade to Pro.',
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -182,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             borderRadius: BorderRadius.circular(20),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
+                color: AppColors.surfaceMid,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white24, width: 1),
               ),
@@ -235,10 +240,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             minHeight: 16,
                           ),
                           child: Text(
-                            ActivityNotificationsController.shared.unreadCount > 9
+                            ActivityNotificationsController.shared.unreadCount >
+                                    9
                                 ? '9+'
-                                : ActivityNotificationsController.shared.unreadCount
-                                .toString(),
+                                : ActivityNotificationsController
+                                      .shared
+                                      .unreadCount
+                                      .toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -252,9 +260,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ActivityScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const ActivityScreen()),
                   );
                 },
               );
@@ -306,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         return _HomePublicTracksSection(
                           tracks: _publicTracksPagingService.tracks,
                           isLoading:
-                          _publicTracksPagingService.isInitialLoading,
+                              _publicTracksPagingService.isInitialLoading,
                           errorMessage: _publicTracksPagingService.errorMessage,
                           ensureNextTrackAvailable: _publicTracksPagingService
                               .ensureNextTrackAvailableForPlayer,
@@ -331,9 +337,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     ),
                     const SizedBox(height: 26),
-                    SectionHeader(
-                      title: 'Mixed for ${_displayName ?? 'You'}',
-                    ),
+                    SectionHeader(title: 'Mixed for ${_displayName ?? 'You'}'),
                     const SizedBox(height: 14),
                     const HorizontalMixSection(),
                     const SizedBox(height: 26),
@@ -424,10 +428,10 @@ class _HomePublicTracksSection extends StatelessWidget {
   });
 
   Future<void> _handleTrackTap(
-      BuildContext context,
-      PlaybackTrackModel track,
-      int index,
-      ) async {
+    BuildContext context,
+    PlaybackTrackModel track,
+    int index,
+  ) async {
     if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -554,25 +558,25 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                       clipBehavior: Clip.antiAlias,
                       child: (track.artworkUrl ?? '').trim().isEmpty
                           ? const Center(
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: AppColors.white54,
-                          size: 42,
-                        ),
-                      )
+                              child: Icon(
+                                Icons.image_outlined,
+                                color: AppColors.white54,
+                                size: 42,
+                              ),
+                            )
                           : Image.network(
-                        track.artworkUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) {
-                          return const Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              color: AppColors.white54,
-                              size: 42,
+                              track.artworkUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.image_outlined,
+                                    color: AppColors.white54,
+                                    size: 42,
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                     if (accessLabel != null)
                       Positioned(
@@ -587,8 +591,8 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                             color: _isBlocked
                                 ? Colors.black.withValues(alpha: 0.78)
                                 : AppColors.brilliantOrange.withValues(
-                              alpha: 0.92,
-                            ),
+                                    alpha: 0.92,
+                                  ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
@@ -735,12 +739,24 @@ class _QuickPickTracksSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String title0 = tracks.isNotEmpty ? tracks[0].title : AppText.trackTitle;
-    final String sub0 = tracks.isNotEmpty ? tracks[0].artistName : AppText.artistName;
-    final String title1 = tracks.length > 1 ? tracks[1].title : AppText.anotherTrack;
-    final String sub1 = tracks.length > 1 ? tracks[1].artistName : AppText.anotherArtist;
-    final String title2 = tracks.length > 2 ? tracks[2].title : AppText.longTrackTitle;
-    final String sub2 = tracks.length > 2 ? tracks[2].artistName : AppText.trackSubtitle;
+    final String title0 = tracks.isNotEmpty
+        ? tracks[0].title
+        : AppText.trackTitle;
+    final String sub0 = tracks.isNotEmpty
+        ? tracks[0].artistName
+        : AppText.artistName;
+    final String title1 = tracks.length > 1
+        ? tracks[1].title
+        : AppText.anotherTrack;
+    final String sub1 = tracks.length > 1
+        ? tracks[1].artistName
+        : AppText.anotherArtist;
+    final String title2 = tracks.length > 2
+        ? tracks[2].title
+        : AppText.longTrackTitle;
+    final String sub2 = tracks.length > 2
+        ? tracks[2].artistName
+        : AppText.trackSubtitle;
 
     return Column(
       children: [
@@ -750,7 +766,9 @@ class _QuickPickTracksSection extends StatelessWidget {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: tracks.isNotEmpty ? () => onTap?.call(tracks[0], 0) : null,
+                  onTap: tracks.isNotEmpty
+                      ? () => onTap?.call(tracks[0], 0)
+                      : null,
                   child: MiniTrackCard(
                     title: title0,
                     subtitle: sub0,
@@ -761,7 +779,9 @@ class _QuickPickTracksSection extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: GestureDetector(
-                  onTap: tracks.length > 1 ? () => onTap?.call(tracks[1], 1) : null,
+                  onTap: tracks.length > 1
+                      ? () => onTap?.call(tracks[1], 1)
+                      : null,
                   child: MiniTrackCard(
                     title: title1,
                     subtitle: sub1,

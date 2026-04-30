@@ -29,6 +29,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 
@@ -123,7 +124,7 @@ class CommentTile extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2C6BED),
+                            color: AppColors.linkBlue,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -244,7 +245,7 @@ class CommentTile extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -336,7 +337,7 @@ class CommentTile extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Comment reported'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -353,7 +354,7 @@ class CommentTile extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Comment reported as spam'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -385,7 +386,7 @@ class CommentTile extends StatelessWidget {
         await showDialog<bool>(
           context: context,
           builder: (dialogCtx) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A1A),
+            backgroundColor: AppColors.container,
             title: const Text(
               'Block user?',
               style: TextStyle(color: Colors.white),
@@ -434,7 +435,7 @@ class CommentTile extends StatelessWidget {
               ? '${comment.displayName} has been blocked'
               : (result.$2?.toString() ?? 'Could not block user'),
         ),
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.container,
         duration: const Duration(seconds: 3),
       ),
     );

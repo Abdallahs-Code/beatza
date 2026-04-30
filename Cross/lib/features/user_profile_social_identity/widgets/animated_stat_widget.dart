@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class AnimatedStatWidget extends StatelessWidget {
   final String label;
@@ -49,7 +50,7 @@ class AnimatedStatWidget extends StatelessWidget {
           label.toUpperCase(),
           style: const TextStyle(
             fontSize: 11,
-            color: Color(0xFF71717A),
+            color: AppColors.greyZinc,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,
           ),

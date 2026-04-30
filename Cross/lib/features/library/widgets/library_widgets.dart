@@ -13,7 +13,6 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
 
-
 class LibraryHeader extends StatelessWidget {
   const LibraryHeader({super.key});
 
@@ -32,12 +31,17 @@ class LibraryHeader extends StatelessWidget {
                   if (!isPro) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const PremiumSubscriptionScreen(),
+                      ),
                     );
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.chipPink, AppColors.inferno],
@@ -55,7 +59,8 @@ class LibraryHeader extends StatelessWidget {
                 ),
               );
             },
-          ),          const Spacer(),
+          ),
+          const Spacer(),
           const Text(
             AppText.libraryTitle,
             style: TextStyle(
@@ -86,6 +91,7 @@ class LibraryHeader extends StatelessWidget {
     );
   }
 }
+
 class LibraryMenuItem extends StatelessWidget {
   final String title;
 

@@ -34,7 +34,8 @@ class UserTile extends StatelessWidget {
         normalizedCurrentUserId.isNotEmpty &&
         normalizedCurrentUserId == normalizedFollowerUserId;
 
-    final bool canOpenProfile = !follower.isBlocked && normalizedFollowerUserId.isNotEmpty;
+    final bool canOpenProfile =
+        !follower.isBlocked && normalizedFollowerUserId.isNotEmpty;
 
     Future<void> openProfile() async {
       if (!canOpenProfile) return;
@@ -93,10 +94,7 @@ class UserTile extends StatelessWidget {
             }
           },
           itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'unblock',
-              child: Text('Unblock'),
-            ),
+            PopupMenuItem(value: 'unblock', child: Text('Unblock')),
           ],
         );
       }
@@ -110,10 +108,7 @@ class UserTile extends StatelessWidget {
             }
           },
           itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'unblock',
-              child: Text('Unblock'),
-            ),
+            PopupMenuItem(value: 'unblock', child: Text('Unblock')),
           ],
         );
       }
@@ -127,10 +122,7 @@ class UserTile extends StatelessWidget {
             }
           },
           itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'block',
-              child: Text('Block user'),
-            ),
+            PopupMenuItem(value: 'block', child: Text('Block user')),
           ],
         );
       }
@@ -186,17 +178,17 @@ class UserTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${follower.trackCount} tracks',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
             if (onFollowTap != null && !isMe) buildActionButton(),
-            if (popupMenu != null) ...[
-  const SizedBox(width: 4),
-  popupMenu,
-],
+            if (popupMenu != null) ...[const SizedBox(width: 4), popupMenu],
           ],
         ),
       ),

@@ -41,7 +41,9 @@ final ValueNotifier<String?> _trackCommentPosted = ValueNotifier<String?>(null);
 
 // Notifies the engagement bar that the CommentsScreen was closed so it can
 // refresh the displayed comment count.
-final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(null);
+final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(
+  null,
+);
 
 final Map<String, List<double>> _expandedWaveformCache =
     <String, List<double>>{};
@@ -124,7 +126,8 @@ class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
                           builder: (context, _) => _MiniPlayerCard(
                             state: state,
                             isAdPlaying: AdService.shared.isAdPlaying,
-                            adRemainingSeconds: AdService.shared.remainingSeconds,
+                            adRemainingSeconds:
+                                AdService.shared.remainingSeconds,
                             onTap: () => _openExpandedPlayer(context),
                             onPlayPauseTap: globalPlayer.togglePlayPause,
                             onDeviceTap: () => _showDeviceSheet(context),
@@ -195,7 +198,7 @@ class _MiniPlayerCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1C),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
@@ -220,10 +223,10 @@ class _MiniPlayerCard extends StatelessWidget {
                       isAdPlaying
                           ? Icons.campaign_rounded
                           : isBlocked
-                              ? Icons.music_off_rounded
-                              : (state.isPlaying
-                                  ? Icons.pause_rounded
-                                  : Icons.play_arrow_rounded),
+                          ? Icons.music_off_rounded
+                          : (state.isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded),
                       color: isAdPlaying || isBlocked
                           ? Colors.white38
                           : Colors.black,
@@ -252,8 +255,8 @@ class _MiniPlayerCard extends StatelessWidget {
                         isAdPlaying
                             ? '$adRemainingSeconds s remaining'
                             : isBlocked
-                                ? 'Not available'
-                                : track.artistName,
+                            ? 'Not available'
+                            : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -463,11 +466,9 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                             actorName: track.artistName,
                                             actorAvatarUrl:
                                                 track.artworkUrl ?? '',
-                                            actorUserId:
-                                                track.artistId ?? '',
+                                            actorUserId: track.artistId ?? '',
                                             activityType: 'new_track',
-                                            trackOwnerId:
-                                                track.artistId ?? '',
+                                            trackOwnerId: track.artistId ?? '',
                                           ),
                                         ),
                                       );
@@ -573,7 +574,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                       // Ad overlay — covers the entire player when an ad is active.
                       if (_isAdPlaying)
                         const Positioned.fill(child: AdPlayerWidget()),
-                        //const Positioned.fill(child: AdOverlay()),
+                      //const Positioned.fill(child: AdOverlay()),
                     ],
                   ),
                 ),
@@ -1094,7 +1095,7 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
                                   width: 4,
                                   height: 8,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2C6BED),
+                                    color: AppColors.linkBlue,
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
@@ -1149,7 +1150,7 @@ class _ExpandedTrackWaveformPainter extends CustomPainter {
     if (visibleBars <= 0) return;
 
     final Paint playedPaint = Paint()
-      ..color = const Color(0xFFFF5500)
+      ..color = AppColors.primaryOrange
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.round;
 
@@ -1469,7 +1470,7 @@ Future<void> _showDeviceSheet(BuildContext context) async {
     await showModalBottomSheet<void>(
       context: navigatorContext,
       useRootNavigator: true,
-      backgroundColor: const Color(0xFF171717),
+      backgroundColor: AppColors.cardDark3,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
@@ -1552,15 +1553,23 @@ Future<void> _showShareSheet(
   final String artistId = track.artistId ?? '';
   String profileLink = '';
   if (permalink.isNotEmpty && artistId.isNotEmpty) {
-    debugPrint('[_showShareSheet] Fetching profileLink for artistId="$artistId"');
+    debugPrint(
+      '[_showShareSheet] Fetching profileLink for artistId="$artistId"',
+    );
     try {
-      profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
-      debugPrint('[_showShareSheet] profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+      profileLink =
+          await MessagingApiService().getUserProfileLink(userId: artistId) ??
+          '';
+      debugPrint(
+        '[_showShareSheet] profileLink="$profileLink" (empty=${profileLink.isEmpty})',
+      );
     } catch (e) {
       debugPrint('[_showShareSheet] ❌ getUserProfileLink threw: $e');
     }
   } else {
-    debugPrint('[_showShareSheet] ⚠️ permalink="$permalink" artistId="$artistId" — one is empty, skipping profileLink fetch');
+    debugPrint(
+      '[_showShareSheet] ⚠️ permalink="$permalink" artistId="$artistId" — one is empty, skipping profileLink fetch',
+    );
   }
   final String trackLink = permalink.isNotEmpty
       ? 'track::permalink:"$permalink",profilelink:"$profileLink"'
@@ -1580,7 +1589,7 @@ Future<void> _showShareSheet(
       builder: (sheetContext) {
         return Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF090909),
+            color: AppColors.backgroundDeepest,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
           child: SafeArea(
@@ -1624,11 +1633,12 @@ Future<void> _showShareSheet(
                               ? Image.network(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(
-                                    Icons.album_rounded,
-                                    color: Colors.black54,
-                                    size: 34,
-                                  ),
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.album_rounded,
+                                        color: Colors.black54,
+                                        size: 34,
+                                      ),
                                 )
                               : const Icon(
                                   Icons.album_rounded,
@@ -1709,7 +1719,10 @@ Future<void> _showShareSheet(
                           icon: Icons.qr_code_2_outlined,
                           label: 'QR code',
                         ),
-                        const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
+                        const _ShareAction(
+                          icon: Icons.sms_outlined,
+                          label: 'SMS',
+                        ),
                         const _ShareAction(
                           icon: Icons.chat_bubble_outline,
                           label: 'WhatsApp',
@@ -2292,7 +2305,8 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   bool _isReposted = false;
   late int _repostCount;
 
-  List<({String receiverId, String name, String photoUrl})> _recentContacts = [];
+  List<({String receiverId, String name, String photoUrl})> _recentContacts =
+      [];
   String _trackLink = '';
 
   @override
@@ -2307,7 +2321,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   Future<void> _loadSendToData() async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('[SendTo] STEP 0 — _loadSendToData() called');
-    debugPrint('[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"');
+    debugPrint(
+      '[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"',
+    );
 
     // Step 1: currentUserId
     debugPrint('[SendTo] STEP 1 — reading currentUserId');
@@ -2321,26 +2337,38 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
     // Step 2: resolve permalink and artistId
     debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
-    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"');
+    debugPrint(
+      '[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"',
+    );
     final link = widget.track.permalink ?? '';
     final artistId = widget.track.artistId ?? '';
     debugPrint('[SendTo] STEP 2 ✅ permalink="$link" artistId="$artistId"');
 
     // Step 3: fetch track owner's profileLink
-    debugPrint('[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"');
+    debugPrint(
+      '[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"',
+    );
     String profileLink = '';
     if (artistId.isNotEmpty) {
       try {
-        profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
-        debugPrint('[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+        profileLink =
+            await MessagingApiService().getUserProfileLink(userId: artistId) ??
+            '';
+        debugPrint(
+          '[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})',
+        );
         if (profileLink.isEmpty) {
-          debugPrint('[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
+          debugPrint(
+            '[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"',
+          );
         }
       } catch (e) {
         debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
       }
     } else {
-      debugPrint('[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.');
+      debugPrint(
+        '[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.',
+      );
     }
 
     String buildPayload() {
@@ -2350,13 +2378,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
     // Step 4: fetch followers
     debugPrint('[SendTo] STEP 3 — calling getFollowers(userId=$currentUserId)');
-    debugPrint('[SendTo] STEP 3   URL: [baseUrl]/api/public/social/v1/followers/$currentUserId');
+    debugPrint(
+      '[SendTo] STEP 3   URL: [baseUrl]/api/public/social/v1/followers/$currentUserId',
+    );
     try {
-      final result = await SocialApiService().getFollowers(userId: currentUserId);
-      debugPrint('[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
+      final result = await SocialApiService().getFollowers(
+        userId: currentUserId,
+      );
+      debugPrint(
+        '[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}',
+      );
 
       if (result.$1 != 200) {
-        debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"');
+        debugPrint(
+          '[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"',
+        );
         if (mounted) setState(() => _trackLink = buildPayload());
         return;
       }
@@ -2365,15 +2401,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       // Step 4: inspect raw list
       debugPrint('[SendTo] STEP 4 — inspecting raw list');
       final rawList = result.$2;
-      debugPrint('[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}');
+      debugPrint(
+        '[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}',
+      );
       debugPrint('[SendTo] STEP 4   rawList is List? ${rawList is List}');
       if (rawList is List) {
         debugPrint('[SendTo] STEP 4   rawList.length=${rawList.length}');
         for (var i = 0; i < rawList.length; i++) {
-          debugPrint('[SendTo] STEP 4   item[$i] type=${rawList[i].runtimeType}  value=${rawList[i]}');
+          debugPrint(
+            '[SendTo] STEP 4   item[$i] type=${rawList[i].runtimeType}  value=${rawList[i]}',
+          );
         }
       } else {
-        debugPrint('[SendTo] STEP 4 ❌ rawList is NOT a List — type: ${rawList.runtimeType}  value: $rawList');
+        debugPrint(
+          '[SendTo] STEP 4 ❌ rawList is NOT a List — type: ${rawList.runtimeType}  value: $rawList',
+        );
       }
 
       // Step 5: cast to Follower
@@ -2381,12 +2423,18 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       List<Follower> followers = [];
       if (rawList is List) {
         followers = rawList.whereType<Follower>().toList();
-        debugPrint('[SendTo] STEP 5   input=${rawList.length}  after cast=${followers.length}');
+        debugPrint(
+          '[SendTo] STEP 5   input=${rawList.length}  after cast=${followers.length}',
+        );
         if (rawList.isNotEmpty && followers.isEmpty) {
-          debugPrint('[SendTo] STEP 5 ❌ ALL items filtered out — items are ${rawList.first.runtimeType}, not Follower');
+          debugPrint(
+            '[SendTo] STEP 5 ❌ ALL items filtered out — items are ${rawList.first.runtimeType}, not Follower',
+          );
         }
         for (final f in followers) {
-          debugPrint('[SendTo] STEP 5   Follower → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"');
+          debugPrint(
+            '[SendTo] STEP 5   Follower → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"',
+          );
         }
       }
       debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
@@ -2394,7 +2442,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       // Step 6: filter empty userIds
       debugPrint('[SendTo] STEP 6 — filtering empty userIds');
       final valid = followers.where((f) => f.userId.isNotEmpty).toList();
-      debugPrint('[SendTo] STEP 6   before=${followers.length}  after=${valid.length}');
+      debugPrint(
+        '[SendTo] STEP 6   before=${followers.length}  after=${valid.length}',
+      );
 
       // Step 7: setState
       debugPrint('[SendTo] STEP 7 — setState. mounted=$mounted');
@@ -2404,13 +2454,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       }
       final contacts = valid
           .take(6)
-          .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
+          .map(
+            (f) => (
+              receiverId: f.userId,
+              name: f.displayName,
+              photoUrl: f.profileImgLink ?? '',
+            ),
+          )
           .toList();
       setState(() {
         _recentContacts = contacts;
         _trackLink = buildPayload();
       });
-      debugPrint('[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}');
+      debugPrint(
+        '[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}',
+      );
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo]   stack: $stack');
@@ -2423,14 +2481,16 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     Navigator.of(context, rootNavigator: true).pop();
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
-    Navigator.of(navCtx, rootNavigator: true).push(MaterialPageRoute(
-      builder: (_) => ChatScreen(
-        receiverId: receiverId,
-        receiverName: name,
-        receiverPhotoUrl: photoUrl,
-        initialContent: _trackLink,
+    Navigator.of(navCtx, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          receiverId: receiverId,
+          receiverName: name,
+          receiverPhotoUrl: photoUrl,
+          initialContent: _trackLink,
+        ),
       ),
-    ));
+    );
   }
 
   void _openSendToSheet() {
@@ -2439,10 +2499,8 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder: (_) => SendToSheet(
-        trackLink: _trackLink,
-        trackTitle: widget.track.title,
-      ),
+      builder: (_) =>
+          SendToSheet(trackLink: _trackLink, trackTitle: widget.track.title),
     );
   }
 
@@ -2560,7 +2618,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF090909),
+        color: AppColors.backgroundDeepest,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: SafeArea(
@@ -2606,11 +2664,17 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Row(
                       children: _recentContacts
-                          .map((c) => _SendToContactBubble(
-                                name: c.name,
-                                photoUrl: c.photoUrl,
-                                onTap: () => _sendToContact(c.receiverId, c.name, c.photoUrl),
-                              ))
+                          .map(
+                            (c) => _SendToContactBubble(
+                              name: c.name,
+                              photoUrl: c.photoUrl,
+                              onTap: () => _sendToContact(
+                                c.receiverId,
+                                c.name,
+                                c.photoUrl,
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
@@ -2635,7 +2699,11 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
                     children: [
-                      _ShareAction(icon: Icons.send_outlined, label: 'Message', onTap: _openSendToSheet),
+                      _ShareAction(
+                        icon: Icons.send_outlined,
+                        label: 'Message',
+                        onTap: _openSendToSheet,
+                      ),
                       _ShareAction(
                         icon: Icons.copy_outlined,
                         label: 'Copy link',
@@ -2671,8 +2739,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
                   onTap: () {
-                    PlaybackStreamingEngineService.shared
-                        .addToQueueNext(widget.track);
+                    PlaybackStreamingEngineService.shared.addToQueueNext(
+                      widget.track,
+                    );
                     Navigator.pop(context);
                   },
                 ),
@@ -2680,8 +2749,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   icon: Icons.format_list_bulleted_rounded,
                   label: 'Play last',
                   onTap: () {
-                    PlaybackStreamingEngineService.shared
-                        .addToQueueLast(widget.track);
+                    PlaybackStreamingEngineService.shared.addToQueueLast(
+                      widget.track,
+                    );
                     Navigator.pop(context);
                   },
                 ),
@@ -2831,15 +2901,18 @@ class _SendToContactBubble extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 31,
-              backgroundColor: const Color(0xFF2A2A2A),
-              backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              backgroundColor: AppColors.containerMid,
+              backgroundImage: photoUrl.isNotEmpty
+                  ? NetworkImage(photoUrl)
+                  : null,
               child: photoUrl.isEmpty
                   ? Text(
                       _initials(name),
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700),
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
@@ -3024,8 +3097,10 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
       final userId = await AuthApiService().getStoredUserId();
-      final profile =
-          await UserProfileService().getUserProfile(artistId, token);
+      final profile = await UserProfileService().getUserProfile(
+        artistId,
+        token,
+      );
       if (!mounted) return;
       setState(() {
         _currentUserId = userId;
@@ -3168,8 +3243,8 @@ class _NextUpSheetState extends State<_NextUpSheet> {
 
     final List<PlaybackTrackModel> playingNext =
         (currentIndex >= 0 && currentIndex + 1 < queue.length)
-            ? queue.sublist(currentIndex + 1)
-            : <PlaybackTrackModel>[];
+        ? queue.sublist(currentIndex + 1)
+        : <PlaybackTrackModel>[];
 
     final bool showPlayingNext =
         repeatMode != TrackRepeatMode.one && playingNext.isNotEmpty;
@@ -3177,7 +3252,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
     return Container(
       height: maxHeight,
       decoration: const BoxDecoration(
-        color: Color(0xFF0A0A0A),
+        color: AppColors.homeBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
@@ -3348,12 +3423,13 @@ class _QueueCurrentTrackTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               color: Colors.grey.shade800,
             ),
-            child: track.artworkUrl != null &&
-                    track.artworkUrl!.trim().isNotEmpty
+            child:
+                track.artworkUrl != null && track.artworkUrl!.trim().isNotEmpty
                 ? Image.network(
                     track.artworkUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(Icons.album_rounded, color: Colors.white54),
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.album_rounded, color: Colors.white54),
                   )
                 : const Icon(Icons.album_rounded, color: Colors.white54),
           ),
@@ -3429,12 +3505,13 @@ class _QueueNextTrackTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               color: Colors.grey.shade800,
             ),
-            child: track.artworkUrl != null &&
-                    track.artworkUrl!.trim().isNotEmpty
+            child:
+                track.artworkUrl != null && track.artworkUrl!.trim().isNotEmpty
                 ? Image.network(
                     track.artworkUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(Icons.album_rounded, color: Colors.white54),
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.album_rounded, color: Colors.white54),
                   )
                 : const Icon(Icons.album_rounded, color: Colors.white54),
           ),

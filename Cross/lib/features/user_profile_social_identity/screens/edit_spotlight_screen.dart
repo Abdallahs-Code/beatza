@@ -1,8 +1,8 @@
-
 import 'dart:io';
 
 import 'package:cross_team5/features/user_profile_social_identity/screens/your_uploads_spotlight_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 import '../../premium_subscription/services/payment_service.dart';
 import '../models/spotlight_models.dart';
@@ -51,7 +51,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
   void _showAmplifyProModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -81,7 +81,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               const SizedBox(height: 24),
               const Row(
                 children: [
-                  Icon(Icons.flash_on, color: Color(0xFFD47AFA), size: 20),
+                  Icon(Icons.flash_on, color: AppColors.flashPurple, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'AMPLIFY',
@@ -127,7 +127,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                              const ProRestrictionsScreen(),
+                                  const ProRestrictionsScreen(),
                             ),
                           );
                         },
@@ -189,9 +189,9 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leadingWidth: 80,
         leading: TextButton(
@@ -234,7 +234,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: AppColors.surfaceMid,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -263,7 +263,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                       child: const Text(
                         'GET ARTIST PRO',
                         style: TextStyle(
-                          color: Color(0xFFFF5500),
+                          color: AppColors.primaryOrange,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -271,7 +271,8 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                       ),
                     );
                   },
-                ),              ],
+                ),
+              ],
             ),
           ),
 
@@ -303,103 +304,103 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             child: currentItems.isEmpty
                 ? const SizedBox.shrink()
                 : ReorderableListView.builder(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              itemCount: currentItems.length,
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = currentItems.removeAt(oldIndex);
-                  currentItems.insert(newIndex, item);
-                });
-              },
-              itemBuilder: (context, index) {
-                final item = currentItems[index];
-                return Container(
-                  key: ValueKey(item.id),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child:
-                      item.imageUrl != null &&
-                          item.imageUrl!.isNotEmpty
-                          ? (item.imageUrl!.startsWith('http')
-                          ? Image.network(
-                        item.imageUrl!,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                      )
-                          : Image.file(
-                        File(item.imageUrl!),
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                      ))
-                          : Container(
-                        width: 48,
-                        height: 48,
-                        color: Colors.grey[800],
-                        child: const Icon(
-                          Icons.music_note,
-                          color: Colors.white,
+                    itemCount: currentItems.length,
+                    onReorder: (oldIndex, newIndex) {
+                      setState(() {
+                        if (newIndex > oldIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = currentItems.removeAt(oldIndex);
+                        currentItems.insert(newIndex, item);
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final item = currentItems[index];
+                      return Container(
+                        key: ValueKey(item.id),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.container,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                    ),
-                    title: Text(
-                      item.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      item.subtitle,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 13,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle_outline,
-                            color: Colors.redAccent,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              currentItems.removeAt(index);
-                            });
-                          },
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child:
+                                item.imageUrl != null &&
+                                    item.imageUrl!.isNotEmpty
+                                ? (item.imageUrl!.startsWith('http')
+                                      ? Image.network(
+                                          item.imageUrl!,
+                                          width: 48,
+                                          height: 48,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(item.imageUrl!),
+                                          width: 48,
+                                          height: 48,
+                                          fit: BoxFit.cover,
+                                        ))
+                                : Container(
+                                    width: 48,
+                                    height: 48,
+                                    color: Colors.grey[800],
+                                    child: const Icon(
+                                      Icons.music_note,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                          title: Text(
+                            item.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            item.subtitle,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 13,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove_circle_outline,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    currentItems.removeAt(index);
+                                  });
+                                },
+                              ),
+                              const Icon(
+                                Icons.drag_handle,
+                                color: Colors.white38,
+                              ),
+                            ],
+                          ),
                         ),
-                        const Icon(
-                          Icons.drag_handle,
-                          color: Colors.white38,
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
 
           Padding(
@@ -438,9 +439,9 @@ class ProRestrictionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
@@ -553,7 +554,7 @@ class ArtistTermsScreen extends StatelessWidget {
             const Text(
               'Terms of Use for Artist Subscriptions',
               style: TextStyle(
-                color: Color(0xFF1B64D1),
+                color: AppColors.primaryBlue,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -621,7 +622,6 @@ class ArtistTermsScreen extends StatelessWidget {
     );
   }
 }
-
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});

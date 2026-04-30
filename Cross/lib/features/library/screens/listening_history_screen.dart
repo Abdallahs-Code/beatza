@@ -22,7 +22,8 @@ class ListeningHistoryScreen extends StatefulWidget {
 class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
   late List<PlaybackTrackModel> _tracks;
   final AuthApiService _authApiService = AuthApiService();
-  final LibraryHistoryApiService _historyApiService = LibraryHistoryApiService();
+  final LibraryHistoryApiService _historyApiService =
+      LibraryHistoryApiService();
 
   @override
   void initState() {

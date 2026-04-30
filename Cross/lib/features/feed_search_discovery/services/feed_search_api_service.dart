@@ -32,9 +32,9 @@ class FeedSearchApiService {
     ApiServices? apiServices,
     FlutterSecureStorage? storage,
     http.Client? client,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _storage = storage ?? const FlutterSecureStorage(),
-        _client = client ?? http.Client();
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _storage = storage ?? const FlutterSecureStorage(),
+       _client = client ?? http.Client();
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -47,10 +47,10 @@ class FeedSearchApiService {
   }
 
   Map<String, String> _authHeaders(String token) => {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'User-Agent': 'Android',
-      };
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+    'User-Agent': 'Android',
+  };
 
   // ── GET /api/feed/v1/feed ────────────────────────────────────────────────
   // Returns: (200, List<dynamic>) | (401, message) | (500, message)
@@ -98,14 +98,15 @@ class FeedSearchApiService {
       final userId = await _getUserId();
       if (userId == null) return (401, 'No user ID found');
 
-      final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/public/feed/v1/trending-tracks/$userId',
-      ).replace(
-        queryParameters: {
-          'offset': offset.toString(),
-          'limit': limit.toString(),
-        },
-      );
+      final uri =
+          Uri.parse(
+            '${_apiServices.baseUrl}/api/public/feed/v1/trending-tracks/$userId',
+          ).replace(
+            queryParameters: {
+              'offset': offset.toString(),
+              'limit': limit.toString(),
+            },
+          );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
       final body = jsonDecode(response.body);
@@ -143,8 +144,10 @@ class FeedSearchApiService {
           return (200, body);
         }
       }
-      return (response.statusCode,
-          body is Map ? (body['message'] ?? 'Error') : 'Error');
+      return (
+        response.statusCode,
+        body is Map ? (body['message'] ?? 'Error') : 'Error',
+      );
     } catch (err) {
       return (500, 'Network error: $err');
     }
@@ -246,7 +249,9 @@ class FeedSearchApiService {
       ).replace(queryParameters: params);
 
       final response = await _client.get(uri, headers: _authHeaders(token));
-      debugPrint('[FeedSearch] globalSearch ${response.statusCode} — ${response.body}');
+      debugPrint(
+        '[FeedSearch] globalSearch ${response.statusCode} — ${response.body}',
+      );
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -279,7 +284,9 @@ class FeedSearchApiService {
       ).replace(queryParameters: {'q': query});
 
       final response = await _client.get(uri, headers: _authHeaders(token));
-      debugPrint('[FeedSearch] suggestions ${response.statusCode} — ${response.body}');
+      debugPrint(
+        '[FeedSearch] suggestions ${response.statusCode} — ${response.body}',
+      );
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -358,12 +365,9 @@ class FeedSearchApiService {
       final token = await _getToken();
       if (token == null) return (401, 'No access token');
 
-      final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/tracks/v2/',
-      ).replace(queryParameters: {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      });
+      final uri = Uri.parse('${_apiServices.baseUrl}/api/tracks/v2/').replace(
+        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+      );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
       final body = jsonDecode(response.body);

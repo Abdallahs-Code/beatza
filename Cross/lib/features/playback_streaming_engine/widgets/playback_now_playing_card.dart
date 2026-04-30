@@ -226,7 +226,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                           height: 96,
                           barWidth: 3,
                           gap: 2,
-                          activeColor: const Color(0xFFFF5500),
+                          activeColor: AppColors.primaryOrange,
                           inactiveColor: const Color(0xFFBDBDBD),
                         ),
                       );
@@ -367,7 +367,7 @@ class SoundCloudWaveform extends StatelessWidget {
     this.height = 100,
     this.barWidth = 3,
     this.gap = 2,
-    this.activeColor = const Color(0xFFFF5500),
+    this.activeColor = AppColors.primaryOrange,
     this.inactiveColor = const Color(0xFFBDBDBD),
   });
 

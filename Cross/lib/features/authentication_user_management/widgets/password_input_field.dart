@@ -1,6 +1,8 @@
 // Dart imports
 import 'package:flutter/material.dart';
 
+import 'package:cross_team5/core/theme/app_colors.dart';
+
 class PasswordInputField extends StatefulWidget {
   final String hintText;
   final TextEditingController controller;
@@ -28,7 +30,7 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
         hintText: widget.hintText,
         hintStyle: const TextStyle(color: Colors.white54),
         filled: true,
-        fillColor: const Color(0xFF333333),
+        fillColor: AppColors.inputFill,
         suffixIcon: IconButton(
           onPressed: () {
             setState(() {

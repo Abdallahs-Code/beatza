@@ -109,7 +109,9 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
   }
 
   Future<void> _followUser(String targetUserId) async {
-    final previousIndex = _followers.indexWhere((f) => f.userId == targetUserId);
+    final previousIndex = _followers.indexWhere(
+      (f) => f.userId == targetUserId,
+    );
     if (previousIndex == -1) return;
     if (_followers[previousIndex].isBlocked) return;
 
@@ -134,7 +136,9 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
   }
 
   Future<void> _unfollowUser(String targetUserId) async {
-    final previousIndex = _followers.indexWhere((f) => f.userId == targetUserId);
+    final previousIndex = _followers.indexWhere(
+      (f) => f.userId == targetUserId,
+    );
     if (previousIndex == -1) return;
     if (_followers[previousIndex].isBlocked) return;
 
@@ -294,9 +298,7 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
     );
   }
 
-  Widget _buildScrollableMessage({
-    required Widget child,
-  }) {
+  Widget _buildScrollableMessage({required Widget child}) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
@@ -317,9 +319,7 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
       body: RefreshIndicator(
         onRefresh: _loadFollowers,
         child: _isLoading
-            ? _buildScrollableMessage(
-                child: const CircularProgressIndicator(),
-              )
+            ? _buildScrollableMessage(child: const CircularProgressIndicator())
             : _errorMessage != null
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -348,8 +348,9 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
             : ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: _followers.length + 1,
-                separatorBuilder: (context, index) =>
-                    index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
+                separatorBuilder: (context, index) => index == 0
+                    ? const SizedBox.shrink()
+                    : const Divider(height: 1),
                 itemBuilder: (context, index) {
                   if (index == 0) return _buildTrueFriendsBanner();
                   final follower = _followers[index - 1];

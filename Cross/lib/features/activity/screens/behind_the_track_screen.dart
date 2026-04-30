@@ -8,10 +8,7 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
-
-const _kBg = Color(0xFF111111);
-const _kSurface = Color(0xFF1C1C1C);
-const _kOrange = Color(0xFFFF5500);
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class BehindTheTrackScreen extends StatefulWidget {
   final String trackId;
@@ -122,10 +119,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         _ownerAvatarUrl = profile.profileImgLink.trim().isEmpty
             ? null
             : profile.profileImgLink.trim();
-        _ownerCity =
-            profile.city.trim().isEmpty ? null : profile.city.trim();
-        _ownerCountry =
-            profile.country.trim().isEmpty ? null : profile.country.trim();
+        _ownerCity = profile.city.trim().isEmpty ? null : profile.city.trim();
+        _ownerCountry = profile.country.trim().isEmpty
+            ? null
+            : profile.country.trim();
         _ownerIsFollowed = profile.isFollowed;
       });
     } catch (_) {}
@@ -146,7 +143,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Future<void> _checkRepostStatus() async {
     try {
-      final result = await _engagementApi.getTrackRepostStatus(trackId: widget.trackId);
+      final result = await _engagementApi.getTrackRepostStatus(
+        trackId: widget.trackId,
+      );
       if (!mounted) return;
       if (result.$1 == 200 && result.$2 is RepostStatus) {
         setState(() => _isReposted = (result.$2 as RepostStatus).reposted);
@@ -257,17 +256,21 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       _isOwnerFollowLoading = true;
     });
     final result = wasFollowing
-        ? await SocialApiService().unfollowUser(targetUserId: widget.trackOwnerId)
-        : await SocialApiService().followUser(targetUserId: widget.trackOwnerId);
+        ? await SocialApiService().unfollowUser(
+            targetUserId: widget.trackOwnerId,
+          )
+        : await SocialApiService().followUser(
+            targetUserId: widget.trackOwnerId,
+          );
     if (!mounted) return;
     if (result.$1 < 200 || result.$1 >= 300) {
       setState(() {
         _ownerIsFollowed = wasFollowing;
         _isOwnerFollowLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.$2.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.$2.toString())));
       return;
     }
     setState(() => _isOwnerFollowLoading = false);
@@ -314,32 +317,39 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _kBg,
+      backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        backgroundColor: _kBg,
+        backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           _track?.title ?? '',
           style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w600),
+            color: Colors.white,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                  color: _kOrange, strokeWidth: 2))
+                color: AppColors.primaryOrange,
+                strokeWidth: 2,
+              ),
+            )
           : _error != null
-              ? _buildError()
-              : _buildBody(),
+          ? _buildError()
+          : _buildBody(),
     );
   }
 
@@ -348,21 +358,28 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              color: Colors.white38, size: 42),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: Colors.white38,
+            size: 42,
+          ),
           const SizedBox(height: 16),
-          Text(_error!,
-              textAlign: TextAlign.center,
-              style:
-                  const TextStyle(color: Colors.white54, fontSize: 14)),
+          Text(
+            _error!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54, fontSize: 14),
+          ),
           const SizedBox(height: 20),
           TextButton(
             onPressed: _loadTrack,
-            child: const Text('Try again',
-                style: TextStyle(
-                    color: _kOrange,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Try again',
+              style: TextStyle(
+                color: AppColors.primaryOrange,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -380,7 +397,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _buildActorRow(),
           _buildActionRow(),
           if (track.tags.isNotEmpty) _buildTags(track.tags),
-          const Divider(color: Color(0xFF2A2A2A), height: 1),
+          const Divider(color: AppColors.containerMid, height: 1),
           const SizedBox(height: 16),
           _buildArtistCard(track),
           const SizedBox(height: 24),
@@ -399,19 +416,22 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         spacing: 8,
         runSpacing: 8,
         children: tags
-            .map((tag) => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1C1C1C),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '# $tag',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 13),
-                  ),
-                ))
+            .map(
+              (tag) => Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '# $tag',
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              ),
+            )
             .toList(),
       ),
     );
@@ -433,20 +453,26 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         children: [
           Row(
             children: [
-              const Text('Fan leaderboard',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700)),
+              const Text(
+                'Fan leaderboard',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(width: 6),
-              const Icon(Icons.info_outline_rounded,
-                  color: Colors.white38, size: 16),
+              const Icon(
+                Icons.info_outline_rounded,
+                color: Colors.white38,
+                size: 16,
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: _kSurface,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -460,24 +486,31 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF333333),
+                            color: AppColors.inputFill,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           alignment: Alignment.center,
-                          child: const Text('Top',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600)),
+                          child: const Text(
+                            'Top',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           alignment: Alignment.center,
-                          child: const Text('First',
-                              style: TextStyle(
-                                  color: Colors.white54, fontSize: 14)),
+                          child: const Text(
+                            'First',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -485,9 +518,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 ),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text('Fans who have played this track the most.',
-                      style:
-                          TextStyle(color: Colors.white54, fontSize: 13)),
+                  child: Text(
+                    'Fans who have played this track the most.',
+                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                  ),
                 ),
                 ...fans.asMap().entries.map((e) {
                   final idx = e.key;
@@ -498,31 +532,44 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                       children: [
                         SizedBox(
                           width: 24,
-                          child: Text('${idx + 1}.',
-                              style: const TextStyle(
-                                  color: Colors.white54, fontSize: 14)),
+                          child: Text(
+                            '${idx + 1}.',
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 10),
                         CircleAvatar(
                           radius: 18,
-                          backgroundColor: const Color(0xFF444444),
+                          backgroundColor: AppColors.tileDark5,
                           child: Text(
                             name.isNotEmpty ? name[0].toUpperCase() : '?',
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700),
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(name,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 14)),
-                        ),
-                        Text(plays,
+                          child: Text(
+                            name,
                             style: const TextStyle(
-                                color: Colors.white54, fontSize: 13)),
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          plays,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 13,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -548,11 +595,14 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('In Playlists',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700)),
+          const Text(
+            'In Playlists',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             height: 140,
@@ -571,26 +621,36 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         width: 110,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: _kSurface,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         alignment: Alignment.center,
-                        child: const Icon(Icons.queue_music_rounded,
-                            color: Color(0xFF444444), size: 36),
+                        child: const Icon(
+                          Icons.queue_music_rounded,
+                          color: AppColors.tileDark5,
+                          size: 36,
+                        ),
                       ),
                       const SizedBox(height: 6),
-                      Text(name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600)),
-                      Text(owner,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 12)),
+                      Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        owner,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -626,15 +686,22 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(track.title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700)),
+                Text(
+                  track.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(_ownerDisplayName ?? track.artistName,
-                    style: const TextStyle(
-                        color: Color(0xFF999999), fontSize: 14)),
+                Text(
+                  _ownerDisplayName ?? track.artistName,
+                  style: const TextStyle(
+                    color: AppColors.greyMuted,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 _buildStats(track),
               ],
@@ -649,10 +716,13 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     return Container(
       width: 100,
       height: 100,
-      color: _kSurface,
+      color: AppColors.surface,
       alignment: Alignment.center,
-      child: const Icon(Icons.graphic_eq_rounded,
-          color: Color(0xFF444444), size: 36),
+      child: const Icon(
+        Icons.graphic_eq_rounded,
+        color: AppColors.tileDark5,
+        size: 36,
+      ),
     );
   }
 
@@ -662,8 +732,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     if (track.duration != null) parts.add(_fmtDuration(track.duration!));
     if (track.releaseDate != null) parts.add(_fmtDate(track.releaseDate!));
     if (parts.isEmpty) return const SizedBox.shrink();
-    return Text(parts.join(' · '),
-        style: const TextStyle(color: Color(0xFF777777), fontSize: 12));
+    return Text(
+      parts.join(' · '),
+      style: const TextStyle(color: AppColors.greyMid, fontSize: 12),
+    );
   }
 
   Widget _buildActorRow() {
@@ -676,7 +748,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: const Color(0xFF2A2A2A),
+              backgroundColor: AppColors.containerMid,
               backgroundImage: widget.actorAvatarUrl.isNotEmpty
                   ? NetworkImage(widget.actorAvatarUrl)
                   : null,
@@ -686,24 +758,25 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                           ? widget.actorName[0].toUpperCase()
                           : '?',
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700),
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
             const SizedBox(width: 10),
             RichText(
               text: TextSpan(
-                style: const TextStyle(
-                    color: Color(0xFFAAAAAA), fontSize: 14),
+                style: const TextStyle(color: AppColors.greyIcon, fontSize: 14),
                 children: [
                   TextSpan(text: isLike ? 'Liked by ' : 'Reposted by '),
                   TextSpan(
                     text: widget.actorName,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -736,8 +809,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 Text(
                   '$_likeCount',
                   style: TextStyle(
-                      color: _isLiked ? Colors.orange : Colors.white70,
-                      fontSize: 14),
+                    color: _isLiked ? Colors.orange : Colors.white70,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
@@ -749,12 +823,16 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                const Icon(Icons.chat_bubble_outline_rounded,
-                    color: Colors.white70, size: 22),
+                const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: Colors.white70,
+                  size: 22,
+                ),
                 const SizedBox(width: 5),
-                Text('$_commentCount',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 14)),
+                Text(
+                  '$_commentCount',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -765,13 +843,21 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                Icon(Icons.repeat_rounded,
-                    color: _isReposted ? _kOrange : Colors.white70, size: 22),
+                Icon(
+                  Icons.repeat_rounded,
+                  color: _isReposted ? AppColors.primaryOrange : Colors.white70,
+                  size: 22,
+                ),
                 const SizedBox(width: 5),
-                Text('$_repostCount',
-                    style: TextStyle(
-                        color: _isReposted ? _kOrange : Colors.white70,
-                        fontSize: 14)),
+                Text(
+                  '$_repostCount',
+                  style: TextStyle(
+                    color: _isReposted
+                        ? AppColors.primaryOrange
+                        : Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
               ],
             ),
           ),
@@ -779,8 +865,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           GestureDetector(
             onTap: _openTrackOptions,
             behavior: HitTestBehavior.opaque,
-            child: const Icon(Icons.more_horiz_rounded,
-                color: Colors.white70, size: 22),
+            child: const Icon(
+              Icons.more_horiz_rounded,
+              color: Colors.white70,
+              size: 22,
+            ),
           ),
           const Spacer(),
           // Play
@@ -810,9 +899,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Widget _buildArtistCard(PlaybackTrackModel track) {
     final displayName = _ownerDisplayName ?? track.artistName;
-    final location = [_ownerCity, _ownerCountry]
-        .whereType<String>()
-        .join(', ');
+    final location = [_ownerCity, _ownerCountry].whereType<String>().join(', ');
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -821,7 +908,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             onTap: _navigateToArtist,
             child: CircleAvatar(
               radius: 26,
-              backgroundColor: const Color(0xFF2A2A2A),
+              backgroundColor: AppColors.containerMid,
               backgroundImage: _ownerAvatarUrl != null
                   ? NetworkImage(_ownerAvatarUrl!)
                   : null,
@@ -831,9 +918,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                           ? displayName[0].toUpperCase()
                           : '?',
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700),
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
@@ -845,15 +933,22 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(displayName,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600)),
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   if (location.isNotEmpty)
-                    Text(location,
-                        style: const TextStyle(
-                            color: Color(0xFF888888), fontSize: 13)),
+                    Text(
+                      location,
+                      style: const TextStyle(
+                        color: AppColors.greyMid2,
+                        fontSize: 13,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -867,8 +962,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: _ownerIsFollowed
-                      ? const Color(0xFF2A2A2A)
-                      : _kOrange,
+                      ? AppColors.containerMid
+                      : AppColors.primaryOrange,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 alignment: Alignment.center,
@@ -877,13 +972,17 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : Text(
                         _ownerIsFollowed ? 'Following' : 'Follow',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600),
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
               ),
             ),
@@ -907,8 +1006,18 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   String _fmtDate(DateTime dt) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }

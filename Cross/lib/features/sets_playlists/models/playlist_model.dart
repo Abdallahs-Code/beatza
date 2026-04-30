@@ -166,7 +166,8 @@ class PlaylistModel {
           .toList(),
       permalink: json['permalink']?.toString() ?? '',
       // Some endpoints return `isPrivate` boolean instead of `type` string.
-      type: json['type']?.toString() ??
+      type:
+          json['type']?.toString() ??
           (json['isPrivate'] == true ? 'private' : 'public'),
       numOfLikes: json['numOfLikes'] as int? ?? 0,
       numOfReposts: json['numOfReposts'] as int? ?? 0,

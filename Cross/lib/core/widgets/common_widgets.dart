@@ -47,7 +47,10 @@ class CommonBottomNavBar extends StatelessWidget {
                 active: currentItem == AppNavItem.feed,
                 onTap: () {
                   if (currentItem != AppNavItem.feed) {
-                    Navigator.pushNamed(context, FeedSearchDiscoveryRoutes.feed);
+                    Navigator.pushNamed(
+                      context,
+                      FeedSearchDiscoveryRoutes.feed,
+                    );
                   }
                 },
               ),
@@ -67,7 +70,10 @@ class CommonBottomNavBar extends StatelessWidget {
                   active: currentItem == AppNavItem.search,
                   onTap: () {
                     if (currentItem != AppNavItem.search) {
-                      Navigator.pushNamed(context, FeedSearchDiscoveryRoutes.search);
+                      Navigator.pushNamed(
+                        context,
+                        FeedSearchDiscoveryRoutes.search,
+                      );
                     }
                   },
                 ),
@@ -88,7 +94,10 @@ class CommonBottomNavBar extends StatelessWidget {
                   active: currentItem == AppNavItem.search,
                   onTap: () {
                     if (currentItem != AppNavItem.search) {
-                      Navigator.pushNamed(context, FeedSearchDiscoveryRoutes.search);
+                      Navigator.pushNamed(
+                        context,
+                        FeedSearchDiscoveryRoutes.search,
+                      );
                     }
                   },
                 ),
@@ -107,7 +116,12 @@ class CommonBottomNavBar extends StatelessWidget {
                   label: 'Upgrade',
                   active: currentItem == AppNavItem.upgrade,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PremiumSubscriptionScreen(),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -160,76 +174,103 @@ class _NavItem extends StatelessWidget {
 
 void _showUploadMenuBottomSheet(BuildContext context, bool isPro) {
   showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+    context: context,
+    backgroundColor: AppColors.surfaceMid,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.cloud_upload_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                title: const Text(
+                  'Upload a track',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 28),
-                  title: const Text('Upload a track', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
-                  onTap: () async {
-                    final nav = Navigator.of(context);
-                    final messenger = ScaffoldMessenger.of(context);
-                    nav.pop();
+                onTap: () async {
+                  final nav = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
+                  nav.pop();
 
-                    final AudioUploadService audioService = AudioUploadService();
-                    final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
+                  final AudioUploadService audioService = AudioUploadService();
+                  final int currentUploads =
+                      AudioUploadService.globalMockTracksNotifier.value.length;
 
-                    if (!isPro && currentUploads >= 3) {
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
-                          backgroundColor: Colors.orange,
+                  if (!isPro && currentUploads >= 3) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Free tier limited to 3 uploads. Please upgrade to Pro.',
                         ),
-                      );
-                      nav.push(
-                        MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
-                      );
-                      return;
-                    }
-                    final file = await audioService.pickAudioFile();
-                    if (file != null) {
-                      nav.push(
-                        MaterialPageRoute(
-                          builder: (context) => const UploadTrackScreen(),
-                          settings: RouteSettings(arguments: file),
-                        ),
-                      );
-                    }
-                  },
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    nav.push(
+                      MaterialPageRoute(
+                        builder: (_) => const PremiumSubscriptionScreen(),
+                      ),
+                    );
+                    return;
+                  }
+                  final file = await audioService.pickAudioFile();
+                  if (file != null) {
+                    nav.push(
+                      MaterialPageRoute(
+                        builder: (context) => const UploadTrackScreen(),
+                        settings: RouteSettings(arguments: file),
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(
+                  Icons.library_add_outlined,
+                  color: Colors.white,
+                  size: 28,
                 ),
-                const SizedBox(height: 8),
-                ListTile(
-                  leading: const Icon(Icons.library_add_outlined, color: Colors.white, size: 28),
-                  title: const Text('Create new playlist', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showCreatePlaylistBottomSheet(context);
-                  },
+                title: const Text(
+                  'Create new playlist',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                const SizedBox(height: 8),
-              ],
-            ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCreatePlaylistBottomSheet(context);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
-        );
-      }
+        ),
+      );
+    },
   );
 }
 
@@ -237,7 +278,7 @@ void _showCreatePlaylistBottomSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF1E1E1E),
+    backgroundColor: AppColors.surfaceMid,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
@@ -249,7 +290,8 @@ class CreatePlaylistBottomSheet extends StatefulWidget {
   const CreatePlaylistBottomSheet({super.key});
 
   @override
-  State<CreatePlaylistBottomSheet> createState() => _CreatePlaylistBottomSheetState();
+  State<CreatePlaylistBottomSheet> createState() =>
+      _CreatePlaylistBottomSheetState();
 }
 
 class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
@@ -305,7 +347,11 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close, color: Colors.white54, size: 24),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white54,
+                    size: 24,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -317,7 +363,11 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                       controller: _titleController,
                       focusNode: _focusNode,
                       maxLength: 100,
-                      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                       decoration: const InputDecoration(
                         counterText: "",
                         enabledBorder: UnderlineInputBorder(
@@ -329,7 +379,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                         contentPadding: EdgeInsets.only(bottom: 8),
                       ),
                       onChanged: (val) {
-                        setState((){});
+                        setState(() {});
                       },
                     ),
                   ),
@@ -338,9 +388,12 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
                       '${_titleController.text.length}/100',
-                      style: const TextStyle(color: Colors.white54, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 32),
@@ -349,13 +402,17 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 children: [
                   const Text(
                     'Make this playlist public',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Switch(
                     value: _isPublic,
                     onChanged: (val) => setState(() => _isPublic = val),
                     activeThumbColor: Colors.white,
-                    activeTrackColor: const Color(0xFFFF5500),
+                    activeTrackColor: AppColors.primaryOrange,
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: Colors.white24,
                   ),
@@ -366,8 +423,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton(
-                  onPressed: () {
-                  },
+                  onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.white, width: 1.5),
                     shape: RoundedRectangleBorder(
@@ -376,7 +432,11 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                   ),
                   child: const Text(
                     'Create playlist',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -385,7 +445,11 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 onTap: () => Navigator.pop(context),
                 child: const Text(
                   'Cancel',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

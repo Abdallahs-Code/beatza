@@ -34,6 +34,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
@@ -197,7 +198,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
       final mentionResult = await _service.getMentionFollowers();
       if (!mounted) return;
       if (mentionResult.$1 == 200 && mentionResult.$2 is List) {
-        setState(() => _mentionFollowers = (mentionResult.$2 as List).cast<MentionUser>());
+        setState(
+          () => _mentionFollowers = (mentionResult.$2 as List)
+              .cast<MentionUser>(),
+        );
       }
     } catch (_) {}
   }
@@ -205,8 +209,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   // Detects @query in the text field and filters mention followers
   void _onMentionTextChanged() {
     final text = _inputController.text;
-    final cursor =
-        _inputController.selection.baseOffset.clamp(0, text.length);
+    final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
     final beforeCursor = text.substring(0, cursor);
     final atIndex = beforeCursor.lastIndexOf('@');
 
@@ -216,10 +219,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
         final filtered = query.isEmpty
             ? _mentionFollowers
             : _mentionFollowers
-                .where((u) => u.displayName
-                    .toLowerCase()
-                    .contains(query.toLowerCase()))
-                .toList();
+                  .where(
+                    (u) => u.displayName.toLowerCase().contains(
+                      query.toLowerCase(),
+                    ),
+                  )
+                  .toList();
         if (filtered.isNotEmpty) {
           setState(() {
             _mentionSuggestions = filtered.take(5).toList();
@@ -238,8 +243,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   // Replaces the current @query with @displayName in the input field
   void _insertMention(MentionUser user) {
     final text = _inputController.text;
-    final cursor =
-        _inputController.selection.baseOffset.clamp(0, text.length);
+    final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
     final beforeCursor = text.substring(0, cursor);
     final afterCursor = text.substring(cursor);
     final atIndex = beforeCursor.lastIndexOf('@');
@@ -257,16 +261,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   Future<void> _navigateToProfile(String userId) async {
-    await ProfileNavigator.push(
-      context,
-      userId,
-    );
+    await ProfileNavigator.push(context, userId);
   }
 
   Future<void> _fetchTotalCommentCount() async {
     try {
-      final track = await PlaybackTrackApiService()
-          .getSingleTrackById(widget.trackId);
+      final track = await PlaybackTrackApiService().getSingleTrackById(
+        widget.trackId,
+      );
       if (!mounted) return;
       setState(() => _totalCommentCount = track.numComments);
     } catch (_) {}
@@ -599,7 +601,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           // ── Track info header ──────────────────
           _buildTrackHeader(),
 
-          const Divider(color: Color(0xFF1A1A1A), height: 1),
+          const Divider(color: AppColors.container, height: 1),
 
           // ── Comments list ──────────────────────
           Expanded(
@@ -703,7 +705,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
               SnackBar(
                 content: Text('Playing from ${comment.formattedTimestamp}'),
                 duration: const Duration(seconds: 2),
-                backgroundColor: const Color(0xFF1A1A1A),
+                backgroundColor: AppColors.container,
               ),
             );
           },
@@ -773,7 +775,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     SnackBar(
                       content: Text('Playing from ${reply.formattedTimestamp}'),
                       duration: const Duration(seconds: 2),
-                      backgroundColor: const Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                     ),
                   );
                 },
@@ -863,7 +865,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   // ── Reply-to indicator bar ──────────────────────
   Widget _buildReplyIndicator() {
     return Container(
-      color: const Color(0xFF1A1A1A),
+      color: AppColors.container,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
@@ -885,7 +887,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   Widget _buildMentionSuggestions() {
     return Container(
       constraints: const BoxConstraints(maxHeight: 160),
-      color: const Color(0xFF1A1A1A),
+      color: AppColors.container,
       child: ListView.builder(
         shrinkWrap: true,
         padding: EdgeInsets.zero,
@@ -895,8 +897,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           return InkWell(
             onTap: () => _insertMention(user),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
                   CircleAvatar(
@@ -911,9 +912,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                 ? user.displayName[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
                           )
                         : null,
                   ),
@@ -934,7 +936,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   // ── Comment input bar ──────────────────────────
   Widget _buildInputBar() {
     return Container(
-      color: const Color(0xFF111111),
+      color: AppColors.backgroundDark,
       padding: EdgeInsets.only(
         left: 12,
         right: 12,
@@ -980,7 +982,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     : 'Comment at $_formattedPosition',
                 hintStyle: TextStyle(color: Colors.grey[600], fontSize: 13),
                 filled: true,
-                fillColor: const Color(0xFF222222),
+                fillColor: AppColors.cardDark2,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,
@@ -1018,7 +1020,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   void _showSortSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -1079,7 +1081,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.container,
         title: const Text(
           'Delete comment',
           style: TextStyle(color: Colors.white),

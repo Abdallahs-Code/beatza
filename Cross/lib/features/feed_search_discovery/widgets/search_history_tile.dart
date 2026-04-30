@@ -42,10 +42,7 @@ class SearchHistoryTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -83,8 +80,9 @@ class SearchHistoryTile extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: AppColors.cardDark,
-        borderRadius:
-            isUser ? BorderRadius.circular(25) : BorderRadius.circular(6),
+        borderRadius: isUser
+            ? BorderRadius.circular(25)
+            : BorderRadius.circular(6),
       ),
       child: Icon(
         isUser ? Icons.person : Icons.music_note,
@@ -96,8 +94,9 @@ class SearchHistoryTile extends StatelessWidget {
     if (imageUrl == null || imageUrl!.isEmpty) return placeholder;
 
     return ClipRRect(
-      borderRadius:
-          isUser ? BorderRadius.circular(25) : BorderRadius.circular(6),
+      borderRadius: isUser
+          ? BorderRadius.circular(25)
+          : BorderRadius.circular(6),
       child: Image.network(
         imageUrl!,
         width: size,

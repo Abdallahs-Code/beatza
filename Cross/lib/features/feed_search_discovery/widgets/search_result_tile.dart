@@ -98,8 +98,9 @@ class SearchResultTile extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: AppColors.cardDark,
-        borderRadius:
-            isUser ? BorderRadius.circular(size / 2) : BorderRadius.circular(6),
+        borderRadius: isUser
+            ? BorderRadius.circular(size / 2)
+            : BorderRadius.circular(6),
       ),
       child: Icon(
         isUser ? Icons.person : Icons.music_note,
@@ -111,8 +112,9 @@ class SearchResultTile extends StatelessWidget {
     if (imageUrl == null || imageUrl!.isEmpty) return placeholder;
 
     return ClipRRect(
-      borderRadius:
-          isUser ? BorderRadius.circular(size / 2) : BorderRadius.circular(6),
+      borderRadius: isUser
+          ? BorderRadius.circular(size / 2)
+          : BorderRadius.circular(6),
       child: Image.network(
         imageUrl!,
         width: size,

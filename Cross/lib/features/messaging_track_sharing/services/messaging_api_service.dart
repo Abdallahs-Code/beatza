@@ -18,9 +18,9 @@ class MessagingApiService {
     ApiServices? apiServices,
     http.Client? client,
     AuthApiService? authApiService,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client(),
-        _authApiService = authApiService ?? AuthApiService() {
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _client = client ?? http.Client(),
+       _authApiService = authApiService ?? AuthApiService() {
     _msgBase = '${_apiServices.baseUrl}/api/messages/v1';
     _tracksBase = '${_apiServices.baseUrl}/api/tracks/v1';
   }
@@ -32,11 +32,11 @@ class MessagingApiService {
   }
 
   Map<String, String> _headers(String token) => {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'User-Agent': 'Android',
-        'accept': 'application/json'
-      };
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+    'User-Agent': 'Android',
+    'accept': 'application/json',
+  };
 
   dynamic _decode(http.Response r) {
     if (r.body.trim().isEmpty) return null;
@@ -50,12 +50,15 @@ class MessagingApiService {
   // GET /api/messages/v1/chats
   Future<List<ChatModel>> getChats({int limit = 20}) async {
     final token = await _token();
-    final uri = Uri.parse('$_msgBase/chats')
-        .replace(queryParameters: {'limit': '$limit'});
+    final uri = Uri.parse(
+      '$_msgBase/chats',
+    ).replace(queryParameters: {'limit': '$limit'});
     debugPrint('[getChats] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getChats] status=${res.statusCode}');
-    debugPrint('[getChats] raw body=${res.body.length > 600 ? res.body.substring(0, 600) : res.body}');
+    debugPrint(
+      '[getChats] raw body=${res.body.length > 600 ? res.body.substring(0, 600) : res.body}',
+    );
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final rawList = data['data'];
@@ -73,28 +76,43 @@ class MessagingApiService {
             if (v is! List && v is! Map) {
               debugPrint('[getChats] item[$i]   "$k" = $v');
             } else if (v is List) {
-              debugPrint('[getChats] item[$i]   "$k" = List(${v.length}) first=${v.isEmpty ? "empty" : v.first}');
+              debugPrint(
+                '[getChats] item[$i]   "$k" = List(${v.length}) first=${v.isEmpty ? "empty" : v.first}',
+              );
             } else {
-              debugPrint('[getChats] item[$i]   "$k" = Map keys=${(v as Map).keys.toList()}');
+              debugPrint(
+                '[getChats] item[$i]   "$k" = Map keys=${(v as Map).keys.toList()}',
+              );
             }
           }
           final chat = ChatModel.fromJson(item);
-          debugPrint('[getChats] item[$i] → parsed chat.id="${chat.id}" participants=${chat.participants}');
+          debugPrint(
+            '[getChats] item[$i] → parsed chat.id="${chat.id}" participants=${chat.participants}',
+          );
           chats.add(chat);
         } else {
-          debugPrint('[getChats] item[$i] NOT A MAP — type=${item.runtimeType} value=$item');
+          debugPrint(
+            '[getChats] item[$i] NOT A MAP — type=${item.runtimeType} value=$item',
+          );
         }
       }
       return chats;
     }
     throw Exception(
-        (data is Map ? data['message']?.toString() : null) ??
-            'Failed to load chats');
+      (data is Map ? data['message']?.toString() : null) ??
+          'Failed to load chats',
+    );
   }
 
   // GET /api/messages/v1/chat/message/{chatId}
-  Future<({List<MessageModel> messages, bool isReceiverBlocked, bool isBlockedByReceiver})>
-      getChatMessages({
+  Future<
+    ({
+      List<MessageModel> messages,
+      bool isReceiverBlocked,
+      bool isBlockedByReceiver,
+    })
+  >
+  getChatMessages({
     required String chatId,
     int limit = 20,
     String? before,
@@ -104,11 +122,14 @@ class MessagingApiService {
     final token = await _token();
     final params = <String, String>{'limit': '$limit'};
     if (before != null && before.isNotEmpty) params['before'] = before;
-    final uri = Uri.parse('$_msgBase/chat/message/$chatId')
-        .replace(queryParameters: params);
+    final uri = Uri.parse(
+      '$_msgBase/chat/message/$chatId',
+    ).replace(queryParameters: params);
     debugPrint('[getChatMessages] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
-    debugPrint('[getChatMessages] status=${res.statusCode} body=${res.body.length > 300 ? res.body.substring(0, 300) : res.body}');
+    debugPrint(
+      '[getChatMessages] status=${res.statusCode} body=${res.body.length > 300 ? res.body.substring(0, 300) : res.body}',
+    );
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'] as Map<String, dynamic>? ?? {};
@@ -134,8 +155,9 @@ class MessagingApiService {
       );
     }
     throw Exception(
-        (data is Map ? data['message']?.toString() : null) ??
-            'Failed to load messages');
+      (data is Map ? data['message']?.toString() : null) ??
+          'Failed to load messages',
+    );
   }
 
   // Find an existing chat that includes receiverId in its participants array.
@@ -144,25 +166,36 @@ class MessagingApiService {
   Future<String?> findOrCreateChat({required String receiverId}) async {
     try {
       final token = await _token();
-      final uri = Uri.parse('$_msgBase/chats').replace(queryParameters: {'limit': '100'});
-      debugPrint('[MessagingApiService.findOrCreateChat] GET $uri receiverId=$receiverId');
+      final uri = Uri.parse(
+        '$_msgBase/chats',
+      ).replace(queryParameters: {'limit': '100'});
+      debugPrint(
+        '[MessagingApiService.findOrCreateChat] GET $uri receiverId=$receiverId',
+      );
       final res = await _client.get(uri, headers: _headers(token));
       final data = _decode(res);
       if (res.statusCode != 200 || data is! Map) {
-        debugPrint('[MessagingApiService.findOrCreateChat] chats fetch failed: ${res.statusCode}');
+        debugPrint(
+          '[MessagingApiService.findOrCreateChat] chats fetch failed: ${res.statusCode}',
+        );
         return null;
       }
       final list = (data['data'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .toList();
-      debugPrint('[MessagingApiService.findOrCreateChat] ${list.length} chats to search');
+      debugPrint(
+        '[MessagingApiService.findOrCreateChat] ${list.length} chats to search',
+      );
 
       for (final item in list) {
         // Key is "chat" in current API; fall back to chatId / _id / id
         String chatId = '';
         for (final key in ['chat', 'chatId', '_id', 'id']) {
           final v = item[key]?.toString() ?? '';
-          if (v.isNotEmpty) { chatId = v; break; }
+          if (v.isNotEmpty) {
+            chatId = v;
+            break;
+          }
         }
         if (chatId.isEmpty) continue;
 
@@ -179,15 +212,21 @@ class MessagingApiService {
             }
           }
         }
-        debugPrint('[MessagingApiService.findOrCreateChat] chatId=$chatId participantIds=$participantIds');
+        debugPrint(
+          '[MessagingApiService.findOrCreateChat] chatId=$chatId participantIds=$participantIds',
+        );
 
         if (participantIds.contains(receiverId)) {
-          debugPrint('[MessagingApiService.findOrCreateChat] ✅ Match via participants. chatId=$chatId');
+          debugPrint(
+            '[MessagingApiService.findOrCreateChat] ✅ Match via participants. chatId=$chatId',
+          );
           return chatId;
         }
       }
 
-      debugPrint('[MessagingApiService.findOrCreateChat] No existing chat found — will create new');
+      debugPrint(
+        '[MessagingApiService.findOrCreateChat] No existing chat found — will create new',
+      );
       return null;
     } catch (e) {
       debugPrint('[MessagingApiService.findOrCreateChat] error: $e');
@@ -207,14 +246,20 @@ class MessagingApiService {
       headers: _headers(token),
       body: jsonEncode({'receiverId': receiverId, 'content': content}),
     );
-    debugPrint('[sendMessage] status=${res.statusCode} body=${res.body.length > 300 ? res.body.substring(0, 300) : res.body}');
+    debugPrint(
+      '[sendMessage] status=${res.statusCode} body=${res.body.length > 300 ? res.body.substring(0, 300) : res.body}',
+    );
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'];
       if (inner is Map<String, dynamic>) return ChatModel.fromJson(inner);
     }
-    final errorMsg = (data is Map ? data['message']?.toString() : null) ?? 'Failed to send message';
-    debugPrint('[sendMessage] ERROR → status=${res.statusCode} message="$errorMsg"');
+    final errorMsg =
+        (data is Map ? data['message']?.toString() : null) ??
+        'Failed to send message';
+    debugPrint(
+      '[sendMessage] ERROR → status=${res.statusCode} message="$errorMsg"',
+    );
     throw Exception(errorMsg);
   }
 
@@ -230,8 +275,9 @@ class MessagingApiService {
     if (res.statusCode != 200) {
       final data = _decode(res);
       throw Exception(
-          (data is Map ? data['message']?.toString() : null) ??
-              'Failed to archive chat');
+        (data is Map ? data['message']?.toString() : null) ??
+            'Failed to archive chat',
+      );
     }
   }
 
@@ -246,18 +292,18 @@ class MessagingApiService {
   //   );
   // }
 
-    // PATCH /api/messages/v1/chat/read
+  // PATCH /api/messages/v1/chat/read
   // PATCH /api/messages/v1/chat/read
   Future<void> markChatAsRead({required String chatId}) async {
     try {
       final token = await _token();
-      
+
       // ✅ URL is correct now
       final uri = Uri.parse('$_msgBase/chat/read');
-      
+
       // ✅ FIXED: Backend expects 'id', not 'chatId'
       final requestBody = {'id': chatId};
-      
+
       // 🔍 DEBUG: Log exact request
       debugPrint('📤 [DEBUG] PATCH $uri');
       debugPrint('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
@@ -281,7 +327,9 @@ class MessagingApiService {
       switch (response.statusCode) {
         case 400:
           final data = _decode(response);
-          final msg = data is Map ? data['message'] ?? 'Validation failed' : 'Bad Request';
+          final msg = data is Map
+              ? data['message'] ?? 'Validation failed'
+              : 'Bad Request';
           throw Exception('Invalid request: $msg');
         case 401:
           throw Exception('Unauthorized: Token invalid/expired');
@@ -296,6 +344,7 @@ class MessagingApiService {
       rethrow;
     }
   }
+
   // PATCH /api/messages/v1/chat/unread/{chatId}
   // PATCH /api/messages/v1/chat/unread
   // PATCH /api/messages/v1/chat/unread
@@ -303,13 +352,13 @@ class MessagingApiService {
   Future<void> markChatAsUnread({required String chatId}) async {
     try {
       final token = await _token();
-      
+
       // ✅ URL construction (same pattern as markChatAsRead)
       final uri = Uri.parse('$_msgBase/chat/unread');
-      
+
       // ✅ Body: Backend expects 'id' field (same as markChatAsRead)
       final requestBody = {'id': chatId};
-      
+
       // 🔍 DEBUG: Log outgoing request
       debugPrint('📤 [DEBUG] PATCH $uri');
       debugPrint('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
@@ -337,17 +386,21 @@ class MessagingApiService {
         case 400:
           final data = _decode(response);
           final errors = data is Map ? data['errors'] : null;
-          final msg = data is Map ? data['message'] ?? 'Validation failed' : 'Bad Request';
-          
+          final msg = data is Map
+              ? data['message'] ?? 'Validation failed'
+              : 'Bad Request';
+
           if (errors is List) {
             debugPrint('⚠️ [DEBUG] Validation errors: $errors');
           }
           throw Exception('Invalid request: $msg');
-          
+
         case 401:
           throw Exception('Unauthorized: Token invalid or expired');
         case 403:
-          throw Exception('Forbidden: You do not have permission for this action');
+          throw Exception(
+            'Forbidden: You do not have permission for this action',
+          );
         case 404:
           throw Exception('Endpoint not found: $uri');
         default:
@@ -385,26 +438,25 @@ class MessagingApiService {
   //   return [];
   // }
 
-
-    // GET /api/public/tracks/v1/liked/{userId}
-    // GET /api/public/tracks/v1/liked/{userId}
+  // GET /api/public/tracks/v1/liked/{userId}
+  // GET /api/public/tracks/v1/liked/{userId}
   Future<List<PlaybackTrackModel>> getLikedTracks({
     required String userId,
   }) async {
     try {
       final token = await _token();
       final uri = Uri.parse('$_tracksBase/liked/$userId');
-      
+
       debugPrint('📤 [DEBUG] GET $uri');
       debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
-      
+
       final res = await _client.get(uri, headers: _headers(token));
-      
+
       debugPrint('📥 [DEBUG] Status: ${res.statusCode}');
       debugPrint('📥 [DEBUG] Body: ${res.body}');
-      
+
       final data = _decode(res);
-      
+
       if (res.statusCode == 200 && data is Map) {
         final rawData = data['data'];
         debugPrint('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
@@ -415,23 +467,28 @@ class MessagingApiService {
             .map(PlaybackTrackModel.fromApiJson)
             .toList();
       }
-      
+
       // ⚠️ WORKAROUND: Return empty list on 500 (backend bug)
       if (res.statusCode == 500) {
-        debugPrint('⚠️ [DEBUG] 500: Backend error on liked tracks — returning empty list');
-        debugPrint('📌 [DEBUG] This is a known backend issue for userId=$userId');
+        debugPrint(
+          '⚠️ [DEBUG] 500: Backend error on liked tracks — returning empty list',
+        );
+        debugPrint(
+          '📌 [DEBUG] This is a known backend issue for userId=$userId',
+        );
         return [];
       }
-      
+
       // Handle 404 - user not found
       if (res.statusCode == 404) {
         debugPrint('⚠️ [DEBUG] 404: User $userId not found');
         return [];
       }
-      
+
       throw Exception(
-          (data is Map ? data['message']?.toString() : null) ??
-              'Failed to load liked tracks: ${res.statusCode}');
+        (data is Map ? data['message']?.toString() : null) ??
+            'Failed to load liked tracks: ${res.statusCode}',
+      );
     } catch (e, stack) {
       debugPrint('💥 [ERROR] getLikedTracks: $e');
       debugPrint('📍 Stack: $stack');
@@ -464,26 +521,26 @@ class MessagingApiService {
   //   return [];
   // }
 
-    // GET /api/public/tracks/v1/user/{userId}
-    // GET /api/public/tracks/v1/posted/{userId}
+  // GET /api/public/tracks/v1/user/{userId}
+  // GET /api/public/tracks/v1/posted/{userId}
   Future<List<PlaybackTrackModel>> getUserPostedTracks({
     required String userId,
   }) async {
     try {
       final token = await _token();
-      
+
       final uri = Uri.parse('$_tracksBase/posted/$userId');
-      
+
       debugPrint('📤 [DEBUG] GET $uri');
       debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
-      
+
       final res = await _client.get(uri, headers: _headers(token));
-      
+
       debugPrint('📥 [DEBUG] Status: ${res.statusCode}');
       debugPrint('📥 [DEBUG] Body: ${res.body}');
-      
+
       final data = _decode(res);
-      
+
       if (res.statusCode == 200 && data is Map) {
         final rawData = data['data'];
         debugPrint('📥 [DEBUG] data["data"] type: ${rawData?.runtimeType}');
@@ -494,16 +551,19 @@ class MessagingApiService {
             .map(PlaybackTrackModel.fromApiJson)
             .toList();
       }
-      
+
       // Handle 404 - user not found or has no public tracks
       if (res.statusCode == 404) {
-        debugPrint('⚠️ [DEBUG] 404: User $userId not found or has no public tracks');
+        debugPrint(
+          '⚠️ [DEBUG] 404: User $userId not found or has no public tracks',
+        );
         return []; // Return empty list instead of throwing
       }
-      
+
       throw Exception(
-          (data is Map ? data['message']?.toString() : null) ??
-              'Failed to load uploaded tracks: ${res.statusCode}');
+        (data is Map ? data['message']?.toString() : null) ??
+            'Failed to load uploaded tracks: ${res.statusCode}',
+      );
     } catch (e, stack) {
       debugPrint('💥 [ERROR] getUserPostedTracks: $e');
       debugPrint('📍 Stack: $stack');
@@ -520,14 +580,20 @@ class MessagingApiService {
     if (rawData is List) return rawData;
     if (rawData is Map) {
       if (rawData['tracks'] is List) {
-        debugPrint('[MessagingApiService._extractTrackList] Found tracks under "tracks" key: ${(rawData["tracks"] as List).length} items');
+        debugPrint(
+          '[MessagingApiService._extractTrackList] Found tracks under "tracks" key: ${(rawData["tracks"] as List).length} items',
+        );
         return rawData['tracks'] as List;
       }
       if (rawData['data'] is List) {
-        debugPrint('[MessagingApiService._extractTrackList] Found tracks under nested "data" key: ${(rawData["data"] as List).length} items');
+        debugPrint(
+          '[MessagingApiService._extractTrackList] Found tracks under nested "data" key: ${(rawData["data"] as List).length} items',
+        );
         return rawData['data'] as List;
       }
-      debugPrint('[MessagingApiService._extractTrackList] Map keys: ${rawData.keys.toList()}');
+      debugPrint(
+        '[MessagingApiService._extractTrackList] Map keys: ${rawData.keys.toList()}',
+      );
     }
     return [];
   }
@@ -535,20 +601,28 @@ class MessagingApiService {
   // GET /api/public/profile/v1/{userId} — returns the user's profileLink slug
   Future<String?> getUserProfileLink({required String userId}) async {
     debugPrint('━━━ [getUserProfileLink] ━━━');
-    debugPrint('[getUserProfileLink] userId="$userId" (empty=${userId.isEmpty})');
+    debugPrint(
+      '[getUserProfileLink] userId="$userId" (empty=${userId.isEmpty})',
+    );
     if (userId.isEmpty) {
       debugPrint('[getUserProfileLink] ❌ Empty userId — aborting');
       return null;
     }
     final token = await _token();
-    final uri = Uri.parse('${_apiServices.baseUrl}/api/public/profile/v1/$userId');
+    final uri = Uri.parse(
+      '${_apiServices.baseUrl}/api/public/profile/v1/$userId',
+    );
     debugPrint('[getUserProfileLink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getUserProfileLink] status=${res.statusCode}');
-    debugPrint('[getUserProfileLink] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}');
+    debugPrint(
+      '[getUserProfileLink] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}',
+    );
     final data = _decode(res);
     if (res.statusCode != 200 || data is! Map) {
-      debugPrint('[getUserProfileLink] ❌ Non-200 or non-Map. status=${res.statusCode}');
+      debugPrint(
+        '[getUserProfileLink] ❌ Non-200 or non-Map. status=${res.statusCode}',
+      );
       return null;
     }
     final profileLink = data['profileLink']?.toString().trim() ?? '';
@@ -560,25 +634,35 @@ class MessagingApiService {
   // Used when opening a chat to detect if the receiver has blocked the current user.
   Future<bool> getPublicProfileBlockingMe({required String userId}) async {
     debugPrint('━━━ [getPublicProfileBlockingMe] ━━━');
-    debugPrint('[getPublicProfileBlockingMe] userId="$userId" (empty=${userId.isEmpty})');
+    debugPrint(
+      '[getPublicProfileBlockingMe] userId="$userId" (empty=${userId.isEmpty})',
+    );
     if (userId.isEmpty) {
       debugPrint('[getPublicProfileBlockingMe] ❌ Empty userId — aborting');
       return false;
     }
     try {
       final token = await _token();
-      final uri = Uri.parse('${_apiServices.baseUrl}/api/public/profile/v1/$userId');
+      final uri = Uri.parse(
+        '${_apiServices.baseUrl}/api/public/profile/v1/$userId',
+      );
       debugPrint('[getPublicProfileBlockingMe] GET $uri');
       final res = await _client.get(uri, headers: _headers(token));
       debugPrint('[getPublicProfileBlockingMe] status=${res.statusCode}');
-      debugPrint('[getPublicProfileBlockingMe] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}');
+      debugPrint(
+        '[getPublicProfileBlockingMe] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}',
+      );
       final data = _decode(res);
       if (res.statusCode != 200 || data is! Map) {
-        debugPrint('[getPublicProfileBlockingMe] ❌ Non-200 or non-Map. status=${res.statusCode}');
+        debugPrint(
+          '[getPublicProfileBlockingMe] ❌ Non-200 or non-Map. status=${res.statusCode}',
+        );
         return false;
       }
       final blockingMe = data['blockingMe'] == true;
-      debugPrint('[getPublicProfileBlockingMe] ✅ blockingMe=$blockingMe isBlocked=${data['isBlocked']}');
+      debugPrint(
+        '[getPublicProfileBlockingMe] ✅ blockingMe=$blockingMe isBlocked=${data['isBlocked']}',
+      );
       return blockingMe;
     } catch (e) {
       debugPrint('[getPublicProfileBlockingMe] ❌ EXCEPTION: $e');
@@ -595,9 +679,13 @@ class MessagingApiService {
     required String permalink,
   }) async {
     debugPrint('━━━ [getTrackByPermalink] ━━━');
-    debugPrint('[getTrackByPermalink] profileLink="$profileLink"  permalink="$permalink"');
+    debugPrint(
+      '[getTrackByPermalink] profileLink="$profileLink"  permalink="$permalink"',
+    );
     if (profileLink.isEmpty) {
-      debugPrint('[getTrackByPermalink] ❌ profileLink is empty — cannot call API. Was it fetched correctly?');
+      debugPrint(
+        '[getTrackByPermalink] ❌ profileLink is empty — cannot call API. Was it fetched correctly?',
+      );
       return null;
     }
     if (permalink.isEmpty) {
@@ -606,19 +694,27 @@ class MessagingApiService {
     }
     // Public endpoint — no auth header needed, but include it anyway for consistency
     final token = await _token();
-    final uri = Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v1/permalink/$profileLink/$permalink');
+    final uri = Uri.parse(
+      '${_apiServices.baseUrl}/api/public/tracks/v1/permalink/$profileLink/$permalink',
+    );
     debugPrint('[getTrackByPermalink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getTrackByPermalink] status=${res.statusCode}');
-    debugPrint('[getTrackByPermalink] body=${res.body.length > 1000 ? "${res.body.substring(0, 1000)}...(truncated)" : res.body}');
+    debugPrint(
+      '[getTrackByPermalink] body=${res.body.length > 1000 ? "${res.body.substring(0, 1000)}...(truncated)" : res.body}',
+    );
     final data = _decode(res);
     if (res.statusCode != 200 || data is! Map) {
-      debugPrint('[getTrackByPermalink] ❌ Non-200 or non-Map. status=${res.statusCode} dataType=${data.runtimeType}');
+      debugPrint(
+        '[getTrackByPermalink] ❌ Non-200 or non-Map. status=${res.statusCode} dataType=${data.runtimeType}',
+      );
       return null;
     }
     debugPrint('[getTrackByPermalink] response keys=${data.keys.toList()}');
     final inner = data['data'] as Map<String, dynamic>? ?? {};
-    debugPrint('[getTrackByPermalink] data["data"] keys=${inner.keys.toList()} (empty=${inner.isEmpty})');
+    debugPrint(
+      '[getTrackByPermalink] data["data"] keys=${inner.keys.toList()} (empty=${inner.isEmpty})',
+    );
     if (inner.isEmpty) {
       debugPrint('[getTrackByPermalink] ❌ data["data"] is empty');
       return null;
@@ -626,15 +722,27 @@ class MessagingApiService {
     final basicInfo = inner['basicInfo'] as Map<String, dynamic>? ?? {};
     final audio = inner['audio'] as Map<String, dynamic>? ?? {};
     final image = inner['image'] as Map<String, dynamic>? ?? {};
-    debugPrint('[getTrackByPermalink] trackId="${inner['trackId']}"  posterId="${inner['posterId']}"');
-    debugPrint('[getTrackByPermalink] basicInfo.title="${basicInfo['title']}"  basicInfo.permalink="${basicInfo['permalink']}"');
-    debugPrint('[getTrackByPermalink] basicInfo.mainArtists=${basicInfo['mainArtists']}');
+    debugPrint(
+      '[getTrackByPermalink] trackId="${inner['trackId']}"  posterId="${inner['posterId']}"',
+    );
+    debugPrint(
+      '[getTrackByPermalink] basicInfo.title="${basicInfo['title']}"  basicInfo.permalink="${basicInfo['permalink']}"',
+    );
+    debugPrint(
+      '[getTrackByPermalink] basicInfo.mainArtists=${basicInfo['mainArtists']}',
+    );
     debugPrint('[getTrackByPermalink] audio.audioLink="${audio['audioLink']}"');
     debugPrint('[getTrackByPermalink] image.imgLink="${image['imgLink']}"');
-    debugPrint('[getTrackByPermalink] durationInSeconds="${inner['durationInSeconds']}"');
+    debugPrint(
+      '[getTrackByPermalink] durationInSeconds="${inner['durationInSeconds']}"',
+    );
     final track = PlaybackTrackModel.fromApiJson(inner);
-    debugPrint('[getTrackByPermalink] ✅ parsed → id="${track.id}" title="${track.title}" artist="${track.artistName}"');
-    debugPrint('[getTrackByPermalink]    audioUrl="${track.audioUrl}"  artworkUrl="${track.artworkUrl}"  permalink="${track.permalink}"');
+    debugPrint(
+      '[getTrackByPermalink] ✅ parsed → id="${track.id}" title="${track.title}" artist="${track.artistName}"',
+    );
+    debugPrint(
+      '[getTrackByPermalink]    audioUrl="${track.audioUrl}"  artworkUrl="${track.artworkUrl}"  permalink="${track.permalink}"',
+    );
     return track;
   }
 
@@ -651,15 +759,21 @@ class MessagingApiService {
     debugPrint('[getTrackById] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getTrackById] status=${res.statusCode}');
-    debugPrint('[getTrackById] body=${res.body.length > 1000 ? "${res.body.substring(0, 1000)}...(truncated)" : res.body}');
+    debugPrint(
+      '[getTrackById] body=${res.body.length > 1000 ? "${res.body.substring(0, 1000)}...(truncated)" : res.body}',
+    );
     final data = _decode(res);
     if (res.statusCode != 200 || data is! Map) {
-      debugPrint('[getTrackById] ❌ Non-200 or non-Map. status=${res.statusCode} dataType=${data.runtimeType}');
+      debugPrint(
+        '[getTrackById] ❌ Non-200 or non-Map. status=${res.statusCode} dataType=${data.runtimeType}',
+      );
       return null;
     }
     debugPrint('[getTrackById] response keys=${data.keys.toList()}');
     final inner = data['data'] as Map<String, dynamic>? ?? {};
-    debugPrint('[getTrackById] data["data"] keys=${inner.keys.toList()} (empty=${inner.isEmpty})');
+    debugPrint(
+      '[getTrackById] data["data"] keys=${inner.keys.toList()} (empty=${inner.isEmpty})',
+    );
     if (inner.isEmpty) {
       debugPrint('[getTrackById] ❌ data["data"] is empty');
       return null;
@@ -667,22 +781,28 @@ class MessagingApiService {
     final basicInfo = inner['basicInfo'] as Map<String, dynamic>? ?? {};
     final audio = inner['audio'] as Map<String, dynamic>? ?? {};
     final image = inner['image'] as Map<String, dynamic>? ?? {};
-    debugPrint('[getTrackById] trackId="${inner['trackId']}"  posterId="${inner['posterId']}"');
-    debugPrint('[getTrackById] title="${basicInfo['title']}"  permalink="${basicInfo['permalink']}"');
+    debugPrint(
+      '[getTrackById] trackId="${inner['trackId']}"  posterId="${inner['posterId']}"',
+    );
+    debugPrint(
+      '[getTrackById] title="${basicInfo['title']}"  permalink="${basicInfo['permalink']}"',
+    );
     debugPrint('[getTrackById] audio.audioLink="${audio['audioLink']}"');
     debugPrint('[getTrackById] image.imgLink="${image['imgLink']}"');
     final track = PlaybackTrackModel.fromApiJson(inner);
-    debugPrint('[getTrackById] ✅ parsed → id="${track.id}" title="${track.title}" artist="${track.artistName}" audioUrl="${track.audioUrl}"');
+    debugPrint(
+      '[getTrackById] ✅ parsed → id="${track.id}" title="${track.title}" artist="${track.artistName}" audioUrl="${track.audioUrl}"',
+    );
     return track;
   }
 
   // GET /api/public/tracks/v1/{trackId} — returns permalink
   Future<String?> getTrackPermalink({required String trackId}) async {
     final uri = Uri.parse('$_tracksBase/$trackId');
-    final res = await _client.get(uri, headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'Android',
-    });
+    final res = await _client.get(
+      uri,
+      headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+    );
     final data = _decode(res);
     if (res.statusCode == 200 && data is Map) {
       final inner = data['data'] as Map<String, dynamic>? ?? {};

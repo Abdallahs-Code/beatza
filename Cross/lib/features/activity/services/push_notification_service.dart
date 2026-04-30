@@ -98,9 +98,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (notification == null) return;
 
   final plugin = FlutterLocalNotificationsPlugin();
-  await plugin.initialize(const InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-  ));
+  await plugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+  );
   await plugin.show(
     notification.notificationId.hashCode.abs() % 100000,
     notification.actor.displayName,
@@ -142,8 +144,9 @@ class PushNotificationService {
     icon: '@mipmap/ic_launcher',
   );
 
-  static const _notificationDetails =
-      NotificationDetails(android: _androidDetails);
+  static const _notificationDetails = NotificationDetails(
+    android: _androidDetails,
+  );
 
   static const _msgChannelId = 'beatza_messages';
   static const _msgChannelName = 'Messages';
@@ -158,8 +161,9 @@ class PushNotificationService {
     icon: '@mipmap/ic_launcher',
   );
 
-  static const _msgNotificationDetails =
-      NotificationDetails(android: _msgAndroidDetails);
+  static const _msgNotificationDetails = NotificationDetails(
+    android: _msgAndroidDetails,
+  );
 
   Future<void> initialize() async {
     // ── Step 1: capture launch-from-local-notification details BEFORE
@@ -173,7 +177,9 @@ class PushNotificationService {
 
     // ── Step 2: FCM setup ────────────────────────────────────────────────────
     if (Platform.isAndroid || Platform.isIOS) {
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
       await FirebaseMessaging.instance.requestPermission();
 
       // Foreground FCM message → show via local notification.
@@ -186,8 +192,11 @@ class PushNotificationService {
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
         final notification = _parseFromData(message.data);
         if (notification != null) {
-          unawaited(NotificationNavigationService.shared
-              .handleActivityNotification(notification));
+          unawaited(
+            NotificationNavigationService.shared.handleActivityNotification(
+              notification,
+            ),
+          );
         }
       });
 
@@ -198,20 +207,23 @@ class PushNotificationService {
     }
 
     // ── Step 3: initialise local-notifications plugin ────────────────────────
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     await _plugin.initialize(
       const InitializationSettings(android: androidSettings),
       onDidReceiveNotificationResponse: _onLocalNotificationTap,
     );
     await _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
 
     // ── Step 4: handle app launched from a local notification (data-only FCM
     //   shown by the background handler).  Details were captured in Step 1.
-    if (localLaunchDetails != null && localLaunchDetails.didNotificationLaunchApp) {
+    if (localLaunchDetails != null &&
+        localLaunchDetails.didNotificationLaunchApp) {
       final response = localLaunchDetails.notificationResponse;
       if (response != null) _onLocalNotificationTap(response);
     }
@@ -230,8 +242,9 @@ class PushNotificationService {
       if (initial == null) return;
       final notification = _parseFromData(initial.data);
       if (notification != null) {
-        await NotificationNavigationService.shared
-            .handleActivityNotification(notification);
+        await NotificationNavigationService.shared.handleActivityNotification(
+          notification,
+        );
       }
     } catch (_) {}
   }
@@ -264,14 +277,19 @@ class PushNotificationService {
           ),
           createdAt: DateTime.now(),
         );
-        unawaited(NotificationNavigationService.shared
-            .handleActivityNotification(notification));
+        unawaited(
+          NotificationNavigationService.shared.handleActivityNotification(
+            notification,
+          ),
+        );
       } else if (type == 'm') {
-        unawaited(NotificationNavigationService.shared.handleChatNotification(
-          chatId: data['cid'] as String? ?? '',
-          receiverName: data['rn'] as String? ?? '',
-          receiverPhotoUrl: data['rp'] as String? ?? '',
-        ));
+        unawaited(
+          NotificationNavigationService.shared.handleChatNotification(
+            chatId: data['cid'] as String? ?? '',
+            receiverName: data['rn'] as String? ?? '',
+            receiverPhotoUrl: data['rp'] as String? ?? '',
+          ),
+        );
       }
     } catch (_) {}
   }
@@ -292,15 +310,19 @@ class PushNotificationService {
 
   Future<void> _postFcmToken(String accessToken, String fcmToken) async {
     try {
-      await http.post(
-        Uri.parse('${ApiServices().baseUrl}/api/notifications/v1/fcm-token'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-          'User-Agent': 'Android',
-        },
-        body: jsonEncode({'token': fcmToken, 'platform': 'android'}),
-      ).timeout(const Duration(seconds: 10));
+      await http
+          .post(
+            Uri.parse(
+              '${ApiServices().baseUrl}/api/notifications/v1/fcm-token',
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $accessToken',
+              'User-Agent': 'Android',
+            },
+            body: jsonEncode({'token': fcmToken, 'platform': 'android'}),
+          )
+          .timeout(const Duration(seconds: 10));
     } catch (_) {}
   }
 
@@ -310,8 +332,7 @@ class PushNotificationService {
     required String chatId,
     String receiverPhotoUrl = '',
   }) async {
-    final body =
-        content.startsWith('track::') ? 'sent you a track' : content;
+    final body = content.startsWith('track::') ? 'sent you a track' : content;
     final id = chatId.hashCode.abs() % 100000;
     final payload = jsonEncode({
       't': 'm',
@@ -319,8 +340,13 @@ class PushNotificationService {
       'rn': senderName,
       'rp': receiverPhotoUrl,
     });
-    await _plugin.show(id, senderName, body, _msgNotificationDetails,
-        payload: payload);
+    await _plugin.show(
+      id,
+      senderName,
+      body,
+      _msgNotificationDetails,
+      payload: payload,
+    );
   }
 
   Future<void> show(ActivityNotificationModel notification) async {

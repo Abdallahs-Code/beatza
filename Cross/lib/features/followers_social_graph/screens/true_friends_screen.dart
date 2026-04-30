@@ -89,8 +89,9 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
 
     final followingIds = following.map((f) => f.userId).toSet();
 
-    final trueFriends =
-        followers.where((f) => followingIds.contains(f.userId)).toList();
+    final trueFriends = followers
+        .where((f) => followingIds.contains(f.userId))
+        .toList();
 
     setState(() {
       _isLoading = false;
@@ -108,7 +109,9 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
     final prev = _trueFriends[idx].isFollowing;
     setState(() => _trueFriends[idx].isFollowing = true);
 
-    final result = await _socialApiService.followUser(targetUserId: targetUserId);
+    final result = await _socialApiService.followUser(
+      targetUserId: targetUserId,
+    );
     if (!mounted) return;
 
     if (result.$1 < 200 || result.$1 >= 300) {
@@ -124,7 +127,9 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
     final prev = _trueFriends[idx].isFollowing;
     setState(() => _trueFriends[idx].isFollowing = false);
 
-    final result = await _socialApiService.unfollowUser(targetUserId: targetUserId);
+    final result = await _socialApiService.unfollowUser(
+      targetUserId: targetUserId,
+    );
     if (!mounted) return;
 
     if (result.$1 < 200 || result.$1 >= 300) {
@@ -134,7 +139,9 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
   }
 
   Future<void> _blockUser(String targetUserId) async {
-    final result = await _socialApiService.blockUser(targetUserId: targetUserId);
+    final result = await _socialApiService.blockUser(
+      targetUserId: targetUserId,
+    );
     if (!mounted) return;
 
     if (result.$1 >= 200 && result.$1 < 300) {
@@ -154,7 +161,9 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
   }
 
   Future<void> _unblockUser(String targetUserId) async {
-    final result = await _socialApiService.unblockUser(targetUserId: targetUserId);
+    final result = await _socialApiService.unblockUser(
+      targetUserId: targetUserId,
+    );
     if (!mounted) return;
 
     if (result.$1 >= 200 && result.$1 < 300) {
@@ -197,7 +206,9 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
 
   void _showSnackbar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

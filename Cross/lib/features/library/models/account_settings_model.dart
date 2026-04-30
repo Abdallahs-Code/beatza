@@ -18,19 +18,18 @@ class AccountSettings {
   }
 
   Map<String, dynamic> toJson() => {
-        'theme': theme,
-        'dateOfBirth': dateOfBirth,
-        'gender': gender,
-      };
+    'theme': theme,
+    'dateOfBirth': dateOfBirth,
+    'gender': gender,
+  };
 
   AccountSettings copyWith({
     String? theme,
     String? dateOfBirth,
     String? gender,
-  }) =>
-      AccountSettings(
-        theme: theme ?? this.theme,
-        dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-        gender: gender ?? this.gender,
-      );
+  }) => AccountSettings(
+    theme: theme ?? this.theme,
+    dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+    gender: gender ?? this.gender,
+  );
 }

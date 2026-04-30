@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/activity/screens/quick_reply_options_menu.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
@@ -94,8 +95,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
 
   Future<void> _loadTrackData() async {
     try {
-      final track =
-          await PlaybackTrackApiService().getSingleTrackById(widget.trackId);
+      final track = await PlaybackTrackApiService().getSingleTrackById(
+        widget.trackId,
+      );
       if (!mounted) return;
       setState(() {
         _trackModel = track;
@@ -131,15 +133,16 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     final result = await _engagementApi.getMentionFollowers();
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is List) {
-      setState(() => _mentionFollowers = (result.$2 as List).cast<MentionUser>());
+      setState(
+        () => _mentionFollowers = (result.$2 as List).cast<MentionUser>(),
+      );
     }
   }
 
   // Detects @ in the text field and filters mention followers for suggestions
   void _onTextChanged() {
     final text = _inputController.text;
-    final cursor =
-        _inputController.selection.baseOffset.clamp(0, text.length);
+    final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
     final beforeCursor = text.substring(0, cursor);
     final atIndex = beforeCursor.lastIndexOf('@');
 
@@ -149,10 +152,12 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
         final filtered = query.isEmpty
             ? _mentionFollowers
             : _mentionFollowers
-                .where((u) => u.displayName
-                    .toLowerCase()
-                    .contains(query.toLowerCase()))
-                .toList();
+                  .where(
+                    (u) => u.displayName.toLowerCase().contains(
+                      query.toLowerCase(),
+                    ),
+                  )
+                  .toList();
         if (filtered.isNotEmpty) {
           setState(() {
             _mentionSuggestions = filtered.take(5).toList();
@@ -171,8 +176,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   // Inserts @displayName into the text field replacing the current @query
   void _insertMention(MentionUser user) {
     final text = _inputController.text;
-    final cursor =
-        _inputController.selection.baseOffset.clamp(0, text.length);
+    final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
     final beforeCursor = text.substring(0, cursor);
     final afterCursor = text.substring(cursor);
     final atIndex = beforeCursor.lastIndexOf('@');
@@ -211,9 +215,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     final parentId = widget.initialParentCommentId;
     if (parentId == null || parentId.isEmpty) return;
     final match = _comments.cast<Comment?>().firstWhere(
-          (c) => c?.commentId == parentId,
-          orElse: () => null,
-        );
+      (c) => c?.commentId == parentId,
+      orElse: () => null,
+    );
     if (match != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _startReply(match);
@@ -223,12 +227,12 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       final mention = widget.initialMentionDisplayName;
       if (mention != null && mention.isNotEmpty) {
         _inputController.text = '@$mention ';
-        _inputController.selection =
-            TextSelection.collapsed(offset: _inputController.text.length);
+        _inputController.selection = TextSelection.collapsed(
+          offset: _inputController.text.length,
+        );
         if (widget.initialMentionUserId != null &&
             widget.initialMentionUserId!.isNotEmpty) {
-          setState(() =>
-              _pendingMentionedUserId = widget.initialMentionUserId);
+          setState(() => _pendingMentionedUserId = widget.initialMentionUserId);
         }
       }
       if (widget.initialTimestamp != null) {
@@ -265,17 +269,27 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     final userId = await _authApi.getStoredUserId() ?? '';
     final tempId = DateTime.now().millisecondsSinceEpoch.toString();
     final optimistic = Comment(
-      tempId, userId, 'You', null, content,
-      _effectiveTimestamp, 0, 0, false, false,
+      tempId,
+      userId,
+      'You',
+      null,
+      content,
+      _effectiveTimestamp,
+      0,
+      0,
+      false,
+      false,
       DateTime.now().toIso8601String(),
     );
 
     // Insert optimistic: replies go directly after their parent in the list
     if (replyingTo != null) {
-      final parentIdx =
-          _comments.indexWhere((c) => c.commentId == replyingTo.commentId);
-      setState(() => _comments.insert(
-          parentIdx >= 0 ? parentIdx + 1 : 0, optimistic));
+      final parentIdx = _comments.indexWhere(
+        (c) => c.commentId == replyingTo.commentId,
+      );
+      setState(
+        () => _comments.insert(parentIdx >= 0 ? parentIdx + 1 : 0, optimistic),
+      );
     } else {
       setState(() => _comments.insert(0, optimistic));
     }
@@ -325,7 +339,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     } else {
       setState(() {
         comment.isLikedByUser = wasLiked;
-        comment.numLikes = wasLiked ? comment.numLikes + 1 : comment.numLikes - 1;
+        comment.numLikes = wasLiked
+            ? comment.numLikes + 1
+            : comment.numLikes - 1;
       });
     }
   }
@@ -358,13 +374,17 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     setState(() {
       _loadingReplies.remove(id);
       if (result.$1 == 200 && result.$2 is List) {
-        _expandedReplies[id] = (result.$2 as List).whereType<Comment>().toList();
+        _expandedReplies[id] = (result.$2 as List)
+            .whereType<Comment>()
+            .toList();
       }
     });
   }
 
   Future<void> _deleteComment(Comment comment) async {
-    final topIdx = _comments.indexWhere((c) => c.commentId == comment.commentId);
+    final topIdx = _comments.indexWhere(
+      (c) => c.commentId == comment.commentId,
+    );
     String? replyParentId;
     int replyIdx = -1;
 
@@ -372,7 +392,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       setState(() => _comments.removeAt(topIdx));
     } else {
       for (final entry in _expandedReplies.entries) {
-        final i = entry.value.indexWhere((c) => c.commentId == comment.commentId);
+        final i = entry.value.indexWhere(
+          (c) => c.commentId == comment.commentId,
+        );
         if (i >= 0) {
           replyParentId = entry.key;
           replyIdx = i;
@@ -384,12 +406,16 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       if (replyParentId == null) return;
     }
 
-    final result = await _engagementApi.deleteComment(commentId: comment.commentId);
+    final result = await _engagementApi.deleteComment(
+      commentId: comment.commentId,
+    );
     if (!mounted) return;
     if (result.$1 != 200) {
       setState(() {
         if (replyParentId != null) {
-          final replies = List<Comment>.from(_expandedReplies[replyParentId] ?? []);
+          final replies = List<Comment>.from(
+            _expandedReplies[replyParentId] ?? [],
+          );
           if (replyIdx >= 0) replies.insert(replyIdx, comment);
           _expandedReplies[replyParentId] = replies;
         } else if (topIdx >= 0) {
@@ -403,11 +429,15 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Delete comment',
-            style: TextStyle(color: Colors.white)),
-        content: const Text('Are you sure you want to delete this comment?',
-            style: TextStyle(color: Colors.grey)),
+        backgroundColor: AppColors.container,
+        title: const Text(
+          'Delete comment',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this comment?',
+          style: TextStyle(color: Colors.grey),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -430,11 +460,14 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     setState(() {
       _replyingTo = comment;
       _showMentionSuggestions = false;
-      _pendingMentionedUserId = comment.userId.isNotEmpty ? comment.userId : null;
+      _pendingMentionedUserId = comment.userId.isNotEmpty
+          ? comment.userId
+          : null;
     });
     _inputController.text = '@${comment.displayName} ';
-    _inputController.selection =
-        TextSelection.collapsed(offset: _inputController.text.length);
+    _inputController.selection = TextSelection.collapsed(
+      offset: _inputController.text.length,
+    );
     _focusNode.requestFocus();
   }
 
@@ -445,7 +478,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.88,
       decoration: const BoxDecoration(
-        color: Color(0xFF111111),
+        color: AppColors.backgroundDark,
         borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
       ),
       child: Column(
@@ -453,9 +486,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
           _buildHeader(),
           _buildTrackCard(),
           _buildStatsRow(),
-          const Divider(color: Color(0xFF2A2A2A), height: 1),
+          const Divider(color: AppColors.containerMid, height: 1),
           Expanded(child: _buildCommentList()),
-          const Divider(color: Color(0xFF2A2A2A), height: 1),
+          const Divider(color: AppColors.containerMid, height: 1),
           if (_replyingTo != null) _buildReplyIndicator(),
           if (_showMentionSuggestions) _buildMentionSuggestions(),
           _buildQuickChips(),
@@ -472,8 +505,11 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                color: Colors.white, size: 28),
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
           const Expanded(
@@ -506,7 +542,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                     width: 52,
                     height: 52,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) => _thumbPlaceholder(),
+                    errorBuilder: (context, error, stack) =>
+                        _thumbPlaceholder(),
                   )
                 : _thumbPlaceholder(),
           ),
@@ -520,15 +557,20 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600),
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 if (widget.trackArtist.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(widget.trackArtist,
-                      style: const TextStyle(
-                          color: Color(0xFF888888), fontSize: 13)),
+                  Text(
+                    widget.trackArtist,
+                    style: const TextStyle(
+                      color: AppColors.greyMid2,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -542,10 +584,13 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     return Container(
       width: 52,
       height: 52,
-      color: const Color(0xFF222222),
+      color: AppColors.cardDark2,
       alignment: Alignment.center,
-      child: const Icon(Icons.graphic_eq_rounded,
-          color: Color(0xFF555555), size: 24),
+      child: const Icon(
+        Icons.graphic_eq_rounded,
+        color: AppColors.greyDark3,
+        size: 24,
+      ),
     );
   }
 
@@ -557,7 +602,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
         children: [
           Text(
             '$_numComments comments · $_numReposts reposts',
-            style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
+            style: const TextStyle(color: AppColors.greyMid2, fontSize: 12),
           ),
         ],
       ),
@@ -567,54 +612,64 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   Widget _buildCommentList() {
     if (_loadingComments) {
       return const Center(
-          child: CircularProgressIndicator(
-              color: Color(0xFFFF5500), strokeWidth: 2));
+        child: CircularProgressIndicator(
+          color: AppColors.primaryOrange,
+          strokeWidth: 2,
+        ),
+      );
     }
     if (_comments.isEmpty) {
       return const Center(
-        child: Text('No comments yet. Be the first!',
-            style: TextStyle(color: Color(0xFF666666), fontSize: 14)),
+        child: Text(
+          'No comments yet. Be the first!',
+          style: TextStyle(color: AppColors.greyDark4, fontSize: 14),
+        ),
       );
     }
 
     final items = <Widget>[];
     for (final comment in _comments) {
       items.add(_buildCommentRow(comment, isReply: false));
-      items.add(const Divider(color: Color(0xFF1E1E1E), height: 1));
+      items.add(const Divider(color: AppColors.surfaceMid, height: 1));
 
       if (comment.replyCount > 0 ||
           _expandedReplies.containsKey(comment.commentId)) {
         final isExpanded = _expandedReplies.containsKey(comment.commentId);
         final isLoadingThis = _loadingReplies.contains(comment.commentId);
 
-        items.add(Padding(
-          padding: const EdgeInsets.only(left: 52, bottom: 4),
-          child: isLoadingThis
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Color(0xFFFF5500)),
-                )
-              : GestureDetector(
-                  onTap: () => _toggleReplies(comment),
-                  child: Text(
-                    isExpanded
-                        ? 'Hide replies'
-                        : 'View ${comment.replyCount} '
-                              'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
-                    style: const TextStyle(
-                        color: Color(0xFFFF5500),
+        items.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 52, bottom: 4),
+            child: isLoadingThis
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primaryOrange,
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () => _toggleReplies(comment),
+                    child: Text(
+                      isExpanded
+                          ? 'Hide replies'
+                          : 'View ${comment.replyCount} '
+                                'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
+                      style: const TextStyle(
+                        color: AppColors.primaryOrange,
                         fontSize: 12,
-                        fontWeight: FontWeight.w500),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
-        ));
+          ),
+        );
 
         if (isExpanded) {
           for (final reply in _expandedReplies[comment.commentId] ?? []) {
             items.add(_buildCommentRow(reply, isReply: true));
-            items.add(const Divider(color: Color(0xFF1E1E1E), height: 1));
+            items.add(const Divider(color: AppColors.surfaceMid, height: 1));
           }
         }
       }
@@ -630,7 +685,11 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   Widget _buildCommentRow(Comment comment, {bool isReply = false}) {
     return Padding(
       padding: EdgeInsets.only(
-          left: isReply ? 52 : 14, right: 14, top: 10, bottom: 4),
+        left: isReply ? 52 : 14,
+        right: 14,
+        top: 10,
+        bottom: 4,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -638,7 +697,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
             onTap: () => _navigateToProfile(comment.userId),
             child: CircleAvatar(
               radius: 18,
-              backgroundColor: const Color(0xFF2A2A2A),
+              backgroundColor: AppColors.containerMid,
               backgroundImage: comment.avatarUrl?.isNotEmpty == true
                   ? NetworkImage(comment.avatarUrl!)
                   : null,
@@ -648,9 +707,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                           ? comment.displayName[0].toUpperCase()
                           : '?',
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700),
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
@@ -667,9 +727,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                         comment.displayName,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600),
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -677,7 +738,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                       onTap: () => _seekToTimestamp(comment.timestamp),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1A4BB8),
                           borderRadius: BorderRadius.circular(10),
@@ -685,9 +748,10 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                         child: Text(
                           'at ${comment.formattedTimestamp}',
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500),
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
@@ -695,25 +759,34 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                     Text(
                       _formatAge(comment.createdAt),
                       style: const TextStyle(
-                          color: Color(0xFF777777), fontSize: 12),
+                        color: AppColors.greyMid,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(comment.content,
-                    style: const TextStyle(
-                        color: Color(0xFFDDDDDD), fontSize: 14)),
+                Text(
+                  comment.content,
+                  style: const TextStyle(
+                    color: AppColors.greyBright,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
                     if (!isReply) ...[
                       GestureDetector(
                         onTap: () => _startReply(comment),
-                        child: const Text('Reply',
-                            style: TextStyle(
-                                color: Color(0xFF888888),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500)),
+                        child: const Text(
+                          'Reply',
+                          style: TextStyle(
+                            color: AppColors.greyMid2,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                     ],
@@ -721,18 +794,24 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                       onTap: () => QuickReplyOptionsMenu.show(
                         context,
                         comment: comment,
-                        onTimestampTap: () => _seekToTimestamp(comment.timestamp),
+                        onTimestampTap: () =>
+                            _seekToTimestamp(comment.timestamp),
                         onGoToProfileTap: comment.userId.isNotEmpty
                             ? () => _navigateToProfile(comment.userId)
                             : null,
-                        onDeleteTap: (comment.isOwnComment ||
+                        onDeleteTap:
+                            (comment.isOwnComment ||
                                 comment.userId == _currentUserId)
                             ? () => _confirmDelete(comment)
                             : null,
                       ),
-                      child: const Text('···',
-                          style: TextStyle(
-                              color: Color(0xFF888888), fontSize: 13)),
+                      child: const Text(
+                        '···',
+                        style: TextStyle(
+                          color: AppColors.greyMid2,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -752,14 +831,18 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     color: comment.isLikedByUser
-                        ? const Color(0xFFFF5500)
-                        : const Color(0xFF777777),
+                        ? AppColors.primaryOrange
+                        : AppColors.greyMid,
                     size: 18,
                   ),
                   if (comment.numLikes > 0)
-                    Text('${comment.numLikes}',
-                        style: const TextStyle(
-                            color: Color(0xFF777777), fontSize: 11)),
+                    Text(
+                      '${comment.numLikes}',
+                      style: const TextStyle(
+                        color: AppColors.greyMid,
+                        fontSize: 11,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -772,13 +855,16 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   // Shows "Replying to @username" bar with a dismiss X
   Widget _buildReplyIndicator() {
     return Container(
-      color: const Color(0xFF1A1A1A),
+      color: AppColors.container,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           Text(
             'Replying to @${_replyingTo!.displayName}',
-            style: const TextStyle(color: Color(0xFFFF5500), fontSize: 12),
+            style: const TextStyle(
+              color: AppColors.primaryOrange,
+              fontSize: 12,
+            ),
           ),
           const Spacer(),
           GestureDetector(
@@ -797,7 +883,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   Widget _buildMentionSuggestions() {
     return Container(
       constraints: const BoxConstraints(maxHeight: 160),
-      color: const Color(0xFF1A1A1A),
+      color: AppColors.container,
       child: ListView.builder(
         shrinkWrap: true,
         padding: EdgeInsets.zero,
@@ -807,33 +893,33 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
           return InkWell(
             onTap: () => _insertMention(user),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: const Color(0xFF2A2A2A),
-                    backgroundImage:
-                        user.avatarUrl?.isNotEmpty == true
-                            ? NetworkImage(user.avatarUrl!)
-                            : null,
+                    backgroundColor: AppColors.containerMid,
+                    backgroundImage: user.avatarUrl?.isNotEmpty == true
+                        ? NetworkImage(user.avatarUrl!)
+                        : null,
                     child: user.avatarUrl?.isNotEmpty != true
                         ? Text(
                             user.displayName.isNotEmpty
                                 ? user.displayName[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700),
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
                           )
                         : null,
                   ),
                   const SizedBox(width: 10),
-                  Text('@${user.displayName}',
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 14)),
+                  Text(
+                    '@${user.displayName}',
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
                 ],
               ),
             ),
@@ -849,27 +935,33 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: Row(
         children: _quickReplies
-            .map((text) => GestureDetector(
-                  onTap: () {
-                    _inputController.text = text;
-                    _inputController.selection = TextSelection.collapsed(
-                        offset: text.length);
-                    _focusNode.requestFocus();
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF222222),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFF333333)),
-                    ),
-                    child: Text(text,
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 13)),
+            .map(
+              (text) => GestureDetector(
+                onTap: () {
+                  _inputController.text = text;
+                  _inputController.selection = TextSelection.collapsed(
+                    offset: text.length,
+                  );
+                  _focusNode.requestFocus();
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
                   ),
-                ))
+                  decoration: BoxDecoration(
+                    color: AppColors.cardDark2,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.inputFill),
+                  ),
+                  child: Text(
+                    text,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ),
+            )
             .toList(),
       ),
     );
@@ -877,15 +969,14 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
 
   Widget _buildInputRow() {
     return Container(
-      color: const Color(0xFF111111),
+      color: AppColors.backgroundDark,
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
       child: Row(
         children: [
           const CircleAvatar(
             radius: 16,
-            backgroundColor: Color(0xFF2A2A2A),
-            child: Icon(Icons.person_rounded,
-                color: Colors.white54, size: 18),
+            backgroundColor: AppColors.containerMid,
+            child: Icon(Icons.person_rounded, color: Colors.white54, size: 18),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -899,13 +990,17 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
               decoration: InputDecoration(
                 hintText: 'Add a comment at...',
                 hintStyle: const TextStyle(
-                    color: Color(0xFF666666), fontSize: 14),
+                  color: AppColors.greyDark4,
+                  fontSize: 14,
+                ),
                 border: InputBorder.none,
                 // Dynamic timestamp: uses parent comment's timestamp when
                 // replying, otherwise live playback position.
                 suffixText: _formattedTimestamp,
                 suffixStyle: const TextStyle(
-                    color: Color(0xFF666666), fontSize: 13),
+                  color: AppColors.greyDark4,
+                  fontSize: 13,
+                ),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 6),
               ),
@@ -916,13 +1011,18 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
-                  color: Color(0xFFFF5500), strokeWidth: 2),
+                color: AppColors.primaryOrange,
+                strokeWidth: 2,
+              ),
             )
           else
             GestureDetector(
               onTap: () => _postComment(_inputController.text),
-              child: const Icon(Icons.send_rounded,
-                  color: Color(0xFFFF5500), size: 20),
+              child: const Icon(
+                Icons.send_rounded,
+                color: AppColors.primaryOrange,
+                size: 20,
+              ),
             ),
         ],
       ),
