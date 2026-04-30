@@ -82,7 +82,6 @@ class MessagingNotificationService {
     _newMessageDevicesSetting = 'everyone';
     _followedUserIds = {};
     MessagingSocketService.shared.onMessageNotifyPush = null;
-    debugPrint('[MessagingNotificationService] reset');
   }
 
   /// ChatScreen calls this with its chatId when it opens, and null when it closes.
@@ -95,10 +94,10 @@ class MessagingNotificationService {
     final lm = chat.lastMessage;
     if (lm == null) return;
 
-    // Don't notify for own messages
+    // Don't notify for own messages.
     if (lm.senderId == _currentUserId) return;
 
-    // Don't notify if the user is already looking at this chat
+    // Don't notify if the user is already looking at this chat.
     if (_activeChatId != null && _activeChatId == chat.id) return;
 
     // Respect the newMessageDevices setting.
