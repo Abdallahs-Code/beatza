@@ -8,6 +8,7 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 const _kBg = Color(0xFF111111);
 const _kSurface = Color(0xFF1C1C1C);
@@ -340,6 +341,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           : _error != null
               ? _buildError()
               : _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 

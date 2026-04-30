@@ -10,6 +10,7 @@ import '../services/feed_search_api_service.dart';
 import '../widgets/search_result_tile.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class GenreTracksScreen extends StatefulWidget {
   final String genre;
@@ -93,6 +94,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
         elevation: 0,
       ),
       body: _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 

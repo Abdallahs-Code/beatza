@@ -4,6 +4,7 @@ import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_track_tile.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final String playlistId;
@@ -223,6 +224,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       backgroundColor: AppColors.pureBlack,
       appBar: _buildAppBar(),
       body: _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
