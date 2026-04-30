@@ -367,6 +367,20 @@ class SettingsScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
                       ),
                     ),
+                    _SettingsTile(
+                      title: 'Privacy',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                      ),
+                    ),
+                    _SettingsTile(
+                      title: 'Content',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                      ),
+                    ),
                     const _SettingsTile(title: 'App Icon'),
                     const _SettingsTile(title: 'App Language'),
                     const _SettingsTile(title: 'Storage'),
