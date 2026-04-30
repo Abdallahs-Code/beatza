@@ -858,7 +858,24 @@ class _NotificationTileState extends State<_NotificationTile> {
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TrackOptionsSheet(track: track),
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        onBehindThisTrack: () => Navigator.of(
+          context,
+          rootNavigator: true,
+        ).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BehindTheTrackScreen(
+              trackId: track.id,
+              actorName: track.artistName,
+              actorAvatarUrl: track.artworkUrl ?? '',
+              actorUserId: track.artistId ?? '',
+              activityType: 'new_track',
+              trackOwnerId: track.artistId ?? '',
+            ),
+          ),
+        ),
+      ),
     );
   }
 

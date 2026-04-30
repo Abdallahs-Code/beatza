@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/activity/screens/playlist_options_sheet.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
@@ -219,6 +220,23 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     });
   }
 
+  void _openOptionsSheet() {
+    final album = _album;
+    if (album == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PlaylistOptionsSheet(
+        playlist: album,
+        isOwner: widget.isOwner,
+        onEdit: _navigateToEdit,
+        onDelete: _deleteAlbum,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,31 +266,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
         overflow: TextOverflow.ellipsis,
       ),
       actions: [
-        if (widget.isOwner && _album != null) ...[
+        if (_album != null)
           IconButton(
-            icon: const Icon(Icons.edit_outlined, color: Colors.white),
-            onPressed: _navigateToEdit,
-          ),
-          PopupMenuButton<String>(
-            color: AppColors.surfaceDark,
             icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
-              if (value == 'delete') _deleteAlbum();
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                    SizedBox(width: 8),
-                    Text('Delete album', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
+            onPressed: _openOptionsSheet,
           ),
-        ],
       ],
     );
   }

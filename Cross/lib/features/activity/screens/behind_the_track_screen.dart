@@ -9,12 +9,6 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
-import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
-import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
-import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
-import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
-import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
-import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class BehindTheTrackScreen extends StatefulWidget {
@@ -306,7 +300,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TrackOptionsSheet(track: track),
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        variant: TrackOptionsVariant.behindTrack,
+      ),
     );
     if (!mounted) return;
     _checkLikeStatus();

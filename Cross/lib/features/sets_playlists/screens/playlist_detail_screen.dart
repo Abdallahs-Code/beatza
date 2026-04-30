@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/activity/screens/playlist_options_sheet.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
@@ -294,6 +295,23 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     });
   }
 
+  void _openOptionsSheet() {
+    final playlist = _playlist;
+    if (playlist == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PlaylistOptionsSheet(
+        playlist: playlist,
+        isOwner: widget.isOwner,
+        onEdit: _navigateToEdit,
+        onDelete: _deletePlaylist,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -323,46 +341,23 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         overflow: TextOverflow.ellipsis,
       ),
       actions: [
-        if (widget.isOwner && _playlist != null) ...[
-          if (_isReordering)
-            const Padding(
-              padding: EdgeInsets.all(14),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.crusta,
-                ),
+        if (widget.isOwner && _isReordering)
+          const Padding(
+            padding: EdgeInsets.all(14),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.crusta,
               ),
             ),
+          ),
+        if (_playlist != null)
           IconButton(
-            icon: const Icon(Icons.edit_outlined, color: Colors.white),
-            onPressed: _navigateToEdit,
-          ),
-          PopupMenuButton<String>(
-            color: AppColors.surfaceDark,
             icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
-              if (value == 'delete') _deletePlaylist();
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'Delete playlist',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            onPressed: _openOptionsSheet,
           ),
-        ],
       ],
     );
   }

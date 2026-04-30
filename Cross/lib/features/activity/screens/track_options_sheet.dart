@@ -8,11 +8,41 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+
+enum TrackOptionsVariant {
+  normalTrack,
+  ownTrack,
+  behindTrack,
+  feedTrack,
+}
 
 class TrackOptionsSheet extends StatefulWidget {
   final PlaybackTrackModel track;
+  final TrackOptionsVariant variant;
 
-  const TrackOptionsSheet({super.key, required this.track});
+  /// Called when "Edit track" is tapped (ownTrack variant only).
+  final VoidCallback? onEditTrack;
+
+  /// Called when "Show me fewer posts like that" is tapped (feedTrack variant only).
+  final VoidCallback? onShowFewerPosts;
+
+  /// Called when "Switch to Classic feed" is tapped (feedTrack variant only).
+  final VoidCallback? onSwitchToClassicFeed;
+
+  /// Called when "Behind this track" is tapped. Sheet pops itself first,
+  /// then invokes this callback so the caller handles navigation.
+  final VoidCallback? onBehindThisTrack;
+
+  const TrackOptionsSheet({
+    super.key,
+    required this.track,
+    this.variant = TrackOptionsVariant.normalTrack,
+    this.onEditTrack,
+    this.onShowFewerPosts,
+    this.onSwitchToClassicFeed,
+    this.onBehindThisTrack,
+  });
 
   @override
   State<TrackOptionsSheet> createState() => _TrackOptionsSheetState();
@@ -30,13 +60,23 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       [];
   String? _trackPermalink;
 
+  bool get _hasSendTo => widget.variant != TrackOptionsVariant.feedTrack;
+  bool get _hasRepost => widget.variant != TrackOptionsVariant.ownTrack;
+  bool get _hasGoToProfile => widget.variant != TrackOptionsVariant.ownTrack;
+  bool get _hasReport => widget.variant != TrackOptionsVariant.ownTrack;
+  bool get _hasBehindThisTrack =>
+      widget.variant != TrackOptionsVariant.behindTrack;
+  bool get _hasStartStation => widget.variant != TrackOptionsVariant.feedTrack;
+  bool get _hasEditTrack => widget.variant == TrackOptionsVariant.ownTrack;
+  bool get _hasFeedOptions => widget.variant == TrackOptionsVariant.feedTrack;
+
   @override
   void initState() {
     super.initState();
     _repostCount = widget.track.numReposts;
     _checkLikeStatus();
-    _checkRepostStatus();
-    _loadSendToData();
+    if (_hasRepost) _checkRepostStatus();
+    if (_hasSendTo) _loadSendToData();
   }
 
   Future<void> _loadSendToData() async {
@@ -46,154 +86,57 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       '[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"',
     );
 
-    // ── Step 1: get current user id ─────────────────────────────────────────
-    debugPrint('[SendTo] STEP 1 — reading currentUserId from secure storage');
     final currentUserId = await AuthApiService().getStoredUserId();
     debugPrint(
-      '[SendTo] STEP 1 result → currentUserId="$currentUserId" (isNull=${currentUserId == null}, isEmpty=${currentUserId?.isEmpty})',
+      '[SendTo] STEP 1 result → currentUserId="$currentUserId"',
     );
     if (currentUserId == null || currentUserId.isEmpty) {
-      debugPrint(
-        '[SendTo] STEP 1 ❌ ABORTED — no currentUserId. Send To section will NOT show.',
-      );
+      debugPrint('[SendTo] STEP 1 ❌ ABORTED — no currentUserId.');
       return;
     }
-    debugPrint('[SendTo] STEP 1 ✅ currentUserId OK');
 
-    // ── Step 2: resolve permalink and artistId ──────────────────────────────
-    debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
-    debugPrint(
-      '[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"',
-    );
     final permalink = widget.track.permalink?.isNotEmpty == true
         ? widget.track.permalink
         : null;
     final artistId = widget.track.artistId ?? '';
-    debugPrint('[SendTo] STEP 2 ✅ permalink="$permalink" artistId="$artistId"');
 
-    // ── Step 3: fetch track owner's profileLink ──────────────────────────────
-    debugPrint(
-      '[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"',
-    );
     String profileLink = '';
     if (artistId.isNotEmpty) {
       try {
         profileLink =
             await MessagingApiService().getUserProfileLink(userId: artistId) ??
             '';
-        debugPrint(
-          '[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})',
-        );
-        if (profileLink.isEmpty) {
-          debugPrint(
-            '[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"',
-          );
-        }
       } catch (e) {
         debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
       }
-    } else {
-      debugPrint(
-        '[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.',
-      );
     }
 
-    // Build payload in new format — used in all setState calls below
     String buildPayload() {
       if (permalink == null || permalink.isEmpty) return '';
       return 'track::permalink:"$permalink",profilelink:"$profileLink"';
     }
 
-    // ── Step 4: get followers ────────────────────────────────────────────────
-    debugPrint(
-      '[SendTo] STEP 4 — calling SocialApiService().getFollowers(userId=$currentUserId)',
-    );
-    debugPrint(
-      '[SendTo] STEP 4   URL will be: [baseUrl]/api/public/social/v1/followers/$currentUserId',
-    );
     try {
       final result = await SocialApiService().getFollowers(
         userId: currentUserId,
       );
-      debugPrint(
-        '[SendTo] STEP 4 result → status=${result.$1}  dataType=${result.$2.runtimeType}',
-      );
 
       if (result.$1 != 200) {
-        debugPrint(
-          '[SendTo] STEP 4 ❌ Non-200 status=${result.$1}. data="${result.$2}". Send To will NOT show.',
-        );
         if (mounted) setState(() => _trackPermalink = buildPayload());
         return;
       }
-      debugPrint('[SendTo] STEP 3 ✅ status 200');
 
-      // ── Step 4: inspect raw list returned by getFollowers ─────────────────
-      debugPrint('[SendTo] STEP 4 — inspecting raw result.second');
       final rawList = result.$2;
-      debugPrint(
-        '[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}',
-      );
-      debugPrint('[SendTo] STEP 4   rawList is List? ${rawList is List}');
-      if (rawList is List) {
-        debugPrint('[SendTo] STEP 4   rawList.length=${rawList.length}');
-        for (var i = 0; i < rawList.length; i++) {
-          final item = rawList[i];
-          debugPrint(
-            '[SendTo] STEP 4   item[$i] runtimeType=${item.runtimeType} value=$item',
-          );
-        }
-      } else {
-        debugPrint(
-          '[SendTo] STEP 4 ❌ rawList is NOT a List — this is why followers are empty. Actual type: ${rawList.runtimeType}, value: $rawList',
-        );
-      }
-
-      // ── Step 5: cast to List<Follower> ────────────────────────────────────
-      debugPrint(
-        '[SendTo] STEP 5 — casting items to Follower via whereType<Follower>()',
-      );
       List<Follower> followers = [];
       if (rawList is List) {
         followers = rawList.whereType<Follower>().toList();
-        debugPrint(
-          '[SendTo] STEP 5   rawList.length=${rawList.length}  followers after whereType=${followers.length}',
-        );
-        if (rawList.isNotEmpty && followers.isEmpty) {
-          debugPrint(
-            '[SendTo] STEP 5 ❌ whereType<Follower>() filtered out ALL items. Items are ${rawList.first.runtimeType}, not Follower.',
-          );
-        }
-        for (final f in followers) {
-          debugPrint(
-            '[SendTo] STEP 5   Follower → userId="${f.userId}" displayName="${f.displayName}" profileImgLink="${f.profileImgLink}"',
-          );
-        }
       }
-      debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
 
-      // ── Step 6: filter out empty userIds ──────────────────────────────────
-      debugPrint('[SendTo] STEP 6 — filtering followers with empty userId');
       final validFollowers = followers
           .where((f) => f.userId.isNotEmpty)
           .toList();
-      debugPrint(
-        '[SendTo] STEP 6   before filter=${followers.length}  after filter=${validFollowers.length}',
-      );
-      for (final f in validFollowers) {
-        debugPrint(
-          '[SendTo] STEP 6   valid → userId="${f.userId}" name="${f.displayName}"',
-        );
-      }
 
-      // ── Step 7: setState ───────────────────────────────────────────────────
-      debugPrint('[SendTo] STEP 7 — about to call setState. mounted=$mounted');
-      if (!mounted) {
-        debugPrint(
-          '[SendTo] STEP 7 ❌ widget unmounted before setState — contacts will NOT be set',
-        );
-        return;
-      }
+      if (!mounted) return;
       final contacts = validFollowers
           .take(6)
           .map(
@@ -204,20 +147,15 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
             ),
           )
           .toList();
-      debugPrint('[SendTo] STEP 7   contacts to set: ${contacts.length}');
       setState(() {
         _recentContacts = contacts;
         _trackPermalink = buildPayload();
       });
       debugPrint(
-        '[SendTo] STEP 7 ✅ setState done. _recentContacts.length=${_recentContacts.length}',
-      );
-      debugPrint(
-        '[SendTo] STEP 7   Send To section WILL show: ${_recentContacts.isNotEmpty}',
+        '[SendTo] ✅ contacts=${_recentContacts.length}',
       );
     } catch (e, stack) {
-      debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
-      debugPrint('[SendTo] STEP 3   stack: $stack');
+      debugPrint('[SendTo] ❌ EXCEPTION: $e\n$stack');
       if (mounted) setState(() => _trackPermalink = buildPayload());
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -347,12 +285,27 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     );
   }
 
+  void _playNext() {
+    PlaybackStreamingEngineService.shared.addToQueueNext(widget.track);
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _playLast() {
+    PlaybackStreamingEngineService.shared.addToQueueLast(widget.track);
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _behindThisTrack() {
+    Navigator.of(context, rootNavigator: true).pop();
+    widget.onBehindThisTrack?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.backgroundDeepest,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: SafeArea(
         top: false,
@@ -378,7 +331,9 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   child: _TrackHeaderCard(track: widget.track),
                 ),
                 const SizedBox(height: 22),
-                if (_recentContacts.isNotEmpty) ...[
+
+                // ── Send To ──────────────────────────────────────────────────
+                if (_hasSendTo && _recentContacts.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
@@ -414,6 +369,8 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   const SizedBox(height: 18),
                   const Divider(color: Colors.white12, height: 1),
                 ],
+
+                // ── Share ────────────────────────────────────────────────────
                 const SizedBox(height: 18),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
@@ -464,6 +421,8 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                 const SizedBox(height: 18),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
+
+                // ── Group 1: playback + management ───────────────────────────
                 _OptionTile(
                   icon: _isLiked
                       ? Icons.favorite_rounded
@@ -472,52 +431,93 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   color: _isLiked ? Colors.orange : Colors.white,
                   onTap: _toggleLike,
                 ),
-                const _OptionTile(
+                if (_hasEditTrack)
+                  _OptionTile(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit track',
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      widget.onEditTrack?.call();
+                    },
+                  ),
+                _OptionTile(
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
+                  onTap: _playNext,
                 ),
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.format_list_bulleted_rounded,
                   label: 'Play last',
+                  onTap: _playLast,
                 ),
                 const _OptionTile(
                   icon: Icons.playlist_add_outlined,
                   label: 'Add to playlist',
                 ),
-                const _OptionTile(
-                  icon: Icons.radio_outlined,
-                  label: 'Start station',
-                ),
+                if (_hasStartStation)
+                  const _OptionTile(
+                    icon: Icons.radio_outlined,
+                    label: 'Start station',
+                  ),
                 const SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
-                _OptionTile(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Go to profile',
-                  onTap: _goToProfile,
-                ),
+
+                // ── Group 2: social ──────────────────────────────────────────
+                if (_hasGoToProfile)
+                  _OptionTile(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Go to profile',
+                    onTap: _goToProfile,
+                  ),
                 _OptionTile(
                   icon: Icons.mode_comment_outlined,
                   label: 'View comments',
                   onTap: _viewComments,
                 ),
-                _OptionTile(
-                  icon: Icons.repeat_rounded,
-                  label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                  color: _isReposted ? Colors.orange : Colors.white,
-                  onTap: _openRepost,
-                ),
+                if (_hasRepost)
+                  _OptionTile(
+                    icon: Icons.repeat_rounded,
+                    label: _isReposted ? 'Reposted' : 'Repost on Beatza',
+                    color: _isReposted ? Colors.orange : Colors.white,
+                    onTap: _openRepost,
+                  ),
+
+                // ── Feed-specific ────────────────────────────────────────────
+                if (_hasFeedOptions) ...[
+                  const SizedBox(height: 10),
+                  const Divider(color: Colors.white12, height: 1),
+                  const SizedBox(height: 10),
+                  _OptionTile(
+                    icon: Icons.thumb_down_outlined,
+                    label: 'Show me fewer posts like that',
+                    onTap: widget.onShowFewerPosts,
+                  ),
+                  _OptionTile(
+                    icon: Icons.view_list_outlined,
+                    label: 'Switch to Classic feed',
+                    onTap: widget.onSwitchToClassicFeed,
+                  ),
+                ],
+
                 const SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
-                const _OptionTile(
-                  icon: Icons.graphic_eq,
-                  label: 'Behind this track',
-                ),
-                const _OptionTile(
-                  icon: Icons.outlined_flag_rounded,
-                  label: 'Report',
-                ),
+
+                // ── Group 3: discovery + moderation ─────────────────────────
+                if (_hasBehindThisTrack)
+                  _OptionTile(
+                    icon: Icons.graphic_eq,
+                    label: 'Behind this track',
+                    onTap: widget.onBehindThisTrack != null
+                        ? _behindThisTrack
+                        : null,
+                  ),
+                if (_hasReport)
+                  const _OptionTile(
+                    icon: Icons.outlined_flag_rounded,
+                    label: 'Report',
+                  ),
               ],
             ),
           ),
@@ -579,8 +579,7 @@ class _TrackHeaderCard extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child:
-                          track.artworkUrl != null &&
+                      child: track.artworkUrl != null &&
                               track.artworkUrl!.trim().isNotEmpty
                           ? Image.network(
                               track.artworkUrl!,

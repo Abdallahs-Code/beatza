@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
+import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/audio_upload_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
@@ -565,122 +567,50 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   }
 
   void _trackOptions(BuildContext ctx, Track track) {
-    showModalBottomSheet(
+    final playbackTrack = PlaybackTrackModel(
+      id: track.id,
+      title: track.title,
+      artistName: track.displayArtist,
+      audioUrl: '',
+      artworkUrl: track.imageUrl,
+    );
+    showModalBottomSheet<void>(
       context: ctx,
-      backgroundColor: AppColors.backgroundDark2,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 8),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[700],
-                borderRadius: BorderRadius.circular(2),
-              ),
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TrackOptionsSheet(
+        track: playbackTrack,
+        variant: TrackOptionsVariant.ownTrack,
+        onEditTrack: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const UploadTrackScreen(),
+              settings: RouteSettings(arguments: track),
             ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined, color: Colors.white),
-              title: const Text(
-                'Update track',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () async {
-                Navigator.pop(ctx);
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const UploadTrackScreen(),
-                    settings: RouteSettings(arguments: track),
-                  ),
-                );
-                if (mounted) _loadServerTracks();
-              },
+          );
+          if (mounted) _loadServerTracks();
+        },
+        onBehindThisTrack: () => Navigator.of(
+          ctx,
+          rootNavigator: true,
+        ).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BehindTheTrackScreen(
+              trackId: track.id,
+              actorName: track.displayArtist,
+              actorAvatarUrl: track.imageUrl ?? '',
+              actorUserId: '',
+              activityType: 'new_track',
+              trackOwnerId: '',
             ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text(
-                'Delete track',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _deleteTrack(track);
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Future<void> _deleteTrack(Track track) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.container,
-        title: const Text(
-          'Delete track',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Delete "${track.title}"? This cannot be undone.',
-          style: const TextStyle(color: Colors.grey),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    final removed = track;
-    final removedIdx = _serverTracks.indexWhere((t) => t.id == track.id);
-    setState(() => _serverTracks.removeWhere((t) => t.id == track.id));
-
-    final result = await _apiService.deleteTrack(trackId: track.id);
-
-    if (!mounted) return;
-
-    if (result.$1 != 200) {
-      setState(() {
-        if (removedIdx >= 0 && removedIdx <= _serverTracks.length) {
-          _serverTracks.insert(removedIdx, removed);
-        } else {
-          _serverTracks.add(removed);
-        }
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.$2.toString()),
-          backgroundColor: Colors.red[800],
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Track deleted'),
-          backgroundColor: AppColors.containerMid,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      _loadServerTracks();
-    }
-  }
 
   String _fmt(int n) {
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';

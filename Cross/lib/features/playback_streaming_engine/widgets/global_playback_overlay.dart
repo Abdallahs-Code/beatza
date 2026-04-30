@@ -29,6 +29,7 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import '../services/public_tracks_paging_service.dart';
 import '../mini_player_state.dart';
 
@@ -1763,12 +1764,43 @@ Future<void> _showTrackOptionsSheet(
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;
 
+  final currentUserId = await AuthApiService().getStoredUserId();
+  final isOwnTrack = currentUserId != null &&
+      currentUserId.isNotEmpty &&
+      track.artistId != null &&
+      track.artistId == currentUserId;
+
+  // ignore: use_build_context_synchronously
+  final BuildContext? freshContext = appNavigatorKey.currentContext;
+  if (freshContext == null) return;
+
   await showModalBottomSheet<void>(
-    context: navigatorContext,
+    context: freshContext,
     useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _TrackOptionsSheetContent(track: track),
+    builder: (_) => TrackOptionsSheet(
+      track: track,
+      variant: isOwnTrack
+          ? TrackOptionsVariant.ownTrack
+          : TrackOptionsVariant.normalTrack,
+      onBehindThisTrack: () {
+        final navCtx = appNavigatorKey.currentContext;
+        if (navCtx == null) return;
+        Navigator.of(navCtx, rootNavigator: true).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BehindTheTrackScreen(
+              trackId: track.id,
+              actorName: track.artistName,
+              actorAvatarUrl: track.artworkUrl ?? '',
+              actorUserId: track.artistId ?? '',
+              activityType: 'new_track',
+              trackOwnerId: track.artistId ?? '',
+            ),
+          ),
+        );
+      },
+    ),
   );
 }
 
