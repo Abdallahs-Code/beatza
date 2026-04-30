@@ -30,6 +30,7 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_she
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import '../services/public_tracks_paging_service.dart';
+import '../mini_player_state.dart';
 
 // Tracks whether the expanded player is currently open so the mini player hides
 final ValueNotifier<bool> _isExpandedPlayerVisible = ValueNotifier<bool>(false);
@@ -109,6 +110,15 @@ class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
                       overlayVisibility.isPopupRouteVisible ||
                       !overlayVisibility.shouldShowMiniPlayerOnCurrentRoute ||
                       _isTransientSheetOpening.value;
+
+                  final double targetHeight = shouldHideMiniPlayer
+                      ? 0.0
+                      : kMiniPlayerTotalHeight;
+                  if (miniPlayerHeightNotifier.value != targetHeight) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      miniPlayerHeightNotifier.value = targetHeight;
+                    });
+                  }
 
                   if (shouldHideMiniPlayer) {
                     return const SizedBox.shrink();
