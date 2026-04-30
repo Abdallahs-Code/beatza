@@ -69,85 +69,119 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   void initState() {
     super.initState();
     _repostCount = widget.track.numReposts;
+    // Pre-populate _trackPermalink synchronously before the first build so the
+    // Message button always has a non-empty link even if the user taps it
+    // immediately before the async network calls in _loadSendToData finish.
+    final rawPermalink = widget.track.permalink?.trim();
+    if (rawPermalink != null && rawPermalink.isNotEmpty) {
+      _trackPermalink = 'track::permalink:"$rawPermalink",profilelink:""';
+    }
     _checkLikeStatus();
     if (_hasRepost) _checkRepostStatus();
-    if (_hasSendTo) _loadSendToData();
+    _loadSendToData();
   }
 
   Future<void> _loadSendToData() async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('[SendTo] STEP 0 — _loadSendToData() called');
-    debugPrint(
-      '[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"',
-    );
+    debugPrint('[SendTo] START variant=${widget.variant.name}');
+    debugPrint('[SendTo] track.id="${widget.track.id}"  track.title="${widget.track.title}"');
+    debugPrint('[SendTo] track.permalink="${widget.track.permalink}"  track.artistId="${widget.track.artistId}"');
 
+    final permalink = widget.track.permalink?.trim();
+    final artistId = widget.track.artistId ?? '';
+    debugPrint('[SendTo] permalink="$permalink"  artistId="$artistId"');
+
+    if (permalink == null || permalink.isEmpty) {
+      debugPrint('[SendTo] ⚠️ permalink is null/empty — _trackPermalink stays null, Message will send blank link');
+    }
+
+    // ── STEP 1: current user ─────────────────────────────────────────────────
     final currentUserId = await AuthApiService().getStoredUserId();
-    debugPrint('[SendTo] STEP 1 result → currentUserId="$currentUserId"');
+    debugPrint('[SendTo] S1 currentUserId="$currentUserId"  isNull=${currentUserId == null}  isEmpty=${currentUserId?.isEmpty}');
     if (currentUserId == null || currentUserId.isEmpty) {
-      debugPrint('[SendTo] STEP 1 ❌ ABORTED — no currentUserId.');
+      debugPrint('[SendTo] S1 ❌ not logged in — skipping followers & profileLink');
       return;
     }
 
-    final permalink = widget.track.permalink?.isNotEmpty == true
-        ? widget.track.permalink
-        : null;
-    final artistId = widget.track.artistId ?? '';
-
+    // ── STEP 2: profileLink (needed for full attach-in-chat format) ──────────
     String profileLink = '';
     if (artistId.isNotEmpty) {
       try {
         profileLink =
-            await MessagingApiService().getUserProfileLink(userId: artistId) ??
-            '';
+            await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+        debugPrint('[SendTo] S2 profileLink="$profileLink"  empty=${profileLink.isEmpty}');
       } catch (e) {
-        debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
+        debugPrint('[SendTo] S2 ❌ getUserProfileLink threw: $e');
       }
+    } else {
+      debugPrint('[SendTo] S2 ⚠️ artistId empty — skipping profileLink fetch');
     }
 
-    String buildPayload() {
-      if (permalink == null || permalink.isEmpty) return '';
-      return 'track::permalink:"$permalink",profilelink:"$profileLink"';
+    // Update _trackPermalink now that we have the profileLink
+    if (permalink != null && permalink.isNotEmpty && mounted) {
+      final fullPayload = 'track::permalink:"$permalink",profilelink:"$profileLink"';
+      setState(() => _trackPermalink = fullPayload);
+      debugPrint('[SendTo] S2 updated _trackPermalink="$fullPayload"');
     }
 
+    // ── STEP 3: fetch followers for Send To quick-access section ─────────────
+    debugPrint('[SendTo] S3 calling getFollowers(userId=$currentUserId)');
     try {
-      final result = await SocialApiService().getFollowers(
-        userId: currentUserId,
-      );
+      final result = await SocialApiService().getFollowers(userId: currentUserId);
+      debugPrint('[SendTo] S3 status=${result.$1}  dataType=${result.$2.runtimeType}');
 
       if (result.$1 != 200) {
-        if (mounted) setState(() => _trackPermalink = buildPayload());
+        debugPrint('[SendTo] S3 ❌ non-200 — no contacts to show');
         return;
       }
 
+      // ── STEP 4: cast list ──────────────────────────────────────────────────
       final rawList = result.$2;
-      List<Follower> followers = [];
+      debugPrint('[SendTo] S4 rawList.runtimeType=${rawList.runtimeType}  isList=${rawList is List}');
       if (rawList is List) {
-        followers = rawList.whereType<Follower>().toList();
+        debugPrint('[SendTo] S4 rawList.length=${rawList.length}');
+        if (rawList.isNotEmpty) {
+          debugPrint('[SendTo] S4 first element runtimeType=${rawList.first.runtimeType}');
+        }
       }
 
-      final validFollowers = followers
-          .where((f) => f.userId.isNotEmpty)
-          .toList();
+      List<Follower> followers = [];
+      try {
+        followers = rawList is List ? List<Follower>.from(rawList) : [];
+        debugPrint('[SendTo] S4 cast succeeded  followers.length=${followers.length}');
+      } catch (castErr) {
+        debugPrint('[SendTo] S4 ❌ List<Follower>.from() threw: $castErr');
+        if (rawList is List) {
+          for (final item in rawList) {
+            debugPrint('[SendTo] S4 fallback inspect item: type=${item.runtimeType}  value=$item');
+          }
+        }
+      }
 
-      if (!mounted) return;
-      final contacts = validFollowers
-          .take(6)
-          .map(
-            (f) => (
-              receiverId: f.userId,
-              name: f.displayName,
-              photoUrl: f.profileImgLink ?? '',
-            ),
-          )
-          .toList();
+      // ── STEP 5: filter & build contacts ───────────────────────────────────
+      final validFollowers = followers.where((f) => f.userId.isNotEmpty).toList();
+      debugPrint('[SendTo] S5 validFollowers.length=${validFollowers.length}  (before=${followers.length})');
+      for (final f in validFollowers.take(3)) {
+        debugPrint('[SendTo] S5 sample: userId="${f.userId}"  name="${f.displayName}"  photo="${f.profileImgLink}"');
+      }
+
+      if (!mounted) {
+        debugPrint('[SendTo] S5 ❌ widget unmounted — skipping setState');
+        return;
+      }
+
       setState(() {
-        _recentContacts = contacts;
-        _trackPermalink = buildPayload();
+        _recentContacts = validFollowers
+            .take(6)
+            .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
+            .toList();
       });
-      debugPrint('[SendTo] ✅ contacts=${_recentContacts.length}');
+      debugPrint('[SendTo] S6 ✅ _recentContacts=${_recentContacts.length}');
+      debugPrint('[SendTo] S6 Send To section will show: ${_hasSendTo && _recentContacts.isNotEmpty}  (hasSendTo=$_hasSendTo)');
+
     } catch (e, stack) {
-      debugPrint('[SendTo] ❌ EXCEPTION: $e\n$stack');
-      if (mounted) setState(() => _trackPermalink = buildPayload());
+      debugPrint('[SendTo] ❌ EXCEPTION: $e');
+      debugPrint('[SendTo] stack: $stack');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
@@ -226,6 +260,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
   void _openSendToSheet() {
     final link = _trackPermalink ?? '';
+    debugPrint('[SendTo] Message tapped — link="$link"  isEmpty=${link.isEmpty}');
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -238,6 +273,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
   void _sendToContact(String receiverId, String name, String photoUrl) {
     final link = _trackPermalink ?? '';
+    debugPrint('[SendTo] contact tapped — receiverId="$receiverId"  link="$link"');
     Navigator.of(context, rootNavigator: true).pop();
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(

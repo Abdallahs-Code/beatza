@@ -32,6 +32,7 @@ class FeedCard extends StatefulWidget {
   final String displayName;
   final String actorName;
   final String actorId;
+  final String? permalink;
   final bool isFollowing;
   final int likeCount;
   final int commentCount;
@@ -50,6 +51,7 @@ class FeedCard extends StatefulWidget {
     required this.displayName,
     required this.actorName,
     required this.actorId,
+    this.permalink,
     required this.isFollowing,
     required this.likeCount,
     required this.commentCount,
@@ -206,6 +208,7 @@ class _FeedCardState extends State<FeedCard> {
   // ── Track options sheet — feed variant ────────────────────────────────────
 
   void _openOptions(BuildContext context) {
+    debugPrint('[FeedCard._openOptions] itemId="${widget.itemId}"  permalink="${widget.permalink}"  actorId="${widget.actorId}"');
     final track = PlaybackTrackModel(
       id: widget.itemId,
       title: widget.displayName,
@@ -213,6 +216,7 @@ class _FeedCardState extends State<FeedCard> {
       audioUrl: widget.audioUrl,
       artworkUrl: widget.imgLink,
       artistId: widget.actorId.isNotEmpty ? widget.actorId : null,
+      permalink: widget.permalink,
     );
     showModalBottomSheet<void>(
       context: context,
