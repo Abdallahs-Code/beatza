@@ -121,7 +121,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (userId == null || userId.trim().isEmpty) return;
       if (!context.mounted) return;
       await ProfileNavigator.push(context, userId);
-      if (mounted) setState(() => _profileFuture = _loadUserProfile());
+      if (mounted) setState(() { _profileFuture = _loadUserProfile(); });
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
