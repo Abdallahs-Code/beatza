@@ -9,6 +9,7 @@ import 'package:cross_team5/features/messaging_track_sharing/services/messaging_
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_socket_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
@@ -589,17 +590,16 @@ class _ChatScreenState extends State<ChatScreen> {
         body: Column(
           children: [
             Expanded(child: _buildBody()),
-            Builder(
-              builder: (ctx) {
-                debugPrint(
-                  '[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId',
-                );
-                if (_isReceiverBlocked) return _buildBlockBanner();
-                if (_isBlockedByReceiver)
-                  return _buildBlockedByReceiverBanner();
-                return _buildInputBar();
-              },
-            ),
+            Builder(builder: (ctx) {
+              debugPrint('[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId');
+              if (_isReceiverBlocked) return _buildBlockBanner();
+              if (_isBlockedByReceiver) return _buildBlockedByReceiverBanner();
+              return ValueListenableBuilder<double>(
+                valueListenable: miniPlayerHeightNotifier,
+                builder: (ctx, miniPlayerH, _) =>
+                    _buildInputBar(extraBottomPadding: miniPlayerH),
+              );
+            }),
           ],
         ),
       ),
@@ -883,14 +883,14 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildInputBar() {
+  Widget _buildInputBar({double extraBottomPadding = 0.0}) {
     return Container(
       color: const Color(0xFF161616),
       padding: EdgeInsets.only(
         left: 12,
         right: 12,
         top: 10,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+        bottom: MediaQuery.of(context).viewInsets.bottom + extraBottomPadding + 10,
       ),
       child: Row(
         children: [
