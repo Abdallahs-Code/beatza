@@ -14,6 +14,7 @@ import 'package:cross_team5/features/sets_playlists/screens/playlist_detail_scre
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_card.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/create_playlist_sheet.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class MyPlaylistsScreen extends StatefulWidget {
   const MyPlaylistsScreen({super.key});
@@ -243,6 +244,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
