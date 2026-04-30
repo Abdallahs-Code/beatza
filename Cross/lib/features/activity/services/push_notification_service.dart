@@ -13,13 +13,11 @@ import 'package:http/http.dart' as http;
 
 // ─── Top-level helpers (must be accessible from background isolate) ───────────
 
-// The Socket.io service passes the notification object directly as a Map.
-// FCM data values are all strings, so the backend either:
-//   (A) JSON-encodes the whole notification under one key, or
-//   (B) flattens the top-level fields as strings with actor/target JSON-encoded.
-// We try (A) first with the most likely key names, then fall back to (B).
+// Parses an FCM data map into an ActivityNotificationModel.
+// The backend sends actor/target as nested Maps with read as a bool.
+// Pattern A is kept as a fallback in case the format ever changes.
 ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
-  // (A) — full JSON string under a single key
+  // (A) — full notification JSON encoded as a string under a single key
   for (final key in ['notification', 'payload', 'data']) {
     try {
       final raw = data[key];
@@ -31,19 +29,22 @@ ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
     } catch (_) {}
   }
 
-  // (B) — flattened fields; actor/target are JSON-encoded strings
-  // (FCM delivers all data values as strings, so this is the common path)
-  try {
-    final actorRaw = data['actor'];
-    final targetRaw = data['target'];
-    if (actorRaw is String && targetRaw is String) {
+  // (B) — actor/target as nested Maps (actual backend format).
+  //   Also handles the legacy case where they arrive as JSON-encoded strings.
+  if (data.containsKey('actor') || data.containsKey('activityType')) {
+    try {
       final merged = Map<String, dynamic>.from(data);
-      merged['actor'] = jsonDecode(actorRaw);
-      merged['target'] = jsonDecode(targetRaw);
-      merged['read'] = data['read'] == 'true';
+      final actorRaw = merged['actor'];
+      final targetRaw = merged['target'];
+      if (actorRaw is String) merged['actor'] = jsonDecode(actorRaw);
+      if (targetRaw is String) merged['target'] = jsonDecode(targetRaw);
+      // read may arrive as bool or as the string "true"/"false"
+      if (merged['read'] is String) {
+        merged['read'] = merged['read'] == 'true';
+      }
       return ActivityNotificationModel.fromJson(merged);
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
   return null;
 }
