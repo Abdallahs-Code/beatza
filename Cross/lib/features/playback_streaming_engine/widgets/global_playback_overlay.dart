@@ -1588,7 +1588,7 @@ Future<void> _showShareSheet(
       isScrollControlled: true,
       builder: (sheetContext) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.backgroundDeepest,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
@@ -2617,7 +2617,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.backgroundDeepest,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
@@ -3251,7 +3251,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
 
     return Container(
       height: maxHeight,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.homeBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

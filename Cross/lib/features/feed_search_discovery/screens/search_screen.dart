@@ -393,12 +393,12 @@ class _SearchScreenState extends State<SearchScreen>
           else if (hasSuggestions)
             ..._suggestions.map(
               (s) => ListTile(
-                leading: const Icon(Icons.search, color: AppColors.white54),
+                leading: Icon(Icons.search, color: AppColors.white54),
                 title: Text(
                   s.title,
                   style: const TextStyle(color: Colors.white),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.north_west,
                   color: AppColors.white54,
                   size: 16,
@@ -528,7 +528,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   Widget _buildResultList(List<SearchResultItem> items) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No results', style: TextStyle(color: AppColors.white54)),
       );
     }

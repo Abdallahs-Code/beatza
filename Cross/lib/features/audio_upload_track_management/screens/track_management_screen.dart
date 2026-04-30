@@ -218,7 +218,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Track deleted'),
           backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
@@ -361,13 +361,13 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                         const SizedBox(width: 4),
                         Text(
                           track.isPrivate ? 'Private' : 'Public',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.greyMedium,
                             fontSize: 12,
                           ),
                         ),
                         if (track.numPlays > 0) ...[
-                          const Text(
+                          Text(
                             ' · ',
                             style: TextStyle(
                               color: AppColors.greyMedium,
@@ -376,7 +376,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                           ),
                           Text(
                             '${_fmt(track.numPlays)} plays',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.greyMedium,
                               fontSize: 12,
                             ),
@@ -409,17 +409,14 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                     ),
                   Text(
                     track.isPrivate ? 'Private' : 'Public',
-                    style: const TextStyle(
-                      color: AppColors.greyMedium,
-                      fontSize: 10,
-                    ),
+                    style: TextStyle(color: AppColors.greyMedium, fontSize: 10),
                   ),
                 ],
               ),
 
               // More options
               PopupMenuButton<String>(
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert,
                   color: AppColors.greyMedium,
                   size: 20,

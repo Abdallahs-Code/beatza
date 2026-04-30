@@ -289,9 +289,9 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: AppColors.anger, size: 42),
+              Icon(Icons.error_outline, color: AppColors.anger, size: 42),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Failed to load playback tracks',
                 style: TextStyle(
                   color: AppColors.whiteSmoke,
@@ -303,7 +303,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
               Text(
                 _loadTracksError!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.white60, height: 1.45),
+                style: TextStyle(color: AppColors.white60, height: 1.45),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -359,7 +359,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
                     usePlayBackApiMode
                         ? 'Tap any track below to test the engine in API mode'
                         : 'Tap any track below to test the engine in mock mode',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -405,7 +405,7 @@ class _ScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -451,7 +451,7 @@ class _ModeCard extends StatelessWidget {
               usePlayBackApiMode
                   ? 'Current mode: API mode\nTrack ID: $playbackApiTestTrackId'
                   : 'Current mode: Mock mode\nToggle usePlayBackApiMode to switch.',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.whiteSmoke,
                 fontSize: 14,
                 height: 1.45,
@@ -507,7 +507,7 @@ class _InstructionsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Manual test checklist',
             style: TextStyle(
               color: AppColors.whiteSmoke,
@@ -519,7 +519,7 @@ class _InstructionsCard extends StatelessWidget {
           for (int index = 0; index < steps.length; index++) ...[
             Text(
               steps[index],
-              style: const TextStyle(color: AppColors.white60, height: 1.5),
+              style: TextStyle(color: AppColors.white60, height: 1.5),
             ),
             if (index != steps.length - 1) const SizedBox(height: 8),
           ],
@@ -545,7 +545,7 @@ class _LocalFileCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

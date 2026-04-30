@@ -301,7 +301,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.lock_outline, color: AppColors.crusta, size: 20),
+          Icon(Icons.lock_outline, color: AppColors.crusta, size: 20),
           const SizedBox(width: 12),
           const Expanded(
             child: Text(

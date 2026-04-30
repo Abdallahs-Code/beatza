@@ -1017,11 +1017,7 @@ class _NotificationTileState extends State<_NotificationTile> {
   Widget _descriptionText() {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(
-          color: AppColors.greyIcon,
-          fontSize: 14,
-          height: 1.4,
-        ),
+        style: TextStyle(color: AppColors.greyIcon, fontSize: 14, height: 1.4),
         children: _descSpans(),
       ),
     );

@@ -102,7 +102,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     children: [
                       Text(
                         _error!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.white60,
                           fontSize: 14,
                         ),
@@ -179,14 +179,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_new,
                   color: AppColors.whiteSmoke,
                   size: 20,
                 ),
               ),
             ),
-            const Center(
+            Center(
               child: Text(
                 'Account',
                 style: TextStyle(
@@ -205,7 +205,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Widget _buildSectionLabel(String label) {
     return Text(
       label.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         color: AppColors.white60,
         fontSize: 12,
         fontWeight: FontWeight.w600,
@@ -224,7 +224,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  Widget _divider() => const Divider(
+  Widget _divider() => Divider(
     height: 1,
     color: AppColors.containerMid,
     indent: 16,
@@ -242,13 +242,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            const Icon(Icons.cake_outlined, color: AppColors.white60, size: 20),
+            Icon(Icons.cake_outlined, color: AppColors.white60, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Date of Birth',
                     style: TextStyle(color: AppColors.white60, fontSize: 12),
                   ),
@@ -266,7 +266,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
+            Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
           ],
         ),
       ),
@@ -281,17 +281,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            const Icon(
-              Icons.person_outline,
-              color: AppColors.white60,
-              size: 20,
-            ),
+            Icon(Icons.person_outline, color: AppColors.white60, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Gender',
                     style: TextStyle(color: AppColors.white60, fontSize: 12),
                   ),
@@ -309,7 +305,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
+            Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
           ],
         ),
       ),
@@ -337,14 +333,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Theme',
                     style: TextStyle(color: AppColors.white60, fontSize: 12),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     theme,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
@@ -353,7 +349,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
+            Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
           ],
         ),
       ),
@@ -478,17 +474,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 isExpanded: true,
                 dropdownColor: AppColors.surfaceMid,
                 style: const TextStyle(color: Colors.white, fontSize: 15),
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.white60,
-                ),
+                icon: Icon(Icons.keyboard_arrow_down, color: AppColors.white60),
                 decoration: dropdownDecoration,
                 hint: Text(
                   hint,
-                  style: const TextStyle(
-                    color: AppColors.white60,
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(color: AppColors.white60, fontSize: 15),
                 ),
                 items: items,
                 selectedItemBuilder: (_) => items
@@ -521,7 +511,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Date of Birth',
                     style: TextStyle(
                       color: AppColors.whiteSmoke,
@@ -658,7 +648,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                   child: Text(
                     'Theme',
@@ -728,7 +718,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                   child: Text(
                     'Select Gender',

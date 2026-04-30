@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart'; // ← NEW
+
+// Your existing imports
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/ad_overlay.dart';
@@ -11,6 +14,8 @@ import 'package:cross_team5/routes/app_router.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/core/widgets/global_connectivity_overlay.dart';
 import 'core/services/connectivity_service.dart';
+import 'core/services/theme_service.dart'; // ← NEW
+import 'core/theme/app_colors.dart';        // ← NEW
 import 'features/activity/services/push_notification_service.dart';
 import 'features/premium_subscription/services/offline_download_service.dart';
 import 'features/premium_subscription/services/payment_service.dart';
@@ -36,7 +41,28 @@ void main() async {
   await OfflineDownloadService.shared.loadDownloadedTracks();
   await PushNotificationService.shared.initialize();
 
-  runApp(const MyApp());
+  // ── Initialize ThemeService & Sync AppColors ─────────────────────────────
+  final themeService = ThemeService();
+  await themeService.init();
+
+  // Sync AppColors brightness with saved theme
+  AppColors.setThemeBrightness(
+    themeService.isDarkMode ? Brightness.dark : Brightness.light,
+  );
+
+  // Listen for future theme toggles
+  themeService.addListener(() {
+    AppColors.setThemeBrightness(
+      themeService.isDarkMode ? Brightness.dark : Brightness.light,
+    );
+  });
+
+  runApp(
+    ChangeNotifierProvider.value(
+      value: themeService,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -44,11 +70,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+
     return MaterialApp(
       title: 'Beatza',
       navigatorKey: appNavigatorKey,
       navigatorObservers: [appOverlayRouteObserver],
       debugShowCheckedModeBanner: false,
+      
+      // ── Theme Configuration ────────────────────────────────────────────────
+      theme: ThemeData.light(),      // Fallback light theme
+      darkTheme: ThemeData.dark(),   // Fallback dark theme
+      themeMode: themeService.themeMode,
+      
       routes: AppRouter.routes,
       initialRoute: "/",
       builder: (context, child) {

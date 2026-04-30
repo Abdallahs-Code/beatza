@@ -397,7 +397,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           _buildActorRow(),
           _buildActionRow(),
           if (track.tags.isNotEmpty) _buildTags(track.tags),
-          const Divider(color: AppColors.containerMid, height: 1),
+          Divider(color: AppColors.containerMid, height: 1),
           const SizedBox(height: 16),
           _buildArtistCard(track),
           const SizedBox(height: 24),
@@ -625,7 +625,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         alignment: Alignment.center,
-                        child: const Icon(
+                        child: Icon(
                           Icons.queue_music_rounded,
                           color: AppColors.tileDark5,
                           size: 36,
@@ -697,10 +697,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _ownerDisplayName ?? track.artistName,
-                  style: const TextStyle(
-                    color: AppColors.greyMuted,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: AppColors.greyMuted, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 _buildStats(track),
@@ -718,7 +715,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       height: 100,
       color: AppColors.surface,
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         Icons.graphic_eq_rounded,
         color: AppColors.tileDark5,
         size: 36,
@@ -734,7 +731,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     if (parts.isEmpty) return const SizedBox.shrink();
     return Text(
       parts.join(' · '),
-      style: const TextStyle(color: AppColors.greyMid, fontSize: 12),
+      style: TextStyle(color: AppColors.greyMid, fontSize: 12),
     );
   }
 
@@ -768,7 +765,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             const SizedBox(width: 10),
             RichText(
               text: TextSpan(
-                style: const TextStyle(color: AppColors.greyIcon, fontSize: 14),
+                style: TextStyle(color: AppColors.greyIcon, fontSize: 14),
                 children: [
                   TextSpan(text: isLike ? 'Liked by ' : 'Reposted by '),
                   TextSpan(
@@ -944,10 +941,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   if (location.isNotEmpty)
                     Text(
                       location,
-                      style: const TextStyle(
-                        color: AppColors.greyMid2,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.greyMid2, fontSize: 13),
                     ),
                 ],
               ),

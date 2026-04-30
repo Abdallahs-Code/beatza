@@ -104,7 +104,7 @@ class _NotificationSettingsScreenState
                     children: [
                       Text(
                         _error!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.white60,
                           fontSize: 14,
                         ),
@@ -177,14 +177,14 @@ class _NotificationSettingsScreenState
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_new,
                   color: AppColors.whiteSmoke,
                   size: 20,
                 ),
               ),
             ),
-            const Center(
+            Center(
               child: Text(
                 'Notifications',
                 style: TextStyle(
@@ -206,7 +206,7 @@ class _NotificationSettingsScreenState
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.white60,
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -489,7 +489,7 @@ class _NotificationSettingsScreenState
     ];
   }
 
-  Widget _divider() => const Divider(
+  Widget _divider() => Divider(
     height: 1,
     color: AppColors.containerMid,
     indent: 16,
@@ -527,7 +527,7 @@ class _NotifRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.whiteSmoke,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
@@ -605,7 +605,7 @@ class _NewMessageRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               'New message',
               style: TextStyle(
@@ -641,7 +641,7 @@ class _DeviceDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: value,
           dropdownColor: AppColors.surfaceMid,
-          style: const TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
+          style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
           iconEnabledColor: AppColors.white60,
           isDense: true,
           items: const [
@@ -680,7 +680,7 @@ class _EmailToggleRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.whiteSmoke,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,

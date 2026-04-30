@@ -167,7 +167,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (ctx, scrollCtrl) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.backgroundDark,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),

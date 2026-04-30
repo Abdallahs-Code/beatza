@@ -463,7 +463,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _api.archiveChat(chatId: chatId);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Successfully archived conversation'),
             backgroundColor: AppColors.cardDark2,
           ),
@@ -483,7 +483,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _api.markChatAsUnread(chatId: chatId);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Marked as unread'),
             backgroundColor: AppColors.cardDark2,
           ),
@@ -899,7 +899,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               width: 36,
               height: 36,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.containerMid,
                 shape: BoxShape.circle,
               ),

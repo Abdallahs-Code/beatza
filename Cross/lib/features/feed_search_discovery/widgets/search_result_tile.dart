@@ -63,10 +63,7 @@ class SearchResultTile extends StatelessWidget {
                   if (subtitle != null && subtitle!.isNotEmpty)
                     Text(
                       subtitle!,
-                      style: const TextStyle(
-                        color: AppColors.white54,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.white54, fontSize: 13),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -78,11 +75,7 @@ class SearchResultTile extends StatelessWidget {
             if (type == 'user')
               _buildFollowChip()
             else
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.white54,
-                size: 20,
-              ),
+              Icon(Icons.chevron_right, color: AppColors.white54, size: 20),
           ],
         ),
       ),

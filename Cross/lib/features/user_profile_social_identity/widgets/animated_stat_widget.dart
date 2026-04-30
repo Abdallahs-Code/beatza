@@ -48,7 +48,7 @@ class AnimatedStatWidget extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             color: AppColors.greyZinc,
             fontWeight: FontWeight.w600,

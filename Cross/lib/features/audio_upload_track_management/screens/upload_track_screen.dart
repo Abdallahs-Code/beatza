@@ -275,7 +275,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     if (result.$1 == 200) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Track updated successfully'),
           backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
@@ -501,7 +501,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Track updated successfully'),
           backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
@@ -610,7 +610,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       lastDate: DateTime(2050),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.dark(
+          colorScheme: ColorScheme.dark(
             primary: Color(0xFF1DB954),
             onPrimary: Colors.white,
             surface: AppColors.surfaceMid,

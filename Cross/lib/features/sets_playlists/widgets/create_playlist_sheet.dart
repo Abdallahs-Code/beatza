@@ -182,7 +182,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.crusta),
+                    borderSide: BorderSide(color: AppColors.crusta),
                   ),
                 ),
                 validator: (v) => v == null || v.trim().isEmpty
@@ -207,7 +207,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.crusta),
+                    borderSide: BorderSide(color: AppColors.crusta),
                   ),
                 ),
               ),

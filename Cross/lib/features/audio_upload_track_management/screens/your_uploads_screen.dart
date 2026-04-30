@@ -672,7 +672,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Track deleted'),
           backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,

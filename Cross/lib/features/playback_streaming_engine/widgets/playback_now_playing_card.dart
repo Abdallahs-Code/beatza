@@ -139,7 +139,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.multitrack_audio_rounded,
                   color: AppColors.whiteSmoke,
@@ -153,7 +153,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             track?.title ?? 'No track selected',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -164,7 +164,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             track?.artistName ?? 'Choose one of the test tracks below',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.white60, fontSize: 14),
+            style: TextStyle(color: AppColors.white60, fontSize: 14),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -192,7 +192,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                     ),
                   )
                 : _waveformPeaks.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'Waveform unavailable',
                       style: TextStyle(color: AppColors.white60, fontSize: 12),
@@ -237,12 +237,12 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             children: [
               Text(
                 _formatDuration(widget.state.currentPosition),
-                style: const TextStyle(color: AppColors.white60, fontSize: 12),
+                style: TextStyle(color: AppColors.white60, fontSize: 12),
               ),
               const Spacer(),
               Text(
                 _formatDuration(Duration(milliseconds: maxSeek.toInt())),
-                style: const TextStyle(color: AppColors.white60, fontSize: 12),
+                style: TextStyle(color: AppColors.white60, fontSize: 12),
               ),
             ],
           ),
@@ -292,10 +292,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                 child: Text(
                   '${(widget.state.volume * 100).round()}%',
                   textAlign: TextAlign.end,
-                  style: const TextStyle(
-                    color: AppColors.white60,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppColors.white60, fontSize: 12),
                 ),
               ),
             ],

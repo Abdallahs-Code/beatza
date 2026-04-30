@@ -206,7 +206,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [Color(0xFF381E4B), AppColors.surfaceMid],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,

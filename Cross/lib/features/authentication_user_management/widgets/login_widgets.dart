@@ -225,7 +225,7 @@ class QrCodeLoginDialog extends StatelessWidget {
         children: [
           Text(
             '$number.',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.white70,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -235,7 +235,7 @@ class QrCodeLoginDialog extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.white70,
                 fontSize: 16,
                 height: 1.4,

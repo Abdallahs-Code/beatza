@@ -242,7 +242,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Failed to load listening history.',
                 style: TextStyle(
                   color: AppColors.whiteSmoke,
@@ -250,7 +250,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Please try again.',
                 style: TextStyle(color: AppColors.white60, height: 1.45),
               ),
@@ -517,7 +517,7 @@ class _HistoryTrackPlaceholder extends StatelessWidget {
         Container(
           width: 24,
           height: 24,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.cardDark,
             shape: BoxShape.circle,
           ),
@@ -551,7 +551,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
               color: AppColors.tileDark,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.history_rounded,
               color: AppColors.white60,
               size: 28,
@@ -564,7 +564,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.whiteSmoke,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -573,7 +573,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.white60,
                     fontSize: 14,
                     height: 1.4,

@@ -601,7 +601,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           // ── Track info header ──────────────────
           _buildTrackHeader(),
 
-          const Divider(color: AppColors.container, height: 1),
+          Divider(color: AppColors.container, height: 1),
 
           // ── Comments list ──────────────────────
           Expanded(

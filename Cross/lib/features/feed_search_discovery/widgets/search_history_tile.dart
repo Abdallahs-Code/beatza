@@ -49,10 +49,7 @@ class SearchHistoryTile extends StatelessWidget {
                   if (subtitle != null && subtitle!.isNotEmpty)
                     Text(
                       subtitle!,
-                      style: const TextStyle(
-                        color: AppColors.white54,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.white54, fontSize: 13),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -60,7 +57,7 @@ class SearchHistoryTile extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: AppColors.white54, size: 18),
+              icon: Icon(Icons.close, color: AppColors.white54, size: 18),
               onPressed: onDelete,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

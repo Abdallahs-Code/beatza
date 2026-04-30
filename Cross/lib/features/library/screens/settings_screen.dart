@@ -27,7 +27,7 @@ class SettingsScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Your Subscription',
                 style: TextStyle(
                   color: AppColors.whiteSmoke,
@@ -58,7 +58,7 @@ class SettingsScreen extends StatelessWidget {
                       }
 
                       if (!subSnapshot.hasData || subSnapshot.data == null) {
-                        return const Text(
+                        return Text(
                           'Active Plan (Details unavailable)',
                           style: TextStyle(
                             color: AppColors.white60,
@@ -190,11 +190,11 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(
+                leading: Icon(
                   Icons.sync_alt_rounded,
                   color: AppColors.whiteSmoke,
                 ),
-                title: const Text(
+                title: Text(
                   'Change or Upgrade Plan',
                   style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
                 ),
@@ -409,14 +409,14 @@ class _SettingsHeader extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_new,
                   color: AppColors.whiteSmoke,
                   size: 20,
                 ),
               ),
             ),
-            const Center(
+            Center(
               child: Text(
                 'Settings',
                 style: TextStyle(
@@ -472,7 +472,7 @@ class _SettingsTileState extends State<_SettingsTile> {
             Expanded(
               child: Text(
                 widget.title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.whiteSmoke,
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -493,11 +493,7 @@ class _SettingsTileState extends State<_SettingsTile> {
                 inactiveTrackColor: AppColors.tileDark3,
               )
             else if (widget.showChevron)
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.white60,
-                size: 26,
-              ),
+              Icon(Icons.chevron_right, color: AppColors.white60, size: 26),
           ],
         ),
       ),
@@ -607,7 +603,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
                 Icon(Icons.warning_rounded, color: Colors.redAccent, size: 28),
                 SizedBox(width: 10),
@@ -624,7 +620,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               ],
             ),
             const SizedBox(height: 18),
-            const Text(
+            Text(
               'Are you sure you want to permanently delete your account? This action cannot be undone and will immediately remove:',
               style: TextStyle(
                 color: AppColors.white60,
@@ -655,10 +651,10 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                         },
                   activeColor: Colors.redAccent,
                   checkColor: Colors.white,
-                  side: const BorderSide(color: AppColors.white60),
+                  side: BorderSide(color: AppColors.white60),
                 ),
                 const SizedBox(width: 4),
-                const Expanded(
+                Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(top: 12),
                     child: Text(
@@ -749,7 +745,7 @@ class _BulletPoint extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '•  ',
             style: TextStyle(
               color: AppColors.white60,
@@ -760,7 +756,7 @@ class _BulletPoint extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.white60,
                 fontSize: 15,
                 height: 1.45,

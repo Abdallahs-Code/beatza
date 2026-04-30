@@ -28,7 +28,7 @@ class OfflineDownloadsScreen extends StatelessWidget {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(
                     Icons.download_for_offline,
                     color: AppColors.white54,

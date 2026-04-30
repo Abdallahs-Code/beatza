@@ -20,7 +20,7 @@ class CommonBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 84,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.chineseBlack,
         border: Border(top: BorderSide(color: AppColors.white10)),
       ),

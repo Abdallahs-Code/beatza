@@ -1268,7 +1268,7 @@ class _LinkedProfileRow extends StatelessWidget {
         shownValue,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: AppColors.greyMedium),
+        style: TextStyle(color: AppColors.greyMedium),
       ),
       trailing: onDelete == null
           ? const Icon(Icons.chevron_right, color: Colors.white54)

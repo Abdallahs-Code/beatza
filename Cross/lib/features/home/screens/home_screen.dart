@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         backgroundColor: AppColors.homeBackground,
         elevation: 0,
         leadingWidth: 140,
-        title: const Text(
+        title: Text(
           'Home',
           style: TextStyle(
             color: AppColors.whiteSmoke,
@@ -557,7 +557,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: (track.artworkUrl ?? '').trim().isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Icon(
                                 Icons.image_outlined,
                                 color: AppColors.white54,
@@ -568,7 +568,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                               track.artworkUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) {
-                                return const Center(
+                                return Center(
                                   child: Icon(
                                     Icons.image_outlined,
                                     color: AppColors.white54,
@@ -627,7 +627,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                       : track.artistName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.white54,
                     fontSize: 13,
                     height: 1.3,
@@ -705,7 +705,7 @@ class _HomeTracksMessageCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -714,7 +714,7 @@ class _HomeTracksMessageCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.white60,
               fontSize: 13,
               height: 1.4,

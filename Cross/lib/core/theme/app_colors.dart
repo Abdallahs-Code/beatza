@@ -4,6 +4,15 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  // ── THEME CONTROL ─────────────────────────────────────────────────────────
+  static Brightness _brightness = Brightness.dark;
+  
+  static void setThemeBrightness(Brightness brightness) {
+    _brightness = brightness;
+  }
+  
+  static bool get _isDark => _brightness == Brightness.dark;
+
   // ── BRAND ORANGE GRADIENT ─────────────────────────────────────────────────
   // Gradient spectrum used in: playback mini-player bar, playback now-playing
   // card, library widgets, upload screen buttons, audio upload track management
@@ -44,65 +53,76 @@ class AppColors {
   // ── BACKGROUNDS ───────────────────────────────────────────────────────────
   // Layered dark backgrounds ordered from lightest to darkest
 
-  static const Color homeBackground = Color(
-    0xFF0A0A0A,
-  ); // home_screen scaffold, playback_debug_screen
-  static const Color chineseBlack = Color(
-    0xFF121212,
-  ); // email_entry_screen, create_password_screen, password_screen, search_screen, genre_tracks_screen, common_widgets
-  static const Color pureBlack = Color(
-    0xFF000000,
-  ); // login_widgets, offline_downloads_screen, recently_played_screen, premium screens
+  static Color get homeBackground => _isDark
+      ? const Color(0xFF0A0A0A)   // home_screen scaffold, playback_debug_screen
+      : Colors.white;
+  
+  static Color get chineseBlack => _isDark
+      ? const Color(0xFF121212)   // email_entry_screen, create_password_screen, password_screen, search_screen, genre_tracks_screen, common_widgets
+      : Colors.grey[50]!;
+  
+  static Color get pureBlack => _isDark
+      ? const Color(0xFF000000)   // login_widgets, offline_downloads_screen, recently_played_screen, premium screens
+      : Colors.white;
 
   // Fine-grained dark tiers (used when chineseBlack / pureBlack is too light)
-  static const Color backgroundDeepest = Color(
-    0xFF090909,
-  ); // global_playback_overlay barrier, edit_profile_screen overlay, track_options_sheet
-  static const Color backgroundVeryDark = Color(
-    0xFF0B0B0B,
-  ); // user_profile_screen, edit_profile_screen very-dark sections
-  static const Color backgroundDark3 = Color(
-    0xFF0F0F0F,
-  ); // artist_pro_screens, pro_restrictions_screen, edit_spotlight_screen, your_uploads_spotlight_screen
-  static const Color backgroundDark = Color(
-    0xFF111111,
-  ); // settings_screen, messaging (chat_screen, activity_screen)
-  static const Color backgroundDark2 = Color(
-    0xFF141414,
-  ); // user_profile_screen scaffold, profile_header_widget, edit_spotlight_screen
+  static Color get backgroundDeepest => _isDark
+      ? const Color(0xFF090909)   // global_playback_overlay barrier, edit_profile_screen overlay, track_options_sheet
+      : Colors.grey[100]!;
+  
+  static Color get backgroundVeryDark => _isDark
+      ? const Color(0xFF0B0B0B)   // user_profile_screen, edit_profile_screen very-dark sections
+      : Colors.grey[50]!;
+  
+  static Color get backgroundDark3 => _isDark
+      ? const Color(0xFF0F0F0F)   // artist_pro_screens, pro_restrictions_screen, edit_spotlight_screen, your_uploads_spotlight_screen
+      : Colors.grey[100]!;
+  
+  static Color get backgroundDark => _isDark
+      ? const Color(0xFF111111)   // settings_screen, messaging (chat_screen, activity_screen)
+      : Colors.grey[200]!;
+  
+  static Color get backgroundDark2 => _isDark
+      ? const Color(0xFF141414)   // user_profile_screen scaffold, profile_header_widget, edit_spotlight_screen
+      : Colors.white;
 
   // ── SURFACES / CARDS ──────────────────────────────────────────────────────
-  static const Color surfaceDark = Color(
-    0xFF181818,
-  ); // home_widgets, playback_mini_player_bar, feed_card placeholder, library_widgets
-  static const Color cardDark = Color(
-    0xFF202020,
-  ); // home_widgets, playback_debug_track_tile, playback_now_playing_card, library screens, playback_debug_screen
-  static const Color cardDark2 = Color(
-    0xFF222222,
-  ); // messaging snackbar, quick_reply_options_menu icon bg, login_widgets card variant
+  static Color get surfaceDark => _isDark
+      ? const Color(0xFF181818)   // home_widgets, playback_mini_player_bar, feed_card placeholder, library_widgets
+      : Colors.grey[100]!;
+  
+  static Color get cardDark => _isDark
+      ? const Color(0xFF202020)   // home_widgets, playback_debug_track_tile, playback_now_playing_card, library screens, playback_debug_screen
+      : Colors.white;
+  
+  static Color get cardDark2 => _isDark
+      ? const Color(0xFF222222)   // messaging snackbar, quick_reply_options_menu icon bg, login_widgets card variant
+      : Colors.grey[50]!;
 
-  static const Color surface = Color(
-    0xFF1C1C1C,
-  ); // global_playback_overlay, messaging (messages_tab, chat_screen), activity_screen
-  static const Color surfaceMid = Color(
-    0xFF1E1E1E,
-  ); // home_screen card bg, settings_screen card, account_settings_screen picker, user_profile_screen, edit_spotlight_screen, premium_subscription card
+  static Color get surface => _isDark
+      ? const Color(0xFF1C1C1C)   // global_playback_overlay, messaging (messages_tab, chat_screen), activity_screen
+      : Colors.grey[50]!;
+  
+  static Color get surfaceMid => _isDark
+      ? const Color(0xFF1E1E1E)   // home_screen card bg, settings_screen card, account_settings_screen picker, user_profile_screen, edit_spotlight_screen, premium_subscription card
+      : Colors.white;
 
-  static const Color cardDark3 = Color(
-    0xFF171717,
-  ); // global_playback_overlay dark cards, user_profile_screen cards
+  static Color get cardDark3 => _isDark
+      ? const Color(0xFF171717)   // global_playback_overlay dark cards, user_profile_screen cards
+      : Colors.grey[200]!;
 
   // Container shades for modals / bottom-sheets / dialogs
-  static const Color container = Color(
-    0xFF1A1A1A,
-  ); // comment_tile bg, repost_bottom_sheet, activity_screen dialog, quick_reply_sheet dialog
-  static const Color containerMid = Color(
-    0xFF2A2A2A,
-  ); // account_settings_screen divider, global_playback_overlay, messaging (attach_content_sheet button), user_profile_screen controls, activity_screen follow-state bg
-  static const Color containerDark = Color(
-    0xFF252525,
-  ); // repost_bottom_sheet input field
+  static Color get container => _isDark
+      ? const Color(0xFF1A1A1A)   // comment_tile bg, repost_bottom_sheet, activity_screen dialog, quick_reply_sheet dialog
+      : Colors.grey[100]!;
+  
+  static Color get containerMid => _isDark
+      ? const Color(0xFF2A2A2A)   // account_settings_screen divider, global_playback_overlay, messaging (attach_content_sheet button), user_profile_screen controls, activity_screen follow-state bg
+      : Colors.grey[200]!;
+  
+  static Color get containerDark => _isDark
+      ? const Color(0xFF252525)   // repost_bottom_sheet input field
+      : Colors.grey[300]!;
 
   // Payment sheet (iOS-style light surface)
   static const Color paymentDialogBg = Color(
@@ -113,101 +133,132 @@ class AppColors {
   ); // payment_checkout_sheet light background (iOS sheet style)
 
   // ── BORDERS / TILES / SKELETON ────────────────────────────────────────────
-  static const Color borderDark = Color(
-    0xFF2D2D2D,
-  ); // home_widgets, playback_mini_player_bar, playback_now_playing_card, library_widgets, playback_debug_screen
+  static Color get borderDark => _isDark
+      ? const Color(0xFF2D2D2D)   // home_widgets, playback_mini_player_bar, playback_now_playing_card, library_widgets, playback_debug_screen
+      : Colors.grey[300]!;
 
   // Loading-skeleton tile shades (home_widgets, library_widgets, listening_history_screen, recently_played_screen)
-  static const Color tileDark = Color(0xFF323232);
-  static const Color tileDark2 = Color(0xFF383838);
-  static const Color tileDark3 = Color(
-    0xFF3A3A3A,
-  ); // also settings_screen border (non-pro item)
-  static const Color tileDark4 = Color(
-    0xFF3B3B3B,
-  ); // also playback_debug_track_tile gradient end
-  static const Color tileDark5 = Color(
-    0xFF444444,
-  ); // also behind_the_track_screen icon container bg
+  static Color get tileDark => _isDark
+      ? const Color(0xFF323232)
+      : Colors.grey[200]!;
+  
+  static Color get tileDark2 => _isDark
+      ? const Color(0xFF383838)
+      : Colors.grey[300]!;
+  
+  static Color get tileDark3 => _isDark
+      ? const Color(0xFF3A3A3A)   // also settings_screen border (non-pro item)
+      : Colors.grey[300]!;
+  
+  static Color get tileDark4 => _isDark
+      ? const Color(0xFF3B3B3B)   // also playback_debug_track_tile gradient end
+      : Colors.grey[400]!;
+  
+  static Color get tileDark5 => _isDark
+      ? const Color(0xFF444444)   // also behind_the_track_screen icon container bg
+      : Colors.grey[400]!;
 
   // ── INPUT FIELDS ──────────────────────────────────────────────────────────
-  static const Color inputFill = Color(
-    0xFF333333,
-  ); // login_widgets text-field fill, password_input_field fill
-  static const Color greyInputDark = Color(
-    0xFFD9D9D9,
-  ); // verify_code_screen OTP input box
-  static const Color greyButton = Color(
-    0xFFB3B3B3,
-  ); // verify_code_screen resend button, user_info_screen placeholder text
+  static Color get inputFill => _isDark
+      ? const Color(0xFF333333)   // login_widgets text-field fill, password_input_field fill
+      : Colors.grey[200]!;
+  
+  static Color get greyInputDark => _isDark
+      ? const Color(0xFFD9D9D9)   // verify_code_screen OTP input box
+      : Colors.black87;
+  
+  static Color get greyButton => _isDark
+      ? const Color(0xFFB3B3B3)   // verify_code_screen resend button, user_info_screen placeholder text
+      : Colors.grey[600]!;
 
   // ── TEXT / ICON WHITES ────────────────────────────────────────────────────
   // Primary text in dark UI
-  static const Color whiteSmoke = Color(0xFFF4F4F4);
-  // Used in: home_widgets primary text, library screens, playback_mini_player_bar,
-  //          playback_debug_screen, account_settings_screen, listening_history_screen,
-  //          recently_played_screen, common_widgets
+  static Color get whiteSmoke => _isDark
+      ? const Color(0xFFF4F4F4)   // home_widgets primary text, library screens, playback_mini_player_bar, playback_debug_screen, account_settings_screen, listening_history_screen, recently_played_screen, common_widgets
+      : const Color(0xFF1A1A1A);
 
   // Semi-transparent white palette (text / icon hierarchy across nearly every screen)
-  static const Color white10 = Colors
-      .white10; // subtle borders: home_widgets, login_widgets, settings_screen, library_widgets, common_widgets
-  static const Color white12 = Colors
-      .white12; // borders: home_widgets, library screens, playback, activity_screen dividers
-  static const Color white24 = Colors
-      .white24; // overlays: home_widgets, home_screen border, common_widgets slider inactive
-  static const Color white54 = Colors
-      .white54; // secondary text/icons: used across all screens (search bar, feed, library, auth widgets)
-  static const Color white60 = Colors
-      .white60; // secondary text: library screens, playback, home, account_settings_screen
-  static const Color white70 = Colors
-      .white70; // secondary text: authentication screens, home, playback, settings
+  static Color get white10 => _isDark
+      ? Colors.white10   // subtle borders: home_widgets, login_widgets, settings_screen, library_widgets, common_widgets
+      : Colors.black12;
+  
+  static Color get white12 => _isDark
+      ? Colors.white12   // borders: home_widgets, library screens, playback, activity_screen dividers
+      : Colors.black12;
+  
+  static Color get white24 => _isDark
+      ? Colors.white24   // overlays: home_widgets, home_screen border, common_widgets slider inactive
+      : Colors.black26;
+  
+  static Color get white54 => _isDark
+      ? Colors.white54   // secondary text/icons: used across all screens (search bar, feed, library, auth widgets)
+      : Colors.black54;
+  
+  static Color get white60 => _isDark
+      ? Colors.white60   // secondary text: library screens, playback, home, account_settings_screen
+      : Colors.black54;
+  
+  static Color get white70 => _isDark
+      ? Colors.white70   // secondary text: authentication screens, home, playback, settings
+      : Colors.black87;
 
-  static const Color black54 = Colors
-      .black54; // home_widgets feed text overlay, feed_card secondary text, payment_checkout_sheet barrier
+  static Color get black54 => _isDark
+      ? Colors.black54   // home_widgets feed text overlay, feed_card secondary text, payment_checkout_sheet barrier
+      : Colors.white54;
 
   // ── GREY TEXT / ICON PALETTE ──────────────────────────────────────────────
-  static const Color silver = Color(
-    0xFFA0A0A0,
-  ); // placeholder text: email_entry_screen, create_password_screen, password_screen
+  static Color get silver => _isDark
+      ? const Color(0xFFA0A0A0)   // placeholder text: email_entry_screen, create_password_screen, password_screen
+      : Colors.grey[600]!;
 
-  static const Color greyZinc = Color(
-    0xFF71717A,
-  ); // profile_header_widget icon, animated_stat_widget placeholder
-  static const Color greyMedium = Color(
-    0xFF9A9A9A,
-  ); // user_profile_screen text, edit_profile_screen placeholder; also activity_screen waveform-fill reference
-  static const Color greyDark = Color(
-    0xFF6E6E6E,
-  ); // edit_profile_screen disabled text
-  static const Color greyEnabled = Color(
-    0xFFCACACA,
-  ); // edit_profile_screen enabled text (non-focused)
-  static const Color greyLight = Color(
-    0xFFCCCCCC,
-  ); // user_profile_screen light secondary text
-  static const Color greyIcon = Color(
-    0xFFAAAAAA,
-  ); // activity_screen notification icon colour
+  static Color get greyZinc => _isDark
+      ? const Color(0xFF71717A)   // profile_header_widget icon, animated_stat_widget placeholder
+      : Colors.grey[700]!;
+  
+  static Color get greyMedium => _isDark
+      ? const Color(0xFF9A9A9A)   // user_profile_screen text, edit_profile_screen placeholder; also activity_screen waveform-fill reference
+      : Colors.grey[600]!;
+  
+  static Color get greyDark => _isDark
+      ? const Color(0xFF6E6E6E)   // edit_profile_screen disabled text
+      : Colors.grey[500]!;
+  
+  static Color get greyEnabled => _isDark
+      ? const Color(0xFFCACACA)   // edit_profile_screen enabled text (non-focused)
+      : Colors.grey[800]!;
+  
+  static Color get greyLight => _isDark
+      ? const Color(0xFFCCCCCC)   // user_profile_screen light secondary text
+      : Colors.grey[700]!;
+  
+  static Color get greyIcon => _isDark
+      ? const Color(0xFFAAAAAA)   // activity_screen notification icon colour
+      : Colors.grey[600]!;
 
   // Specific grey values used in activity / quick-reply UI
-  static const Color greyDark3 = Color(
-    0xFF555555,
-  ); // quick_reply_options_menu icon, activity_screen icon bg
-  static const Color greyDark4 = Color(
-    0xFF666666,
-  ); // quick_reply_sheet divider grey
-  static const Color greyMid = Color(
-    0xFF777777,
-  ); // behind_the_track_screen secondary text, quick_reply_sheet text variant
-  static const Color greyMid2 = Color(
-    0xFF888888,
-  ); // quick_reply_sheet light text variant
-  static const Color greyMuted = Color(
-    0xFF999999,
-  ); // behind_the_track_screen grey text, activity_screen unfilled waveform
-  static const Color greyBright = Color(
-    0xFFDDDDDD,
-  ); // quick_reply_sheet lightest text
+  static Color get greyDark3 => _isDark
+      ? const Color(0xFF555555)   // quick_reply_options_menu icon, activity_screen icon bg
+      : Colors.grey[700]!;
+  
+  static Color get greyDark4 => _isDark
+      ? const Color(0xFF666666)   // quick_reply_sheet divider grey
+      : Colors.grey[600]!;
+  
+  static Color get greyMid => _isDark
+      ? const Color(0xFF777777)   // behind_the_track_screen secondary text, quick_reply_sheet text variant
+      : Colors.grey[600]!;
+  
+  static Color get greyMid2 => _isDark
+      ? const Color(0xFF888888)   // quick_reply_sheet light text variant
+      : Colors.grey[500]!;
+  
+  static Color get greyMuted => _isDark
+      ? const Color(0xFF999999)   // behind_the_track_screen grey text, activity_screen unfilled waveform
+      : Colors.grey[400]!;
+  
+  static Color get greyBright => _isDark
+      ? const Color(0xFFDDDDDD)   // quick_reply_sheet lightest text
+      : Colors.grey[800]!;
 
   // ── ACCENT BLUES ──────────────────────────────────────────────────────────
   static const Color blueHyperlink = Color(
@@ -219,9 +270,9 @@ class AppColors {
   static const Color blueWelcome = Color(
     0xFF5A8DEE,
   ); // welcome_screen button, welcome_widgets container bg
-  static const Color blueCard = Color(
-    0xFF243B63,
-  ); // home_widgets featured card bg, home_screen featured card
+  static Color get blueCard => _isDark
+      ? const Color(0xFF243B63)   // home_widgets featured card bg, home_screen featured card
+      : const Color(0xFFE3F2FD);
   static const Color mixBlue = Color(
     0xFF2D4A7A,
   ); // home_widgets mix-blend colour

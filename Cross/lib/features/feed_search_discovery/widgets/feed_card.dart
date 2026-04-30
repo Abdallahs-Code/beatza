@@ -319,7 +319,7 @@ class _FeedCardState extends State<FeedCard> {
                 )
               : Container(
                   color: AppColors.cardDark,
-                  child: const Icon(
+                  child: Icon(
                     Icons.music_note,
                     size: 64,
                     color: AppColors.white54,
@@ -507,11 +507,7 @@ class _FeedCardState extends State<FeedCard> {
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: AppColors.tileDark,
-                  child: const Icon(
-                    Icons.person,
-                    size: 16,
-                    color: AppColors.white54,
-                  ),
+                  child: Icon(Icons.person, size: 16, color: AppColors.white54),
                 ),
                 const SizedBox(width: 8),
                 Text(

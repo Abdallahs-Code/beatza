@@ -48,7 +48,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
           ),
-          title: const Text(
+          title: Text(
             'Clear listening history?',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -56,7 +56,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          content: const Text(
+          content: Text(
             'This will permanently clear your listening history.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.white60, height: 1.45),
@@ -71,7 +71,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                     child: Container(
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 18),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(color: AppColors.white12),
                           right: BorderSide(color: AppColors.white12),
@@ -94,7 +94,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                     child: Container(
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 18),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(color: AppColors.white12),
                         ),
@@ -154,7 +154,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                     icon: Icons.arrow_back_ios_new_rounded,
                     onTap: _handleBack,
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Text(
                         AppText.listeningHistory,
@@ -168,7 +168,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
                   ),
                   IconButton(
                     onPressed: _showClearHistoryDialog,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline_rounded,
                       color: AppColors.white60,
                       size: 28,
@@ -228,14 +228,14 @@ class _ListeningHistoryEmptyState extends StatelessWidget {
               color: AppColors.tileDark,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.history_rounded,
               color: AppColors.white60,
               size: 28,
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

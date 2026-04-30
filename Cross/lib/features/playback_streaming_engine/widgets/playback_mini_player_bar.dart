@@ -47,10 +47,7 @@ class PlaybackMiniPlayerBar extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: const Icon(
-                  Icons.graphic_eq,
-                  color: AppColors.whiteSmoke,
-                ),
+                child: Icon(Icons.graphic_eq, color: AppColors.whiteSmoke),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -62,7 +59,7 @@ class PlaybackMiniPlayerBar extends StatelessWidget {
                       track.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.whiteSmoke,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -73,10 +70,7 @@ class PlaybackMiniPlayerBar extends StatelessWidget {
                       track.artistName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.white60,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: AppColors.white60, fontSize: 12),
                     ),
                   ],
                 ),

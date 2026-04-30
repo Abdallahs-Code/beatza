@@ -608,7 +608,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 18),
-                const Text(
+                Text(
                   'Location',
                   style: TextStyle(
                     color: AppColors.greyMedium,
@@ -622,7 +622,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Role',
                   style: TextStyle(
                     color: AppColors.greyMedium,
@@ -636,7 +636,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Bio',
                   style: TextStyle(
                     color: AppColors.greyMedium,
@@ -657,7 +657,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
                 if (profile.favoriteGenres.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Favorite genres',
                     style: TextStyle(
                       color: AppColors.greyMedium,
@@ -682,7 +682,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                         child: Text(
                           genre,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.greyLight,
                             fontSize: 11.5,
                             fontWeight: FontWeight.w500,
@@ -794,10 +794,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${profile.followersCount} followers',
-                  style: const TextStyle(
-                    color: AppColors.greyButton,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: AppColors.greyButton, fontSize: 14),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -856,7 +853,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         link.link,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.greyMedium),
+                        style: TextStyle(color: AppColors.greyMedium),
                       ),
                     ),
                   ),
@@ -1577,7 +1574,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
                       child: Text(
                         widget.profile.resolvedLocation,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.greyButton,
                           fontSize: 14,
                         ),
@@ -1591,13 +1588,13 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             onTap: widget.onFollowersTap,
                             child: Text(
                               '${widget.profile.followersCount} Followers',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.greyButton,
                                 fontSize: 13,
                               ),
                             ),
                           ),
-                          const Text(
+                          Text(
                             ' • ',
                             style: TextStyle(
                               color: AppColors.greyButton,
@@ -1608,7 +1605,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             onTap: widget.onFollowingTap,
                             child: Text(
                               '${widget.profile.followingsCount} Following',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.greyButton,
                                 fontSize: 13,
                               ),
@@ -1631,7 +1628,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               : widget.profile.role;
                           return Text(
                             displayRole,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.greyButton,
                               fontSize: 13,
                             ),
@@ -1792,7 +1789,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               ),
                               child: Text(
                                 genre,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.greyLight,
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
@@ -1923,7 +1920,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 14),
                         child: Text(
                           'Pin your gems to your profile',
@@ -2304,7 +2301,7 @@ class _SectionHeader extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               child: Text(
                 actionText,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.greyButton,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -2402,7 +2399,7 @@ class _PlaylistCard extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: const TextStyle(color: AppColors.greyButton, fontSize: 13),
+          style: TextStyle(color: AppColors.greyButton, fontSize: 13),
         ),
       ],
     );
@@ -2440,7 +2437,7 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
-        child: const Text(
+        child: Text(
           'Could not load reposted tracks right now.',
           style: TextStyle(
             color: AppColors.greyButton,
@@ -2459,7 +2456,7 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
-        child: const Text(
+        child: Text(
           'No reposts yet.',
           style: TextStyle(
             color: AppColors.greyButton,
@@ -2506,7 +2503,7 @@ class _AllRepostsScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: tracks.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'No reposts yet.',
                 style: TextStyle(color: AppColors.greyButton, fontSize: 15),
@@ -2582,7 +2579,7 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
         elevation: 0,
       ),
       body: widget.tracks.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'No likes yet.',
                 style: TextStyle(color: AppColors.greyButton, fontSize: 15),
@@ -2652,7 +2649,7 @@ class _ProfileLikesTracksSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
-        child: const Text(
+        child: Text(
           'Could not load liked tracks right now.',
           style: TextStyle(
             color: AppColors.greyButton,
@@ -2671,7 +2668,7 @@ class _ProfileLikesTracksSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
-        child: const Text(
+        child: Text(
           'No likes yet.',
           style: TextStyle(
             color: AppColors.greyButton,
@@ -2797,18 +2794,12 @@ class _TrackRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   track.artistName,
-                  style: const TextStyle(
-                    color: AppColors.greyButton,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppColors.greyButton, fontSize: 13),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   _buildMeta(),
-                  style: const TextStyle(
-                    color: AppColors.greyButton,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppColors.greyButton, fontSize: 13),
                 ),
               ],
             ),
@@ -2890,7 +2881,7 @@ class _RoundIconButton extends StatelessWidget {
       child: Container(
         width: 36,
         height: 36,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.containerMid,
           shape: BoxShape.circle,
         ),
@@ -3048,7 +3039,7 @@ class _PrivateProfileView extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         profile.resolvedLocation,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.greyButton,
                           fontSize: 14,
                         ),
@@ -3060,13 +3051,13 @@ class _PrivateProfileView extends StatelessWidget {
                             onTap: onFollowersTap,
                             child: Text(
                               '${profile.followersCount} Followers',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.greyButton,
                                 fontSize: 14,
                               ),
                             ),
                           ),
-                          const Text(
+                          Text(
                             ' • ',
                             style: TextStyle(
                               color: AppColors.greyButton,
@@ -3077,7 +3068,7 @@ class _PrivateProfileView extends StatelessWidget {
                             onTap: onFollowingTap,
                             child: Text(
                               '${profile.followingsCount} Following',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.greyButton,
                                 fontSize: 14,
                               ),
@@ -3140,7 +3131,7 @@ class _PrivateProfileView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Center(
+                      Center(
                         child: Text(
                           'Follow this account to see their tracks\nand activity.',
                           textAlign: TextAlign.center,

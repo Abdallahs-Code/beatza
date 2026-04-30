@@ -217,7 +217,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.container,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
@@ -262,7 +262,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                 ),
               ),
 
-              const Divider(color: AppColors.containerMid, height: 1),
+              Divider(color: AppColors.containerMid, height: 1),
 
               Padding(
                 padding: const EdgeInsets.all(16),

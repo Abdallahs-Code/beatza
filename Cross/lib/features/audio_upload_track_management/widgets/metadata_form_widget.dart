@@ -32,8 +32,8 @@ class MetadataFormWidget extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.greyDark3),
-          labelStyle: const TextStyle(color: AppColors.greyMedium),
+          hintStyle: TextStyle(color: AppColors.greyDark3),
+          labelStyle: TextStyle(color: AppColors.greyMedium),
           prefixIcon: Icon(icon, color: AppColors.greyMedium, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(

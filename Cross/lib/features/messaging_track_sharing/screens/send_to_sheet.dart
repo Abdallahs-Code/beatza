@@ -66,7 +66,7 @@ class _SendToSheetState extends State<SendToSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.backgroundDark,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),

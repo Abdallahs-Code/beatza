@@ -350,7 +350,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.backgroundDeepest,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),

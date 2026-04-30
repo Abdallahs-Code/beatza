@@ -280,7 +280,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.crusta),
+        borderSide: BorderSide(color: AppColors.crusta),
       ),
     );
   }

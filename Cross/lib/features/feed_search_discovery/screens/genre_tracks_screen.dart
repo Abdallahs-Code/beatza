@@ -104,7 +104,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(_error!, style: const TextStyle(color: AppColors.white54)),
+            Text(_error!, style: TextStyle(color: AppColors.white54)),
             const SizedBox(height: 12),
             TextButton(
               onPressed: _loadTracks,
@@ -122,7 +122,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
       return Center(
         child: Text(
           'No ${widget.genre} tracks found',
-          style: const TextStyle(color: AppColors.white54, fontSize: 16),
+          style: TextStyle(color: AppColors.white54, fontSize: 16),
         ),
       );
     }

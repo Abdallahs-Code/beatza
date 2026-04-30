@@ -335,7 +335,7 @@ class CommentTile extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Comment reported'),
                       backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
@@ -352,7 +352,7 @@ class CommentTile extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Comment reported as spam'),
                       backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),

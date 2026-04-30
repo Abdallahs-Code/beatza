@@ -14,7 +14,7 @@ class TopHeader extends StatelessWidget {
     return Row(
       children: [
         const Spacer(),
-        const Text(
+        Text(
           AppText.homeTitle,
           style: TextStyle(
             color: AppColors.whiteSmoke,
@@ -105,7 +105,7 @@ class YourLikesCard extends StatelessWidget {
       height: 90,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [AppColors.borderDark, AppColors.likesGradientEnd],
           begin: Alignment.bottomLeft,
           end: Alignment.topRight,
@@ -129,7 +129,7 @@ class YourLikesCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Text(
                 AppText.yourLikes,
                 style: TextStyle(
@@ -142,15 +142,11 @@ class YourLikesCard extends StatelessWidget {
             Container(
               width: 50,
               height: 50,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.black54,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.shuffle,
-                color: AppColors.whiteSmoke,
-                size: 24,
-              ),
+              child: Icon(Icons.shuffle, color: AppColors.whiteSmoke, size: 24),
             ),
           ],
         ),
@@ -185,7 +181,7 @@ class MiniTrackCard extends StatelessWidget {
           Container(
             width: 68,
             height: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.tileDark3,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
             ),
@@ -195,9 +191,9 @@ class MiniTrackCard extends StatelessWidget {
                     artworkUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) =>
-                        const Icon(Icons.music_note, color: AppColors.white54),
+                        Icon(Icons.music_note, color: AppColors.white54),
                   )
-                : const Icon(Icons.music_note, color: AppColors.white54),
+                : Icon(Icons.music_note, color: AppColors.white54),
           ),
           Expanded(
             child: Padding(
@@ -209,7 +205,7 @@ class MiniTrackCard extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -220,10 +216,7 @@ class MiniTrackCard extends StatelessWidget {
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.white54,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -261,7 +254,7 @@ class WideTrackCard extends StatelessWidget {
           Container(
             width: 72,
             height: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.tileDark3,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
             ),
@@ -270,12 +263,10 @@ class WideTrackCard extends StatelessWidget {
                 ? Image.network(
                     artworkUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(
-                      Icons.album_outlined,
-                      color: AppColors.white54,
-                    ),
+                    errorBuilder: (_, _, _) =>
+                        Icon(Icons.album_outlined, color: AppColors.white54),
                   )
-                : const Icon(Icons.album_outlined, color: AppColors.white54),
+                : Icon(Icons.album_outlined, color: AppColors.white54),
           ),
           Expanded(
             child: Padding(
@@ -287,7 +278,7 @@ class WideTrackCard extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -298,10 +289,7 @@ class WideTrackCard extends StatelessWidget {
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.white54,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -332,7 +320,7 @@ class SectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.whiteSmoke,
                 fontSize: 27,
                 fontWeight: FontWeight.w800,
@@ -340,7 +328,7 @@ class SectionHeader extends StatelessWidget {
             ),
           ),
           if (showSeeAll)
-            const Text(
+            Text(
               AppText.seeAll,
               style: TextStyle(
                 color: AppColors.white70,
@@ -404,7 +392,7 @@ class PosterCard extends StatelessWidget {
               color: AppColors.blueCard,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.image_outlined,
                 color: AppColors.white54,
@@ -417,7 +405,7 @@ class PosterCard extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -428,7 +416,7 @@ class PosterCard extends StatelessWidget {
             subtitle,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.white54,
               fontSize: 13,
               height: 1.3,
@@ -483,7 +471,7 @@ class MixCard extends StatelessWidget {
                   color: AppColors.mixBlue,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.queue_music,
                     color: AppColors.white54,
@@ -505,7 +493,7 @@ class MixCard extends StatelessWidget {
                   ),
                   child: Text(
                     mixLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.pureBlack,
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -516,7 +504,7 @@ class MixCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             AppText.mixPlaceholder,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -527,7 +515,7 @@ class MixCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 3),
-          const Text(
+          Text(
             AppText.mixGenerated,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -636,11 +624,11 @@ class TrendingTrackRow extends StatelessWidget {
           color: AppColors.tileDark2,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(Icons.music_note, color: AppColors.white54, size: 20),
+        child: Icon(Icons.music_note, color: AppColors.white54, size: 20),
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.whiteSmoke,
           fontSize: 15,
           fontWeight: FontWeight.w700,
@@ -648,9 +636,9 @@ class TrendingTrackRow extends StatelessWidget {
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: AppColors.white54, fontSize: 13),
+        style: TextStyle(color: AppColors.white54, fontSize: 13),
       ),
-      trailing: const Icon(Icons.more_horiz, color: AppColors.white70),
+      trailing: Icon(Icons.more_horiz, color: AppColors.white70),
     );
   }
 }
@@ -693,7 +681,7 @@ class EditorialCard extends StatelessWidget {
                 color: AppColors.whiteSmoke.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.cloud_outlined,
                 size: 16,
                 color: AppColors.white70,
@@ -707,7 +695,7 @@ class EditorialCard extends StatelessWidget {
               color: AppColors.black54,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.play_circle_outline,
                 color: AppColors.white54,
@@ -721,7 +709,7 @@ class EditorialCard extends StatelessWidget {
             color: accentColor,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.whiteSmoke,
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
@@ -734,7 +722,7 @@ class EditorialCard extends StatelessWidget {
               description,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.white70,
                 fontSize: 14,
                 height: 1.35,
@@ -784,7 +772,7 @@ class StationCard extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                const Center(
+                Center(
                   child: Icon(Icons.radio, color: AppColors.white54, size: 42),
                 ),
                 Positioned(
@@ -793,7 +781,7 @@ class StationCard extends StatelessWidget {
                   child: Container(
                     width: 54,
                     height: 54,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.tileDark,
                       shape: BoxShape.circle,
                     ),
@@ -816,7 +804,7 @@ class StationCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             AppText.stationPlaceholder,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -827,7 +815,7 @@ class StationCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             AppText.stationDesc,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -899,7 +887,7 @@ class BuzzingCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   left: 12,
                   top: 12,
                   child: Text(
@@ -920,7 +908,7 @@ class BuzzingCard extends StatelessWidget {
                       color: AppColors.tileDark4,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.audiotrack,
                       color: AppColors.white54,
                       size: 34,
@@ -935,14 +923,14 @@ class BuzzingCard extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.whiteSmoke,
               fontWeight: FontWeight.w700,
               fontSize: 15,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             AppText.newLabel,
             style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),

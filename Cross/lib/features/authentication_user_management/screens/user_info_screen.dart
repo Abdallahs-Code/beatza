@@ -283,11 +283,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
-      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.greyButton),
+      icon: Icon(Icons.keyboard_arrow_down, color: AppColors.greyButton),
       decoration: _inputDecoration(),
       hint: Text(
         hint,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.greyButton,
           fontSize: 16,
           fontWeight: FontWeight.w500,
@@ -374,7 +374,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 ),
                 decoration: InputDecoration(
                   hintText: "Display name",
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     color: AppColors.greyButton,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -404,7 +404,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 "Your display name can be anything you like. Your name or artist name are good choices.",
                 style: TextStyle(
                   color: AppColors.greyButton,
@@ -507,7 +507,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 "Your date of birth is used to verify your age and is not shared publicly.",
                 style: TextStyle(
                   color: AppColors.greyButton,
