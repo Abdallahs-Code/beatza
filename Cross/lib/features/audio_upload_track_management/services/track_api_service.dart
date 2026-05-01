@@ -15,6 +15,7 @@ class TrackApiService {
   late final String _authBase2;
   late final String _authBaseSlash;
   late final String _publicBase;
+  late final String _publicSingleTrackBase;
   late final String _playbackBase;
 
   TrackApiService({
@@ -29,6 +30,7 @@ class TrackApiService {
     _authBaseSlash = '${_apiServices.baseUrl}/api/tracks/v2/';
 
     _publicBase = '${_apiServices.baseUrl}/api/public/tracks/v1';
+    _publicSingleTrackBase = '${_apiServices.baseUrl}/api/public/tracks/v2';
     _playbackBase = '${_apiServices.baseUrl}/api/playback/v1';
   }
 
@@ -384,7 +386,7 @@ class TrackApiService {
 
   // ─────────────────────────────────────────────
   // Get a single track by ID (full nested shape with audioLink)
-  // GET /api/public/tracks/v1/{id}
+  // GET /api/public/tracks/v2/{id}
   //
   // Returns (200, Track)
   // ─────────────────────────────────────────────
@@ -397,7 +399,7 @@ class TrackApiService {
           : {'Content-Type': 'application/json', 'User-Agent': 'Android'};
 
       final response = await _client.get(
-        Uri.parse('$_publicBase/$trackId'),
+        Uri.parse('$_publicSingleTrackBase/$trackId'),
         headers: headers,
       );
       final data = jsonDecode(response.body);

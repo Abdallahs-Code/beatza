@@ -39,7 +39,7 @@ class PublicTracksApiService {
         _client = client ?? http.Client(),
         _storage = storage ?? const FlutterSecureStorage() {
     _paginatedPath = '${_apiServices.baseUrl}/api/tracks/v2';
-    _singleTrackPublicPath = '${_apiServices.baseUrl}/api/public/tracks/v1';
+    _singleTrackPublicPath = '${_apiServices.baseUrl}/api/public/tracks/v2';
   }
 
   Future<String?> _getToken() async {

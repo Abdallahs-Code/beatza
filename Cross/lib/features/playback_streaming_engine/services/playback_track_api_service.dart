@@ -25,7 +25,7 @@ class PlaybackTrackApiService {
       throw Exception('No access token found. Please log in first.');
     }
 
-    final String url = '$_baseUrl/api/public/tracks/v1/$trackId';
+    final String url = '$_baseUrl/api/public/tracks/v2/$trackId';
 
     final response = await _client.get(
       Uri.parse(url),
