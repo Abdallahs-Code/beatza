@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cross_team5/core/services/api_services.dart';
@@ -525,19 +526,29 @@ class TrackApiService {
 
   // ─────────────────────────────────────────────
   // Increment play count — fire-and-forget
-  // PATCH /api/tracks/v1/listen/{id}
-  // Called by Module 5 PlayerController on play start.
-  // Included here so Module 5 can import this service.
+  // PATCH /api/tracks/v2/listen
+  // Body: { trackId, listenedDuration (seconds), sessionIdPlay (UUID v4) }
+  // Server counts a play only when listenedDuration >= 30% of track duration.
+  // sessionIdPlay deduplicates concurrent/duplicate requests via Redis.
   // ─────────────────────────────────────────────
-  Future<(int, dynamic)> incrementPlayCount({required String trackId}) async {
+  Future<(int, dynamic)> incrementPlayCount({
+    required String trackId,
+    required int listenedDuration,
+    String? sessionIdPlay,
+  }) async {
     if (trackId.trim().isEmpty) return (400, 'Invalid track ID');
     try {
       final token = await _getToken();
       if (token == null) return (401, 'Unauthorized');
 
       final response = await _client.patch(
-        Uri.parse('$_authBase1/listen/$trackId'),
+        Uri.parse('$_authBase2/listen'),
         headers: _authHeaders(token),
+        body: jsonEncode({
+          'trackId': trackId,
+          'listenedDuration': listenedDuration,
+          'sessionIdPlay': sessionIdPlay ?? _generateUuid(),
+        }),
       );
       final data = jsonDecode(response.body);
 
@@ -551,6 +562,20 @@ class TrackApiService {
     } catch (err) {
       return (500, 'Network error: $err');
     }
+  }
+
+  // RFC 4122 UUID v4 — uses Random.secure() for cryptographic randomness.
+  String _generateUuid() {
+    final rng = Random.secure();
+    final b = List<int>.generate(16, (_) => rng.nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant 1
+    String hex(int v) => v.toRadixString(16).padLeft(2, '0');
+    return '${hex(b[0])}${hex(b[1])}${hex(b[2])}${hex(b[3])}-'
+        '${hex(b[4])}${hex(b[5])}-'
+        '${hex(b[6])}${hex(b[7])}-'
+        '${hex(b[8])}${hex(b[9])}-'
+        '${hex(b[10])}${hex(b[11])}${hex(b[12])}${hex(b[13])}${hex(b[14])}${hex(b[15])}';
   }
 
   // ─────────────────────────────────────────────
