@@ -501,12 +501,12 @@ class MessagingApiService {
     }
   }
 
-  // GET /api/public/tracks/v1/user/{userId}
+  // GET /api/tracks/v2/posted/{userId}
   // Future<List<PlaybackTrackModel>> getUserPostedTracks({
   //   required String userId,
   // }) async {
   //   final token = await _token();
-  //   final uri = Uri.parse('$_tracksBase/user/$userId');
+  //   final uri = Uri.parse('$_tracksV2Base/posted/$userId');
   //   debugPrint('[MessagingApiService.getUserPostedTracks] GET $uri');
   //   final res = await _client.get(uri, headers: _headers(token));
   //   final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
@@ -526,15 +526,14 @@ class MessagingApiService {
   //   return [];
   // }
 
-  // GET /api/public/tracks/v1/user/{userId}
-  // GET /api/public/tracks/v2/posted/{userId}
+  // GET /api/tracks/v2/posted/{userId}
   Future<List<PlaybackTrackModel>> getUserPostedTracks({
     required String userId,
   }) async {
     try {
       final token = await _token();
 
-      final uri = Uri.parse('$_tracksBase/posted/$userId');
+      final uri = Uri.parse('$_tracksV2Base/posted/$userId');
 
       debugPrint('📤 [DEBUG] GET $uri');
       debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
