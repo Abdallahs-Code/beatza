@@ -1,7 +1,7 @@
 import logger from '../../src/shared/logger/logger';
 import 'dotenv/config';
 import Track from '../../src/shared/models/models.track';
-import publitioMediaStorage from '../../src/shared/abstractions/publitio';
+import publitioMediaStorage from '../../src/shared/abstractions/publitio.service';
 import blobStorageService from '../../src/shared/abstractions/blob.service';
 
 export const deleteTracksOnPublitioZero = async (): Promise<void> => {
