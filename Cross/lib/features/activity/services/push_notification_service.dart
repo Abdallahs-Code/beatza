@@ -50,6 +50,33 @@ ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
   return null;
 }
 
+// Extracts chat-notification info from an FCM RemoteMessage if it is a
+// message-type push (backend sends `chatId` in `data`, with the receiver
+// display name baked into the notification title and the photo URL into the
+// notification image).
+({String chatId, String receiverName, String receiverPhotoUrl})?
+    _parseChatFromMessage(RemoteMessage message) {
+  final chatId = message.data['chatId'] as String?;
+  if (chatId == null || chatId.isEmpty) return null;
+
+  // Backend title format: "${displayName} Sent you a Message"
+  const suffix = ' Sent you a Message';
+  final title = message.notification?.title ?? '';
+  final receiverName = title.endsWith(suffix)
+      ? title.substring(0, title.length - suffix.length)
+      : title;
+
+  final receiverPhotoUrl = message.notification?.android?.imageUrl ??
+      message.notification?.apple?.imageUrl ??
+      '';
+
+  return (
+    chatId: chatId,
+    receiverName: receiverName,
+    receiverPhotoUrl: receiverPhotoUrl,
+  );
+}
+
 String _buildBody(ActivityNotificationModel n) {
   final trackTitle = n.target.title ?? 'your track';
   switch (n.activityType) {
@@ -192,6 +219,18 @@ class PushNotificationService {
 
       // App was in BACKGROUND → user tapped the system FCM notification.
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        // Chat-message notifications first.
+        final chat = _parseChatFromMessage(message);
+        if (chat != null) {
+          unawaited(
+            NotificationNavigationService.shared.handleChatNotification(
+              chatId: chat.chatId,
+              receiverName: chat.receiverName,
+              receiverPhotoUrl: chat.receiverPhotoUrl,
+            ),
+          );
+          return;
+        }
         final notification = _parseFromData(message.data);
         if (notification != null) {
           unawaited(
@@ -242,6 +281,16 @@ class PushNotificationService {
     try {
       final initial = await FirebaseMessaging.instance.getInitialMessage();
       if (initial == null) return;
+      // Chat-message notifications first (cold start from a chat push).
+      final chat = _parseChatFromMessage(initial);
+      if (chat != null) {
+        await NotificationNavigationService.shared.handleChatNotification(
+          chatId: chat.chatId,
+          receiverName: chat.receiverName,
+          receiverPhotoUrl: chat.receiverPhotoUrl,
+        );
+        return;
+      }
       final notification = _parseFromData(initial.data);
       if (notification != null) {
         await NotificationNavigationService.shared.handleActivityNotification(
