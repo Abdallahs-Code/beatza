@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -39,6 +40,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   bool _previewLimitReached = false;
   String? _lastHistoryReportedTrackId;
+
+  // ── V2 listen-count tracking ─────────────────────────────────────────────
+  // High-water mark: the furthest position (in seconds) the user has reached
+  // in the current track session. Using max() prevents seek-backward inflation.
+  int _maxListenedSeconds = 0;
+  // UUID generated once per track session; sent as sessionIdPlay for server-side
+  // deduplication. Refreshed each time a new track starts.
+  String _currentListenSessionId = '';
+  // Prevents double-reporting the same track (e.g. completion then immediate skip).
+  String? _lastListenCountReportedTrackId;
+
   int _outputLevelRequestId = 0;
   Future<bool> Function()? _ensureNextTrackAvailable;
 
@@ -191,6 +203,16 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     try {
+      // Finalize listen-count for the track we are leaving before its state
+      // (position, session ID) is reset below.
+      final String? previousTrackId = _state.currentTrack?.id;
+      if (previousTrackId != null) _finalizeListenCount(previousTrackId);
+
+      // Start a fresh listen session for the incoming track.
+      _maxListenedSeconds = 0;
+      _currentListenSessionId = _generateUuid();
+      _lastListenCountReportedTrackId = null;
+
       _previewLimitReached = false;
       _lastHistoryReportedTrackId = null;
 
@@ -552,6 +574,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       return;
     }
 
+    // Track furthest listened position for V2 play-count reporting.
+    final int posSeconds = position.inSeconds;
+    if (posSeconds > _maxListenedSeconds) {
+      _maxListenedSeconds = posSeconds;
+    }
+
     if (currentTrack.accessState == PlaybackAccessState.preview) {
       final Duration previewLimit = currentTrack.effectivePreviewDuration;
       if (position >= previewLimit) {
@@ -572,6 +600,10 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     _outputLevelRequestId++;
     _previewLimitReached = false;
+
+    // Report the completed track's full listen duration before moving on.
+    final String? completedId = _state.currentTrack?.id;
+    if (completedId != null) _finalizeListenCount(completedId);
 
     // Ad counting now happens inside playTrack(), so advancing to the next
     // track here will automatically trigger the ad check when that track starts.
@@ -635,23 +667,44 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     );
   }
 
+  // Records the track in listening history once per track session (on play start).
   void _reportTrackPlayedIfNeeded() {
     final PlaybackTrackModel? currentTrack = _state.currentTrack;
-    if (currentTrack == null) {
-      return;
-    }
-
-    if (currentTrack.id.trim().isEmpty) {
-      return;
-    }
-
-    if (_lastHistoryReportedTrackId == currentTrack.id) {
-      return;
-    }
+    if (currentTrack == null || currentTrack.id.trim().isEmpty) return;
+    if (_lastHistoryReportedTrackId == currentTrack.id) return;
 
     _lastHistoryReportedTrackId = currentTrack.id;
     _sendPlayedHistoryRequest(currentTrack.id);
-    _sendListenCountRequest(currentTrack.id);
+  }
+
+  // Sends the V2 play-count request for [trackId] using the accumulated
+  // listen duration. Guards against double-reporting the same session.
+  void _finalizeListenCount(String trackId) {
+    if (trackId.isEmpty) return;
+    if (_lastListenCountReportedTrackId == trackId) return;
+    if (_maxListenedSeconds <= 0) return;
+
+    _lastListenCountReportedTrackId = trackId;
+    _sendListenCountRequest(
+      trackId: trackId,
+      listenedDuration: _maxListenedSeconds,
+      sessionId: _currentListenSessionId.isEmpty
+          ? _generateUuid()
+          : _currentListenSessionId,
+    );
+  }
+
+  // RFC 4122 UUID v4 using cryptographically secure random bytes.
+  String _generateUuid() {
+    final b = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant 1
+    String hex(int v) => v.toRadixString(16).padLeft(2, '0');
+    return '${hex(b[0])}${hex(b[1])}${hex(b[2])}${hex(b[3])}-'
+        '${hex(b[4])}${hex(b[5])}-'
+        '${hex(b[6])}${hex(b[7])}-'
+        '${hex(b[8])}${hex(b[9])}-'
+        '${hex(b[10])}${hex(b[11])}${hex(b[12])}${hex(b[13])}${hex(b[14])}${hex(b[15])}';
   }
 
   Future<void> _sendPlayedHistoryRequest(String trackId) async {
@@ -683,19 +736,26 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
   }
 
-  Future<void> _sendListenCountRequest(String trackId) async {
+  Future<void> _sendListenCountRequest({
+    required String trackId,
+    required int listenedDuration,
+    required String sessionId,
+  }) async {
     try {
       final String? accessToken = await _storage.read(key: 'access_token');
       if (accessToken == null || accessToken.trim().isEmpty) return;
-      final String url =
-          '${ApiServices().baseUrl}/api/tracks/v1/listen/$trackId';
       await _httpClient.patch(
-        Uri.parse(url),
+        Uri.parse('${ApiServices().baseUrl}/api/tracks/v2/listen'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
           'User-Agent': 'Android',
         },
+        body: jsonEncode({
+          'trackId': trackId,
+          'listenedDuration': listenedDuration,
+          'sessionIdPlay': sessionId,
+        }),
       );
     } catch (_) {}
   }
