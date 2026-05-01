@@ -180,7 +180,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/tracks/v1/permalink/{profileLink}/{permalink} ─────────
+  // ── GET /api/public/tracks/v2/permalink/{profileLink}/{permalink} ─────────
   // Returns: (200, Map<String, dynamic> data) | (404, message) | (500, message)
   // Response data shape documented in module_8_apis_ (permalink endpoint).
   Future<(int, dynamic)> getTrackByPermalink({
@@ -192,7 +192,7 @@ class FeedSearchApiService {
       if (token == null) return (401, 'No access token');
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/public/tracks/v1/permalink/$profileLink/$permalink',
+        '${_apiServices.baseUrl}/api/public/tracks/v2/permalink/$profileLink/$permalink',
       );
 
       final response = await _client.get(uri, headers: _authHeaders(token));

@@ -666,7 +666,7 @@ class MessagingApiService {
     return profileLink.isEmpty ? null : profileLink;
   }
 
-  // GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}
+  // GET /api/public/tracks/v2/permalink/{profileLink}/{permalink}
   // Public endpoint — requires the track owner's profile slug AND the track's permalink.
   // profileLink is fetched once at attach-time via getUserProfileLink and stored in the
   // message body so both sender and receiver use the same value.
@@ -691,7 +691,7 @@ class MessagingApiService {
     // Public endpoint — no auth header needed, but include it anyway for consistency
     final token = await _token();
     final uri = Uri.parse(
-      '${_apiServices.baseUrl}/api/public/tracks/v1/permalink/$profileLink/$permalink',
+      '${_apiServices.baseUrl}/api/public/tracks/v2/permalink/$profileLink/$permalink',
     );
     debugPrint('[getTrackByPermalink] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
