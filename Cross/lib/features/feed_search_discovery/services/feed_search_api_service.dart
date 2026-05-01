@@ -11,6 +11,8 @@
 //   DELETE /api/feed/v1/search/history/{historyId}        → deleteSearchHistoryItem
 //   GET  /api/public/tracks/v2/permalink/{profileLink}/{permalink}
 //                                                  → getTrackByPermalink
+//   GET  /api/tracks/v2/permalink/{profileLink}/{permalink}
+//                                                  → getTrackByPermalinkV2
 //   GET  /api/public/tracks/v2/{id}               → getTrackById (for details)
 //
 // Service pattern: constructor injection, returns Future<(int, dynamic)>.
@@ -200,6 +202,34 @@ class FeedSearchApiService {
 
       if (response.statusCode == 200) {
         // Response: { "message": "...", "data": { trackId, basicInfo, image, audio, ... } }
+        final data = body['data'] as Map<String, dynamic>?;
+        return (200, data ?? body);
+      }
+      return (response.statusCode, body['message'] ?? 'Error');
+    } catch (err) {
+      return (500, 'Network error: $err');
+    }
+  }
+
+  // ── GET /api/tracks/v2/permalink/{profileLink}/{permalink} ──────────────────
+  // Authenticated endpoint — returns full track details by permalink.
+  // Returns: (200, Map<String, dynamic> data) | (404, message) | (500, message)
+  Future<(int, dynamic)> getTrackByPermalinkV2({
+    required String profileLink,
+    required String permalink,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, 'No access token');
+
+      final uri = Uri.parse(
+        '${_apiServices.baseUrl}/api/tracks/v2/permalink/$profileLink/$permalink',
+      );
+
+      final response = await _client.get(uri, headers: _authHeaders(token));
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
         final data = body['data'] as Map<String, dynamic>?;
         return (200, data ?? body);
       }

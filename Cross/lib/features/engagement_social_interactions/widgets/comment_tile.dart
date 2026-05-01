@@ -112,10 +112,9 @@ class CommentTile extends StatelessWidget {
 
                     const SizedBox(width: 8),
 
-                    // Timestamp pill — only shown when timestamp > 0.
-                    // Replies always return from the server with timestamp 0
-                    // because the backend does not store reply timestamps.
-                    if (comment.timestamp > 0)
+                    // Timestamp pill — shown for all top-level comments
+                    // (including 0:00 from feed), never for replies.
+                    if (!isReply)
                       GestureDetector(
                         onTap: onTimestampTap,
                         child: Container(
@@ -266,8 +265,8 @@ class CommentTile extends StatelessWidget {
 
             // ── Common tiles ──────────────────────
 
-            // Play from timestamp — hidden for replies where server stores 0.
-            if (comment.timestamp > 0)
+            // Play from timestamp — hidden for replies (no timestamp stored).
+            if (!isReply)
               ListTile(
                 leading: Icon(
                   Icons.play_arrow_rounded,
