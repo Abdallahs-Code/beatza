@@ -159,7 +159,7 @@ class LibraryHistoryApiService {
   // ROUNDABOUT — no direct "tracks reposted by user" endpoint exists yet.
   //
   // Strategy:
-  //   1. Fetch every track ID via GET /api/public/tracks/v1/ (all pages).
+  //   1. Fetch every track ID via GET /api/tracks/v2/ (all pages).
   //   2. For each track, call GET /api/engagement/tracks/v1/{trackId}/repost
   //      (authenticated) to check whether the current user reposted it.
   //   3. Return tracks whose repost status is { "reposted": true }.
@@ -172,7 +172,7 @@ class LibraryHistoryApiService {
   ) async {
     try {
       // Step 1 — collect every track in the database (paginated).
-      final List<PlaybackTrackModel> allTracks = await _fetchAllPublicTracks();
+      final List<PlaybackTrackModel> allTracks = await _fetchAllPublicTracks(accessToken);
       if (allTracks.isEmpty) return [];
 
       // Step 2 — check repost status for each track in parallel.
@@ -187,7 +187,7 @@ class LibraryHistoryApiService {
     }
   }
 
-  Future<List<PlaybackTrackModel>> _fetchAllPublicTracks() async {
+  Future<List<PlaybackTrackModel>> _fetchAllPublicTracks(String accessToken) async {
     final List<PlaybackTrackModel> all = [];
     int page = 1;
     bool hasNext = true;
@@ -195,14 +195,15 @@ class LibraryHistoryApiService {
     while (hasNext) {
       try {
         final uri = Uri.parse(
-          '${_apiServices.baseUrl}/api/public/tracks/v1/',
+          '${_apiServices.baseUrl}/api/tracks/v2/',
         ).replace(queryParameters: {'page': page.toString(), 'limit': '50'});
 
         final response = await _client.get(
           uri,
-          headers: const {
+          headers: {
             'Content-Type': 'application/json',
             'User-Agent': 'Android',
+            'Authorization': 'Bearer $accessToken',
           },
         );
 
