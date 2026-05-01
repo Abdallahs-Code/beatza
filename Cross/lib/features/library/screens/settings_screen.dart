@@ -116,8 +116,8 @@ class SettingsScreen extends StatelessWidget {
                                           children: [
                                             Text(
                                               planName,
-                                              style: const TextStyle(
-                                                color: Colors.white,
+                                              style: TextStyle(
+                                                color: AppColors.whiteSmoke,
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -154,16 +154,16 @@ class SettingsScreen extends StatelessWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 16),
-                                const Divider(color: Colors.white10),
+                                Divider(color: AppColors.white10),
                                 const SizedBox(height: 8),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Renewal Date',
                                       style: TextStyle(
-                                        color: Colors.white54,
+                                        color: AppColors.white54,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -171,8 +171,8 @@ class SettingsScreen extends StatelessWidget {
                                       expiryDate != null
                                           ? '${expiryDate.day}/${expiryDate.month}/${expiryDate.year}'
                                           : '--/--/--',
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: AppColors.whiteSmoke,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -343,56 +343,72 @@ class SettingsScreen extends StatelessWidget {
                       title: 'Privacy',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacySettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Content',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ContentSettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Privacy',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacySettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Content',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ContentSettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Privacy',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacySettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Content',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ContentSettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Privacy',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacySettingsScreen(),
+                        ),
                       ),
                     ),
                     _SettingsTile(
                       title: 'Content',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ContentSettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ContentSettingsScreen(),
+                        ),
                       ),
                     ),
                     const _SettingsTile(title: 'App Icon'),
@@ -431,7 +447,7 @@ class SettingsScreen extends StatelessWidget {
                     _PrimaryActionButton(
                       title: 'Delete account',
                       backgroundColor: AppColors.deepRed,
-                      textColor: Colors.white,
+                      textColor: AppColors.whiteSmoke,
                       onTap: () {
                         showDialog(
                           context: context,
@@ -545,9 +561,9 @@ class _SettingsTileState extends State<_SettingsTile> {
                     _switchValue = value;
                   });
                 },
-                activeThumbColor: Colors.white,
+                activeThumbColor: AppColors.whiteSmoke,
                 activeTrackColor: AppColors.brilliantOrange,
-                inactiveThumbColor: Colors.white,
+                inactiveThumbColor: AppColors.whiteSmoke,
                 inactiveTrackColor: AppColors.tileDark3,
               )
             else if (widget.showChevron)
@@ -708,7 +724,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                           });
                         },
                   activeColor: Colors.redAccent,
-                  checkColor: Colors.white,
+                  checkColor: AppColors.whiteSmoke,
                   side: BorderSide(color: AppColors.white60),
                 ),
                 const SizedBox(width: 4),
@@ -761,19 +777,19 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.deepRed,
                       disabledBackgroundColor: const Color(0xFF5C1F1F),
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.whiteSmoke,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: _isDeleting
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: AppColors.whiteSmoke,
                             ),
                           )
                         : const Text(

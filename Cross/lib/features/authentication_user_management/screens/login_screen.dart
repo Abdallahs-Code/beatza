@@ -97,20 +97,17 @@ class LoginScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Scan to Login',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (pollingStatus == 'waiting')
                           IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              color: Colors.white70,
-                            ),
+                            icon: Icon(Icons.close, color: AppColors.white70),
                             onPressed: () => Navigator.pop(context),
                           ),
                       ],
@@ -120,20 +117,23 @@ class LoginScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: QrImageView(
                           data: currentQrData,
                           version: QrVersions.auto,
                           size: 200,
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppColors.whiteSmoke,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Open Beatza on your phone and scan this code',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.white70,
+                          fontSize: 14,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ] else ...[
@@ -170,8 +170,8 @@ class LoginScreen extends StatelessWidget {
                           const SizedBox(width: 12),
                           Text(
                             _getStatusMessage(pollingStatus),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 16,
                             ),
                           ),
@@ -180,8 +180,8 @@ class LoginScreen extends StatelessWidget {
                     else
                       Text(
                         _getStatusMessage(pollingStatus),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 16,
                         ),
                         textAlign: TextAlign.center,
@@ -271,8 +271,8 @@ class LoginScreen extends StatelessWidget {
                               Navigator.pop(context);
                             },
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white70,
-                              side: const BorderSide(color: Colors.white38),
+                              foregroundColor: AppColors.white70,
+                              side: BorderSide(color: AppColors.white54),
                             ),
                             child: const Text('Cancel'),
                           ),
@@ -460,30 +460,33 @@ class LoginScreen extends StatelessWidget {
                   );
                 },
                 alignment: Alignment.centerLeft,
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: AppColors.whiteSmoke,
+                ),
               ),
               const SizedBox(height: 40),
-              const Text(
+              Text(
                 AppText.signInOrCreateAccount,
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                 ),
               ),
               const SizedBox(height: 20),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white70,
+                    color: AppColors.white70,
                     height: 1.4,
                   ),
                   children: [
                     const TextSpan(text: AppText.termsAgreementStart),
                     TextSpan(
                       text: AppText.termsOfUse,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.blueHyperlink,
                         decoration: TextDecoration.underline,
                       ),
@@ -497,7 +500,7 @@ class LoginScreen extends StatelessWidget {
                     const TextSpan(text: AppText.andAcknowledge),
                     TextSpan(
                       text: AppText.privacyPolicy,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.blueHyperlink,
                         decoration: TextDecoration.underline,
                       ),
@@ -519,7 +522,7 @@ class LoginScreen extends StatelessWidget {
                 height: 32,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.whiteSmoke,
                     foregroundColor: Colors.black87,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -654,10 +657,10 @@ class LoginScreen extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 AppText.orWithEmail,
                 textAlign: TextAlign.left,
-                style: TextStyle(fontSize: 14, color: Colors.white70),
+                style: TextStyle(fontSize: 14, color: AppColors.white70),
               ),
               GestureDetector(
                 onTap: () {
@@ -682,7 +685,7 @@ class LoginScreen extends StatelessWidget {
               RichText(
                 text: TextSpan(
                   text: AppText.needHelp,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.blueHyperlink,
                     fontSize: 14,
                     decoration: TextDecoration.underline,

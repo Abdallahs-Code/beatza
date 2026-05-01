@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/ad_service.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 /// No-op — the ad renders inside the expanded player sheet.
 class AdOverlay extends StatelessWidget {
@@ -42,20 +43,20 @@ class AdPlayerWidget extends StatelessWidget {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.white10,
+                        color: AppColors.white10,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.campaign_rounded,
                         size: 56,
-                        color: Colors.white38,
+                        color: AppColors.white54,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Advertisement',
                       style: TextStyle(
-                        color: Colors.white38,
+                        color: AppColors.white54,
                         fontSize: 13,
                         letterSpacing: 1.5,
                         fontWeight: FontWeight.w600,
@@ -64,8 +65,8 @@ class AdPlayerWidget extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       '$remaining s',
-                      style: const TextStyle(
-                        color: Colors.white24,
+                      style: TextStyle(
+                        color: AppColors.white24,
                         fontSize: 11,
                         letterSpacing: 0.5,
                       ),
@@ -87,10 +88,10 @@ class AdPlayerWidget extends StatelessWidget {
                     color: Colors.white12,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Ad',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.5,
@@ -136,7 +137,7 @@ class AdPlayerWidget extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.92),
+            color: AppColors.whiteSmoke.withValues(alpha: 0.92),
             borderRadius: BorderRadius.circular(4),
           ),
           child: const Row(
@@ -178,7 +179,7 @@ class _Pill extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white54, fontSize: 13),
+        style: TextStyle(color: AppColors.white54, fontSize: 13),
       ),
     );
   }

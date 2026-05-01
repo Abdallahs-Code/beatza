@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 // Package imports
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
@@ -266,19 +267,19 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white54, width: 1.5),
+                  border: Border.all(color: AppColors.white54, width: 1.5),
                 ),
-                child: const Icon(Icons.group, color: Colors.white, size: 22),
+                child: Icon(Icons.group, color: AppColors.whiteSmoke, size: 22),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'People who follow you back',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -286,12 +287,12 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
                     SizedBox(height: 2),
                     Text(
                       'See your true friends',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: TextStyle(color: AppColors.white70, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.white70),
+              Icon(Icons.chevron_right, color: AppColors.white70),
             ],
           ),
         ),
@@ -315,7 +316,7 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
       appBar: AppBar(
         title: const Text('Followers'),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.whiteSmoke,
       ),
       body: RefreshIndicator(
         onRefresh: _loadFollowers,

@@ -62,7 +62,7 @@ class WelcomeBottomPanel extends StatelessWidget {
           /// CREATE ACCOUNT BUTTON
           WelcomeButton(
             text: AppText.createAccount,
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.whiteSmoke,
             textColor: Colors.black,
             onPressed: onCreateAccount,
           ),

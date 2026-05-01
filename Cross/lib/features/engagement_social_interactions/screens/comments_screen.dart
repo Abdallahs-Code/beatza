@@ -572,7 +572,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.whiteSmoke,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -582,8 +582,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
           _isLoading
               ? 'Comments'
               : '$_totalCommentCount comment${_totalCommentCount == 1 ? '' : 's'}',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -591,7 +591,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         actions: [
           // Sort filter icon
           IconButton(
-            icon: const Icon(Icons.tune, color: Colors.white, size: 20),
+            icon: Icon(Icons.tune, color: AppColors.whiteSmoke, size: 20),
             onPressed: _showSortSheet,
           ),
         ],
@@ -654,8 +654,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
               children: [
                 Text(
                   widget.trackTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -747,7 +747,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                           ? 'Hide replies'
                           : 'View ${comment.replyCount} '
                                 'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.orange,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -836,7 +836,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
             onPressed: _loadComments,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.whiteSmoke,
             ),
             child: const Text('Retry'),
           ),
@@ -871,7 +871,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         children: [
           Text(
             'Replying to ${_replyingTo!.displayName}',
-            style: const TextStyle(color: Colors.orange, fontSize: 12),
+            style: TextStyle(color: Colors.orange, fontSize: 12),
           ),
           const Spacer(),
           GestureDetector(
@@ -911,8 +911,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                             user.displayName.isNotEmpty
                                 ? user.displayName[0].toUpperCase()
                                 : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             ),
@@ -922,7 +922,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   const SizedBox(width: 10),
                   Text(
                     '@${user.displayName}',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
                   ),
                 ],
               ),
@@ -957,8 +957,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     _currentUserDisplayName.isNotEmpty
                         ? _currentUserDisplayName[0].toUpperCase()
                         : '?',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -972,7 +972,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
             child: TextField(
               controller: _inputController,
               focusNode: _inputFocusNode,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
               maxLines: null,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _postComment(),
@@ -1037,14 +1037,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Sort by',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -1055,7 +1055,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
               (entry) => ListTile(
                 title: Text(
                   entry.value,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 trailing: _sortBy == entry.key
                     ? const Icon(Icons.check, color: Colors.orange)
@@ -1082,9 +1082,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.container,
-        title: const Text(
+        title: Text(
           'Delete comment',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
         content: const Text(
           'Are you sure you want to delete this comment?',

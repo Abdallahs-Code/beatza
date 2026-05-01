@@ -364,8 +364,10 @@ class PlaylistApiService {
         }
         // Try single object wrapper
         final single = data['data']?['playlist'] as Map<String, dynamic>?;
-        if (single != null)
+        if (single != null) {
           return (response.statusCode, PlaylistModel.fromJson(single));
+        }
+          
         return (response.statusCode, null);
       }
       return (response.statusCode, null);
@@ -418,8 +420,10 @@ class PlaylistApiService {
           );
         }
         final single = data['data']?['playlist'] as Map<String, dynamic>?;
-        if (single != null)
+        if (single != null) {
           return (response.statusCode, PlaylistModel.fromJson(single));
+        }
+          
         return (response.statusCode, null);
       }
       return (response.statusCode, null);

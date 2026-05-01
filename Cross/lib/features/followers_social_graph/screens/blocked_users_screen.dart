@@ -6,6 +6,7 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class BlockedUsersScreen extends StatefulWidget {
   const BlockedUsersScreen({super.key});
@@ -134,7 +135,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
       appBar: AppBar(
         title: const Text('Blocked Users'),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.whiteSmoke,
       ),
       body: Stack(
         children: [

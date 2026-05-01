@@ -8,22 +8,25 @@ class PrivacySettingsApiService {
   final http.Client _client;
 
   PrivacySettingsApiService({ApiServices? apiServices, http.Client? client})
-      : _apiServices = apiServices ?? ApiServices(),
-        _client = client ?? http.Client();
+    : _apiServices = apiServices ?? ApiServices(),
+      _client = client ?? http.Client();
 
   Future<PrivacySettings> getSettings(String accessToken) async {
-    final response = await _client.get(
-      Uri.parse('${_apiServices.baseUrl}/api/profile/v1/settings/privacy'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'User-Agent': 'Android',
-      },
-    ).timeout(const Duration(seconds: 10));
+    final response = await _client
+        .get(
+          Uri.parse('${_apiServices.baseUrl}/api/profile/v1/settings/privacy'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+            'User-Agent': 'Android',
+          },
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
-          'Failed to fetch privacy settings. Status: ${response.statusCode}');
+        'Failed to fetch privacy settings. Status: ${response.statusCode}',
+      );
     }
 
     final dynamic decoded = jsonDecode(response.body);
@@ -40,19 +43,22 @@ class PrivacySettingsApiService {
     String accessToken,
     PrivacySettings settings,
   ) async {
-    final response = await _client.patch(
-      Uri.parse('${_apiServices.baseUrl}/api/profile/v1/settings/privacy'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'User-Agent': 'Android',
-      },
-      body: jsonEncode(settings.toJson()),
-    ).timeout(const Duration(seconds: 10));
+    final response = await _client
+        .patch(
+          Uri.parse('${_apiServices.baseUrl}/api/profile/v1/settings/privacy'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+            'User-Agent': 'Android',
+          },
+          body: jsonEncode(settings.toJson()),
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
-          'Failed to update privacy settings. Status: ${response.statusCode}');
+        'Failed to update privacy settings. Status: ${response.statusCode}',
+      );
     }
 
     final dynamic decoded = jsonDecode(response.body);

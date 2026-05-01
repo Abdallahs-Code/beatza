@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // Package imports
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class UserTile extends StatelessWidget {
   final Follower follower;
@@ -73,7 +74,9 @@ class UserTile extends StatelessWidget {
           child: Text(
             follower.isFollowing ? 'Following' : 'Follow',
             style: TextStyle(
-              color: follower.isFollowing ? Colors.black87 : Colors.white,
+              color: follower.isFollowing
+                  ? Colors.black87
+                  : AppColors.whiteSmoke,
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),

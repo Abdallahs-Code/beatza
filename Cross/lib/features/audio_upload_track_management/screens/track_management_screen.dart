@@ -168,9 +168,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.container,
-        title: const Text(
+        title: Text(
           'Delete track',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
         content: Text(
           'Delete "${track.title}"? This cannot be undone.',
@@ -237,11 +237,14 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.homeBackground,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Your Tracks',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppColors.whiteSmoke),
         actions: [
           IconButton(
             icon: const Icon(
@@ -252,7 +255,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                 Navigator.pushNamed(context, AudioUploadRoutes.uploadTrack),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white54),
+            icon: Icon(Icons.refresh, color: AppColors.white54),
             onPressed: _loadTracks,
           ),
         ],
@@ -307,7 +310,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
           decoration: BoxDecoration(
             color: AppColors.backgroundDark2,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: AppColors.white10),
           ),
           child: Row(
             children: [
@@ -325,12 +328,10 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                       ? Image.network(
                           track.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const Icon(
-                            Icons.music_note,
-                            color: Colors.white54,
-                          ),
+                          errorBuilder: (_, _, _) =>
+                              Icon(Icons.music_note, color: AppColors.white54),
                         )
-                      : const Icon(Icons.music_note, color: Colors.white54),
+                      : Icon(Icons.music_note, color: AppColors.white54),
                 ),
               ),
               const SizedBox(width: 14),
@@ -344,8 +345,8 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                       track.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -466,7 +467,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.whiteSmoke,
               ),
             ),
           ],
@@ -494,7 +495,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
             label: const Text('Upload first track'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.whiteSmoke,
             ),
           ),
         ],

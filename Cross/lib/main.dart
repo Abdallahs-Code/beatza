@@ -15,7 +15,7 @@ import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/core/widgets/global_connectivity_overlay.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/services/theme_service.dart'; // ← NEW
-import 'core/theme/app_colors.dart';        // ← NEW
+import 'core/theme/app_colors.dart'; // ← NEW
 import 'features/activity/services/push_notification_service.dart';
 import 'features/premium_subscription/services/offline_download_service.dart';
 import 'features/premium_subscription/services/payment_service.dart';
@@ -58,10 +58,7 @@ void main() async {
   });
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: themeService,
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider.value(value: themeService, child: const MyApp()),
   );
 }
 
@@ -77,12 +74,30 @@ class MyApp extends StatelessWidget {
       navigatorKey: appNavigatorKey,
       navigatorObservers: [appOverlayRouteObserver],
       debugShowCheckedModeBanner: false,
-      
+
       // ── Theme Configuration ────────────────────────────────────────────────
-      theme: ThemeData.light(),      // Fallback light theme
-      darkTheme: ThemeData.dark(),   // Fallback dark theme
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: AppColors.homeBackground,
+        cardColor: AppColors.cardDark,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.primaryOrange,
+          surface: AppColors.surfaceMid,
+          onSurface: AppColors.whiteSmoke,
+        ),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppColors.homeBackground,
+        cardColor: AppColors.cardDark,
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.primaryOrange,
+          surface: AppColors.surfaceMid,
+          onSurface: AppColors.whiteSmoke,
+        ),
+      ),
       themeMode: themeService.themeMode,
-      
+
       routes: AppRouter.routes,
       initialRoute: "/",
       builder: (context, child) {

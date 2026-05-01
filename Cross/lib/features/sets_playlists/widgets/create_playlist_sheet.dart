@@ -108,16 +108,16 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: AppColors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'New Playlist',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
@@ -137,25 +137,25 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                       border: Border.all(
                         color: _imagePath != null
                             ? AppColors.crusta
-                            : Colors.white24,
+                            : AppColors.white24,
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: _imagePath != null
                         ? Image.file(File(_imagePath!), fit: BoxFit.cover)
-                        : const Column(
+                        : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.add_photo_alternate_outlined,
-                                color: Colors.white38,
+                                color: AppColors.white54,
                                 size: 32,
                               ),
-                              SizedBox(height: 6),
+                              const SizedBox(height: 6),
                               Text(
                                 'Add cover',
                                 style: TextStyle(
-                                  color: Colors.white38,
+                                  color: AppColors.white54,
                                   fontSize: 11,
                                 ),
                               ),
@@ -170,10 +170,10 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               TextFormField(
                 controller: _nameController,
                 autofocus: true,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.whiteSmoke),
                 decoration: InputDecoration(
                   hintText: 'Playlist name',
-                  hintStyle: const TextStyle(color: Colors.white38),
+                  hintStyle: TextStyle(color: AppColors.white54),
                   filled: true,
                   fillColor: AppColors.cardDark,
                   border: OutlineInputBorder(
@@ -194,11 +194,11 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               // Description field (only shown when image is picked, since it maps to the with-image endpoint)
               TextFormField(
                 controller: _descController,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.whiteSmoke),
                 maxLines: 2,
                 decoration: InputDecoration(
                   hintText: 'Description (optional)',
-                  hintStyle: const TextStyle(color: Colors.white38),
+                  hintStyle: TextStyle(color: AppColors.white54),
                   filled: true,
                   fillColor: AppColors.cardDark,
                   border: OutlineInputBorder(
@@ -217,9 +217,9 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Private playlist',
-                    style: TextStyle(color: Colors.white, fontSize: 15),
+                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
                   ),
                   Switch(
                     value: _isPrivate,
@@ -237,19 +237,19 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
                   onPressed: _isCreating ? null : _create,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.crusta,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.whiteSmoke,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: _isCreating
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                           ),
                         )
                       : const Text(

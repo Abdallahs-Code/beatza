@@ -189,17 +189,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               decoration: BoxDecoration(
                 color: AppColors.surfaceMid,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white24, width: 1),
+                border: Border.all(color: AppColors.white24, width: 1),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bar_chart, color: Colors.white, size: 16),
-                  SizedBox(width: 6),
+                  Icon(Icons.bar_chart, color: AppColors.whiteSmoke, size: 16),
+                  const SizedBox(width: 6),
                   Text(
                     'Artist Studio',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -211,7 +211,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
+            icon: Icon(
+              Icons.cloud_upload_outlined,
+              color: AppColors.whiteSmoke,
+            ),
             onPressed: () => _handleUpload(context),
           ),
           AnimatedBuilder(
@@ -221,9 +224,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 icon: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.chat_bubble_outline_rounded,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                     ),
                     if (ActivityNotificationsController.shared.unreadCount > 0)
                       Positioned(
@@ -247,8 +250,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       .shared
                                       .unreadCount
                                       .toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -598,7 +601,9 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                           child: Text(
                             accessLabel,
                             style: TextStyle(
-                              color: _isBlocked ? Colors.white70 : Colors.black,
+                              color: _isBlocked
+                                  ? AppColors.white70
+                                  : Colors.black,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),

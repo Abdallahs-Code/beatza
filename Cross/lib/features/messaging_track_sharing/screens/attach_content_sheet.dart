@@ -55,11 +55,13 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       debugPrint(
         '[AttachContentSheet._loadData] ❌ userId is EMPTY — cannot load tracks.',
       );
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loadingLikes = false;
           _loadingUploads = false;
         });
+      }
+        
       return;
     }
 
@@ -199,16 +201,16 @@ class _AttachContentSheetState extends State<AttachContentSheet>
         children: [
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white70, fontSize: 15),
+              style: TextStyle(color: AppColors.white70, fontSize: 15),
             ),
           ),
           const Spacer(),
-          const Text(
+          Text(
             'Attach content',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -234,7 +236,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
                     style: TextStyle(
                       color: _selectedTrackLink != null
                           ? AppColors.primaryOrange
-                          : Colors.white38,
+                          : AppColors.white54,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -248,10 +250,10 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   Widget _buildTabs() {
     return TabBar(
       controller: _tabController,
-      indicatorColor: Colors.white,
+      indicatorColor: AppColors.whiteSmoke,
       indicatorWeight: 2,
-      labelColor: Colors.white,
-      unselectedLabelColor: Colors.white38,
+      labelColor: AppColors.whiteSmoke,
+      unselectedLabelColor: AppColors.white54,
       labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       unselectedLabelStyle: const TextStyle(
         fontSize: 14,
@@ -281,10 +283,10 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     }
 
     if (tracks.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No tracks',
-          style: TextStyle(color: Colors.white38, fontSize: 15),
+          style: TextStyle(color: AppColors.white54, fontSize: 15),
         ),
       );
     }
@@ -315,8 +317,8 @@ class _AttachContentSheetState extends State<AttachContentSheet>
             track.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -325,7 +327,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
             track.artistName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: AppColors.white54, fontSize: 12),
           ),
           trailing: GestureDetector(
             onTap: () => setState(() {
@@ -346,7 +348,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primaryOrange : Colors.white38,
+                  color: isSelected
+                      ? AppColors.primaryOrange
+                      : AppColors.white54,
                   width: 2,
                 ),
                 color: isSelected
@@ -354,9 +358,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
                     : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(
+                  ? Icon(
                       Icons.check_rounded,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       size: 14,
                     )
                   : null,
@@ -383,7 +387,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     return Center(
       child: Text(
         'No $label',
-        style: const TextStyle(color: Colors.white38, fontSize: 15),
+        style: TextStyle(color: AppColors.white54, fontSize: 15),
       ),
     );
   }
@@ -414,11 +418,7 @@ class _TrackThumb extends StatelessWidget {
       width: 48,
       height: 48,
       color: AppColors.surface,
-      child: const Icon(
-        Icons.graphic_eq_rounded,
-        color: Colors.white24,
-        size: 24,
-      ),
+      child: Icon(Icons.graphic_eq_rounded, color: AppColors.white24, size: 24),
     );
   }
 }

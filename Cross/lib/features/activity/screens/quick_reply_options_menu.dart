@@ -36,13 +36,13 @@ class QuickReplyOptionsMenu {
             ),
             if (comment.timestamp > 0)
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.play_arrow_rounded,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                 ),
                 title: Text(
                   'Play from ${comment.formattedTimestamp}',
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -51,10 +51,13 @@ class QuickReplyOptionsMenu {
               ),
             if (onGoToProfileTap != null)
               ListTile(
-                leading: const Icon(Icons.person_outline, color: Colors.white),
-                title: const Text(
+                leading: Icon(
+                  Icons.person_outline,
+                  color: AppColors.whiteSmoke,
+                ),
+                title: Text(
                   'Go to profile',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -62,8 +65,11 @@ class QuickReplyOptionsMenu {
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.copy_outlined, color: Colors.white),
-              title: const Text('Copy', style: TextStyle(color: Colors.white)),
+              leading: Icon(Icons.copy_outlined, color: AppColors.whiteSmoke),
+              title: Text(
+                'Copy',
+                style: TextStyle(color: AppColors.whiteSmoke),
+              ),
               onTap: () {
                 Navigator.pop(sheetContext);
                 Clipboard.setData(ClipboardData(text: comment.content));
@@ -83,13 +89,13 @@ class QuickReplyOptionsMenu {
               ),
             if (!isOwn && comment.userId.isNotEmpty) ...[
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.outlined_flag_rounded,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                 ),
-                title: const Text(
+                title: Text(
                   'Report',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -103,10 +109,10 @@ class QuickReplyOptionsMenu {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.flag_outlined, color: Colors.white),
-                title: const Text(
+                leading: Icon(Icons.flag_outlined, color: AppColors.whiteSmoke),
+                title: Text(
                   'Report as spam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -144,9 +150,9 @@ class QuickReplyOptionsMenu {
           context: context,
           builder: (dialogCtx) => AlertDialog(
             backgroundColor: AppColors.container,
-            title: const Text(
+            title: Text(
               'Block user?',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteSmoke),
             ),
             content: const Text(
               'This user will no longer be able to follow or interact with '
@@ -156,9 +162,9 @@ class QuickReplyOptionsMenu {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogCtx, false),
-                child: const Text(
+                child: Text(
                   'CANCEL',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: AppColors.white70),
                 ),
               ),
               TextButton(

@@ -247,13 +247,13 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Icon(Icons.close, color: Colors.white),
+                      child: Icon(Icons.close, color: AppColors.whiteSmoke),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
+                    Text(
                       'Repost',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
@@ -286,8 +286,8 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                               maxLength: _maxCaptionLength,
                               maxLines: 3,
                               minLines: 2,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
                                 fontSize: 14,
                               ),
                               decoration: InputDecoration(
@@ -353,8 +353,8 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                               children: [
                                 Text(
                                   widget.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: AppColors.whiteSmoke,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13,
                                   ),
@@ -388,9 +388,9 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _alreadyReposted
                               ? Colors.grey[800]
-                              : Colors.white,
+                              : AppColors.whiteSmoke,
                           foregroundColor: _alreadyReposted
-                              ? Colors.white
+                              ? AppColors.whiteSmoke
                               : Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -399,12 +399,12 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                           disabledBackgroundColor: Colors.grey[700],
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: AppColors.whiteSmoke,
                                 ),
                               )
                             : Text(

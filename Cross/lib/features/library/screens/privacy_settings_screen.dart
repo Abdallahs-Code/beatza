@@ -67,10 +67,13 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final confirmed = await _api.updateSettings(token, updated);
-      if (mounted) setState(() {
-        _settings = confirmed;
-        _saving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _settings = confirmed;
+          _saving = false;
+        });
+      }
+        
     } catch (_) {
       if (mounted) {
         setState(() => _saving = false);
@@ -90,7 +93,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
               const Expanded(
                 child: Center(
                   child: CircularProgressIndicator(
-                      color: AppColors.brilliantOrange),
+                    color: AppColors.brilliantOrange,
+                  ),
                 ),
               )
             else if (_error != null)
@@ -101,16 +105,19 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                     children: [
                       Text(
                         _error!,
-                        style:  TextStyle(
-                            color: AppColors.white60, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.white60,
+                          fontSize: 14,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       TextButton(
                         onPressed: _load,
-                        child: const Text('Retry',
-                            style:
-                                TextStyle(color: AppColors.brilliantOrange)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(color: AppColors.brilliantOrange),
+                        ),
                       ),
                     ],
                   ),
@@ -135,7 +142,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                                     'Anyone can send you direct messages. Turn off to limit to people you follow.',
                                 value: _settings!.allowMessagesAnyone,
                                 onChanged: (v) => _patch(
-                                    _settings!.copyWith(allowMessagesAnyone: v)),
+                                  _settings!.copyWith(allowMessagesAnyone: v),
+                                ),
                               ),
                             ],
                           ),
@@ -149,8 +157,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                                 subtitle:
                                     'Your listening activity may appear in discovery and recommendations for others.',
                                 value: _settings!.showActivityDiscovery,
-                                onChanged: (v) => _patch(_settings!
-                                    .copyWith(showActivityDiscovery: v)),
+                                onChanged: (v) => _patch(
+                                  _settings!.copyWith(showActivityDiscovery: v),
+                                ),
                               ),
                             ],
                           ),
@@ -165,13 +174,15 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                                     'Allow your profile to be highlighted as the first top fan on tracks you support.',
                                 value: _settings!.showFirstTopFan,
                                 onChanged: (v) => _patch(
-                                    _settings!.copyWith(showFirstTopFan: v)),
+                                  _settings!.copyWith(showFirstTopFan: v),
+                                ),
                               ),
-                              const Divider(
-                                  height: 1,
-                                  color: Color(0xFF2A2A2A),
-                                  indent: 16,
-                                  endIndent: 16),
+                              Divider(
+                                height: 1,
+                                color: AppColors.containerMid,
+                                indent: 16,
+                                endIndent: 16,
+                              ),
                               _PrivacyRow(
                                 icon: Icons.people_outline_rounded,
                                 label: 'Show track top fans',
@@ -179,7 +190,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                                     'Display the top fans list on your uploaded tracks.',
                                 value: _settings!.showTrackTopFans,
                                 onChanged: (v) => _patch(
-                                    _settings!.copyWith(showTrackTopFans: v)),
+                                  _settings!.copyWith(showTrackTopFans: v),
+                                ),
                               ),
                             ],
                           ),
@@ -194,8 +206,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.brilliantOrange),
+                            strokeWidth: 2,
+                            color: AppColors.brilliantOrange,
+                          ),
                         ),
                       ),
                   ],
@@ -219,17 +232,21 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon:  Icon(Icons.arrow_back_ios_new,
-                    color: AppColors.whiteSmoke, size: 20),
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: AppColors.whiteSmoke,
+                  size: 20,
+                ),
               ),
             ),
-             Center(
+            Center(
               child: Text(
                 'Privacy',
                 style: TextStyle(
-                    color: AppColors.whiteSmoke,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700),
+                  color: AppColors.whiteSmoke,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -238,18 +255,21 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     );
   }
 
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title.toUpperCase(),
-          style:  TextStyle(
-              color: AppColors.white60,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8),
+          style: TextStyle(
+            color: AppColors.white60,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+          ),
         ),
         const SizedBox(height: 6),
         Container(
@@ -299,18 +319,20 @@ class _PrivacyRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style:  TextStyle(
-                      color: AppColors.whiteSmoke,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style:  TextStyle(
-                      color: AppColors.white60,
-                      fontSize: 12,
-                      height: 1.4),
+                  style: TextStyle(
+                    color: AppColors.white60,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -319,10 +341,10 @@ class _PrivacyRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: Colors.white,
+            activeThumbColor: AppColors.whiteSmoke,
             activeTrackColor: AppColors.brilliantOrange,
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFF2A2A2A),
+            inactiveThumbColor: AppColors.whiteSmoke,
+            inactiveTrackColor: AppColors.containerMid,
           ),
         ],
       ),

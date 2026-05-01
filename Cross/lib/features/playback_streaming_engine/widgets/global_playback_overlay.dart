@@ -211,7 +211,9 @@ class _MiniPlayerCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: AppColors.whiteSmoke.withValues(alpha: 0.08),
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -227,7 +229,7 @@ class _MiniPlayerCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isAdPlaying || isBlocked
                           ? Colors.white12
-                          : Colors.white,
+                          : AppColors.whiteSmoke,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -239,7 +241,7 @@ class _MiniPlayerCard extends StatelessWidget {
                                 ? Icons.pause_rounded
                                 : Icons.play_arrow_rounded),
                       color: isAdPlaying || isBlocked
-                          ? Colors.white38
+                          ? AppColors.white54
                           : Colors.black,
                       size: 26,
                     ),
@@ -255,8 +257,8 @@ class _MiniPlayerCard extends StatelessWidget {
                         isAdPlaying ? 'Ad playing' : track.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
@@ -355,7 +357,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                     width: 42,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white38,
+                      color: AppColors.white54,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -401,8 +403,8 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                     track.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -451,8 +453,8 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                       track.artistName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                      style: TextStyle(
+                                        color: AppColors.white70,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -493,19 +495,19 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                         color: Colors.black,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             Icons.graphic_eq,
-                                            color: Colors.white70,
+                                            color: AppColors.white70,
                                             size: 14,
                                           ),
                                           SizedBox(width: 6),
                                           Text(
                                             'Behind this track',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: AppColors.whiteSmoke,
                                               fontSize: 13,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -803,18 +805,22 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white10,
+              color: AppColors.white10,
               borderRadius: BorderRadius.circular(30),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.music_off_rounded, color: Colors.white38, size: 20),
+                Icon(
+                  Icons.music_off_rounded,
+                  color: AppColors.white54,
+                  size: 20,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Not available',
                   style: TextStyle(
-                    color: Colors.white54,
+                    color: AppColors.white54,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1040,8 +1046,8 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
           children: [
             Text(
               _formatDuration(_position),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -1049,7 +1055,7 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
             const SizedBox(width: 8),
             Text(
               _formatDuration(_totalDuration),
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: AppColors.white70, fontSize: 13),
             ),
           ],
         ),
@@ -1260,7 +1266,7 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
                     : _volume < 0.5
                     ? Icons.volume_down_rounded
                     : Icons.volume_up_rounded,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 20,
               ),
             ),
@@ -1269,8 +1275,8 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 2,
-                thumbColor: Colors.white,
-                activeTrackColor: Colors.white,
+                thumbColor: AppColors.whiteSmoke,
+                activeTrackColor: AppColors.whiteSmoke,
                 inactiveTrackColor: Colors.white30,
                 overlayShape: SliderComponentShape.noOverlay,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
@@ -1328,7 +1334,7 @@ class _ExpandedArtworkBackground extends StatelessWidget {
           ),
         ),
         Positioned.fill(
-          child: Container(color: Colors.white.withValues(alpha: 0.20)),
+          child: Container(color: AppColors.whiteSmoke.withValues(alpha: 0.20)),
         ),
       ],
     );
@@ -1347,7 +1353,7 @@ class _ArtworkFallback extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha: 0.96),
+            AppColors.whiteSmoke.withValues(alpha: 0.96),
             AppColors.gentlePeach,
             AppColors.brilliantOrange.withValues(alpha: 0.35),
           ],
@@ -1381,7 +1387,7 @@ class _TopCircleButton extends StatelessWidget {
           color: Colors.black,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.white, size: 28),
+        child: Icon(icon, color: AppColors.whiteSmoke, size: 28),
       ),
     );
   }
@@ -1413,7 +1419,11 @@ class _PlayerActionButton extends StatelessWidget {
             color: Colors.black,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: Colors.white, size: isPrimary ? 40 : 28),
+          child: Icon(
+            icon,
+            color: AppColors.whiteSmoke,
+            size: isPrimary ? 40 : 28,
+          ),
         ),
       ),
     );
@@ -1432,13 +1442,13 @@ class _BottomMetric extends StatelessWidget {
     final Widget content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white, size: 26),
+        Icon(icon, color: AppColors.whiteSmoke, size: 26),
         if (label.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -1505,38 +1515,38 @@ Future<void> _showDeviceSheet(BuildContext context) async {
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Current Device',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 22),
-                const _SheetOptionRow(
+                _SheetOptionRow(
                   icon: Icons.smartphone_outlined,
                   iconColor: AppColors.brilliantOrange,
                   label: 'Speaker',
                 ),
                 const SizedBox(height: 28),
-                Divider(color: Colors.white.withValues(alpha: 0.12)),
+                Divider(color: AppColors.whiteSmoke.withValues(alpha: 0.12)),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Other Devices',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 22),
-                const _SheetOptionRow(
+                _SheetOptionRow(
                   icon: Icons.speaker_phone_outlined,
                   label: 'AirPlay or Bluetooth',
                 ),
                 const SizedBox(height: 24),
-                const _SheetOptionRow(
+                _SheetOptionRow(
                   icon: Icons.cast_outlined,
                   label: 'Google Cast',
                 ),
@@ -1625,7 +1635,7 @@ Future<void> _showShareSheet(
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: AppColors.whiteSmoke.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Row(
@@ -1635,7 +1645,7 @@ Future<void> _showShareSheet(
                           height: 86,
                           clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child:
@@ -1666,8 +1676,8 @@ Future<void> _showShareSheet(
                                 track.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: AppColors.whiteSmoke,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -1677,8 +1687,8 @@ Future<void> _showShareSheet(
                                 track.artistName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white70,
+                                style: TextStyle(
+                                  color: AppColors.white70,
                                   fontSize: 15,
                                 ),
                               ),
@@ -1689,10 +1699,10 @@ Future<void> _showShareSheet(
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
+                  Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -1765,7 +1775,8 @@ Future<void> _showTrackOptionsSheet(
   if (navigatorContext == null) return;
 
   final currentUserId = await AuthApiService().getStoredUserId();
-  final isOwnTrack = currentUserId != null &&
+  final isOwnTrack =
+      currentUserId != null &&
       currentUserId.isNotEmpty &&
       track.artistId != null &&
       track.artistId == currentUserId;
@@ -1857,7 +1868,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                       height: 82,
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child:
@@ -1892,8 +1903,8 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                     track.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1903,7 +1914,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                     track.artistName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                    style: TextStyle(color: AppColors.white70, fontSize: 15),
                   ),
                 ],
               ),
@@ -1921,12 +1932,12 @@ class _TrackOptionTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color color;
 
-  const _TrackOptionTile({
+  _TrackOptionTile({
     required this.icon,
     required this.label,
     this.onTap,
-    this.color = Colors.white,
-  });
+    Color? color,
+  }) : color = color ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {
@@ -1952,7 +1963,7 @@ class _VinylPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint basePaint = Paint()..color = Colors.black;
     final Paint ringPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
+      ..color = AppColors.whiteSmoke.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final Paint centerPaint = Paint()
@@ -2052,7 +2063,7 @@ class _MiniLikeButtonState extends State<_MiniLikeButton> {
       constraints: const BoxConstraints(),
       icon: Icon(
         _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-        color: _isLiked ? Colors.orange : Colors.white,
+        color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
         size: 26,
       ),
     );
@@ -2251,7 +2262,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
                 _isLiked
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                color: _isLiked ? Colors.orange : Colors.white,
+                color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                 size: 26,
               ),
               if (_likeCount > 0) ...[
@@ -2260,8 +2271,8 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
                   onTap: _openLikersScreen,
                   child: Text(
                     _formatCount(_likeCount),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -2277,17 +2288,17 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.mode_comment_outlined,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 26,
               ),
               if (_commentCount > 0) ...[
                 const SizedBox(height: 4),
                 Text(
                   _formatCount(_commentCount),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -2688,12 +2699,12 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 ),
                 const SizedBox(height: 22),
                 if (_recentContacts.isNotEmpty) ...[
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
                       'SEND TO',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.white70,
                         letterSpacing: 2.2,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -2723,12 +2734,12 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   const SizedBox(height: 18),
                   const Divider(color: Colors.white12, height: 1),
                 ],
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -2774,7 +2785,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   label: _isLiked ? 'Liked' : 'Like',
-                  color: _isLiked ? Colors.orange : Colors.white,
+                  color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                   onTap: _toggleLike,
                 ),
                 _TrackOptionTile(
@@ -2797,15 +2808,15 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                     Navigator.pop(context);
                   },
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.playlist_add_outlined,
                   label: 'Add to playlist',
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.radio_outlined,
                   label: 'Start station',
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
                 _TrackOptionTile(
@@ -2821,7 +2832,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 _TrackOptionTile(
                   icon: Icons.repeat_rounded,
                   label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                  color: _isReposted ? Colors.orange : Colors.white,
+                  color: _isReposted ? Colors.orange : AppColors.whiteSmoke,
                   onTap: _openRepost,
                 ),
                 const SizedBox(height: 10),
@@ -2848,7 +2859,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                     );
                   },
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.outlined_flag_rounded,
                   label: 'Report',
                 ),
@@ -2866,11 +2877,8 @@ class _SheetOptionRow extends StatelessWidget {
   final String label;
   final Color iconColor;
 
-  const _SheetOptionRow({
-    required this.icon,
-    required this.label,
-    this.iconColor = Colors.white,
-  });
+  _SheetOptionRow({required this.icon, required this.label, Color? iconColor})
+    : iconColor = iconColor ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {
@@ -2878,7 +2886,10 @@ class _SheetOptionRow extends StatelessWidget {
       children: [
         Icon(icon, color: iconColor, size: 28),
         const SizedBox(width: 16),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 16)),
+        Text(
+          label,
+          style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
+        ),
       ],
     );
   }
@@ -2904,15 +2915,15 @@ class _ShareAction extends StatelessWidget {
               width: 62,
               height: 62,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: AppColors.whiteSmoke.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 30),
+              child: Icon(icon, color: AppColors.whiteSmoke, size: 30),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
             ),
           ],
         ),
@@ -2950,8 +2961,8 @@ class _SendToContactBubble extends StatelessWidget {
               child: photoUrl.isEmpty
                   ? Text(
                       _initials(name),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -2966,7 +2977,7 @@ class _SendToContactBubble extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 12),
               ),
             ),
           ],
@@ -3056,10 +3067,10 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
           Expanded(
             child: TextField(
               controller: _controller,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: const InputDecoration(
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
+              decoration: InputDecoration(
                 hintText: 'Comment...',
-                hintStyle: TextStyle(color: Colors.white70, fontSize: 14),
+                hintStyle: TextStyle(color: AppColors.white70, fontSize: 14),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
@@ -3181,19 +3192,19 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
       icon: _isLoading
-          ? const SizedBox(
+          ? SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Colors.white70,
+                color: AppColors.white70,
               ),
             )
           : Icon(
               _isFollowing
                   ? Icons.person_remove_outlined
                   : Icons.person_add_alt_1_outlined,
-              color: _isFollowing ? Colors.orange : Colors.white70,
+              color: _isFollowing ? Colors.orange : AppColors.white70,
               size: 26,
             ),
     );
@@ -3319,18 +3330,18 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       size: 28,
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Text(
                         'Next Up',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -3343,7 +3354,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                       Icons.shuffle_rounded,
                       color: isShuffled
                           ? AppColors.brilliantOrange
-                          : Colors.white54,
+                          : AppColors.white54,
                       size: 24,
                     ),
                   ),
@@ -3360,7 +3371,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                             Icons.repeat_rounded,
                             color: repeatMode == TrackRepeatMode.all
                                 ? AppColors.brilliantOrange
-                                : Colors.white54,
+                                : AppColors.white54,
                             size: 24,
                           ),
                   ),
@@ -3381,12 +3392,12 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                       padding: EdgeInsets.zero,
                       children: [
                         if (currentTrack != null) ...[
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
                             child: Text(
                               'Currently playing',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: AppColors.white54,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.6,
@@ -3397,12 +3408,12 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                           const SizedBox(height: 6),
                         ],
                         if (showPlayingNext) ...[
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                             child: Text(
                               'Playing next',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: AppColors.white54,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.6,
@@ -3471,9 +3482,9 @@ class _QueueCurrentTrackTile extends StatelessWidget {
                     track.artworkUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) =>
-                        const Icon(Icons.album_rounded, color: Colors.white54),
+                        Icon(Icons.album_rounded, color: AppColors.white54),
                   )
-                : const Icon(Icons.album_rounded, color: Colors.white54),
+                : Icon(Icons.album_rounded, color: AppColors.white54),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3485,8 +3496,8 @@ class _QueueCurrentTrackTile extends StatelessWidget {
                   track.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -3496,7 +3507,7 @@ class _QueueCurrentTrackTile extends StatelessWidget {
                   track.artistName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  style: TextStyle(color: AppColors.white54, fontSize: 13),
                 ),
               ],
             ),
@@ -3535,7 +3546,7 @@ class _QueueNextTrackTile extends StatelessWidget {
                 color: Color(0xFFE53935),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.remove, color: Colors.white, size: 18),
+              child: Icon(Icons.remove, color: AppColors.whiteSmoke, size: 18),
             ),
           ),
           const SizedBox(width: 10),
@@ -3553,9 +3564,9 @@ class _QueueNextTrackTile extends StatelessWidget {
                     track.artworkUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) =>
-                        const Icon(Icons.album_rounded, color: Colors.white54),
+                        Icon(Icons.album_rounded, color: AppColors.white54),
                   )
-                : const Icon(Icons.album_rounded, color: Colors.white54),
+                : Icon(Icons.album_rounded, color: AppColors.white54),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3567,8 +3578,8 @@ class _QueueNextTrackTile extends StatelessWidget {
                   track.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -3578,7 +3589,7 @@ class _QueueNextTrackTile extends StatelessWidget {
                   track.artistName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  style: TextStyle(color: AppColors.white54, fontSize: 13),
                 ),
               ],
             ),
@@ -3586,9 +3597,9 @@ class _QueueNextTrackTile extends StatelessWidget {
           const SizedBox(width: 8),
           ReorderableDragStartListener(
             index: index,
-            child: const Icon(
+            child: Icon(
               Icons.drag_handle_rounded,
-              color: Colors.white38,
+              color: AppColors.white54,
               size: 24,
             ),
           ),

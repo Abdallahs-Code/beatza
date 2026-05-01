@@ -76,23 +76,23 @@ class TextInputField extends StatelessWidget {
     return TextField(
       controller: controller,
       autofocus: autofocus,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: AppColors.whiteSmoke),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.white54),
+        hintStyle: TextStyle(color: AppColors.white54),
         filled: true,
         fillColor: AppColors.inputFill,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.white54),
+          borderSide: BorderSide(color: AppColors.white54),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.white54),
+          borderSide: BorderSide(color: AppColors.white54),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.white70),
+          borderSide: BorderSide(color: AppColors.white70),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -132,20 +132,20 @@ class QrCodeLoginDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Title
-            const Text(
+            Text(
               AppText.qrCodeLoginTitle,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
               ),
             ),
             const SizedBox(height: 16),
 
             /// Description
-            const Text(
+            Text(
               AppText.qrCodeLoginDesc,
-              style: TextStyle(fontSize: 16, color: Colors.white70),
+              style: TextStyle(fontSize: 16, color: AppColors.white70),
             ),
             const SizedBox(height: 24),
 
@@ -187,9 +187,9 @@ class QrCodeLoginDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 /// Status Text
-                const Text(
+                Text(
                   AppText.qrCodeLoginStatus,
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: AppColors.white70, fontSize: 14),
                 ),
 
                 /// Refresh Button

@@ -24,11 +24,11 @@ class MetadataFormWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.white10),
       ),
       child: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: AppColors.whiteSmoke),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
@@ -50,10 +50,10 @@ class MetadataFormWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Track Details',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),

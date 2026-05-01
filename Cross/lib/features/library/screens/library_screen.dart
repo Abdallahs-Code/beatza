@@ -121,7 +121,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (userId == null || userId.trim().isEmpty) return;
       if (!context.mounted) return;
       await ProfileNavigator.push(context, userId);
-      if (mounted) setState(() { _profileFuture = _loadUserProfile(); });
+      if (mounted) {
+        setState(() {
+          _profileFuture = _loadUserProfile();
+        });
+      }
+        
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -429,20 +434,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.10),
-                          ),
+                          border: Border.all(color: AppColors.white10),
                         ),
                         child: CircleAvatar(
                           radius: 20,
-                          backgroundColor: Colors.white.withValues(alpha: 0.08),
+                          backgroundColor: AppColors.white10,
                           backgroundImage: imageUrl.isNotEmpty
                               ? NetworkImage(imageUrl)
                               : null,
                           child: imageUrl.isEmpty
-                              ? const Icon(
+                              ? Icon(
                                   Icons.person,
-                                  color: Colors.white,
+                                  color: AppColors.whiteSmoke,
                                   size: 22,
                                 )
                               : null,

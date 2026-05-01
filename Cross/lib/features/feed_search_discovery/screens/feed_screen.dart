@@ -22,6 +22,7 @@ import '../widgets/feed_card.dart';
 
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -185,10 +186,10 @@ class _FeedScreenState extends State<FeedScreen>
           bottom: false,
           child: TabBar(
             controller: _tabController,
-            indicatorColor: Colors.white,
+            indicatorColor: AppColors.whiteSmoke,
             indicatorWeight: 2,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white54,
+            labelColor: AppColors.whiteSmoke,
+            unselectedLabelColor: AppColors.white54,
             labelStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -217,10 +218,10 @@ class _FeedScreenState extends State<FeedScreen>
     }
 
     if (_discoverTracks.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No trending tracks',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: AppColors.white54),
         ),
       );
     }
@@ -280,11 +281,11 @@ class _FeedScreenState extends State<FeedScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.people_outline, color: Colors.white54, size: 64),
+            Icon(Icons.people_outline, color: AppColors.white54, size: 64),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Follow artists to see their tracks here',
-              style: TextStyle(color: Colors.white54, fontSize: 16),
+              style: TextStyle(color: AppColors.white54, fontSize: 16),
               textAlign: TextAlign.center,
             ),
           ],
@@ -335,11 +336,11 @@ class _FeedScreenState extends State<FeedScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, color: Colors.white54, size: 48),
+          Icon(Icons.error_outline, color: AppColors.white54, size: 48),
           const SizedBox(height: 12),
           Text(
             error,
-            style: const TextStyle(color: Colors.white54),
+            style: TextStyle(color: AppColors.white54),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),

@@ -23,7 +23,6 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 
-
 class FeedCard extends StatefulWidget {
   final String itemId;
   final bool isCurrent;
@@ -223,21 +222,19 @@ class _FeedCardState extends State<FeedCard> {
       builder: (_) => TrackOptionsSheet(
         track: track,
         variant: TrackOptionsVariant.feedTrack,
-        onBehindThisTrack: () => Navigator.of(
-          context,
-          rootNavigator: true,
-        ).push(
-          MaterialPageRoute<void>(
-            builder: (_) => BehindTheTrackScreen(
-              trackId: track.id,
-              actorName: track.artistName,
-              actorAvatarUrl: track.artworkUrl ?? '',
-              actorUserId: track.artistId ?? '',
-              activityType: 'new_track',
-              trackOwnerId: track.artistId ?? '',
+        onBehindThisTrack: () =>
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BehindTheTrackScreen(
+                  trackId: track.id,
+                  actorName: track.artistName,
+                  actorAvatarUrl: track.artworkUrl ?? '',
+                  actorUserId: track.artistId ?? '',
+                  activityType: 'new_track',
+                  trackOwnerId: track.artistId ?? '',
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -285,9 +282,9 @@ class _FeedCardState extends State<FeedCard> {
                 color: Colors.black38,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.more_horiz,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 22,
               ),
             ),
@@ -372,13 +369,13 @@ class _FeedCardState extends State<FeedCard> {
             color: Colors.black.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const AspectRatio(
+          child: AspectRatio(
             aspectRatio: 1,
             child: Center(
               child: Text(
                 'Tap to preview',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -407,7 +404,7 @@ class _FeedCardState extends State<FeedCard> {
               ),
               child: Icon(
                 muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 22,
               ),
             ),
@@ -428,7 +425,7 @@ class _FeedCardState extends State<FeedCard> {
             children: [
               Icon(
                 _isLiked ? Icons.favorite : Icons.favorite_border,
-                color: _isLiked ? Colors.orange : Colors.white,
+                color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                 size: 32,
               ),
               const SizedBox(height: 4),
@@ -436,7 +433,7 @@ class _FeedCardState extends State<FeedCard> {
                 onTap: () => _openLikers(context),
                 child: Text(
                   _formatCount(_likeCount),
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
                 ),
               ),
             ],
@@ -449,15 +446,15 @@ class _FeedCardState extends State<FeedCard> {
           onTap: () => _openComments(context),
           child: Column(
             children: [
-              const Icon(
+              Icon(
                 Icons.chat_bubble_outline_rounded,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 30,
               ),
               const SizedBox(height: 4),
               Text(
                 _formatCount(_commentCount),
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
               ),
             ],
           ),
@@ -471,8 +468,10 @@ class _FeedCardState extends State<FeedCard> {
               const SnackBar(content: Text('Add to playlist coming soon')),
             );
           },
-          child: const Column(
-            children: [Icon(Icons.playlist_add, color: Colors.white, size: 30)],
+          child: Column(
+            children: [
+              Icon(Icons.playlist_add, color: AppColors.whiteSmoke, size: 30),
+            ],
           ),
         ),
         const SizedBox(height: 24),
@@ -485,8 +484,8 @@ class _FeedCardState extends State<FeedCard> {
           },
           child: Container(
             padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -516,8 +515,8 @@ class _FeedCardState extends State<FeedCard> {
         children: [
           Text(
             widget.displayName,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
@@ -538,8 +537,8 @@ class _FeedCardState extends State<FeedCard> {
                 const SizedBox(width: 8),
                 Text(
                   widget.actorName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -552,22 +551,25 @@ class _FeedCardState extends State<FeedCard> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white54),
+                      border: Border.all(color: AppColors.white54),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Following',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
 
                 if (widget.isRepost) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.repeat, color: Colors.white70, size: 14),
+                  Icon(Icons.repeat, color: AppColors.white70, size: 14),
                   const SizedBox(width: 2),
-                  const Text(
+                  Text(
                     'Repost',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: AppColors.white70, fontSize: 12),
                   ),
                 ],
               ],

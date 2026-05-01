@@ -430,9 +430,9 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.container,
-        title: const Text(
+        title: Text(
           'Delete comment',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
         content: const Text(
           'Are you sure you want to delete this comment?',
@@ -505,19 +505,19 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               size: 28,
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
               'Quick Reply',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
               ),
@@ -556,8 +556,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                   widget.trackTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -703,8 +703,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                       comment.displayName.isNotEmpty
                           ? comment.displayName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -723,8 +723,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                       child: Text(
                         comment.displayName,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -744,8 +744,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                         ),
                         child: Text(
                           'at ${comment.formattedTimestamp}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
@@ -895,8 +895,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                             user.displayName.isNotEmpty
                                 ? user.displayName[0].toUpperCase()
                                 : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -906,7 +906,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                   const SizedBox(width: 10),
                   Text(
                     '@${user.displayName}',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
                   ),
                 ],
               ),
@@ -945,7 +945,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                   ),
                   child: Text(
                     text,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
                   ),
                 ),
               ),
@@ -964,14 +964,18 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
           CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.containerMid,
-            child: Icon(Icons.person_rounded, color: Colors.white54, size: 18),
+            child: Icon(
+              Icons.person_rounded,
+              color: AppColors.white54,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: _inputController,
               focusNode: _focusNode,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
               maxLines: 1,
               textInputAction: TextInputAction.send,
               onSubmitted: _postComment,

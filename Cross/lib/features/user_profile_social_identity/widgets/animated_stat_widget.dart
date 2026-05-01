@@ -37,10 +37,10 @@ class AnimatedStatWidget extends StatelessWidget {
           builder: (context, val, child) {
             return Text(
               _formatNumber(val),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
               ),
             );
           },

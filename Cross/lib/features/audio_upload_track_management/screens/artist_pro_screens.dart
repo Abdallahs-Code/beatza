@@ -12,7 +12,7 @@ class ProRestrictionsScreen extends StatelessWidget {
         backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -21,28 +21,28 @@ class ProRestrictionsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Restrictions apply',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. Beatza Artist Pro Terms of Use & Privacy Policy',
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.white70,
                 fontSize: 16,
                 height: 1.5,
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Artist Pro',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -79,8 +79,8 @@ class ProRestrictionsScreen extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white24,
+        style: TextStyle(
+          color: AppColors.white24,
           fontSize: 16,
           fontWeight: FontWeight.w500,
           decoration: TextDecoration.underline,
@@ -96,9 +96,9 @@ class ArtistTermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         centerTitle: true,
         title: const Text(
@@ -197,9 +197,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         title: const Text(
           'Privacy Policy',

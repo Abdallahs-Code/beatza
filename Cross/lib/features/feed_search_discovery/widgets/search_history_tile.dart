@@ -42,7 +42,7 @@ class SearchHistoryTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

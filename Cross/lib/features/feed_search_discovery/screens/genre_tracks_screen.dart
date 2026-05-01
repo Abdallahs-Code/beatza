@@ -81,12 +81,12 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
         backgroundColor: widget.genreColor,
         title: Text(
           widget.genre,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontWeight: FontWeight.w700,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppColors.whiteSmoke),
         elevation: 0,
       ),
       body: _buildBody(),

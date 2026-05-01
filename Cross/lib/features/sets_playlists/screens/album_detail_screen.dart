@@ -187,15 +187,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: Text(content, style: const TextStyle(color: Colors.white70)),
+        title: Text(title, style: TextStyle(color: AppColors.whiteSmoke)),
+        content: Text(content, style: TextStyle(color: AppColors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white54),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -252,13 +249,13 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       backgroundColor: AppColors.pureBlack,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: Icon(Icons.arrow_back, color: AppColors.whiteSmoke),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
         _album?.title ?? 'Album',
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
@@ -268,7 +265,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       actions: [
         if (_album != null)
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: Icon(Icons.more_vert, color: AppColors.whiteSmoke),
             onPressed: _openOptionsSheet,
           ),
       ],
@@ -289,11 +286,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.white54, size: 48),
+              Icon(Icons.error_outline, color: AppColors.white54, size: 48),
               const SizedBox(height: 16),
               Text(
                 _error!,
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppColors.white54),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -301,7 +298,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 onPressed: _loadAlbum,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.crusta,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.whiteSmoke,
                 ),
                 child: const Text('Retry'),
               ),
@@ -407,8 +404,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           // Title
           Text(
             a.title,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 24,
               fontWeight: FontWeight.w800,
             ),
@@ -429,7 +426,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 child: Text(
                   a.isPrivate ? 'Private' : 'Public',
                   style: TextStyle(
-                    color: a.isPrivate ? Colors.white54 : AppColors.crusta,
+                    color: a.isPrivate ? AppColors.white54 : AppColors.crusta,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -438,7 +435,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               const SizedBox(width: 10),
               Text(
                 '${a.listOfTracks.length} tracks · ${mins}m',
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: AppColors.white54, fontSize: 13),
               ),
             ],
           ),
@@ -447,7 +444,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
             const SizedBox(height: 10),
             Text(
               a.description,
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: AppColors.white54, fontSize: 13),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -458,22 +455,18 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           // Stats row
           Row(
             children: [
-              const Icon(
-                Icons.favorite_border,
-                color: Colors.white54,
-                size: 18,
-              ),
+              Icon(Icons.favorite_border, color: AppColors.white54, size: 18),
               const SizedBox(width: 4),
               Text(
                 '${a.numOfLikes}',
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppColors.white54),
               ),
               const SizedBox(width: 16),
-              const Icon(Icons.repeat, color: Colors.white54, size: 18),
+              Icon(Icons.repeat, color: AppColors.white54, size: 18),
               const SizedBox(width: 4),
               Text(
                 '${a.numOfReposts}',
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppColors.white54),
               ),
             ],
           ),
@@ -504,7 +497,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       width: 240,
       height: 240,
       color: AppColors.cardDark,
-      child: const Icon(Icons.album, color: Colors.white24, size: 80),
+      child: Icon(Icons.album, color: AppColors.white24, size: 80),
     );
   }
 }
@@ -514,16 +507,16 @@ class _EmptyTracksState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(32),
+    return Padding(
+      padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.album, color: Colors.white24, size: 56),
-          SizedBox(height: 14),
+          Icon(Icons.album, color: AppColors.white24, size: 56),
+          const SizedBox(height: 14),
           Text(
             'No tracks in this album',
-            style: TextStyle(color: Colors.white54, fontSize: 15),
+            style: TextStyle(color: AppColors.white54, fontSize: 15),
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class AuthTitleText extends StatelessWidget {
   final String text;
@@ -11,10 +12,10 @@ class AuthTitleText extends StatelessWidget {
     return Text(
       text,
       textAlign: TextAlign.center,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 30,
         fontWeight: FontWeight.bold,
-        color: Colors.white,
+        color: AppColors.whiteSmoke,
       ),
     );
   }

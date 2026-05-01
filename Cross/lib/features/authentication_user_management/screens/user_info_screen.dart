@@ -246,11 +246,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        borderSide: BorderSide(
+          color: AppColors.whiteSmoke.withValues(alpha: 0.14),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(color: Colors.white70, width: 1.2),
+        borderSide: BorderSide(color: AppColors.white70, width: 1.2),
       ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
     );
@@ -259,8 +261,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   Widget _buildFieldLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: AppColors.whiteSmoke,
         fontSize: 16,
         fontWeight: FontWeight.w700,
       ),
@@ -278,8 +280,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       initialValue: value,
       isExpanded: true,
       dropdownColor: AppColors.chineseBlack,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: AppColors.whiteSmoke,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
@@ -308,8 +310,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             alignment: Alignment.centerLeft,
             child: Text(
               text,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -338,24 +340,24 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     height: 52,
                     width: 52,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.10),
+                      color: AppColors.whiteSmoke.withValues(alpha: 0.10),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back_ios_new,
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         size: 22,
                       ),
                     ),
                   ),
                   const SizedBox(width: 18),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       "Tell us more about you",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
                         height: 1.15,
@@ -367,8 +369,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               const SizedBox(height: 34),
               TextField(
                 controller: _displayNameController,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -388,13 +390,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
                     borderSide: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.14),
+                      color: AppColors.whiteSmoke.withValues(alpha: 0.14),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
-                    borderSide: const BorderSide(
-                      color: Colors.white70,
+                    borderSide: BorderSide(
+                      color: AppColors.white70,
                       width: 1.2,
                     ),
                   ),
@@ -428,7 +430,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                           value: month,
                           child: Text(
                             _monthName(month),
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.whiteSmoke),
                             overflow: TextOverflow.ellipsis,
                           ),
                         );
@@ -461,7 +463,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                           value: day,
                           child: Text(
                             day.toString(),
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.whiteSmoke),
                           ),
                         );
                       }).toList(),
@@ -482,7 +484,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                           value: year,
                           child: Text(
                             year.toString(),
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.whiteSmoke),
                           ),
                         );
                       }).toList(),
@@ -524,7 +526,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     value: gender,
                     child: Text(
                       gender,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: AppColors.whiteSmoke),
                     ),
                   );
                 }).toList(),

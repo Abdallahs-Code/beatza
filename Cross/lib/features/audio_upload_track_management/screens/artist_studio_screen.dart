@@ -58,7 +58,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: AppColors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -82,8 +82,8 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
               const SizedBox(height: 20),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
                   height: 1.1,
@@ -92,8 +92,8 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
               const SizedBox(height: 16),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: AppColors.white70,
                   fontSize: 16,
                   height: 1.4,
                 ),
@@ -101,7 +101,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
               const SizedBox(height: 32),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                   children: [
                     const TextSpan(text: 'EGP 164.99/month. Cancel anytime. '),
                     WidgetSpan(
@@ -125,16 +125,16 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 height: 52,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white, width: 1),
+                    side: BorderSide(color: AppColors.whiteSmoke, width: 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   onPressed: () {},
-                  child: const Text(
+                  child: Text(
                     'Subscribe now',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -145,10 +145,10 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Maybe later',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -169,19 +169,19 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Artist Studio',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -213,19 +213,19 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.cloud_upload_outlined,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       size: 22,
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Upload a track',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -286,10 +286,10 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
             ),
 
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Latest uploads',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -306,10 +306,13 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                       color: AppColors.surfaceMid,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'No tracks uploaded yet.',
-                        style: TextStyle(color: Colors.white54, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.white54,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   );
@@ -343,9 +346,9 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                                     width: 56,
                                     height: 56,
                                     color: Colors.grey[800],
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.music_note,
-                                      color: Colors.white54,
+                                      color: AppColors.white54,
                                     ),
                                   ),
                           ),
@@ -356,8 +359,8 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                               children: [
                                 Text(
                                   latestTrack.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: AppColors.whiteSmoke,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -365,10 +368,10 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
+                                Text(
                                   '1 day ago',
                                   style: TextStyle(
-                                    color: Colors.white54,
+                                    color: AppColors.white54,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -378,8 +381,8 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                           Container(
                             width: 40,
                             height: 40,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: AppColors.whiteSmoke,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -408,62 +411,66 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                       ),
                       const SizedBox(height: 16),
                       Row(
-                        children: const [
+                        children: [
                           Icon(
                             Icons.play_arrow_outlined,
-                            color: Colors.white54,
+                            color: AppColors.white54,
                             size: 14,
                           ),
                           SizedBox(width: 4),
                           Text(
                             '0',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: AppColors.white54,
                               fontSize: 12,
                             ),
                           ),
                           SizedBox(width: 16),
                           Icon(
                             Icons.favorite_border,
-                            color: Colors.white54,
+                            color: AppColors.white54,
                             size: 14,
                           ),
                           SizedBox(width: 4),
                           Text(
                             '0',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: AppColors.white54,
                               fontSize: 12,
                             ),
                           ),
                           SizedBox(width: 16),
                           Icon(
                             Icons.chat_bubble_outline,
-                            color: Colors.white54,
+                            color: AppColors.white54,
                             size: 14,
                           ),
                           SizedBox(width: 4),
                           Text(
                             '0',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: AppColors.white54,
                               fontSize: 12,
                             ),
                           ),
                           SizedBox(width: 16),
-                          Icon(Icons.repeat, color: Colors.white54, size: 14),
+                          Icon(
+                            Icons.repeat,
+                            color: AppColors.white54,
+                            size: 14,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             '0',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: AppColors.white54,
                               fontSize: 12,
                             ),
                           ),
                           Spacer(),
                           Icon(
                             Icons.more_horiz,
-                            color: Colors.white54,
+                            color: AppColors.white54,
                             size: 18,
                           ),
                         ],
@@ -475,10 +482,10 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
             ),
 
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Your remaining credits',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -533,10 +540,10 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
             ),
 
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Artists that follow you back',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -560,10 +567,10 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Abdelrahman Ka...',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -577,13 +584,13 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white54),
+                      border: Border.all(color: AppColors.white54),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Message',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -607,14 +614,14 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white24),
+            border: Border.all(color: AppColors.white24),
             borderRadius: BorderRadius.circular(20),
           ),
           alignment: Alignment.center,
           child: Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -649,12 +656,12 @@ class _GridItem extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 20),
+            Icon(icon, color: AppColors.whiteSmoke, size: 20),
             const SizedBox(width: 8),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
@@ -697,7 +704,7 @@ class _CreditCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: TextStyle(color: AppColors.white70, fontSize: 12),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -705,7 +712,7 @@ class _CreditCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(color: Colors.white54, fontSize: 11),
+              style: TextStyle(color: AppColors.white54, fontSize: 11),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

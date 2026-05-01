@@ -183,11 +183,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                   children: [
                     const SizedBox(height: 18),
 
-                    const Text(
+                    Text(
                       "An account exists\nwith this email address!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 25,
                         fontWeight: FontWeight.w800,
                         height: 1.25,
@@ -196,11 +196,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
                     const SizedBox(height: 26),
 
-                    const Text(
+                    Text(
                       "We can connect your Google credentials to this account\nso you can use it to log in next time.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         height: 1.45,
                       ),
@@ -208,11 +208,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
                     const SizedBox(height: 20),
 
-                    const Text(
+                    Text(
                       "To continue, enter the code we have sent to this email as\nverification.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         height: 1.45,
                       ),
@@ -283,7 +283,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                                   color: Colors.black,
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 "Continue",
                                 style: TextStyle(
                                   fontSize: 17,
@@ -309,11 +309,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
                     const SizedBox(height: 28),
 
-                    const Text(
+                    Text(
                       "Otherwise, you can go back and choose another\nauthentication method.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         height: 1.45,
                       ),

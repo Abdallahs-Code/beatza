@@ -22,7 +22,10 @@ class CommonBottomNavBar extends StatelessWidget {
     return ValueListenableBuilder<double>(
       valueListenable: miniPlayerHeightNotifier,
       builder: (ctx, miniPlayerH, _) {
-        final double spacer = (miniPlayerH - kNavBarHeight).clamp(0.0, double.infinity);
+        final double spacer = (miniPlayerH - kNavBarHeight).clamp(
+          0.0,
+          double.infinity,
+        );
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -37,7 +40,7 @@ class CommonBottomNavBar extends StatelessWidget {
   Widget _buildBar(BuildContext context) {
     return Container(
       height: kNavBarHeight,
-      decoration:  BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.chineseBlack,
         border: Border(top: BorderSide(color: AppColors.white10)),
       ),
@@ -208,20 +211,20 @@ void _showUploadMenuBottomSheet(BuildContext context, bool isPro) {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.cloud_upload_outlined,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   size: 28,
                 ),
-                title: const Text(
+                title: Text(
                   'Upload a track',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
@@ -264,15 +267,15 @@ void _showUploadMenuBottomSheet(BuildContext context, bool isPro) {
               ),
               const SizedBox(height: 8),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.library_add_outlined,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   size: 28,
                 ),
-                title: const Text(
+                title: Text(
                   'Create new playlist',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
@@ -356,7 +359,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -364,11 +367,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white54,
-                    size: 24,
-                  ),
+                  child: Icon(Icons.close, color: AppColors.white54, size: 24),
                 ),
               ),
               const SizedBox(height: 16),
@@ -380,20 +379,20 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                       controller: _titleController,
                       focusNode: _focusNode,
                       maxLength: 100,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         counterText: "",
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white54),
+                          borderSide: BorderSide(color: AppColors.white54),
                         ),
-                        focusedBorder: UnderlineInputBorder(
+                        focusedBorder: const UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.blue),
                         ),
-                        contentPadding: EdgeInsets.only(bottom: 8),
+                        contentPadding: const EdgeInsets.only(bottom: 8),
                       ),
                       onChanged: (val) {
                         setState(() {});
@@ -405,10 +404,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
                       '${_titleController.text.length}/100',
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.white54, fontSize: 13),
                     ),
                   ),
                 ],
@@ -417,10 +413,10 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Make this playlist public',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -428,10 +424,10 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                   Switch(
                     value: _isPublic,
                     onChanged: (val) => setState(() => _isPublic = val),
-                    activeThumbColor: Colors.white,
+                    activeThumbColor: AppColors.whiteSmoke,
                     activeTrackColor: AppColors.primaryOrange,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: Colors.white24,
+                    inactiveThumbColor: AppColors.whiteSmoke,
+                    inactiveTrackColor: AppColors.white24,
                   ),
                 ],
               ),
@@ -442,15 +438,15 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                 child: OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white, width: 1.5),
+                    side: BorderSide(color: AppColors.whiteSmoke, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Create playlist',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -460,10 +456,10 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: const Text(
+                child: Text(
                   'Cancel',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

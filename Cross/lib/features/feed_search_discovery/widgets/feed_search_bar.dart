@@ -70,7 +70,7 @@ class _FeedSearchBarState extends State<FeedSearchBar> {
               onChanged: _onTextChanged,
               onSubmitted: widget.onSubmitted,
               textInputAction: TextInputAction.search,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
               decoration: InputDecoration(
                 hintText: 'Search',
                 hintStyle: TextStyle(color: AppColors.white54),
@@ -86,11 +86,11 @@ class _FeedSearchBarState extends State<FeedSearchBar> {
         if (widget.isActive)
           GestureDetector(
             onTap: widget.onCancel,
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.only(left: 12),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
               ),
             ),
           ),

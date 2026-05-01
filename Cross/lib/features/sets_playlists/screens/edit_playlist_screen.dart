@@ -100,12 +100,15 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
         backgroundColor: AppColors.pureBlack,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Edit Playlist',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         actions: [
           TextButton(
@@ -169,9 +172,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                           color: AppColors.crusta,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.camera_alt,
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           size: 16,
                         ),
                       ),
@@ -197,7 +200,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _titleController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteSmoke),
               decoration: _inputDecoration('Playlist title'),
               validator: (v) =>
                   v == null || v.trim().isEmpty ? 'Title is required' : null,
@@ -209,7 +212,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _descController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteSmoke),
               decoration: _inputDecoration('Optional description'),
               maxLines: 3,
             ),
@@ -220,7 +223,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _genreController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteSmoke),
               decoration: _inputDecoration('e.g. Electronic, Hip-Hop'),
             ),
             const SizedBox(height: 24),
@@ -229,17 +232,20 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Private playlist',
-                      style: TextStyle(color: Colors.white, fontSize: 15),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 15,
+                      ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       'Only you can see this playlist',
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                      style: TextStyle(color: AppColors.white54, fontSize: 12),
                     ),
                   ],
                 ),
@@ -260,8 +266,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        color: Colors.white70,
+      style: TextStyle(
+        color: AppColors.white70,
         fontSize: 13,
         fontWeight: FontWeight.w600,
       ),
@@ -271,7 +277,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white38),
+      hintStyle: TextStyle(color: AppColors.white54),
       filled: true,
       fillColor: AppColors.cardDark,
       border: OutlineInputBorder(
@@ -290,7 +296,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       width: 160,
       height: 160,
       color: AppColors.cardDark,
-      child: const Icon(Icons.queue_music, color: Colors.white24, size: 60),
+      child: Icon(Icons.queue_music, color: AppColors.white24, size: 60),
     );
   }
 }

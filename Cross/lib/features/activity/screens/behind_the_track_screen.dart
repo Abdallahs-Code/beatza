@@ -328,17 +328,17 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             size: 20,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           _track?.title ?? '',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontSize: 17,
             fontWeight: FontWeight.w600,
           ),
@@ -352,8 +352,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               ),
             )
           : _error != null
-              ? _buildError()
-              : _buildBody(),
+          ? _buildError()
+          : _buildBody(),
       bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
@@ -363,16 +363,12 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: Colors.white38,
-            size: 42,
-          ),
+          Icon(Icons.error_outline_rounded, color: AppColors.white54, size: 42),
           const SizedBox(height: 16),
           Text(
             _error!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(color: AppColors.white54, fontSize: 14),
           ),
           const SizedBox(height: 20),
           TextButton(
@@ -433,7 +429,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 ),
                 child: Text(
                   '# $tag',
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  style: TextStyle(color: AppColors.white70, fontSize: 13),
                 ),
               ),
             )
@@ -458,18 +454,18 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Fan leaderboard',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(
+              Icon(
                 Icons.info_outline_rounded,
-                color: Colors.white38,
+                color: AppColors.white54,
                 size: 16,
               ),
             ],
@@ -495,10 +491,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           alignment: Alignment.center,
-                          child: const Text(
+                          child: Text(
                             'Top',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.whiteSmoke,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -509,10 +505,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           alignment: Alignment.center,
-                          child: const Text(
+                          child: Text(
                             'First',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: AppColors.white54,
                               fontSize: 14,
                             ),
                           ),
@@ -521,11 +517,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                     ],
                   ),
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Text(
                     'Fans who have played this track the most.',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ),
                 ...fans.asMap().entries.map((e) {
@@ -539,8 +535,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                           width: 24,
                           child: Text(
                             '${idx + 1}.',
-                            style: const TextStyle(
-                              color: Colors.white54,
+                            style: TextStyle(
+                              color: AppColors.white54,
                               fontSize: 14,
                             ),
                           ),
@@ -551,8 +547,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                           backgroundColor: AppColors.tileDark5,
                           child: Text(
                             name.isNotEmpty ? name[0].toUpperCase() : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                             ),
@@ -562,16 +558,16 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         Expanded(
                           child: Text(
                             name,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 14,
                             ),
                           ),
                         ),
                         Text(
                           plays,
-                          style: const TextStyle(
-                            color: Colors.white54,
+                          style: TextStyle(
+                            color: AppColors.white54,
                             fontSize: 13,
                           ),
                         ),
@@ -600,10 +596,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'In Playlists',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 17,
               fontWeight: FontWeight.w700,
             ),
@@ -641,8 +637,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -651,8 +647,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         owner,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: TextStyle(
+                          color: AppColors.white54,
                           fontSize: 12,
                         ),
                       ),
@@ -693,8 +689,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               children: [
                 Text(
                   track.title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -759,8 +755,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                       widget.actorName.isNotEmpty
                           ? widget.actorName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -775,8 +771,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   TextSpan(text: isLike ? 'Liked by ' : 'Reposted by '),
                   TextSpan(
                     text: widget.actorName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -804,14 +800,14 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   _isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  color: _isLiked ? Colors.orange : Colors.white70,
+                  color: _isLiked ? Colors.orange : AppColors.white70,
                   size: 22,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   '$_likeCount',
                   style: TextStyle(
-                    color: _isLiked ? Colors.orange : Colors.white70,
+                    color: _isLiked ? Colors.orange : AppColors.white70,
                     fontSize: 14,
                   ),
                 ),
@@ -825,15 +821,15 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.chat_bubble_outline_rounded,
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   size: 22,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   '$_commentCount',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: AppColors.white70, fontSize: 14),
                 ),
               ],
             ),
@@ -847,7 +843,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               children: [
                 Icon(
                   Icons.repeat_rounded,
-                  color: _isReposted ? AppColors.primaryOrange : Colors.white70,
+                  color: _isReposted
+                      ? AppColors.primaryOrange
+                      : AppColors.white70,
                   size: 22,
                 ),
                 const SizedBox(width: 5),
@@ -856,7 +854,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   style: TextStyle(
                     color: _isReposted
                         ? AppColors.primaryOrange
-                        : Colors.white70,
+                        : AppColors.white70,
                     fontSize: 14,
                   ),
                 ),
@@ -867,9 +865,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           GestureDetector(
             onTap: _openTrackOptions,
             behavior: HitTestBehavior.opaque,
-            child: const Icon(
+            child: Icon(
               Icons.more_horiz_rounded,
-              color: Colors.white70,
+              color: AppColors.white70,
               size: 22,
             ),
           ),
@@ -880,8 +878,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             child: Container(
               width: 52,
               height: 52,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: AppColors.whiteSmoke,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -919,8 +917,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                       displayName.isNotEmpty
                           ? displayName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -937,8 +935,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 children: [
                   Text(
                     displayName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -967,18 +965,18 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 ),
                 alignment: Alignment.center,
                 child: _isOwnerFollowLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           strokeWidth: 2,
                         ),
                       )
                     : Text(
                         _ownerIsFollowed ? 'Following' : 'Follow',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),

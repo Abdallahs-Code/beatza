@@ -53,12 +53,12 @@ class VibesGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Text(
             'Vibes',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 22,
               fontWeight: FontWeight.w700,
             ),
@@ -128,7 +128,7 @@ class _VibeCard extends StatelessWidget {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: AppColors.whiteSmoke.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
@@ -139,8 +139,8 @@ class _VibeCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Text(
                 vibe.label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),

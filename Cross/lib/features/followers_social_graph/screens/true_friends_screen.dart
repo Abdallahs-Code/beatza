@@ -4,6 +4,7 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class TrueFriendsScreen extends StatefulWidget {
   final String userId;
@@ -217,7 +218,7 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
       appBar: AppBar(
         title: const Text('Your true friends'),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.whiteSmoke,
       ),
       body: RefreshIndicator(
         onRefresh: _loadTrueFriends,

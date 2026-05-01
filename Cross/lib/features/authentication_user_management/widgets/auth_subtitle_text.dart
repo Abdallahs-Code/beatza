@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class AuthSubtitleText extends StatelessWidget {
   final String text;
@@ -10,7 +11,7 @@ class AuthSubtitleText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontSize: 14, color: Colors.white54, height: 1.4),
+      style: TextStyle(fontSize: 14, color: AppColors.white54, height: 1.4),
     );
   }
 }

@@ -200,9 +200,7 @@ class _EmailEntryScreenState extends State<EmailEntryScreen> {
 
               LoginButton(
                 text: "Continue",
-                color: _captchaVerified
-                    ? AppColors.silver
-                    : AppColors.greyDark,
+                color: _captchaVerified ? AppColors.silver : AppColors.greyDark,
                 onPressed: _captchaVerified
                     ? _handleContinue
                     : () {
@@ -264,7 +262,7 @@ class _RobotCheckbox extends StatelessWidget {
             value: checked,
             onChanged: onChanged,
             activeColor: AppColors.successGreen,
-            checkColor: Colors.white,
+            checkColor: AppColors.whiteSmoke,
             side: BorderSide(color: AppColors.greyMedium),
           ),
           const SizedBox(width: 4),
@@ -398,7 +396,7 @@ class _CaptchaSection extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Colors.white70),
+                borderSide: BorderSide(color: AppColors.white70),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -526,7 +524,7 @@ class _CaptchaPainter extends CustomPainter {
   late final Random _rng;
 
   _CaptchaPainter(this.code, this.animValue, this.charX, this.hueOffsets)
-      : _rng = Random(code.hashCode);
+    : _rng = Random(code.hashCode);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -535,7 +533,7 @@ class _CaptchaPainter extends CustomPainter {
         Rect.fromLTWH(0, 0, size.width, size.height),
         const Radius.circular(6),
       ),
-      Paint()..color = const Color(0xFF2A2A2A),
+      Paint()..color = AppColors.containerMid,
     );
 
     final linePaint = Paint()
@@ -549,13 +547,10 @@ class _CaptchaPainter extends CustomPainter {
       );
     }
 
-    final dotPaint = Paint()..color = Colors.white24;
+    final dotPaint = Paint()..color = AppColors.white24;
     for (int i = 0; i < 40; i++) {
       canvas.drawCircle(
-        Offset(
-          _rng.nextDouble() * size.width,
-          _rng.nextDouble() * size.height,
-        ),
+        Offset(_rng.nextDouble() * size.width, _rng.nextDouble() * size.height),
         _rng.nextDouble() * 2,
         dotPaint,
       );

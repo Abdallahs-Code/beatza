@@ -3,13 +3,16 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
+import 'package:flutter/foundation.dart';
 
 class TrackApiService {
   final ApiServices _apiServices;
   final http.Client _client;
   final FlutterSecureStorage _storage;
 
-  late final String _authBase;
+  late final String _authBase1;
+  late final String _authBase2;
+  late final String _authBaseSlash;
   late final String _publicBase;
   late final String _playbackBase;
 
@@ -20,7 +23,10 @@ class TrackApiService {
   }) : _apiServices = apiServices ?? ApiServices(),
        _client = client ?? http.Client(),
        _storage = storage ?? const FlutterSecureStorage() {
-    _authBase = '${_apiServices.baseUrl}/api/tracks/v1';
+    _authBase1 = '${_apiServices.baseUrl}/api/tracks/v1';
+    _authBase2 = '${_apiServices.baseUrl}/api/tracks/v2';
+    _authBaseSlash = '${_apiServices.baseUrl}/api/tracks/v2/';
+
     _publicBase = '${_apiServices.baseUrl}/api/public/tracks/v1';
     _playbackBase = '${_apiServices.baseUrl}/api/playback/v1';
   }
@@ -71,7 +77,7 @@ class TrackApiService {
       final token = await _getToken();
       if (token == null) return (401, 'Unauthorized');
 
-      final request = http.MultipartRequest('POST', Uri.parse(_authBase))
+      final request = http.MultipartRequest('POST', Uri.parse(_authBase2))
         ..headers.addAll({
           'Authorization': 'Bearer $token',
           'User-Agent': 'Android',
@@ -198,11 +204,23 @@ class TrackApiService {
       final token = await _getToken();
       if (token == null) return (401, 'Unauthorized');
 
-      final request = http.MultipartRequest('PATCH', Uri.parse(_authBase))
+      final request = http.MultipartRequest('PATCH', Uri.parse(_authBaseSlash))
         ..headers.addAll({
           'Authorization': 'Bearer $token',
           'User-Agent': 'Android',
         });
+
+      debugPrint("trackId: $trackId");
+      debugPrint("imageFilePath: $imageFilePath");
+      debugPrint("title: $title");
+      debugPrint("permalink: $permalink");
+      debugPrint("mainArtists: $mainArtists");
+      debugPrint("genre: $genre");
+      debugPrint("tags: $tags");
+      debugPrint("description: $description");
+      debugPrint("isPrivate: $isPrivate");
+      debugPrint("caption: $caption");
+      debugPrint("token: $token");
 
       request.fields['id'] = trackId;
 
@@ -259,6 +277,12 @@ class TrackApiService {
       final response = await http.Response.fromStream(streamed);
       final data = jsonDecode(response.body);
 
+      debugPrint("Request URL: $request");
+      debugPrint("Request Fields: ${request.fields}");
+      debugPrint(
+        "Update Track Response: ${response.statusCode} - ${response.body}",
+      );
+
       if (response.statusCode == 200) {
         final trackData = data['data'] as Map<String, dynamic>?;
         if (trackData != null) {
@@ -296,7 +320,7 @@ class TrackApiService {
       if (token == null) return (401, 'Unauthorized');
 
       final response = await _client.delete(
-        Uri.parse('$_authBase/$trackId'),
+        Uri.parse('$_authBase1/$trackId'),
         headers: _authHeaders(token),
       );
       final data = jsonDecode(response.body);
@@ -399,11 +423,20 @@ class TrackApiService {
   Future<(int, dynamic)> getUserPostedTracks({required String userId}) async {
     if (userId.trim().isEmpty) return (400, 'Invalid user ID');
     try {
+      final token = await _getToken();
       final response = await _client.get(
-        Uri.parse('$_publicBase/posted/$userId'),
-        headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
+        Uri.parse('$_authBase2/posted/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Android',
+          'Authorization': 'Bearer $token',
+        },
       );
       final data = jsonDecode(response.body);
+
+      debugPrint(
+        "Get User Posted Tracks Response: ${response.statusCode} - ${response.body}",
+      );
 
       if (response.statusCode == 200) {
         return (200, Track.listFromUserTracksResponse(data));
@@ -457,7 +490,7 @@ class TrackApiService {
       if (token == null) return (401, 'Unauthorized');
 
       final response = await _client.patch(
-        Uri.parse('$_authBase/listen/$trackId'),
+        Uri.parse('$_authBase1/listen/$trackId'),
         headers: _authHeaders(token),
       );
       final data = jsonDecode(response.body);
@@ -486,7 +519,7 @@ class TrackApiService {
       if (token == null) return (401, 'Unauthorized');
 
       final response = await _client.post(
-        Uri.parse('$_authBase/played/$trackId'),
+        Uri.parse('$_authBase1/played/$trackId'),
         headers: _authHeaders(token),
       );
       final data = jsonDecode(response.body);

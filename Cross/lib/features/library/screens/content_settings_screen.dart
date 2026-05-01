@@ -74,15 +74,15 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
   }
 
   List<TextEditingController> get _allControllers => [
-        _rssFeedLinkCtrl,
-        _rssEmailCtrl,
-        _customFieldTitleCtrl,
-        _categoryCtrl,
-        _statsUrlCtrl,
-        _customAuthorCtrl,
-        _languageCtrl,
-        _subscriberRedirectCtrl,
-      ];
+    _rssFeedLinkCtrl,
+    _rssEmailCtrl,
+    _customFieldTitleCtrl,
+    _categoryCtrl,
+    _statsUrlCtrl,
+    _customAuthorCtrl,
+    _languageCtrl,
+    _subscriberRedirectCtrl,
+  ];
 
   void _markDirty() {
     if (mounted) {
@@ -90,8 +90,9 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
         _isDirty = true;
         _rssFeedLinkError = _validateUrl(_rssFeedLinkCtrl.text.trim());
         _statsUrlError = _validateUrl(_statsUrlCtrl.text.trim());
-        _subscriberRedirectError =
-            _validateUrl(_subscriberRedirectCtrl.text.trim());
+        _subscriberRedirectError = _validateUrl(
+          _subscriberRedirectCtrl.text.trim(),
+        );
       });
     }
   }
@@ -153,18 +154,18 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
   }
 
   ContentSettings _buildFromControllers() => ContentSettings(
-        rssFeedLink: _rssFeedLinkCtrl.text.trim(),
-        rssEmailDisplayed: _rssEmailCtrl.text.trim(),
-        customFieldTitle: _customFieldTitleCtrl.text.trim(),
-        category: _categoryCtrl.text.trim(),
-        statsServiceUrlPrefix: _statsUrlCtrl.text.trim(),
-        customAuthorName: _customAuthorCtrl.text.trim(),
-        language: _languageCtrl.text.trim(),
-        subscriberRedirect: _subscriberRedirectCtrl.text.trim(),
-        containsExplicitContent: _containsExplicit,
-        includeInRssFeed: _includeInRss,
-        creativeCommonsLicense: _creativeCommons,
-      );
+    rssFeedLink: _rssFeedLinkCtrl.text.trim(),
+    rssEmailDisplayed: _rssEmailCtrl.text.trim(),
+    customFieldTitle: _customFieldTitleCtrl.text.trim(),
+    category: _categoryCtrl.text.trim(),
+    statsServiceUrlPrefix: _statsUrlCtrl.text.trim(),
+    customAuthorName: _customAuthorCtrl.text.trim(),
+    language: _languageCtrl.text.trim(),
+    subscriberRedirect: _subscriberRedirectCtrl.text.trim(),
+    containsExplicitContent: _containsExplicit,
+    includeInRssFeed: _includeInRss,
+    creativeCommonsLicense: _creativeCommons,
+  );
 
   Future<void> _save() async {
     if (_saving || _hasValidationErrors) return;
@@ -173,8 +174,13 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
 
-      debugPrint('[ContentSettings] saving: ${_buildFromControllers().toJson()}');
-      final confirmed = await _api.updateSettings(token, _buildFromControllers());
+      debugPrint(
+        '[ContentSettings] saving: ${_buildFromControllers().toJson()}',
+      );
+      final confirmed = await _api.updateSettings(
+        token,
+        _buildFromControllers(),
+      );
       debugPrint('[ContentSettings] confirmed: ${confirmed.toJson()}');
 
       if (mounted) {
@@ -192,10 +198,10 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
           _isDirty = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Saved'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Color(0xFF1E1E1E),
+          SnackBar(
+            content: const Text('Saved'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: AppColors.surfaceMid,
           ),
         );
       }
@@ -226,7 +232,8 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
               const Expanded(
                 child: Center(
                   child: CircularProgressIndicator(
-                      color: AppColors.brilliantOrange),
+                    color: AppColors.brilliantOrange,
+                  ),
                 ),
               )
             else if (_error != null)
@@ -237,16 +244,19 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
                     children: [
                       Text(
                         _error!,
-                        style:  TextStyle(
-                            color: AppColors.white60, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.white60,
+                          fontSize: 14,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       TextButton(
                         onPressed: _load,
-                        child: const Text('Retry',
-                            style: TextStyle(
-                                color: AppColors.brilliantOrange)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(color: AppColors.brilliantOrange),
+                        ),
                       ),
                     ],
                   ),
@@ -283,11 +293,10 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
                             subtitle:
                                 'Make your content available in the RSS feed for podcast apps.',
                             value: _includeInRss,
-                            onChanged: (v) =>
-                                setState(() {
-                                  _includeInRss = v;
-                                  _isDirty = true;
-                                }),
+                            onChanged: (v) => setState(() {
+                              _includeInRss = v;
+                              _isDirty = true;
+                            }),
                           ),
                         ],
                       ),
@@ -319,11 +328,10 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
                             subtitle:
                                 'Mark your content as explicit. This may restrict availability on certain platforms.',
                             value: _containsExplicit,
-                            onChanged: (v) =>
-                                setState(() {
-                                  _containsExplicit = v;
-                                  _isDirty = true;
-                                }),
+                            onChanged: (v) => setState(() {
+                              _containsExplicit = v;
+                              _isDirty = true;
+                            }),
                           ),
                           _divider(),
                           _ContentToggleRow(
@@ -332,11 +340,10 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
                             subtitle:
                                 'Allow others to share and adapt your content under a Creative Commons license.',
                             value: _creativeCommons,
-                            onChanged: (v) =>
-                                setState(() {
-                                  _creativeCommons = v;
-                                  _isDirty = true;
-                                }),
+                            onChanged: (v) => setState(() {
+                              _creativeCommons = v;
+                              _isDirty = true;
+                            }),
                           ),
                         ],
                       ),
@@ -377,12 +384,12 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
     );
   }
 
-  Widget _divider() => const Divider(
-        height: 1,
-        color: Color(0xFF2A2A2A),
-        indent: 16,
-        endIndent: 16,
-      );
+  Widget _divider() => Divider(
+    height: 1,
+    color: AppColors.containerMid,
+    indent: 16,
+    endIndent: 16,
+  );
 
   Widget _buildHeader() {
     return Padding(
@@ -396,17 +403,21 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon:  Icon(Icons.arrow_back_ios_new,
-                    color: AppColors.whiteSmoke, size: 20),
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: AppColors.whiteSmoke,
+                  size: 20,
+                ),
               ),
             ),
-             Center(
+            Center(
               child: Text(
                 'Content',
                 style: TextStyle(
-                    color: AppColors.whiteSmoke,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700),
+                  color: AppColors.whiteSmoke,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             Align(
@@ -418,12 +429,15 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.brilliantOrange),
+                          strokeWidth: 2,
+                          color: AppColors.brilliantOrange,
+                        ),
                       ),
                     )
                   : TextButton(
-                      onPressed: (_isDirty && !_hasValidationErrors) ? _save : null,
+                      onPressed: (_isDirty && !_hasValidationErrors)
+                          ? _save
+                          : null,
                       child: Text(
                         'Save',
                         style: TextStyle(
@@ -442,18 +456,21 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
     );
   }
 
-  Widget _buildSection(
-      {required String title, required List<Widget> children}) {
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title.toUpperCase(),
-          style:  TextStyle(
-              color: AppColors.white60,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8),
+          style: TextStyle(
+            color: AppColors.white60,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+          ),
         ),
         const SizedBox(height: 6),
         Container(
@@ -496,34 +513,34 @@ class _ContentTextTile extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-                color: hasError ? Colors.redAccent : AppColors.white60,
-                fontSize: 12,
-                fontWeight: FontWeight.w500),
+              color: hasError ? Colors.redAccent : AppColors.white60,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 6),
           TextField(
             controller: controller,
             keyboardType: keyboardType,
-            style:  TextStyle(
-                color: AppColors.whiteSmoke, fontSize: 14),
+            style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
             cursorColor: AppColors.brilliantOrange,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(
-                  color: Color(0xFF555555), fontSize: 14),
+              hintStyle: TextStyle(color: AppColors.greyDark3, fontSize: 14),
               isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
               enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: hasError
-                          ? Colors.redAccent
-                          : const Color(0xFF2A2A2A))),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : AppColors.containerMid,
+                ),
+              ),
               focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: hasError
-                          ? Colors.redAccent
-                          : AppColors.brilliantOrange)),
+                borderSide: BorderSide(
+                  color: hasError
+                      ? Colors.redAccent
+                      : AppColors.brilliantOrange,
+                ),
+              ),
             ),
           ),
           if (hasError) ...[
@@ -531,9 +548,10 @@ class _ContentTextTile extends StatelessWidget {
             Text(
               errorText!,
               style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 11,
-                  height: 1.3),
+                color: Colors.redAccent,
+                fontSize: 11,
+                height: 1.3,
+              ),
             ),
           ],
         ],
@@ -577,18 +595,20 @@ class _ContentToggleRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style:  TextStyle(
-                      color: AppColors.whiteSmoke,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style:  TextStyle(
-                      color: AppColors.white60,
-                      fontSize: 12,
-                      height: 1.4),
+                  style: TextStyle(
+                    color: AppColors.white60,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -597,10 +617,10 @@ class _ContentToggleRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: Colors.white,
+            activeThumbColor: AppColors.whiteSmoke,
             activeTrackColor: AppColors.brilliantOrange,
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFF2A2A2A),
+            inactiveThumbColor: AppColors.whiteSmoke,
+            inactiveTrackColor: AppColors.containerMid,
           ),
         ],
       ),

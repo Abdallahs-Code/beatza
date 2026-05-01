@@ -171,11 +171,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _loadMessages({bool loadMore = false}) async {
     if (!loadMore) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = true;
           _error = null;
         });
+      }
+        
     } else {
       if (_loadingMore || !_hasMore) return;
       if (mounted) setState(() => _loadingMore = true);
@@ -423,7 +425,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -591,16 +593,23 @@ class _ChatScreenState extends State<ChatScreen> {
         body: Column(
           children: [
             Expanded(child: _buildBody()),
-            Builder(builder: (ctx) {
-              debugPrint('[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId');
-              if (_isReceiverBlocked) return _buildBlockBanner();
-              if (_isBlockedByReceiver) return _buildBlockedByReceiverBanner();
-              return ValueListenableBuilder<double>(
-                valueListenable: miniPlayerHeightNotifier,
-                builder: (ctx, miniPlayerH, _) =>
-                    _buildInputBar(extraBottomPadding: miniPlayerH),
-              );
-            }),
+            Builder(
+              builder: (ctx) {
+                debugPrint(
+                  '[ChatScreen.build] isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver  isLoading=$_isLoading  chatId=$_chatId',
+                );
+                if (_isReceiverBlocked) return _buildBlockBanner();
+                if (_isBlockedByReceiver) {
+                  return _buildBlockedByReceiverBanner();
+                }
+                  
+                return ValueListenableBuilder<double>(
+                  valueListenable: miniPlayerHeightNotifier,
+                  builder: (ctx, miniPlayerH, _) =>
+                      _buildInputBar(extraBottomPadding: miniPlayerH),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -614,9 +623,9 @@ class _ChatScreenState extends State<ChatScreen> {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       leading: IconButton(
-        icon: const Icon(
+        icon: Icon(
           Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           size: 20,
         ),
         onPressed: _closeChat, // ✅ Use the new method instead of direct pop
@@ -632,8 +641,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: photoUrl.isEmpty
                 ? Text(
                     _initials(widget.receiverName),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                     ),
@@ -645,8 +654,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Text(
               widget.receiverName,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -656,7 +665,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_horiz, color: Colors.white),
+          icon: Icon(Icons.more_horiz, color: AppColors.whiteSmoke),
           onPressed: _openOptions,
         ),
       ],
@@ -740,19 +749,23 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
+          Text(
             'No messages here yet...',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Start your messaging history by tapping the\nbutton below',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.4),
+            style: TextStyle(
+              color: AppColors.white54,
+              fontSize: 14,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 24),
           OutlinedButton(
@@ -761,8 +774,8 @@ class _ChatScreenState extends State<ChatScreen> {
               _send();
             },
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white38),
+              foregroundColor: AppColors.whiteSmoke,
+              side: BorderSide(color: AppColors.white54),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -783,16 +796,12 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: Colors.white38,
-            size: 42,
-          ),
+          Icon(Icons.error_outline_rounded, color: AppColors.white54, size: 42),
           const SizedBox(height: 12),
           Text(
             _error!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(color: AppColors.white54, fontSize: 14),
           ),
           const SizedBox(height: 20),
           TextButton(
@@ -824,11 +833,11 @@ class _ChatScreenState extends State<ChatScreen> {
         top: false,
         child: Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 "You've blocked this account and can't send messages to them.",
                 style: TextStyle(
-                  color: Colors.white54,
+                  color: AppColors.white54,
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -865,14 +874,14 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.block_rounded, color: Colors.white38, size: 16),
+            Icon(Icons.block_rounded, color: AppColors.white54, size: 16),
             const SizedBox(width: 8),
-            const Expanded(
+            Expanded(
               child: Text(
                 'This profile has disabled receiving messages.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white38,
+                  color: AppColors.white54,
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -891,7 +900,8 @@ class _ChatScreenState extends State<ChatScreen> {
         left: 12,
         right: 12,
         top: 10,
-        bottom: MediaQuery.of(context).viewInsets.bottom + extraBottomPadding + 10,
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom + extraBottomPadding + 10,
       ),
       child: Row(
         children: [
@@ -904,9 +914,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: AppColors.containerMid,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.add_rounded,
-                color: Colors.white70,
+                color: AppColors.white70,
                 size: 22,
               ),
             ),
@@ -920,12 +930,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: TextField(
                 controller: _inputCtrl,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Type your message...',
-                  hintStyle: TextStyle(color: Colors.white38, fontSize: 15),
+                  hintStyle: TextStyle(color: AppColors.white54, fontSize: 15),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
@@ -952,16 +962,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: _isSending
-                      ? const Padding(
+                      ? Padding(
                           padding: EdgeInsets.all(8),
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                             strokeWidth: 2,
                           ),
                         )
-                      : const Icon(
+                      : Icon(
                           Icons.send_rounded,
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           size: 18,
                         ),
                 );
@@ -1000,7 +1010,7 @@ class _DateSeparator extends StatelessWidget {
       child: Center(
         child: Text(
           _formatDate(date),
-          style: const TextStyle(color: Colors.white38, fontSize: 13),
+          style: TextStyle(color: AppColors.white54, fontSize: 13),
         ),
       ),
     );
@@ -1113,7 +1123,7 @@ class _MessageBubble extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               time,
-              style: const TextStyle(color: Colors.white38, fontSize: 11),
+              style: TextStyle(color: AppColors.white54, fontSize: 11),
             ),
           ],
         ),
@@ -1136,7 +1146,11 @@ class _MessageBubble extends StatelessWidget {
       ),
       child: Text(
         message.content,
-        style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.35),
+        style: TextStyle(
+          color: isMe ? AppColors.whiteSmoke : AppColors.whiteSmoke,
+          fontSize: 15,
+          height: 1.35,
+        ),
       ),
     );
   }
@@ -1248,11 +1262,13 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
             '[TrackCardBubble._load] ❌ userId also empty — cannot resolve profileLink',
           );
           _TrackCardBubble._cache[_cacheKey] = null;
-          if (mounted)
+          if (mounted) {
             setState(() {
               _track = null;
               _loaded = true;
             });
+          }
+            
           return;
         }
         resolvedProfileLink =
@@ -1267,11 +1283,13 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
           '[TrackCardBubble._load] ❌ resolvedProfileLink is still empty — cannot call permalink API',
         );
         _TrackCardBubble._cache[_cacheKey] = null;
-        if (mounted)
+        if (mounted) {
           setState(() {
             _track = null;
             _loaded = true;
           });
+        }
+          
         return;
       }
 
@@ -1287,20 +1305,23 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
         '[TrackCardBubble._load] result=${result == null ? "NULL — showing fallback text" : "✅ id=${result.id} title=${result.title}"}',
       );
       _TrackCardBubble._cache[_cacheKey] = result;
-      if (mounted)
+      if (mounted) {
         setState(() {
           _track = result;
           _loaded = true;
         });
+      }
+        
     } catch (e, stack) {
       debugPrint('[TrackCardBubble._load] ❌ EXCEPTION: $e');
       debugPrint('[TrackCardBubble._load] stack: $stack');
       _TrackCardBubble._cache[_cacheKey] = null;
-      if (mounted)
+      if (mounted) {
         setState(() {
           _track = null;
           _loaded = true;
         });
+      }
     }
   }
 
@@ -1330,8 +1351,8 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
         ),
         child: Text(
           widget.permalink,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontSize: 15,
             height: 1.35,
           ),
@@ -1381,8 +1402,8 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
                       track.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1392,8 +1413,8 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
                       track.artistName.toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: AppColors.white54,
                         fontSize: 10,
                         letterSpacing: 0.5,
                         fontWeight: FontWeight.w500,
@@ -1406,11 +1427,11 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
               // Options button
               GestureDetector(
                 onTap: () => _showOptions(context, track),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.all(4),
                   child: Icon(
                     Icons.more_horiz,
-                    color: Colors.white54,
+                    color: AppColors.white54,
                     size: 18,
                   ),
                 ),
@@ -1430,21 +1451,19 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
       backgroundColor: Colors.transparent,
       builder: (_) => TrackOptionsSheet(
         track: track,
-        onBehindThisTrack: () => Navigator.of(
-          context,
-          rootNavigator: true,
-        ).push(
-          MaterialPageRoute<void>(
-            builder: (_) => BehindTheTrackScreen(
-              trackId: track.id,
-              actorName: track.artistName,
-              actorAvatarUrl: track.artworkUrl ?? '',
-              actorUserId: track.artistId ?? '',
-              activityType: 'new_track',
-              trackOwnerId: track.artistId ?? '',
+        onBehindThisTrack: () =>
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BehindTheTrackScreen(
+                  trackId: track.id,
+                  actorName: track.artistName,
+                  actorAvatarUrl: track.artworkUrl ?? '',
+                  actorUserId: track.artistId ?? '',
+                  activityType: 'new_track',
+                  trackOwnerId: track.artistId ?? '',
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -1454,11 +1473,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
       width: 52,
       height: 52,
       color: AppColors.containerMid,
-      child: const Icon(
-        Icons.graphic_eq_rounded,
-        color: Colors.white24,
-        size: 24,
-      ),
+      child: Icon(Icons.graphic_eq_rounded, color: AppColors.white24, size: 24),
     );
   }
 
@@ -1500,10 +1515,10 @@ class _OptionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white70, size: 22),
+      leading: Icon(icon, color: AppColors.white70, size: 22),
       title: Text(
         label,
-        style: const TextStyle(color: Colors.white, fontSize: 15),
+        style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
       ),
       onTap: onTap,
     );

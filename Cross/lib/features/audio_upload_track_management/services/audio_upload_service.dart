@@ -39,10 +39,13 @@ class AudioUploadService {
     await Future.delayed(const Duration(seconds: 1));
 
     TrackVisibility visibility = TrackVisibility.public;
-    if (metadata['visibility'] == 'private')
+    if (metadata['visibility'] == 'private') {
       visibility = TrackVisibility.private;
-    if (metadata['visibility'] == 'unlisted')
+    }
+      
+    if (metadata['visibility'] == 'unlisted') {
       visibility = TrackVisibility.unlisted;
+    }
 
     final localId = DateTime.now().millisecondsSinceEpoch.toString();
 

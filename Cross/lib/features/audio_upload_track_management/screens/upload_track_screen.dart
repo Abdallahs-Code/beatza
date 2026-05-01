@@ -20,11 +20,8 @@ class DashedRectPainter extends CustomPainter {
   final double strokeWidth;
   final double gap;
 
-  DashedRectPainter({
-    this.color = Colors.white,
-    this.strokeWidth = 1.0,
-    this.gap = 5.0,
-  });
+  DashedRectPainter({Color? color, this.strokeWidth = 1.0, this.gap = 5.0})
+    : color = color ?? AppColors.whiteSmoke;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -374,17 +371,20 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Upload Successful',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       trackTitle,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 12,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -410,10 +410,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     color: AppColors.primaryOrange,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
+                  child: Text(
                     'SEE TRACK',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -520,7 +520,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   Widget _coverPlaceholder() {
     return CustomPaint(
       painter: DashedRectPainter(
-        color: Colors.white54,
+        color: AppColors.white54,
         strokeWidth: 1.5,
         gap: 6,
       ),
@@ -528,9 +528,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         width: 90,
         height: 90,
         alignment: Alignment.center,
-        child: const Icon(
+        child: Icon(
           Icons.camera_alt_outlined,
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           size: 28,
         ),
       ),
@@ -585,7 +585,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       builder: (_) => ListView.builder(
         itemCount: genres.length,
         itemBuilder: (_, i) => ListTile(
-          title: Text(genres[i], style: const TextStyle(color: Colors.white)),
+          title: Text(genres[i], style: TextStyle(color: AppColors.whiteSmoke)),
           trailing: _genreController.text == genres[i]
               ? const Icon(Icons.check, color: Colors.orange)
               : null,
@@ -612,9 +612,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         data: Theme.of(ctx).copyWith(
           colorScheme: ColorScheme.dark(
             primary: Color(0xFF1DB954),
-            onPrimary: Colors.white,
+            onPrimary: AppColors.whiteSmoke,
             surface: AppColors.surfaceMid,
-            onSurface: Colors.white,
+            onSurface: AppColors.whiteSmoke,
           ),
         ),
         child: child!,
@@ -655,17 +655,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             leadingWidth: 80,
             leading: TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: AppColors.white70, fontSize: 16),
               ),
             ),
             title: Text(
               (_editingTrack != null || _editingServerTrack != null)
                   ? 'Update Track'
                   : 'Upload',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -683,7 +683,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     ),
                     child: Text(
                       '$_uploadStepsCompleted/4',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.flashPurple,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -738,15 +738,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   Widget _buildTabBar() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: AppColors.white24),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
           _tabItem(0, 'Track Info'),
-          Container(width: 1, height: 20, color: Colors.white24),
+          Container(width: 1, height: 20, color: AppColors.white24),
           _tabItem(1, 'Advanced'),
-          Container(width: 1, height: 20, color: Colors.white24),
+          Container(width: 1, height: 20, color: AppColors.white24),
           _tabItem(2, 'Permissions'),
         ],
       ),
@@ -761,7 +761,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: sel ? Colors.white12 : Colors.transparent,
+            color: sel ? AppColors.white12 : Colors.transparent,
             borderRadius: BorderRadius.horizontal(
               left: index == 0 ? const Radius.circular(20) : Radius.zero,
               right: index == 2 ? const Radius.circular(20) : Radius.zero,
@@ -771,7 +771,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: sel ? Colors.white : Colors.white54,
+              color: sel ? AppColors.whiteSmoke : AppColors.white54,
               fontWeight: sel ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -815,15 +815,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Filename',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(color: AppColors.white54, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _selectedFileName ?? 'Tap below to select track',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
@@ -833,11 +833,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (_editingTrack != null || _editingServerTrack != null)
-                    const Icon(
-                      Icons.lock_outline,
-                      color: Colors.white38,
-                      size: 20,
-                    )
+                    Icon(Icons.lock_outline, color: AppColors.white54, size: 20)
                   else if (_selectedFile == null)
                     GestureDetector(
                       onTap: _pickAndUploadFile,
@@ -847,12 +843,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white),
+                          border: Border.all(color: AppColors.whiteSmoke),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Select File',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     )
@@ -869,13 +868,13 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white),
+                              border: Border.all(color: AppColors.whiteSmoke),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Replace',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                                 fontSize: 12,
                               ),
                             ),
@@ -919,9 +918,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           hint: 'Add a caption to your post (optional)',
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Privacy',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: AppColors.white70, fontSize: 12),
         ),
         const SizedBox(height: 12),
         _radioRight('Public', 'Anyone can find this', 'public'),
@@ -935,21 +934,25 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white10,
+              color: AppColors.white10,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.access_time_filled, color: Colors.white38, size: 20),
+                Icon(
+                  Icons.access_time_filled,
+                  color: AppColors.white54,
+                  size: 20,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Schedule your release with ',
-                  style: TextStyle(color: Colors.white38, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                 ),
                 Text(
                   'Artist Pro',
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: AppColors.white54,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -961,7 +964,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Text(
           'Schedule',
           style: TextStyle(
-            color: isPro ? Colors.white70 : Colors.white38,
+            color: isPro ? AppColors.white70 : AppColors.white54,
             fontSize: 12,
           ),
         ),
@@ -972,7 +975,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               child: Text(
                 'Set date and time to make your\ntrack public (Artist Pro).',
                 style: TextStyle(
-                  color: isPro ? Colors.white : Colors.white38,
+                  color: isPro ? AppColors.whiteSmoke : AppColors.white54,
                   fontSize: 12,
                 ),
               ),
@@ -991,7 +994,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Text(
           'Your track stays private until release.',
           style: TextStyle(
-            color: isPro ? Colors.white54 : Colors.white38,
+            color: isPro ? AppColors.white54 : AppColors.white54,
             fontSize: 12,
           ),
         ),
@@ -1012,8 +1015,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 ),
                 style: TextStyle(
                   color: isPro && _enableReleaseDate
-                      ? Colors.white
-                      : Colors.white38,
+                      ? AppColors.whiteSmoke
+                      : AppColors.white54,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1024,8 +1027,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               _scheduleTime.format(context),
               style: TextStyle(
                 color: isPro && _enableReleaseDate
-                    ? Colors.white
-                    : Colors.white38,
+                    ? AppColors.whiteSmoke
+                    : AppColors.white54,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -1062,8 +1065,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               children: [
                 Text(
                   'PROCESSING $_uploadProgress%',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -1071,7 +1074,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 ),
                 GestureDetector(
                   onTap: _cancelUpload,
-                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                  child: Icon(
+                    Icons.close,
+                    color: AppColors.whiteSmoke,
+                    size: 14,
+                  ),
                 ),
               ],
             ),
@@ -1091,7 +1098,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             style: TextStyle(
               color: _artists.isEmpty
                   ? const Color(0xFFE57373)
-                  : Colors.white70,
+                  : AppColors.white70,
               fontSize: 12,
             ),
             children: const [
@@ -1110,13 +1117,13 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 (a) => Chip(
                   label: Text(
                     a,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  backgroundColor: Colors.white12,
+                  backgroundColor: AppColors.white12,
                   deleteIcon: const Icon(
                     Icons.close,
                     color: Colors.black,
@@ -1134,20 +1141,20 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         if (_artists.isNotEmpty) const SizedBox(height: 12),
         TextField(
           controller: _artistInputController,
-          style: const TextStyle(color: Colors.white38, fontSize: 16),
+          style: TextStyle(color: AppColors.white54, fontSize: 16),
           decoration: InputDecoration(
             hintText: 'Add artist name',
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 16),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white24),
+            hintStyle: TextStyle(color: AppColors.white54, fontSize: 16),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white24),
             ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white38),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             isDense: true,
             suffixIcon: IconButton(
-              icon: const Icon(Icons.add, color: Colors.white54),
+              icon: Icon(Icons.add, color: AppColors.white54),
               onPressed: _addArtist,
             ),
           ),
@@ -1161,7 +1168,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               style: TextStyle(color: Color(0xFFE57373), fontSize: 12),
             ),
           ),
-        const Divider(color: Colors.white24, height: 24),
+        Divider(color: AppColors.white24, height: 24),
       ],
     );
   }
@@ -1185,9 +1192,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           hint: 'Add your record label if applicable',
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Release date',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: AppColors.white70, fontSize: 12),
         ),
         const SizedBox(height: 8),
         Row(
@@ -1204,7 +1211,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               child: Text(
                 _formatDate(_releaseDate),
                 style: TextStyle(
-                  color: _enableReleaseDate ? Colors.white : Colors.white54,
+                  color: _enableReleaseDate
+                      ? AppColors.whiteSmoke
+                      : AppColors.white54,
                   fontSize: 16,
                 ),
               ),
@@ -1216,15 +1225,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
           ],
         ),
-        const Divider(color: Colors.white24, height: 24),
+        Divider(color: AppColors.white24, height: 24),
         const SizedBox(height: 8),
         _inputField('Publisher ⓘ', hint: 'Add your publisher if you have one'),
         const SizedBox(height: 24),
         _inputField('ISRC ⓘ', hint: 'e.g. USABC2312345'),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Content warning',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: AppColors.white70, fontSize: 12),
         ),
         const SizedBox(height: 8),
         Row(
@@ -1234,7 +1243,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(2),
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   child: const Text(
                     'E',
                     style: TextStyle(
@@ -1245,9 +1254,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Contains explicit content',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
                 ),
               ],
             ),
@@ -1258,7 +1267,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
           ],
         ),
-        const Divider(color: Colors.white24, height: 24),
+        Divider(color: AppColors.white24, height: 24),
         const SizedBox(height: 8),
         _inputField('P line ⓘ', hint: 'e.g. 2024 [Owner Name]'),
       ],
@@ -1269,9 +1278,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Access Settings',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          style: TextStyle(color: AppColors.white54, fontSize: 12),
         ),
         const SizedBox(height: 16),
         _switchTile(
@@ -1308,9 +1317,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Engagement privacy',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: AppColors.white70, fontSize: 14),
             ),
             if (!isPro)
               Container(
@@ -1372,9 +1381,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Availability',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: AppColors.white70, fontSize: 14),
             ),
             if (!isPro)
               Container(
@@ -1423,9 +1432,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           isPro: isPro,
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Licensing',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          style: TextStyle(color: AppColors.white54, fontSize: 12),
         ),
         const SizedBox(height: 16),
         _radioRight(
@@ -1463,21 +1472,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 color: const Color(0xFF8A2BE2).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.flash_on,
-                color: Colors.white38,
-                size: 16,
-              ),
+              child: Icon(Icons.flash_on, color: AppColors.white54, size: 16),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Amplify your track with ',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
             ),
-            const Text(
+            Text(
               'Artist Pro',
               style: TextStyle(
-                color: Colors.white38,
+                color: AppColors.white54,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -1497,22 +1502,19 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white38, fontSize: 12),
-        ),
+        Text(label, style: TextStyle(color: AppColors.white54, fontSize: 12)),
         TextField(
           controller: controller,
           onChanged: onChanged,
-          style: const TextStyle(color: Colors.white38, fontSize: 16),
+          style: TextStyle(color: AppColors.white54, fontSize: 16),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 16),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white24),
+            hintStyle: TextStyle(color: AppColors.white54, fontSize: 16),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white24),
             ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white38),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             isDense: true,
@@ -1528,10 +1530,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
+          Text(label, style: TextStyle(color: AppColors.white70, fontSize: 12)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1540,15 +1539,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 value,
                 style: TextStyle(
                   color: value == 'Help fans discover your track'
-                      ? Colors.white38
-                      : Colors.white,
+                      ? AppColors.white54
+                      : AppColors.whiteSmoke,
                   fontSize: 16,
                 ),
               ),
-              const Icon(Icons.unfold_more, color: Colors.white54, size: 20),
+              Icon(Icons.unfold_more, color: AppColors.white54, size: 20),
             ],
           ),
-          const Divider(color: Colors.white24, height: 16),
+          Divider(color: AppColors.white24, height: 16),
         ],
       ),
     );
@@ -1577,8 +1576,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1587,8 +1586,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: AppColors.white54,
                         fontSize: 12,
                         height: 1.4,
                       ),
@@ -1602,9 +1601,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: sel ? Colors.white : Colors.transparent,
+                color: sel ? AppColors.whiteSmoke : Colors.transparent,
                 border: Border.all(
-                  color: sel ? Colors.white : Colors.white54,
+                  color: sel ? AppColors.whiteSmoke : AppColors.white54,
                   width: 1.5,
                 ),
               ),
@@ -1640,7 +1639,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    color: disabled ? Colors.white38 : Colors.white,
+                    color: disabled ? AppColors.white54 : AppColors.whiteSmoke,
                     fontSize: 14,
                   ),
                 ),
@@ -1649,7 +1648,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: disabled ? Colors.white24 : Colors.white54,
+                      color: disabled ? AppColors.white24 : AppColors.white54,
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -1661,7 +1660,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           CupertinoSwitch(
             value: value,
             activeTrackColor: Colors.green,
-            inactiveTrackColor: Colors.white24,
+            inactiveTrackColor: AppColors.white24,
             onChanged: disabled ? null : onChange,
           ),
         ],
@@ -1682,10 +1681,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           child: ElevatedButton(
             onPressed: (ready && !_isSaving) ? _saveTrack : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: ready ? Colors.white : Colors.white10,
+              backgroundColor: ready ? AppColors.whiteSmoke : AppColors.white10,
               disabledBackgroundColor: _isSaving
-                  ? Colors.white
-                  : Colors.white10,
+                  ? AppColors.whiteSmoke
+                  : AppColors.white10,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
@@ -1703,7 +1702,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 : Text(
                     'Save',
                     style: TextStyle(
-                      color: ready ? Colors.black : Colors.white38,
+                      color: ready ? Colors.black : AppColors.white54,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1711,10 +1710,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Confirm your sounds comply with our Terms.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white38, fontSize: 11),
+          style: TextStyle(color: AppColors.white54, fontSize: 11),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -1722,10 +1721,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             context,
             MaterialPageRoute(builder: (_) => const ArtistTermsScreen()),
           ),
-          child: const Text(
+          child: Text(
             'TERMS OF USE',
             style: TextStyle(
-              color: Colors.white38,
+              color: AppColors.white54,
               fontSize: 11,
               fontWeight: FontWeight.bold,
               decoration: TextDecoration.underline,

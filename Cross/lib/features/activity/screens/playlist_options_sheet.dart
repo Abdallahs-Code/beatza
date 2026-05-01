@@ -68,8 +68,8 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
       try {
         profileLink =
             await MessagingApiService().getUserProfileLink(
-                  userId: widget.playlist.artistId,
-                ) ??
+              userId: widget.playlist.artistId,
+            ) ??
             '';
       } catch (_) {}
     }
@@ -184,12 +184,12 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
 
                 // ── Send To ────────────────────────────────────────────────
                 if (_recentContacts.isNotEmpty) ...[
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
                       'SEND TO',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.white70,
                         letterSpacing: 2.2,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -222,12 +222,12 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
 
                 // ── Share ──────────────────────────────────────────────────
                 const SizedBox(height: 18),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -273,15 +273,15 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                 const SizedBox(height: 10),
 
                 // ── Options ────────────────────────────────────────────────
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
                 ),
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.format_list_bulleted_rounded,
                   label: 'Play last',
                 ),
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.copy_all_outlined,
                   label: 'Copy playlist',
                 ),
@@ -418,8 +418,8 @@ class _PlaylistHeaderCard extends StatelessWidget {
                     playlist.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -427,7 +427,7 @@ class _PlaylistHeaderCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     '$trackCount ${trackCount == 1 ? 'track' : 'tracks'}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -443,7 +443,7 @@ class _PlaylistHeaderCard extends StatelessWidget {
       width: 76,
       height: 76,
       color: AppColors.tileDark,
-      child: const Icon(Icons.queue_music, color: Colors.white24, size: 32),
+      child: Icon(Icons.queue_music, color: AppColors.white24, size: 32),
     );
   }
 }
@@ -470,15 +470,15 @@ class _ShareAction extends StatelessWidget {
               width: 62,
               height: 62,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: AppColors.whiteSmoke.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 30),
+              child: Icon(icon, color: AppColors.whiteSmoke, size: 30),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
             ),
           ],
         ),
@@ -512,13 +512,14 @@ class _SendToContact extends StatelessWidget {
             CircleAvatar(
               radius: 31,
               backgroundColor: AppColors.containerMid,
-              backgroundImage:
-                  photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              backgroundImage: photoUrl.isNotEmpty
+                  ? NetworkImage(photoUrl)
+                  : null,
               child: photoUrl.isEmpty
                   ? Text(
                       _initials(name),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -533,7 +534,7 @@ class _SendToContact extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 12),
               ),
             ),
           ],
@@ -558,12 +559,12 @@ class _OptionTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color color;
 
-  const _OptionTile({
+  _OptionTile({
     required this.icon,
     required this.label,
     this.onTap,
-    this.color = Colors.white,
-  });
+    Color? color,
+  }) : color = color ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {

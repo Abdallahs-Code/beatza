@@ -68,8 +68,8 @@ class PlaylistCard extends StatelessWidget {
                   children: [
                     Text(
                       playlist.title,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -79,10 +79,7 @@ class PlaylistCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 11,
-                      ),
+                      style: TextStyle(color: AppColors.white54, fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -94,7 +91,7 @@ class PlaylistCard extends StatelessWidget {
                               ? Icons.lock_outline
                               : Icons.public,
                           color: playlist.isPrivate
-                              ? Colors.white38
+                              ? AppColors.white54
                               : AppColors.crusta,
                           size: 12,
                         ),
@@ -103,7 +100,7 @@ class PlaylistCard extends StatelessWidget {
                           playlist.isPrivate ? 'Private' : 'Public',
                           style: TextStyle(
                             color: playlist.isPrivate
-                                ? Colors.white38
+                                ? AppColors.white54
                                 : AppColors.crusta,
                             fontSize: 11,
                           ),
@@ -118,9 +115,9 @@ class PlaylistCard extends StatelessWidget {
             if (_hasMenu)
               _buildMenu()
             else
-              const Padding(
-                padding: EdgeInsets.only(right: 12),
-                child: Icon(Icons.chevron_right, color: Colors.white38),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(Icons.chevron_right, color: AppColors.white54),
               ),
           ],
         ),
@@ -131,7 +128,7 @@ class PlaylistCard extends StatelessWidget {
   Widget _buildMenu() {
     return PopupMenuButton<String>(
       color: AppColors.surfaceDark,
-      icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
+      icon: Icon(Icons.more_vert, color: AppColors.white54, size: 20),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       onSelected: (value) {
         if (value == 'edit') onMenuEdit?.call();
@@ -140,24 +137,27 @@ class PlaylistCard extends StatelessWidget {
       },
       itemBuilder: (_) => [
         if (onMenuEdit != null)
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'edit',
             child: Row(
               children: [
-                Icon(Icons.edit_outlined, color: Colors.white70, size: 18),
-                SizedBox(width: 8),
-                Text('Edit', style: TextStyle(color: Colors.white70)),
+                Icon(Icons.edit_outlined, color: AppColors.white70, size: 18),
+                const SizedBox(width: 8),
+                Text('Edit', style: TextStyle(color: AppColors.white70)),
               ],
             ),
           ),
         if (onMenuEmbed != null)
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'embed',
             child: Row(
               children: [
-                Icon(Icons.code, color: Colors.white70, size: 18),
-                SizedBox(width: 8),
-                Text('Share / Embed', style: TextStyle(color: Colors.white70)),
+                Icon(Icons.code, color: AppColors.white70, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Share / Embed',
+                  style: TextStyle(color: AppColors.white70),
+                ),
               ],
             ),
           ),
@@ -181,7 +181,7 @@ class PlaylistCard extends StatelessWidget {
       width: 72,
       height: 72,
       color: AppColors.tileDark,
-      child: const Icon(Icons.queue_music, color: Colors.white24, size: 30),
+      child: Icon(Icons.queue_music, color: AppColors.white24, size: 30),
     );
   }
 }

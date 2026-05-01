@@ -21,23 +21,21 @@ class PrivacySettings {
   }
 
   Map<String, dynamic> toJson() => {
-        'allowMessagesAnyone': allowMessagesAnyone,
-        'showActivityDiscovery': showActivityDiscovery,
-        'showFirstTopFan': showFirstTopFan,
-        'showTrackTopFans': showTrackTopFans,
-      };
+    'allowMessagesAnyone': allowMessagesAnyone,
+    'showActivityDiscovery': showActivityDiscovery,
+    'showFirstTopFan': showFirstTopFan,
+    'showTrackTopFans': showTrackTopFans,
+  };
 
   PrivacySettings copyWith({
     bool? allowMessagesAnyone,
     bool? showActivityDiscovery,
     bool? showFirstTopFan,
     bool? showTrackTopFans,
-  }) =>
-      PrivacySettings(
-        allowMessagesAnyone: allowMessagesAnyone ?? this.allowMessagesAnyone,
-        showActivityDiscovery:
-            showActivityDiscovery ?? this.showActivityDiscovery,
-        showFirstTopFan: showFirstTopFan ?? this.showFirstTopFan,
-        showTrackTopFans: showTrackTopFans ?? this.showTrackTopFans,
-      );
+  }) => PrivacySettings(
+    allowMessagesAnyone: allowMessagesAnyone ?? this.allowMessagesAnyone,
+    showActivityDiscovery: showActivityDiscovery ?? this.showActivityDiscovery,
+    showFirstTopFan: showFirstTopFan ?? this.showFirstTopFan,
+    showTrackTopFans: showTrackTopFans ?? this.showTrackTopFans,
+  );
 }

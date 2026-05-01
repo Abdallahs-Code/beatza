@@ -217,8 +217,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.container,
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: Text(message, style: const TextStyle(color: Colors.white70)),
+        title: Text(title, style: TextStyle(color: AppColors.whiteSmoke)),
+        content: Text(message, style: TextStyle(color: AppColors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -245,18 +245,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 child: Text(
                   'Change $title',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.white),
-                title: const Text(
+                leading: Icon(Icons.photo_library, color: AppColors.whiteSmoke),
+                title: Text(
                   'Choose from Gallery',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -327,8 +327,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
@@ -342,10 +342,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 textInputAction: maxLines == 1
                     ? TextInputAction.done
                     : TextInputAction.newline,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.whiteSmoke),
                 decoration: InputDecoration(
                   hintText: hint,
-                  hintStyle: const TextStyle(color: Colors.white38),
+                  hintStyle: TextStyle(color: AppColors.white54),
                   filled: true,
                   fillColor: AppColors.container,
                   counterText: "",
@@ -368,7 +368,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.whiteSmoke,
                     foregroundColor: Colors.black,
                   ),
                   child: const Text('Done'),
@@ -411,10 +411,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Select country',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
@@ -443,14 +443,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       title: Text(
                         country,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected
+                              ? AppColors.whiteSmoke
+                              : AppColors.white70,
                           fontWeight: isSelected
                               ? FontWeight.w700
                               : FontWeight.w400,
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check, color: Colors.white)
+                          ? Icon(Icons.check, color: AppColors.whiteSmoke)
                           : null,
                     );
                   },
@@ -524,10 +526,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Select city',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                       ),
@@ -539,13 +541,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         controller: searchController,
                         autofocus: true,
                         onChanged: filterCities,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: AppColors.whiteSmoke),
                         decoration: InputDecoration(
                           hintText: 'Search city',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          prefixIcon: const Icon(
+                          hintStyle: TextStyle(color: AppColors.white54),
+                          prefixIcon: Icon(
                             Icons.search,
-                            color: Colors.white54,
+                            color: AppColors.white54,
                           ),
                           filled: true,
                           fillColor: AppColors.container,
@@ -572,10 +574,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     SizedBox(
                       height: 420,
                       child: filteredCities.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
                                 'No matching cities found.',
-                                style: TextStyle(color: Colors.white54),
+                                style: TextStyle(color: AppColors.white54),
                               ),
                             )
                           : ListView.builder(
@@ -591,17 +593,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     city,
                                     style: TextStyle(
                                       color: isSelected
-                                          ? Colors.white
-                                          : Colors.white70,
+                                          ? AppColors.whiteSmoke
+                                          : AppColors.white70,
                                       fontWeight: isSelected
                                           ? FontWeight.w700
                                           : FontWeight.w400,
                                     ),
                                   ),
                                   trailing: isSelected
-                                      ? const Icon(
+                                      ? Icon(
                                           Icons.check,
-                                          color: Colors.white,
+                                          color: AppColors.whiteSmoke,
                                         )
                                       : null,
                                 );
@@ -702,8 +704,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               Text(
                 existing == null ? 'Add link' : 'Edit link',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
@@ -711,11 +713,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: nameController,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.whiteSmoke),
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   hintText: 'Link name',
-                  hintStyle: const TextStyle(color: Colors.white38),
+                  hintStyle: TextStyle(color: AppColors.white54),
                   filled: true,
                   fillColor: AppColors.container,
                   border: OutlineInputBorder(
@@ -727,11 +729,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: linkController,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.whiteSmoke),
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
                   hintText: 'https://...',
-                  hintStyle: const TextStyle(color: Colors.white38),
+                  hintStyle: TextStyle(color: AppColors.white54),
                   filled: true,
                   fillColor: AppColors.container,
                   border: OutlineInputBorder(
@@ -761,7 +763,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.whiteSmoke,
                     foregroundColor: Colors.black,
                   ),
                   child: const Text('Done'),
@@ -932,17 +934,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           onPressed: _saving
                               ? null
                               : () => Navigator.pop(context),
-                          child: const Text(
+                          child: Text(
                             'Cancel',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
                               'Edit Profile',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                                 fontSize: 19,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -959,10 +964,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
+                              : Text(
                                   'Save',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.whiteSmoke,
                                     fontSize: 16,
                                   ),
                                 ),
@@ -1071,9 +1076,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                               _avatarController.text
                                                   .trim()
                                                   .isEmpty
-                                              ? const Icon(
+                                              ? Icon(
                                                   Icons.person,
-                                                  color: Colors.white38,
+                                                  color: AppColors.white54,
                                                   size: 32,
                                                 )
                                               : null,
@@ -1180,13 +1185,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ListTile(
                               dense: true,
                               onTap: () => _editLink(),
-                              leading: const Icon(
+                              leading: Icon(
                                 Icons.add,
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                               ),
-                              title: const Text(
+                              title: Text(
                                 'Add link',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: AppColors.whiteSmoke),
                               ),
                             ),
                           ],
@@ -1227,8 +1232,8 @@ class _EditSection extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1263,7 +1268,7 @@ class _LinkedProfileRow extends StatelessWidget {
     return ListTile(
       dense: true,
       onTap: onTap,
-      title: Text(label, style: const TextStyle(color: Colors.white)),
+      title: Text(label, style: TextStyle(color: AppColors.whiteSmoke)),
       subtitle: Text(
         shownValue,
         maxLines: 1,
@@ -1271,7 +1276,7 @@ class _LinkedProfileRow extends StatelessWidget {
         style: TextStyle(color: AppColors.greyMedium),
       ),
       trailing: onDelete == null
-          ? const Icon(Icons.chevron_right, color: Colors.white54)
+          ? Icon(Icons.chevron_right, color: AppColors.white54)
           : Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1282,7 +1287,7 @@ class _LinkedProfileRow extends StatelessWidget {
                     color: Colors.redAccent,
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.white54),
+                Icon(Icons.chevron_right, color: AppColors.white54),
               ],
             ),
     );
@@ -1318,7 +1323,7 @@ class _EditRow extends StatelessWidget {
         ? AppColors.greyDark
         : isPlaceholder
         ? AppColors.greyEnabled
-        : Colors.white;
+        : AppColors.whiteSmoke;
 
     return InkWell(
       onTap: enabled ? onTap : null,
@@ -1357,7 +1362,7 @@ class _EditRow extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2),
                 child: Icon(
                   Icons.chevron_right,
-                  color: enabled ? Colors.white54 : AppColors.greyDark,
+                  color: enabled ? AppColors.white54 : AppColors.greyDark,
                 ),
               ),
           ],
@@ -1384,11 +1389,11 @@ class _CameraBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.65),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: AppColors.white24),
         ),
         child: Icon(
           Icons.camera_alt_outlined,
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           size: small ? 16 : 18,
         ),
       ),

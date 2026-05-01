@@ -101,21 +101,18 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
-        title: const Text(
+        title: Text(
           'Upgrade to Pro',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
-        content: const Text(
+        content: Text(
           'Free users can create up to 2 playlists. Upgrade to Pro for unlimited playlists.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: AppColors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white54),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.crusta),
@@ -172,21 +169,18 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
-        title: const Text(
+        title: Text(
           'Delete Playlist',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
         content: Text(
           'Delete "${playlist.title}"? This cannot be undone.',
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: AppColors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white54),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -226,13 +220,13 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         backgroundColor: AppColors.pureBlack,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Your Playlists',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -241,7 +235,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _onCreatePlaylist,
         backgroundColor: _atFreeLimit ? Colors.grey : AppColors.crusta,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: AppColors.whiteSmoke),
       ),
       body: _buildBody(),
       bottomNavigationBar: const MiniPlayerSpacer(),
@@ -305,10 +299,10 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         children: [
           Icon(Icons.lock_outline, color: AppColors.crusta, size: 20),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Free plan: 2 playlist limit reached. Upgrade to Pro for unlimited playlists.',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: AppColors.white70, fontSize: 13),
             ),
           ),
           TextButton(
@@ -330,31 +324,27 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.queue_music_rounded,
-              color: Colors.white38,
-              size: 72,
-            ),
+            Icon(Icons.queue_music_rounded, color: AppColors.white54, size: 72),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'No playlists yet',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Create your first playlist and start adding tracks.',
-              style: TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.crusta,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.whiteSmoke,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 14,
@@ -383,19 +373,19 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.white54, size: 48),
+            Icon(Icons.error_outline, color: AppColors.white54, size: 48),
             const SizedBox(height: 16),
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54),
+              style: TextStyle(color: AppColors.white54),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _loadPlaylists,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.crusta,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.whiteSmoke,
               ),
               child: const Text('Retry'),
             ),

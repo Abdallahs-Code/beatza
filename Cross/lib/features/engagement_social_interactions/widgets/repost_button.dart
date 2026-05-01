@@ -16,6 +16,7 @@
 //   3. Updates state after sheet is dismissed
 
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class RepostButton extends StatelessWidget {
   final bool isReposted;
@@ -60,7 +61,7 @@ class RepostButton extends StatelessWidget {
             Text(
               _formatCount(repostCount),
               style: TextStyle(
-                color: isReposted ? Colors.white : Colors.grey[400],
+                color: isReposted ? AppColors.whiteSmoke : Colors.grey[400],
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

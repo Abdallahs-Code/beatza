@@ -79,13 +79,13 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
         backgroundColor: AppColors.pureBlack,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Your Albums',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -110,11 +110,11 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.white38, size: 48),
+              Icon(Icons.error_outline, color: AppColors.white54, size: 48),
               const SizedBox(height: 16),
               Text(
                 _error!,
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppColors.white54),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -122,7 +122,7 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
                 onPressed: _loadAlbums,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.crusta,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.whiteSmoke,
                 ),
                 child: const Text('Retry'),
               ),
@@ -146,26 +146,26 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
                   color: AppColors.cardDark,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.album_outlined,
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   size: 44,
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'No albums yet',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'When you add a playlist where all tracks are from the same artist, it will appear here as an album.',
                 style: TextStyle(
-                  color: Colors.white54,
+                  color: AppColors.white54,
                   fontSize: 14,
                   height: 1.5,
                 ),

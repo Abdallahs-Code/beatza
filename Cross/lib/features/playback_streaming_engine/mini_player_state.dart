@@ -9,8 +9,9 @@ const double kNavBarHeight = 84.0;
 
 /// Notified with [kMiniPlayerTotalHeight] when the mini player is visible,
 /// 0.0 when it is hidden. Listen to this to push content above the player.
-final ValueNotifier<double> miniPlayerHeightNotifier =
-    ValueNotifier<double>(0.0);
+final ValueNotifier<double> miniPlayerHeightNotifier = ValueNotifier<double>(
+  0.0,
+);
 
 /// A zero-height spacer when no mini player is active, growing to
 /// [kMiniPlayerTotalHeight] when the player appears. Use as

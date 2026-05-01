@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class AuthBackButton extends StatelessWidget {
   const AuthBackButton({super.key});
@@ -16,12 +17,12 @@ class AuthBackButton extends StatelessWidget {
         width: 58,
         height: 58,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.14),
+          color: AppColors.white10,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back_ios_new,
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           size: 28,
         ),
       ),

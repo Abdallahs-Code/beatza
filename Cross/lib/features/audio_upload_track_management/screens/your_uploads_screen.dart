@@ -137,12 +137,12 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
           SizedBox(
             width: 24,
             child: selected
-                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                ? Icon(Icons.check, color: AppColors.whiteSmoke, size: 18)
                 : null,
           ),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 15),
+            style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
           ),
         ],
       ),
@@ -253,9 +253,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
               expandedHeight: 120,
               pinned: true,
               leading: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   size: 20,
                 ),
                 onPressed: () => Navigator.pop(context),
@@ -296,18 +296,18 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                         child: Container(
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.white10,
+                            color: AppColors.white10,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: TextField(
                             controller: _searchController,
                             onChanged: (v) => setState(() => _searchQuery = v),
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(
+                            style: TextStyle(color: AppColors.whiteSmoke),
+                            decoration: InputDecoration(
                               hintText: 'Search tracks',
                               prefixIcon: Icon(
                                 Icons.search,
-                                color: Colors.white54,
+                                color: AppColors.white54,
                               ),
                               border: InputBorder.none,
                             ),
@@ -317,7 +317,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () => _showFilterMenu(context),
-                        child: const Icon(Icons.tune, color: Colors.white),
+                        child: Icon(Icons.tune, color: AppColors.whiteSmoke),
                       ),
                     ],
                   ),
@@ -331,10 +331,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Your uploads',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
@@ -350,7 +350,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             label: const Text('Upload your first track'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.whiteSmoke,
                             ),
                           ),
                         GestureDetector(
@@ -360,8 +360,8 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                           child: Container(
                             width: 44,
                             height: 44,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: AppColors.whiteSmoke,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -454,7 +454,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                     title: Text(
                       t.title,
                       style: TextStyle(
-                        color: isFetching ? Colors.orange : Colors.white,
+                        color: isFetching
+                            ? Colors.orange
+                            : AppColors.whiteSmoke,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
@@ -497,9 +499,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             ),
                           )
                         : IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.more_horiz,
-                              color: Colors.white54,
+                              color: AppColors.white54,
                             ),
                             onPressed: () => _trackOptions(ctx, t),
                           ),
@@ -526,9 +528,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ),
                       const SizedBox(height: 12),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.cloud_upload_outlined,
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                         ),
                         onPressed: () => _pickAndUpload(context),
                       ),
@@ -559,9 +561,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                 networkUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) =>
-                    const Icon(Icons.music_note, color: Colors.white24),
+                    Icon(Icons.music_note, color: AppColors.white24),
               )
-            : const Icon(Icons.music_note, color: Colors.white24),
+            : Icon(Icons.music_note, color: AppColors.white24),
       ),
     );
   }
@@ -592,10 +594,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
           );
           if (mounted) _loadServerTracks();
         },
-        onBehindThisTrack: () => Navigator.of(
-          ctx,
-          rootNavigator: true,
-        ).push(
+        onBehindThisTrack: () => Navigator.of(ctx, rootNavigator: true).push(
           MaterialPageRoute<void>(
             builder: (_) => BehindTheTrackScreen(
               trackId: track.id,
@@ -610,7 +609,6 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
       ),
     );
   }
-
 
   String _fmt(int n) {
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';

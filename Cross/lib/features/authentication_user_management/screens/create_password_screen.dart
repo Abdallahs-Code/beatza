@@ -73,9 +73,9 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
               Text(
                 widget.email,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontWeight: FontWeight.w500,
                 ),
               ),

@@ -43,17 +43,21 @@ class _NotificationSettingsScreenState
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final settings = await _api.getSettings(token);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _settings = settings;
           _loading = false;
         });
+      }
+        
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = e.toString().replaceAll('Exception: ', '');
           _loading = false;
         });
+      }
+        
     }
   }
 
@@ -67,16 +71,20 @@ class _NotificationSettingsScreenState
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final confirmed = await _api.updateSettings(token, updated);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _settings = confirmed;
           _saving = false;
         });
+      }
+        
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _saving = false;
         });
+      }
+        
     }
   }
 
@@ -581,7 +589,7 @@ class _ToggleChip extends StatelessWidget {
         child: Icon(
           icon,
           size: 18,
-          color: active ? Colors.white : AppColors.white60,
+          color: active ? AppColors.whiteSmoke : AppColors.white60,
         ),
       ),
     );
@@ -690,9 +698,9 @@ class _EmailToggleRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onToggle,
-            activeThumbColor: Colors.white,
+            activeThumbColor: AppColors.whiteSmoke,
             activeTrackColor: AppColors.brilliantOrange,
-            inactiveThumbColor: Colors.white,
+            inactiveThumbColor: AppColors.whiteSmoke,
             inactiveTrackColor: AppColors.containerMid,
           ),
         ],

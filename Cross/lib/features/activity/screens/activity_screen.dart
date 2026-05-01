@@ -114,8 +114,10 @@ class _ActivityScreenState extends State<ActivityScreen>
         _trackCache[_trackIdFor(n)] = track;
         _trackFetchedCache[_trackIdFor(n)] = true;
       }
-      if (commentTimestamp != null)
+      if (commentTimestamp != null) {
         _timestampCache[n.target.targetId] = commentTimestamp;
+      }
+        
     });
   }
 
@@ -168,7 +170,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -178,13 +180,15 @@ class _ActivityScreenState extends State<ActivityScreen>
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20),
                   leading: Icon(
                     f.icon,
-                    color: sel ? AppColors.primaryOrange : Colors.white70,
+                    color: sel ? AppColors.primaryOrange : AppColors.white70,
                     size: 22,
                   ),
                   title: Text(
                     f.label,
                     style: TextStyle(
-                      color: sel ? AppColors.primaryOrange : Colors.white,
+                      color: sel
+                          ? AppColors.primaryOrange
+                          : AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                     ),
@@ -225,7 +229,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -248,7 +252,7 @@ class _ActivityScreenState extends State<ActivityScreen>
       title: Text(
         label,
         style: TextStyle(
-          color: sel ? AppColors.primaryOrange : Colors.white,
+          color: sel ? AppColors.primaryOrange : AppColors.whiteSmoke,
           fontSize: 15,
           fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
         ),
@@ -282,17 +286,17 @@ class _ActivityScreenState extends State<ActivityScreen>
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
       leading: IconButton(
-        icon: const Icon(
+        icon: Icon(
           Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           size: 20,
         ),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
-      title: const Text(
+      title: Text(
         'Activity',
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           fontSize: 17,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -312,7 +316,7 @@ class _ActivityScreenState extends State<ActivityScreen>
             ),
           ),
         IconButton(
-          icon: const Icon(Icons.tune_rounded, color: Colors.white, size: 22),
+          icon: Icon(Icons.tune_rounded, color: AppColors.whiteSmoke, size: 22),
           onPressed: _openFilterSheet,
         ),
       ],
@@ -320,11 +324,11 @@ class _ActivityScreenState extends State<ActivityScreen>
         preferredSize: const Size.fromHeight(44),
         child: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
+          indicatorColor: AppColors.primaryOrange,
           indicatorWeight: 2,
           indicatorSize: TabBarIndicatorSize.tab,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white38,
+          labelColor: AppColors.whiteSmoke,
+          unselectedLabelColor: AppColors.white54,
           labelStyle: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -441,8 +445,8 @@ class _ActivityScreenState extends State<ActivityScreen>
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
           fontSize: 16,
           fontWeight: FontWeight.w700,
         ),
@@ -459,16 +463,16 @@ class _ActivityScreenState extends State<ActivityScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline_rounded,
-              color: Colors.white38,
+              color: AppColors.white54,
               size: 42,
             ),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
             ),
             const SizedBox(height: 20),
             TextButton(
@@ -494,9 +498,9 @@ class _ActivityScreenState extends State<ActivityScreen>
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         const SizedBox(height: 120),
-        const Icon(
+        Icon(
           Icons.notifications_none_rounded,
-          color: Colors.white24,
+          color: AppColors.white24,
           size: 60,
         ),
         const SizedBox(height: 20),
@@ -505,19 +509,23 @@ class _ActivityScreenState extends State<ActivityScreen>
               ? 'No ${_controller.filter.label.toLowerCase()} yet'
               : 'No notifications yet',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 10),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
             'When new activity happens, it will show up here.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 14, height: 1.5),
+            style: TextStyle(
+              color: AppColors.white54,
+              fontSize: 14,
+              height: 1.5,
+            ),
           ),
         ),
         if (filtered) ...[
@@ -698,11 +706,13 @@ class _NotificationTileState extends State<_NotificationTile> {
     }
     try {
       final track = await PlaybackTrackApiService().getSingleTrackById(trackId);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _track = track;
           _trackFetched = true;
         });
+      }
+        
       _completePending(track: track, trackFetched: true);
     } catch (_) {
       if (mounted) setState(() => _trackFetched = true);
@@ -769,11 +779,13 @@ class _NotificationTileState extends State<_NotificationTile> {
           orElse: () => null,
         );
         if (match != null) {
-          if (mounted)
+          if (mounted) {
             setState(() {
               _isLiked = match.isLikedByUser;
               _commentTimestamp = match.timestamp;
             });
+          }
+            
           _completePending(
             isLiked: match.isLikedByUser,
             commentTimestamp: match.timestamp,
@@ -860,21 +872,19 @@ class _NotificationTileState extends State<_NotificationTile> {
       backgroundColor: Colors.transparent,
       builder: (_) => TrackOptionsSheet(
         track: track,
-        onBehindThisTrack: () => Navigator.of(
-          context,
-          rootNavigator: true,
-        ).push(
-          MaterialPageRoute<void>(
-            builder: (_) => BehindTheTrackScreen(
-              trackId: track.id,
-              actorName: track.artistName,
-              actorAvatarUrl: track.artworkUrl ?? '',
-              actorUserId: track.artistId ?? '',
-              activityType: 'new_track',
-              trackOwnerId: track.artistId ?? '',
+        onBehindThisTrack: () =>
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BehindTheTrackScreen(
+                  trackId: track.id,
+                  actorName: track.artistName,
+                  actorAvatarUrl: track.artworkUrl ?? '',
+                  actorUserId: track.artistId ?? '',
+                  activityType: 'new_track',
+                  trackOwnerId: track.artistId ?? '',
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -928,12 +938,12 @@ class _NotificationTileState extends State<_NotificationTile> {
 
     return InkWell(
       onTap: _handleTap,
-      splashColor: Colors.white.withValues(alpha: 0.04),
-      highlightColor: Colors.white.withValues(alpha: 0.03),
+      splashColor: AppColors.whiteSmoke.withValues(alpha: 0.04),
+      highlightColor: AppColors.whiteSmoke.withValues(alpha: 0.03),
       child: Container(
         color: n.read
             ? Colors.transparent
-            : Colors.white.withValues(alpha: 0.04),
+            : AppColors.whiteSmoke.withValues(alpha: 0.04),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -949,8 +959,8 @@ class _NotificationTileState extends State<_NotificationTile> {
                       children: [
                         TextSpan(
                           text: n.actor.displayName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             height: 1.4,
@@ -958,8 +968,8 @@ class _NotificationTileState extends State<_NotificationTile> {
                         ),
                         TextSpan(
                           text: '  ${_ts(n.createdAt)}',
-                          style: const TextStyle(
-                            color: Colors.white38,
+                          style: TextStyle(
+                            color: AppColors.white54,
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                             height: 1.4,
@@ -1000,8 +1010,8 @@ class _NotificationTileState extends State<_NotificationTile> {
             child: n.actor.avatarUrl.trim().isEmpty
                 ? Text(
                     _initials(n.actor.displayName),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1022,7 +1032,7 @@ class _NotificationTileState extends State<_NotificationTile> {
               child: Center(
                 child: Icon(
                   _badgeIcon(n.activityType),
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   size: 10,
                 ),
               ),
@@ -1043,7 +1053,10 @@ class _NotificationTileState extends State<_NotificationTile> {
   }
 
   List<TextSpan> _descSpans() {
-    const bold = TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
+    final bold = TextStyle(
+      color: AppColors.whiteSmoke,
+      fontWeight: FontWeight.w600,
+    );
 
     switch (n.activityType) {
       case 'track_liked':
@@ -1115,18 +1128,18 @@ class _NotificationTileState extends State<_NotificationTile> {
           ),
           alignment: Alignment.center,
           child: _isFollowLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     strokeWidth: 2,
                   ),
                 )
               : Text(
                   _isFollowing ? 'Following' : 'Follow',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),

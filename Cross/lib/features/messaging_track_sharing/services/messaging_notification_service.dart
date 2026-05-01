@@ -40,10 +40,7 @@ class MessagingNotificationService {
 
     // Load notification preference and following list in parallel.
     // Failures are silenced — we fall back to showing all notifications.
-    await Future.wait([
-      _loadDeviceSetting(token),
-      _loadFollowingList(),
-    ]);
+    await Future.wait([_loadDeviceSetting(token), _loadFollowingList()]);
 
     await MessagingSocketService.shared.connect(token: token);
     MessagingSocketService.shared.onMessageNotifyPush = _onIncoming;
@@ -54,8 +51,9 @@ class MessagingNotificationService {
 
   Future<void> _loadDeviceSetting(String token) async {
     try {
-      final settings =
-          await NotificationSettingsApiService().getSettings(token);
+      final settings = await NotificationSettingsApiService().getSettings(
+        token,
+      );
       _newMessageDevicesSetting = settings.newMessageDevices;
     } catch (_) {}
   }
@@ -64,8 +62,7 @@ class MessagingNotificationService {
     try {
       final userId = _currentUserId;
       if (userId == null || userId.isEmpty) return;
-      final result =
-          await SocialApiService().getFollowing(userId: userId);
+      final result = await SocialApiService().getFollowing(userId: userId);
       if (result.$1 == 200 && result.$2 is List) {
         _followedUserIds = (result.$2 as List)
             .whereType<Follower>()

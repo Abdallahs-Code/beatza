@@ -41,11 +41,11 @@ class ProfileHeaderWidget extends StatelessWidget {
               ),
             ),
             child: userProfile.bannerImgLink.trim().isEmpty
-                ? const Center(
+                ? Center(
                     child: Icon(
                       Icons.image_not_supported_outlined,
                       size: 48,
-                      color: Colors.white38,
+                      color: AppColors.white54,
                     ),
                   )
                 : null,

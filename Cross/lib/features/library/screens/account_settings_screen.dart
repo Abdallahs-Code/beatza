@@ -41,17 +41,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final settings = await _api.getSettings(token);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _settings = settings;
           _loading = false;
         });
+      }
+        
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = e.toString().replaceAll('Exception: ', '');
           _loading = false;
         });
+      }
+        
     }
   }
 
@@ -65,16 +69,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final confirmed = await _api.updateSettings(token, updated);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _settings = confirmed;
           _saving = false;
         });
+      }
+        
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _saving = false;
         });
+      }
+        
     }
   }
 
@@ -473,7 +481,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 initialValue: value,
                 isExpanded: true,
                 dropdownColor: AppColors.surfaceMid,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
                 icon: Icon(Icons.keyboard_arrow_down, color: AppColors.white60),
                 decoration: dropdownDecoration,
                 hint: Text(
@@ -487,8 +495,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           item.value == null ? '' : item.value.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 15,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -533,7 +541,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               value: i + 1,
                               child: Text(
                                 monthNames[i],
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(color: AppColors.whiteSmoke),
                               ),
                             ),
                           ),
@@ -553,7 +561,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   value: d,
                                   child: Text(
                                     '$d',
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
+                                    ),
                                   ),
                                 ),
                               )
@@ -574,7 +584,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   value: y,
                                   child: Text(
                                     '$y',
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
+                                    ),
                                   ),
                                 ),
                               )
@@ -608,7 +620,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brilliantOrange,
                         disabledBackgroundColor: const Color(0xFF3A2A1A),
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.whiteSmoke,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -690,7 +702,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     onTap: () async {
                       // Close the bottom sheet immediately
                       Navigator.pop(context);
-                      
+
                       if (!selected && _settings != null) {
                         // 1. Update local state
                         setState(() {

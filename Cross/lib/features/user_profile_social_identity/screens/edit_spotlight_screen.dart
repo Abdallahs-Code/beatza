@@ -73,20 +73,20 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: AppColors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.flash_on, color: AppColors.flashPurple, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'AMPLIFY',
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: AppColors.white54,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.2,
@@ -95,20 +95,20 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Reach more\nlisteners.',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
                   height: 1.1,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'With Artist Pro, you can get your tracks analyzed and recommended to the right listeners without limits.',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   fontSize: 16,
                   height: 1.4,
                 ),
@@ -116,7 +116,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               const SizedBox(height: 32),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                   children: [
                     const TextSpan(text: 'EGP 164.99/month. Cancel anytime.\n'),
                     WidgetSpan(
@@ -149,16 +149,16 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                 height: 52,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white24, width: 1.5),
+                    side: BorderSide(color: AppColors.white24, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   onPressed: () {},
-                  child: const Text(
+                  child: Text(
                     'Subscribe now',
                     style: TextStyle(
-                      color: Colors.white38,
+                      color: AppColors.white54,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -169,10 +169,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Maybe later',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -196,15 +196,15 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
         leadingWidth: 80,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
+          child: Text(
             'Cancel',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Edit Spotlight',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -215,10 +215,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             onPressed: () {
               Navigator.pop(context, currentItems);
             },
-            child: const Text(
+            child: Text(
               'Save',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -240,18 +240,18 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Tracks added here will not be saved.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Upgrade and pin up to 5 tracks on your profile.',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: AppColors.white54, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
                 ValueListenableBuilder<SubscriptionState>(
@@ -281,10 +281,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Pinned items',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -294,7 +294,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                   currentItems.isEmpty
                       ? 'Pinned items will show up here'
                       : '${currentItems.length}/5 pinned items',
-                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                 ),
               ],
             ),
@@ -354,16 +354,16 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                                     width: 48,
                                     height: 48,
                                     color: Colors.grey[800],
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.music_note,
-                                      color: Colors.white,
+                                      color: AppColors.whiteSmoke,
                                     ),
                                   ),
                           ),
                           title: Text(
                             item.title,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -372,8 +372,8 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                           ),
                           subtitle: Text(
                             item.subtitle,
-                            style: const TextStyle(
-                              color: Colors.white54,
+                            style: TextStyle(
+                              color: AppColors.white54,
                               fontSize: 13,
                             ),
                           ),
@@ -391,10 +391,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                                   });
                                 },
                               ),
-                              const Icon(
-                                Icons.drag_handle,
-                                color: Colors.white38,
-                              ),
+                              Icon(Icons.drag_handle, color: AppColors.white54),
                             ],
                           ),
                         ),
@@ -411,7 +408,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               child: ElevatedButton(
                 onPressed: _addMoreItems,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.whiteSmoke,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -444,7 +441,7 @@ class ProRestrictionsScreen extends StatelessWidget {
         backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -453,28 +450,28 @@ class ProRestrictionsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Restrictions apply',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. Beatza Artist Pro Terms of Use & Privacy Policy',
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.white70,
                 fontSize: 16,
                 height: 1.5,
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Artist Pro',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -511,8 +508,8 @@ class ProRestrictionsScreen extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white24,
+        style: TextStyle(
+          color: AppColors.white24,
           fontSize: 16,
           fontWeight: FontWeight.w500,
           decoration: TextDecoration.underline,
@@ -528,9 +525,9 @@ class ArtistTermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         centerTitle: true,
         title: const Text(
@@ -629,9 +626,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         title: const Text(
           'Privacy Policy',

@@ -396,7 +396,7 @@ class _SearchScreenState extends State<SearchScreen>
                 leading: Icon(Icons.search, color: AppColors.white54),
                 title: Text(
                   s.title,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 trailing: Icon(
                   Icons.north_west,
@@ -413,12 +413,12 @@ class _SearchScreenState extends State<SearchScreen>
 
         // ── Recently searched ──────────────────────────────────────────────
         if (hasHistory && query.isEmpty) ...[
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
               'Recently searched',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -476,7 +476,7 @@ class _SearchScreenState extends State<SearchScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(_resultsError!, style: const TextStyle(color: Colors.white54)),
+            Text(_resultsError!, style: TextStyle(color: AppColors.white54)),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => _submitSearch(_activeQuery),
@@ -505,8 +505,8 @@ class _SearchScreenState extends State<SearchScreen>
           controller: _tabController,
           isScrollable: true,
           indicatorColor: Colors.orange,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white54,
+          labelColor: AppColors.whiteSmoke,
+          unselectedLabelColor: AppColors.white54,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: _resultTabs.map((t) => Tab(text: t)).toList(),
         ),

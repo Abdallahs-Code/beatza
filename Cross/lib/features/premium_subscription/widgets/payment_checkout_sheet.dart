@@ -209,18 +209,18 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Purchase successful',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'You have successfully completed your order',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: AppColors.white70, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 28),
@@ -238,10 +238,10 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Ok, got it',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -316,13 +316,13 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.apple, color: Colors.white, size: 24),
+                children: [
+                  Icon(Icons.apple, color: AppColors.whiteSmoke, size: 24),
                   SizedBox(width: 4),
                   Text(
                     'Pay',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -402,7 +402,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: _selectedMethod == 'saved'
@@ -459,7 +459,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.black12),
             ),
@@ -485,9 +485,9 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                       color: AppColors.successGreen,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.attach_money,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       size: 16,
                     ),
                   ),
@@ -530,11 +530,11 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               ),
               onPressed: _isLoading ? null : _processPayment,
               child: _isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         strokeWidth: 2,
                       ),
                     )
@@ -543,14 +543,14 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                       children: [
                         Text(
                           'Pay EGP ${widget.plan['amount']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.lock, color: Colors.white, size: 16),
+                        Icon(Icons.lock, color: AppColors.whiteSmoke, size: 16),
                       ],
                     ),
             ),
@@ -606,7 +606,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.black12),
             ),
@@ -698,7 +698,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               border: Border.all(color: Colors.black12),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -763,11 +763,11 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               ),
               onPressed: _isLoading ? null : _processPayment,
               child: _isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         strokeWidth: 2,
                       ),
                     )
@@ -776,14 +776,14 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                       children: [
                         Text(
                           'Pay EGP ${widget.plan['amount']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.lock, color: Colors.white, size: 16),
+                        Icon(Icons.lock, color: AppColors.whiteSmoke, size: 16),
                       ],
                     ),
             ),

@@ -51,11 +51,13 @@ class _MessagesTabState extends State<MessagesTab> {
     debugPrint(
       '[MessagesTab._load] Fetching chats. currentUserId=$_currentUserId',
     );
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isLoading = true;
         _error = null;
       });
+    }
+      
     try {
       final chats = await _api.getChats();
       if (!mounted) return;
@@ -262,7 +264,7 @@ class _MessagesTabState extends State<MessagesTab> {
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: chats.length,
         separatorBuilder: (context, index) =>
-            const Divider(height: 1, color: Colors.white10, indent: 74),
+            Divider(height: 1, color: AppColors.white10, indent: 74),
         itemBuilder: (ctx, i) => _ChatTile(
           chat: chats[i],
           currentUserId: _currentUserId ?? '',
@@ -277,26 +279,30 @@ class _MessagesTabState extends State<MessagesTab> {
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         const SizedBox(height: 120),
-        const Icon(Icons.mail_outline_rounded, color: Colors.white24, size: 60),
+        Icon(Icons.mail_outline_rounded, color: AppColors.white24, size: 60),
         const SizedBox(height: 20),
         Text(
           widget.filter == MessageFilter.unreadOnly
               ? 'No unread messages'
               : 'No messages yet',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 10),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
             'Your conversations will appear here.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 14, height: 1.5),
+            style: TextStyle(
+              color: AppColors.white54,
+              fontSize: 14,
+              height: 1.5,
+            ),
           ),
         ),
       ],
@@ -310,16 +316,16 @@ class _MessagesTabState extends State<MessagesTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline_rounded,
-              color: Colors.white38,
+              color: AppColors.white54,
               size: 42,
             ),
             const SizedBox(height: 16),
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
             ),
             const SizedBox(height: 20),
             TextButton(
@@ -363,7 +369,7 @@ class _ChatTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      splashColor: Colors.white.withValues(alpha: 0.04),
+      splashColor: AppColors.whiteSmoke.withValues(alpha: 0.04),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -375,8 +381,8 @@ class _ChatTile extends StatelessWidget {
               child: photo.isEmpty
                   ? Text(
                       _initials(name),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -391,7 +397,7 @@ class _ChatTile extends StatelessWidget {
                   Text(
                     name,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 14,
                       fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
                     ),
@@ -403,7 +409,7 @@ class _ChatTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isUnread ? Colors.white70 : Colors.white38,
+                        color: isUnread ? AppColors.white70 : AppColors.white54,
                         fontSize: 13,
                         fontWeight: isUnread
                             ? FontWeight.w500
@@ -424,7 +430,7 @@ class _ChatTile extends StatelessWidget {
                     style: TextStyle(
                       color: isUnread
                           ? AppColors.primaryOrange
-                          : Colors.white38,
+                          : AppColors.white54,
                       fontSize: 12,
                     ),
                   ),

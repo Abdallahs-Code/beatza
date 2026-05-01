@@ -52,6 +52,7 @@ class ContentSettings {
     void addIfPresent(String key, String? value) {
       if (value != null && value.isNotEmpty) map[key] = value;
     }
+
     addIfPresent('rssFeedLink', rssFeedLink);
     addIfPresent('rssEmailDisplayed', rssEmailDisplayed);
     addIfPresent('customFieldTitle', customFieldTitle);

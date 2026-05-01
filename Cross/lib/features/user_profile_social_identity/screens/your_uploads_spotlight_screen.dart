@@ -89,8 +89,11 @@ class _YourUploadsSpotlightScreenState
 
   Widget _buildList(List<SpotlightItemModel> items) {
     if (items.isEmpty) {
-      return const Center(
-        child: Text('Nothing found', style: TextStyle(color: Colors.white54)),
+      return Center(
+        child: Text(
+          'Nothing found',
+          style: TextStyle(color: AppColors.white54),
+        ),
       );
     }
 
@@ -127,9 +130,9 @@ class _YourUploadsSpotlightScreenState
                           width: 52,
                           height: 52,
                           color: Colors.grey[800],
-                          child: const Icon(
+                          child: Icon(
                             Icons.music_note,
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                           ),
                         ),
                 ),
@@ -140,8 +143,8 @@ class _YourUploadsSpotlightScreenState
                     children: [
                       Text(
                         item.title,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -151,22 +154,25 @@ class _YourUploadsSpotlightScreenState
                       const SizedBox(height: 2),
                       Text(
                         item.subtitle,
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: TextStyle(
+                          color: AppColors.white54,
                           fontSize: 13,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
+                      Text(
                         '▶ 0',
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                        style: TextStyle(
+                          color: AppColors.white54,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Icon(
                   isSelected ? Icons.push_pin : Icons.push_pin_outlined,
-                  color: isSelected ? Colors.white : Colors.white38,
+                  color: isSelected ? AppColors.whiteSmoke : AppColors.white54,
                   size: 22,
                 ),
               ],
@@ -188,10 +194,10 @@ class _YourUploadsSpotlightScreenState
           elevation: 0,
           leading: const SizedBox.shrink(),
           leadingWidth: 0,
-          title: const Text(
+          title: Text(
             'Your Uploads',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -202,16 +208,16 @@ class _YourUploadsSpotlightScreenState
               onPressed: () {
                 Navigator.pop(context, localSelected);
               },
-              child: const Text(
+              child: Text(
                 'Done',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
               ),
             ),
           ],
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white54,
+          bottom: TabBar(
+            indicatorColor: AppColors.whiteSmoke,
+            labelColor: AppColors.whiteSmoke,
+            unselectedLabelColor: AppColors.white54,
             indicatorWeight: 2,
             tabs: [
               Tab(text: 'Tracks'),

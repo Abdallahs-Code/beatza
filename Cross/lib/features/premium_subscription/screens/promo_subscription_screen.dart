@@ -141,33 +141,33 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: AppColors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Restrictions apply',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. Beatza Artist Pro Terms of Use & Privacy Policy',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   fontSize: 14,
                   height: 1.4,
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Artist Pro',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
               ),
               const SizedBox(height: 16),
               GestureDetector(
@@ -204,9 +204,11 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoadingPlans) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.whiteSmoke),
+        ),
       );
     }
 
@@ -217,15 +219,15 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            icon: Icon(Icons.arrow_back_ios, color: AppColors.whiteSmoke),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(
+        body: Center(
           child: Text(
             'No plans available right now.\nPlease try again later.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            style: TextStyle(color: AppColors.white70, fontSize: 16),
           ),
         ),
       );
@@ -244,7 +246,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
             elevation: 0,
             pinned: false,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+              icon: Icon(Icons.arrow_back_ios, color: AppColors.whiteSmoke),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -262,7 +264,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: 24.0,
                       vertical: 0,
@@ -270,7 +272,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                     child: Text(
                       "What's next in music is\nfirst on Beatza",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
@@ -301,17 +303,17 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: _currentPage == index
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.3),
+                              ? AppColors.whiteSmoke
+                              : AppColors.whiteSmoke.withValues(alpha: 0.3),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Center(
+                  Center(
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       size: 32,
                     ),
                   ),
@@ -352,10 +354,10 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                   color: AppColors.badgeBlue,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   'FOR ARTISTS',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -371,8 +373,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                 ),
                 child: Text(
                   plan['badge'],
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -386,8 +388,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
             children: [
               Text(
                 plan['name'],
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -406,8 +408,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
           const SizedBox(height: 6),
           Text(
             'EGP ${plan['amount']}/${plan['badge'].toString().toLowerCase().replaceAll('ly', '')}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -423,13 +425,13 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.check, color: Colors.white, size: 18),
+                      Icon(Icons.check, color: AppColors.whiteSmoke, size: 18),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           plan['features'][index],
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 14,
                             height: 1.3,
                           ),
@@ -499,8 +501,10 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isDisabled
                         ? Colors.grey[800]
-                        : Colors.white,
-                    foregroundColor: isDisabled ? Colors.white54 : Colors.black,
+                        : AppColors.whiteSmoke,
+                    foregroundColor: isDisabled
+                        ? AppColors.white54
+                        : Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -510,8 +514,10 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                       ? null
                       : () {
                           if (plan['priceId'] == null ||
-                              plan['priceId'].toString().isEmpty)
-                            return;
+                              plan['priceId'].toString().isEmpty) {
+                                return;
+                              }
+                            
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
@@ -532,9 +538,9 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
             },
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Cancel anytime.',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
+            style: TextStyle(color: AppColors.white70, fontSize: 12),
           ),
           const SizedBox(height: 4),
           GestureDetector(
@@ -556,34 +562,38 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Beatza supports\nindependent artists',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 24,
               fontWeight: FontWeight.bold,
               height: 1.2,
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'From fan-powered royalties to our audience-building artist plans, your subscription helps support the Beatza global community.',
-            style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.5),
+            style: TextStyle(
+              color: AppColors.white70,
+              fontSize: 15,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 30),
-          const Text(
+          Text(
             '"It\'s such a simple idea. Your monthly fees get split up between the songs"',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 16,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             '- RAC, musician and producer',
-            style: TextStyle(color: Colors.white70, fontSize: 15),
+            style: TextStyle(color: AppColors.white70, fontSize: 15),
           ),
           const SizedBox(height: 40),
           Center(
@@ -596,16 +606,16 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                   'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.person, size: 80, color: Colors.white54),
+                      Icon(Icons.person, size: 80, color: AppColors.white54),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 50),
-          const Text(
+          Text(
             'Frequently asked questions',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -630,12 +640,12 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
         tilePadding: EdgeInsets.zero,
-        iconColor: Colors.white,
-        collapsedIconColor: Colors.white,
+        iconColor: AppColors.whiteSmoke,
+        collapsedIconColor: AppColors.whiteSmoke,
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -645,8 +655,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Text(
               content,
-              style: const TextStyle(
-                color: Colors.white70,
+              style: TextStyle(
+                color: AppColors.white70,
                 fontSize: 15,
                 height: 1.4,
               ),

@@ -10,12 +10,7 @@ import 'package:cross_team5/features/messaging_track_sharing/services/messaging_
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 
-enum TrackOptionsVariant {
-  normalTrack,
-  ownTrack,
-  behindTrack,
-  feedTrack,
-}
+enum TrackOptionsVariant { normalTrack, ownTrack, behindTrack, feedTrack }
 
 class TrackOptionsSheet extends StatefulWidget {
   final PlaybackTrackModel track;
@@ -87,9 +82,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     );
 
     final currentUserId = await AuthApiService().getStoredUserId();
-    debugPrint(
-      '[SendTo] STEP 1 result → currentUserId="$currentUserId"',
-    );
+    debugPrint('[SendTo] STEP 1 result → currentUserId="$currentUserId"');
     if (currentUserId == null || currentUserId.isEmpty) {
       debugPrint('[SendTo] STEP 1 ❌ ABORTED — no currentUserId.');
       return;
@@ -151,9 +144,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
         _recentContacts = contacts;
         _trackPermalink = buildPayload();
       });
-      debugPrint(
-        '[SendTo] ✅ contacts=${_recentContacts.length}',
-      );
+      debugPrint('[SendTo] ✅ contacts=${_recentContacts.length}');
     } catch (e, stack) {
       debugPrint('[SendTo] ❌ EXCEPTION: $e\n$stack');
       if (mounted) setState(() => _trackPermalink = buildPayload());
@@ -334,12 +325,12 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
                 // ── Send To ──────────────────────────────────────────────────
                 if (_hasSendTo && _recentContacts.isNotEmpty) ...[
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
                       'SEND TO',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.white70,
                         letterSpacing: 2.2,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -372,12 +363,12 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
 
                 // ── Share ────────────────────────────────────────────────────
                 const SizedBox(height: 18),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -428,7 +419,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   label: _isLiked ? 'Liked' : 'Like',
-                  color: _isLiked ? Colors.orange : Colors.white,
+                  color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                   onTap: _toggleLike,
                 ),
                 if (_hasEditTrack)
@@ -450,12 +441,12 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   label: 'Play last',
                   onTap: _playLast,
                 ),
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.playlist_add_outlined,
                   label: 'Add to playlist',
                 ),
                 if (_hasStartStation)
-                  const _OptionTile(
+                  _OptionTile(
                     icon: Icons.radio_outlined,
                     label: 'Start station',
                   ),
@@ -479,7 +470,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   _OptionTile(
                     icon: Icons.repeat_rounded,
                     label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                    color: _isReposted ? Colors.orange : Colors.white,
+                    color: _isReposted ? Colors.orange : AppColors.whiteSmoke,
                     onTap: _openRepost,
                   ),
 
@@ -514,7 +505,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                         : null,
                   ),
                 if (_hasReport)
-                  const _OptionTile(
+                  _OptionTile(
                     icon: Icons.outlined_flag_rounded,
                     label: 'Report',
                   ),
@@ -576,10 +567,11 @@ class _TrackHeaderCard extends StatelessWidget {
                       height: 82,
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: track.artworkUrl != null &&
+                      child:
+                          track.artworkUrl != null &&
                               track.artworkUrl!.trim().isNotEmpty
                           ? Image.network(
                               track.artworkUrl!,
@@ -611,8 +603,8 @@ class _TrackHeaderCard extends StatelessWidget {
                     track.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -622,7 +614,7 @@ class _TrackHeaderCard extends StatelessWidget {
                     track.artistName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                    style: TextStyle(color: AppColors.white70, fontSize: 15),
                   ),
                 ],
               ),
@@ -656,15 +648,15 @@ class _ShareAction extends StatelessWidget {
               width: 62,
               height: 62,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: AppColors.whiteSmoke.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 30),
+              child: Icon(icon, color: AppColors.whiteSmoke, size: 30),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
             ),
           ],
         ),
@@ -704,8 +696,8 @@ class _SendToContact extends StatelessWidget {
               child: photoUrl.isEmpty
                   ? Text(
                       _initials(name),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -720,7 +712,7 @@ class _SendToContact extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 12),
               ),
             ),
           ],
@@ -745,12 +737,12 @@ class _OptionTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color color;
 
-  const _OptionTile({
+  _OptionTile({
     required this.icon,
     required this.label,
     this.onTap,
-    this.color = Colors.white,
-  });
+    Color? color,
+  }) : color = color ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {
@@ -778,7 +770,7 @@ class _VinylPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final basePaint = Paint()..color = Colors.black;
     final ringPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
+      ..color = AppColors.whiteSmoke.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final centerPaint = Paint()

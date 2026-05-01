@@ -78,19 +78,19 @@ class _SendToSheetState extends State<SendToSheet> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: AppColors.white24,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 16),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'SEND TO',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   letterSpacing: 2.2,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -114,16 +114,16 @@ class _SendToSheetState extends State<SendToSheet> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 _error!,
-                style: const TextStyle(color: Colors.white38, fontSize: 14),
+                style: TextStyle(color: AppColors.white54, fontSize: 14),
               ),
             )
           else if (_chats.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: Text(
                   'No recent conversations',
-                  style: TextStyle(color: Colors.white38, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                 ),
               ),
             )
@@ -155,8 +155,8 @@ class _SendToSheetState extends State<SendToSheet> {
                             child: photo.isEmpty
                                 ? Text(
                                     _initials(name),
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -171,8 +171,8 @@ class _SendToSheetState extends State<SendToSheet> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
                                 fontSize: 12,
                               ),
                             ),

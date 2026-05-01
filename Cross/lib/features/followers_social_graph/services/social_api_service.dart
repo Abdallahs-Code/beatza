@@ -24,11 +24,6 @@ class SocialApiService {
     _servicePath = "${_apiServices.baseUrl}/api/social/v1";
   }
 
-  // Public base path for read-only social endpoints (followers/following).
-  // Authenticated mutation endpoints (follow, unfollow, block, etc.) use _servicePath.
-  String get _publicServicePath =>
-      "${_apiServices.baseUrl}/api/public/social/v1";
-
   int _parseInt(dynamic value) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '0') ?? 0;
@@ -147,7 +142,7 @@ class SocialApiService {
       }
 
       final response = await _client.get(
-        Uri.parse("$_publicServicePath/followers/$userId"),
+        Uri.parse("$_servicePath/followers/$userId"),
         headers: _headers(accessToken),
       );
 
@@ -177,7 +172,7 @@ class SocialApiService {
       }
 
       final response = await _client.get(
-        Uri.parse("$_publicServicePath/following/$userId"),
+        Uri.parse("$_servicePath/following/$userId"),
         headers: _headers(accessToken),
       );
 
