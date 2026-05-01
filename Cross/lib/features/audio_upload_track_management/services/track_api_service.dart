@@ -464,7 +464,7 @@ class TrackApiService {
 
   // ─────────────────────────────────────────────
   // Get tracks posted by a user (public — no audioLink)
-  // GET /api/public/tracks/v1/posted/{userId}
+  // GET /api/public/tracks/v2/posted/{userId}
   //
   // Returns (200, List<Track>)
   // ─────────────────────────────────────────────

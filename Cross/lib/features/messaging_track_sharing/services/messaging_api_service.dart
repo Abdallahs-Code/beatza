@@ -526,7 +526,7 @@ class MessagingApiService {
   // }
 
   // GET /api/public/tracks/v1/user/{userId}
-  // GET /api/public/tracks/v1/posted/{userId}
+  // GET /api/public/tracks/v2/posted/{userId}
   Future<List<PlaybackTrackModel>> getUserPostedTracks({
     required String userId,
   }) async {
