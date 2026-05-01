@@ -221,6 +221,19 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
 
+      // Per-message isReceiverBlocked check:
+      // Find the first message sent by the OTHER user and read isReceiverBlocked.
+      bool perMessageBlockedByReceiver = false;
+      for (final msg in allMsgs) {
+        if (msg.senderId.isNotEmpty && msg.senderId != _currentUserId) {
+          perMessageBlockedByReceiver = msg.isReceiverBlocked;
+          debugPrint(
+            '[ChatScreen._loadMessages] Per-message check: senderId=${msg.senderId} isReceiverBlocked=${msg.isReceiverBlocked}',
+          );
+          break;
+        }
+      }
+
       setState(() {
         if (loadMore) {
           _messages = [...result.messages.reversed, ..._messages];
@@ -230,7 +243,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _hasMore = result.messages.length == 20;
         }
         _isReceiverBlocked = result.isReceiverBlocked;
-        _isBlockedByReceiver = result.isBlockedByReceiver;
+        _isBlockedByReceiver = result.isBlockedByReceiver || perMessageBlockedByReceiver;
         debugPrint(
           '[ChatScreen._loadMessages] BLOCK STATE → isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver',
         );

@@ -370,6 +370,114 @@ class _NotificationSettingsScreenState
     if (_settings == null) return [];
     final s = _settings!;
     return [
+      // Add the 5 items from push notifications to email section
+      _NotifRow(
+        label: 'New follower',
+        hasDevices: NotificationSettings.hasDevices(s.newFollower),
+        hasEmail: NotificationSettings.hasEmail(s.newFollower),
+        onDeviceToggle: () => _patch(
+          s.copyWith(
+            newFollower: NotificationSettings.toggleDevices(s.newFollower),
+          ),
+        ),
+        onEmailToggle: () => _patch(
+          s.copyWith(
+            newFollower: NotificationSettings.toggleEmail(s.newFollower),
+          ),
+        ),
+        showEmail: true,
+        showDevice: false,
+      ),
+      _divider(),
+      _NotifRow(
+        label: 'Repost of your post',
+        hasDevices: NotificationSettings.hasDevices(s.repostOfYourPost),
+        hasEmail: NotificationSettings.hasEmail(s.repostOfYourPost),
+        onDeviceToggle: () => _patch(
+          s.copyWith(
+            repostOfYourPost: NotificationSettings.toggleDevices(
+              s.repostOfYourPost,
+            ),
+          ),
+        ),
+        onEmailToggle: () => _patch(
+          s.copyWith(
+            repostOfYourPost: NotificationSettings.toggleEmail(
+              s.repostOfYourPost,
+            ),
+          ),
+        ),
+        showEmail: true,
+        showDevice: false,
+      ),
+      _divider(),
+      _NotifRow(
+        label: 'New post by followed user',
+        hasDevices: NotificationSettings.hasDevices(s.newPostByFollowedUser),
+        hasEmail: NotificationSettings.hasEmail(s.newPostByFollowedUser),
+        onDeviceToggle: () => _patch(
+          s.copyWith(
+            newPostByFollowedUser: NotificationSettings.toggleDevices(
+              s.newPostByFollowedUser,
+            ),
+          ),
+        ),
+        onEmailToggle: () => _patch(
+          s.copyWith(
+            newPostByFollowedUser: NotificationSettings.toggleEmail(
+              s.newPostByFollowedUser,
+            ),
+          ),
+        ),
+        showEmail: true,
+        showDevice: false,
+      ),
+      _divider(),
+      _NotifRow(
+        label: 'Likes & plays on your post',
+        hasDevices: NotificationSettings.hasDevices(s.likesAndPlaysOnYourPost),
+        hasEmail: NotificationSettings.hasEmail(s.likesAndPlaysOnYourPost),
+        onDeviceToggle: () => _patch(
+          s.copyWith(
+            likesAndPlaysOnYourPost: NotificationSettings.toggleDevices(
+              s.likesAndPlaysOnYourPost,
+            ),
+          ),
+        ),
+        onEmailToggle: () => _patch(
+          s.copyWith(
+            likesAndPlaysOnYourPost: NotificationSettings.toggleEmail(
+              s.likesAndPlaysOnYourPost,
+            ),
+          ),
+        ),
+        showEmail: true,
+        showDevice: false,
+      ),
+      _divider(),
+      _NotifRow(
+        label: 'Comment on your post',
+        hasDevices: NotificationSettings.hasDevices(s.commentOnYourPost),
+        hasEmail: NotificationSettings.hasEmail(s.commentOnYourPost),
+        onDeviceToggle: () => _patch(
+          s.copyWith(
+            commentOnYourPost: NotificationSettings.toggleDevices(
+              s.commentOnYourPost,
+            ),
+          ),
+        ),
+        onEmailToggle: () => _patch(
+          s.copyWith(
+            commentOnYourPost: NotificationSettings.toggleEmail(
+              s.commentOnYourPost,
+            ),
+          ),
+        ),
+        showEmail: true,
+        showDevice: false,
+      ),
+      _divider(),
+      // Existing email-only items
       _NotifRow(
         label: 'Updates from Beatza',
         hasDevices: NotificationSettings.hasDevices(s.updatesFromSoundcloud),
