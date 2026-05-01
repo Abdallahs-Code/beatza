@@ -153,7 +153,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/tracks/v1/{id} ───────────────────────────────────────
+  // ── GET /api/public/tracks/v2/{id} ───────────────────────────────────────
   // Fetches full track details by ID (used to hydrate feed/trending items
   // before navigating to player or displaying in the feed card).
   // Returns: (200, Map<String, dynamic>) | (404, message) | (500, message)
@@ -163,7 +163,7 @@ class FeedSearchApiService {
       if (token == null) return (401, 'No access token');
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/public/tracks/v1/$trackId',
+        '${_apiServices.baseUrl}/api/public/tracks/v2/$trackId',
       );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
