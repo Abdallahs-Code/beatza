@@ -1285,7 +1285,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
         return;
       }
 
-      // Step 2 — call GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}
+      // Step 2 — call GET /api/public/tracks/v2/permalink/{profileLink}/{permalink}
       debugPrint(
         '[TrackCardBubble._load] calling getTrackByPermalink(profileLink="$resolvedProfileLink", permalink="${widget.permalink}")',
       );

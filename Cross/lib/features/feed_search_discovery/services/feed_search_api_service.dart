@@ -9,9 +9,9 @@
 //   GET  /api/feed/v1/search/history                      → getSearchHistory
 //   POST /api/feed/v1/search/add-to-history               → addToSearchHistory
 //   DELETE /api/feed/v1/search/history/{historyId}        → deleteSearchHistoryItem
-//   GET  /api/public/tracks/v1/permalink/{profileLink}/{permalink}
+//   GET  /api/public/tracks/v2/permalink/{profileLink}/{permalink}
 //                                                  → getTrackByPermalink
-//   GET  /api/public/tracks/v1/{id}               → getTrackById (for details)
+//   GET  /api/public/tracks/v2/{id}               → getTrackById (for details)
 //
 // Service pattern: constructor injection, returns Future<(int, dynamic)>.
 // Token read from FlutterSecureStorage key 'access_token'.
