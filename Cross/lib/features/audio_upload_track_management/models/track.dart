@@ -169,7 +169,7 @@ class Track {
         .toList();
   }
 
-  /// GET /api/public/tracks/v1/posted/{id} or /liked/{id} → nested, no audio
+  /// GET /api/public/tracks/v2/posted/{id} or /liked/{id} → nested, no audio
   static List<Track> listFromUserTracksResponse(Map<String, dynamic> json) {
     final List<dynamic> data = json['data'] ?? [];
     return data
