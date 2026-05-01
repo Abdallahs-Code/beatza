@@ -3,6 +3,7 @@ import 'dart:convert';
 
 // Package imports
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
@@ -26,29 +27,47 @@ class PublicTracksPageResult {
 class PublicTracksApiService {
   final ApiServices _apiServices;
   final http.Client _client;
-  late final String _servicePath;
+  final FlutterSecureStorage _storage;
+  late final String _paginatedPath;
+  late final String _singleTrackPublicPath;
 
-  PublicTracksApiService({ApiServices? apiServices, http.Client? client})
-    : _apiServices = apiServices ?? ApiServices(),
-      _client = client ?? http.Client() {
-    _servicePath = '${_apiServices.baseUrl}/api/public/tracks/v1';
+  PublicTracksApiService({
+    ApiServices? apiServices,
+    http.Client? client,
+    FlutterSecureStorage? storage,
+  })  : _apiServices = apiServices ?? ApiServices(),
+        _client = client ?? http.Client(),
+        _storage = storage ?? const FlutterSecureStorage() {
+    _paginatedPath = '${_apiServices.baseUrl}/api/tracks/v2';
+    _singleTrackPublicPath = '${_apiServices.baseUrl}/api/public/tracks/v1';
   }
+
+  Future<String?> _getToken() async {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null || token.trim().isEmpty) return null;
+    return token;
+  }
+
+  Map<String, String> _authHeaders(String token) => {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json',
+    'User-Agent': 'Android',
+  };
 
   Future<PublicTracksPageResult> fetchPublicTracksPage({
     int page = 1,
     int limit = 10,
   }) async {
-    final uri = Uri.parse(_servicePath).replace(
+    final uri = Uri.parse(_paginatedPath).replace(
       queryParameters: {'page': page.toString(), 'limit': limit.toString()},
     );
 
-    final response = await _client.get(
-      uri,
-      headers: const {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Android',
-      },
-    );
+    final String? token = await _getToken();
+    final Map<String, String> headers = token != null
+        ? _authHeaders(token)
+        : const {'Content-Type': 'application/json', 'User-Agent': 'Android'};
+
+    final response = await _client.get(uri, headers: headers);
 
     debugPrint('[PublicTracksApiService] GET $uri → ${response.statusCode}');
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -134,7 +153,7 @@ class PublicTracksApiService {
     if (trackId.trim().isEmpty) return null;
     try {
       final response = await _client.get(
-        Uri.parse('$_servicePath/$trackId'),
+        Uri.parse('$_singleTrackPublicPath/$trackId'),
         headers: const {
           'Content-Type': 'application/json',
           'User-Agent': 'Android',

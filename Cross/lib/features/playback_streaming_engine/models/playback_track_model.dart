@@ -4,6 +4,23 @@ enum PlaybackAccessState { playable, preview, blocked }
 
 enum PlaybackSourceType { network, deviceFile }
 
+class TrackGeoBlocking {
+  final String? mode;
+  final List<String> regions;
+  final List<String> countries;
+
+  const TrackGeoBlocking({this.mode, this.regions = const [], this.countries = const []});
+
+  factory TrackGeoBlocking.fromJson(Map<String, dynamic> json) {
+    final String raw = (json['mode'] ?? '').toString().trim();
+    return TrackGeoBlocking(
+      mode: raw.isEmpty ? null : raw,
+      regions: (json['regions'] as List<dynamic>? ?? []).map((r) => r.toString()).toList(),
+      countries: (json['countries'] as List<dynamic>? ?? []).map((c) => c.toString()).toList(),
+    );
+  }
+}
+
 class PlaybackTrackModel {
   final String id;
   final String title;
@@ -41,6 +58,12 @@ class PlaybackTrackModel {
   /// Precomputed normalized waveform values from 0.0 to 1.0
   final List<double> waveformPeaks;
 
+  // V2 API fields
+  final bool isLikedByUser;
+  final bool isRepostedByUser;
+  final bool isAvailableForUser;
+  final TrackGeoBlocking? geoBlocking;
+
   const PlaybackTrackModel({
     required this.id,
     required this.title,
@@ -71,6 +94,10 @@ class PlaybackTrackModel {
     this.enableAppPlayback = true,
     this.artistId,
     this.waveformPeaks = const [],
+    this.isLikedByUser = false,
+    this.isRepostedByUser = false,
+    this.isAvailableForUser = true,
+    this.geoBlocking,
   });
 
   bool get isLocalFile {
@@ -140,6 +167,17 @@ class PlaybackTrackModel {
         ? true
         : permissions['enableAppPlayback'] == true;
 
+    // V2 fields
+    final bool isAvailableForUser = json['isAvailableForUser'] != false;
+    final bool isLikedByUser = json['isLikedByUser'] == true;
+    final bool isRepostedByUser = json['isRepostedByUser'] == true;
+    final TrackGeoBlocking? geoBlocking =
+        json['geoBlocking'] is Map<String, dynamic>
+            ? TrackGeoBlocking.fromJson(json['geoBlocking'] as Map<String, dynamic>)
+            : null;
+
+    final bool effectivelyPlayable = canPlay && isAvailableForUser;
+
     final String? audioUrl =
         _nullableString(audio['audioLink']) ??
         _nullableString(json['audio_url']) ??
@@ -188,10 +226,14 @@ class PlaybackTrackModel {
       artworkUrl:
           _nullableString(json['image_url']) ??
           _nullableString(image['imgLink']),
-      accessState: canPlay
+      accessState: effectivelyPlayable
           ? PlaybackAccessState.playable
           : PlaybackAccessState.blocked,
-      blockedReason: canPlay ? null : 'Playback is disabled for this track.',
+      blockedReason: effectivelyPlayable
+          ? null
+          : (!isAvailableForUser
+              ? 'This track is not available in your region.'
+              : 'Playback is disabled for this track.'),
       permalink: _nullableString(basicInfo['permalink']),
       genre: _nullableString(basicInfo['genre']),
       tags: tags,
@@ -212,6 +254,10 @@ class PlaybackTrackModel {
       enableAppPlayback: canPlay,
       artistId: resolvedArtistId,
       waveformPeaks: const [],
+      isLikedByUser: isLikedByUser,
+      isRepostedByUser: isRepostedByUser,
+      isAvailableForUser: isAvailableForUser,
+      geoBlocking: geoBlocking,
     );
   }
 
@@ -245,6 +291,10 @@ class PlaybackTrackModel {
     bool? enableAppPlayback,
     String? artistId,
     List<double>? waveformPeaks,
+    bool? isLikedByUser,
+    bool? isRepostedByUser,
+    bool? isAvailableForUser,
+    TrackGeoBlocking? geoBlocking,
   }) {
     return PlaybackTrackModel(
       id: id ?? this.id,
@@ -276,6 +326,10 @@ class PlaybackTrackModel {
       artistId: artistId ?? this.artistId,
       enableAppPlayback: enableAppPlayback ?? this.enableAppPlayback,
       waveformPeaks: waveformPeaks ?? this.waveformPeaks,
+      isLikedByUser: isLikedByUser ?? this.isLikedByUser,
+      isRepostedByUser: isRepostedByUser ?? this.isRepostedByUser,
+      isAvailableForUser: isAvailableForUser ?? this.isAvailableForUser,
+      geoBlocking: geoBlocking ?? this.geoBlocking,
     );
   }
 
