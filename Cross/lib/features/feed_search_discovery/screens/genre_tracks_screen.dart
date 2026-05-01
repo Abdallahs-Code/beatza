@@ -211,7 +211,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
   Widget _buildTrendingTab() {
     if (_trendingLoading || !_trendingLoaded) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
     if (_trendingError != null) {
