@@ -14,7 +14,6 @@ class TrackApiService {
   late final String _authBase1;
   late final String _authBase2;
   late final String _authBaseSlash;
-  late final String _publicBase;
   late final String _publicV2Base;
   late final String _playbackBase;
 
@@ -29,7 +28,6 @@ class TrackApiService {
     _authBase2 = '${_apiServices.baseUrl}/api/tracks/v2';
     _authBaseSlash = '${_apiServices.baseUrl}/api/tracks/v2/';
 
-    _publicBase = '${_apiServices.baseUrl}/api/public/tracks/v1';
     _publicV2Base = '${_apiServices.baseUrl}/api/public/tracks/v2';
     _playbackBase = '${_apiServices.baseUrl}/api/playback/v1';
   }
@@ -338,8 +336,8 @@ class TrackApiService {
   }
 
   // ─────────────────────────────────────────────
-  // Get all tracks paginated (your own tracks list)
-  // GET /api/public/tracks/v1/?page=1&limit=20
+  // Get all tracks paginated
+  // GET /api/tracks/v2/?page=1&limit=20
   //
   // Returns (200, { tracks: List<Track>, hasNext: bool, page: int })
   // ─────────────────────────────────────────────
@@ -351,7 +349,7 @@ class TrackApiService {
       final token = await _getToken();
       if (token == null) return (401, 'Unauthorized');
 
-      final uri = Uri.parse('$_publicBase/').replace(
+      final uri = Uri.parse('$_authBase2/').replace(
         queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       );
 
