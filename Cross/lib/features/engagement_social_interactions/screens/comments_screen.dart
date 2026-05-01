@@ -50,6 +50,7 @@ class CommentsScreen extends StatefulWidget {
   final String trackArtist;
   final String? trackThumbnailUrl;
   final int currentPositionSeconds; // from Module 5 player — defaults to 0
+  final bool syncWithPlayer; // false when opened from feed (stamp fixed at 0:00)
 
   const CommentsScreen({
     super.key,
@@ -58,6 +59,7 @@ class CommentsScreen extends StatefulWidget {
     required this.trackArtist,
     this.trackThumbnailUrl,
     this.currentPositionSeconds = 0,
+    this.syncWithPlayer = true,
   });
 
   @override
@@ -118,7 +120,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
   void initState() {
     super.initState();
     _currentPositionSeconds = widget.currentPositionSeconds;
-    PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
+    if (widget.syncWithPlayer) {
+      PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
+    }
     _loadLocalLikedState().then((_) => _loadComments());
     _loadCurrentUser();
     _fetchTotalCommentCount();
@@ -164,7 +168,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   @override
   void dispose() {
-    PlaybackStreamingEngineService.shared.removeListener(_onPlayerUpdate);
+    if (widget.syncWithPlayer) {
+      PlaybackStreamingEngineService.shared.removeListener(_onPlayerUpdate);
+    }
     _inputController.removeListener(_onMentionTextChanged);
     _inputController.dispose();
     _inputFocusNode.dispose();
@@ -334,6 +340,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
     setState(() => _isPosting = true);
 
+    // Replies never carry a timestamp; only top-level comments do.
+    final int postTimestamp = _replyingTo != null ? 0 : _currentPositionSeconds;
+
     // Build optimistic comment with the live player position and real user info.
     final optimistic = Comment(
       'optimistic_${DateTime.now().millisecondsSinceEpoch}',
@@ -341,7 +350,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       _currentUserDisplayName,
       _currentUserAvatarUrl,
       content,
-      _currentPositionSeconds,
+      postTimestamp,
       0,
       0,
       false,
@@ -370,7 +379,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final result = await _service.postComment(
       trackId: widget.trackId,
       content: content,
-      timestamp: _currentPositionSeconds,
+      timestamp: postTimestamp,
       parentCommentId: replyingToId,
       mentionedUserId: mentionId,
     );

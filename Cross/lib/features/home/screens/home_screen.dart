@@ -14,6 +14,9 @@ import 'package:cross_team5/features/activity/services/push_notification_service
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
+import 'package:cross_team5/features/feed_search_discovery/services/feed_search_api_service.dart';
+import 'package:cross_team5/features/feed_search_discovery/models/trending_item_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
 
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
@@ -346,12 +349,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     const SizedBox(height: 26),
                     const SectionHeader(title: AppText.trendingByGenre),
                     const SizedBox(height: 14),
-                    const GenreChipsSection(),
-                    const SizedBox(height: 16),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: TrendingTracksCard(),
-                    ),
+                    const _TrendingByGenreSection(),
                     const SizedBox(height: 26),
                     const SectionHeader(title: AppText.albumsForYou),
                     const SizedBox(height: 14),
@@ -810,6 +808,297 @@ class _QuickPickTracksSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Trending by genre section ──────────────────────────────────────────────
+
+class _TrendingByGenreSection extends StatefulWidget {
+  const _TrendingByGenreSection();
+
+  @override
+  State<_TrendingByGenreSection> createState() =>
+      _TrendingByGenreSectionState();
+}
+
+class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
+  final FeedSearchApiService _service = FeedSearchApiService();
+
+  List<Map<String, dynamic>> _tracks = [];
+  bool _loading = true;
+  String? _error;
+  String? _selectedGenre;
+
+  List<String> get _genres {
+    final seen = <String>{};
+    for (final t in _tracks) {
+      final info = t['basicInfo'];
+      final g = (info is Map ? (info['genre'] ?? '') : '').toString().trim();
+      if (g.isNotEmpty) seen.add(g);
+    }
+    return seen.toList();
+  }
+
+  List<Map<String, dynamic>> get _filteredTracks {
+    if (_selectedGenre == null) return _tracks;
+    return _tracks.where((t) {
+      final info = t['basicInfo'];
+      final g = (info is Map ? (info['genre'] ?? '') : '').toString();
+      return g.toLowerCase() == _selectedGenre!.toLowerCase();
+    }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrending();
+  }
+
+  Future<void> _loadTrending() async {
+    final (statusCode, data) = await _service.getTrendingTracks(limit: 20);
+    if (!mounted) return;
+
+    if (statusCode == 200 && data is List) {
+      final ids = TrendingItemModel.listFromJson(data);
+      final results = await Future.wait(
+        ids.map((item) => _service.getTrackById(item.id)),
+      );
+
+      final tracks = <Map<String, dynamic>>[];
+      for (final (code, trackData) in results) {
+        if (code == 200 && trackData is Map<String, dynamic>) {
+          tracks.add(trackData);
+        }
+      }
+
+      if (mounted) setState(() { _tracks = tracks; _loading = false; });
+    } else {
+      if (mounted) setState(() { _error = 'Failed to load'; _loading = false; });
+    }
+  }
+
+  Future<void> _onTrackTap(Map<String, dynamic> trackJson) async {
+    final track = PlaybackTrackModel.fromApiJson(trackJson);
+    await PlaybackStreamingEngineService.shared.playTrack(track);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const SizedBox(
+        height: 80,
+        child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+      );
+    }
+
+    // On error or empty list fall back to the static placeholder
+    if (_error != null || _tracks.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          GenreChipsSection(),
+          SizedBox(height: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: TrendingTracksCard(),
+          ),
+        ],
+      );
+    }
+
+    final genres = _genres;
+    final filtered = _filteredTracks;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Genre chips ────────────────────────────────────────────────────
+        SizedBox(
+          height: 44,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            children: [
+              _GenreChip(
+                label: 'All',
+                selected: _selectedGenre == null,
+                onTap: () => setState(() => _selectedGenre = null),
+              ),
+              for (final g in genres)
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: _GenreChip(
+                    label: g,
+                    selected: _selectedGenre == g,
+                    onTap: () => setState(() => _selectedGenre = g),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // ── Track card ─────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.anger.withValues(alpha: 0.28),
+                  AppColors.chineseBlack,
+                ],
+                radius: 1.1,
+              ),
+            ),
+            child: filtered.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'No tracks found for this genre',
+                      style: TextStyle(
+                        color: AppColors.white54,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                : Column(
+                    children: filtered.take(5).map((t) {
+                      final basicInfo =
+                          t['basicInfo'] as Map<String, dynamic>? ?? {};
+                      final image =
+                          t['image'] as Map<String, dynamic>? ?? {};
+                      final artists =
+                          (basicInfo['mainArtists'] as List<dynamic>? ?? [])
+                              .map((e) => e.toString())
+                              .join(', ');
+                      final track = PlaybackTrackModel.fromApiJson(t);
+                      return _TrendingTrackRow(
+                        imageUrl: image['imgLink']?.toString(),
+                        title: basicInfo['title']?.toString() ?? 'Unknown',
+                        subtitle: artists.isNotEmpty
+                            ? artists
+                            : 'Unknown Artist',
+                        onTap: () => _onTrackTap(t),
+                        onMoreTap: () =>
+                            showTrackOptionsSheet(context, track),
+                      );
+                    }).toList(),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GenreChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _GenreChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: selected ? AppColors.chipPink : AppColors.white60,
+          ),
+          color: selected
+              ? AppColors.chipPink.withValues(alpha: 0.12)
+              : Colors.transparent,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppColors.chipPink : AppColors.white70,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrendingTrackRow extends StatelessWidget {
+  final String? imageUrl;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final VoidCallback? onMoreTap;
+
+  const _TrendingTrackRow({
+    required this.imageUrl,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.onMoreTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasImage = (imageUrl ?? '').trim().isNotEmpty;
+    return ListTile(
+      onTap: onTap,
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox(
+          width: 46,
+          height: 46,
+          child: hasImage
+              ? Image.network(
+                  imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _placeholder(),
+                )
+              : _placeholder(),
+        ),
+      ),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: AppColors.white54, fontSize: 13),
+      ),
+      trailing: GestureDetector(
+        onTap: onMoreTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(Icons.more_horiz, color: AppColors.white70),
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: AppColors.tileDark2,
+      child: Icon(Icons.music_note, color: AppColors.white54, size: 20),
     );
   }
 }
