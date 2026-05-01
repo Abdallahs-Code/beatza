@@ -148,7 +148,7 @@ test.describe("authentication (Sad Path)", () => {
     for (const record of invalidPasswords) {
       test(`Should reject: ${record.desc}`, async ({ page }) => {
         const authForm = new AuthForm(page);
-        await authForm.FillPassword(record.input, true);
+        await authForm.FillPassword(record.input, false);
         if (record.desc != 'Empty password') {
           authForm.ClickNextBtn("password")
         }
@@ -179,7 +179,7 @@ test.describe("authentication (Sad Path)", () => {
     }
     test('Should accept valid password and progress', async ({ page }) => {
       const authModal = new AuthForm(page);
-      await authModal.FillPassword('ValidPass@123', true);
+      await authModal.FillPassword('ValidPass@123', false);
       await authModal.ClickNextBtn("password")
       await expect(authModal.displayNameTxtbox).toBeVisible();
     });
@@ -189,7 +189,7 @@ test.describe("authentication (Sad Path)", () => {
       const authForm = new AuthForm(page);
       await authForm.FillEmail(`valid.user+${Date.now()}@example.com`);
       await authForm.ClickNextBtn("email")
-      await authForm.FillPassword("ValidPass@123")
+      await authForm.FillPassword("ValidPass@123", false)
       await authForm.ClickNextBtn("password")
       await authForm.FillDate("February", 5, 2005)
       await authForm.FillGender("Male")
@@ -210,7 +210,7 @@ test.describe("authentication (Sad Path)", () => {
       const authForm = new AuthForm(page);
       await authForm.FillEmail(`valid.user+${Date.now()}@example.com`);
       await authForm.ClickNextBtn("email")
-      await authForm.FillPassword("ValidPass@123")
+      await authForm.FillPassword("ValidPass@123", false)
       await authForm.ClickNextBtn("password")
       await authForm.FillGender("Male")
     });
@@ -236,7 +236,7 @@ test.describe("authentication (Sad Path)", () => {
       const authForm = new AuthForm(page);
       await authForm.FillEmail(`valid.user+${Date.now()}@example.com`);
       await authForm.ClickNextBtn("email")
-      await authForm.FillPassword("ValidPass@123")
+      await authForm.FillPassword("ValidPass@123", false)
       await authForm.ClickNextBtn("password")
       await authForm.FillDate("February", 5, 2005)
     });
