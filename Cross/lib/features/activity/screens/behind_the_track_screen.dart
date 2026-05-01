@@ -547,8 +547,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                               'Top',
                               style: TextStyle(
                                 color: _showTopFans
-                                    ? Colors.white
-                                    : Colors.white54,
+                                    ? AppColors.whiteSmoke
+                                    : AppColors.white54,
                                 fontSize: 14,
                                 fontWeight: _showTopFans
                                     ? FontWeight.w600
@@ -577,8 +577,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                               'First',
                               style: TextStyle(
                                 color: !_showTopFans
-                                    ? Colors.white
-                                    : Colors.white54,
+                                    ? AppColors.whiteSmoke
+                                    : AppColors.white54,
                                 fontSize: 14,
                                 fontWeight: !_showTopFans
                                     ? FontWeight.w600
@@ -597,7 +597,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                     _showTopFans
                         ? 'Fans who have played this track the most.'
                         : 'Fans who played this track in the first week.',
-                    style: const TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ),
                 if (fans.isEmpty)
@@ -605,9 +605,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        const Text(
+                         Text(
                           'No fans yet',
-                          style: TextStyle(color: Colors.white54, fontSize: 14),
+                          style: TextStyle(color: AppColors.white54, fontSize: 14),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -634,8 +634,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                             width: 24,
                             child: Text(
                               '${idx + 1}.',
-                              style: const TextStyle(
-                                color: Colors.white54,
+                              style:  TextStyle(
+                                color: AppColors.white54,
                                 fontSize: 14,
                               ),
                             ),
@@ -652,8 +652,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                                     fan.displayName.isNotEmpty
                                         ? fan.displayName[0].toUpperCase()
                                         : '?',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -664,16 +664,16 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                           Expanded(
                             child: Text(
                               fan.displayName,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
                                 fontSize: 14,
                               ),
                             ),
                           ),
                           Text(
                             '${fan.totalNumberOfPlay} plays',
-                            style: const TextStyle(
-                              color: Colors.white54,
+                            style: TextStyle(
+                              color: AppColors.white54,
                               fontSize: 13,
                             ),
                           ),
