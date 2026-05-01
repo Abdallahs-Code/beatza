@@ -657,24 +657,50 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: AppColors.tileDark5,
-                            backgroundImage: fan.profileImg.isNotEmpty
-                                ? NetworkImage(fan.profileImg)
-                                : null,
-                            child: fan.profileImg.isEmpty
-                                ? Text(
-                                    fan.displayName.isNotEmpty
-                                        ? fan.displayName[0].toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      color: AppColors.whiteSmoke,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: ClipOval(
+                              child: fan.profileImg.isNotEmpty
+                                  ? Image.network(
+                                      fan.profileImg,
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 36,
+                                        height: 36,
+                                        color: AppColors.tileDark5,
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          fan.displayName.isNotEmpty
+                                              ? fan.displayName[0].toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            color: AppColors.whiteSmoke,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 36,
+                                      height: 36,
+                                      color: AppColors.tileDark5,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        fan.displayName.isNotEmpty
+                                            ? fan.displayName[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          color: AppColors.whiteSmoke,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                     ),
-                                  )
-                                : null,
+                            ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
