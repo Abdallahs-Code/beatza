@@ -1,7 +1,10 @@
 // Screen: GenreTracksScreen
-// Shows a list of public tracks filtered by a specific genre.
-// Fetches up to 30 tracks from GET /api/tracks/v2/ and filters
-// client-side by basicInfo.genre matching the selected genre.
+// Shows public tracks filtered by a specific genre, organised into four tabs.
+//
+// All      → GET /api/tracks/v2/ filtered client-side by basicInfo.genre
+// Trending → GET /api/public/feed/v1/trending-tracks/{userId}, each ID hydrated
+//            via GET /api/public/tracks/v1/{id}, then filtered by genre
+// Playlists / Albums → placeholder (not yet implemented)
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -198,33 +201,25 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
         child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
-
-    if (_allError != null) {
-      return _buildError(_allError!, _loadAllTracks);
-    }
-
+    if (_allError != null) return _buildError(_allError!, _loadAllTracks);
     if (_allTracks.isEmpty) {
       return _buildPlaceholder('No ${widget.genre} tracks found');
     }
-
     return _buildTrackList(_allTracks);
   }
 
   Widget _buildTrendingTab() {
-    if (_trendingLoading) {
+    if (_trendingLoading || !_trendingLoaded) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryOrange),
+        child: CircularProgressIndicator(color: Colors.orange),
       );
     }
-
     if (_trendingError != null) {
       return _buildError(_trendingError!, _loadTrendingTracks);
     }
-
     if (_trendingTracks.isEmpty) {
       return _buildPlaceholder('No trending ${widget.genre} tracks');
     }
-
     return _buildTrackList(_trendingTracks);
   }
 
@@ -278,5 +273,4 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
       ),
     );
   }
-
 }
