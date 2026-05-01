@@ -14,7 +14,8 @@ import 'package:http/http.dart' as http;
 // ─── Top-level helpers (must be accessible from background isolate) ───────────
 
 // Parses an FCM data map into an ActivityNotificationModel.
-// The backend sends actor/target as nested Maps with read as a bool.
+// The backend sends actor/target as JSON-encoded strings under the keys
+// "actor" and "target", with all other fields as plain strings.
 // Pattern A is kept as a fallback in case the format ever changes.
 ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
   // (A) — full notification JSON encoded as a string under a single key
