@@ -13,6 +13,7 @@ class MessagingApiService {
   final AuthApiService _authApiService;
   late final String _msgBase;
   late final String _tracksBase;
+  late final String _tracksV2Base;
 
   MessagingApiService({
     ApiServices? apiServices,
@@ -23,6 +24,7 @@ class MessagingApiService {
        _authApiService = authApiService ?? AuthApiService() {
     _msgBase = '${_apiServices.baseUrl}/api/messages/v1';
     _tracksBase = '${_apiServices.baseUrl}/api/tracks/v1';
+    _tracksV2Base = '${_apiServices.baseUrl}/api/tracks/v2';
   }
 
   Future<String> _token() async {
@@ -742,7 +744,7 @@ class MessagingApiService {
     return track;
   }
 
-  // GET /api/tracks/v1/{trackId} — returns full track model by database ID
+  // GET /api/tracks/v2/{trackId} — returns full track model by database ID
   Future<PlaybackTrackModel?> getTrackById({required String trackId}) async {
     debugPrint('━━━ [getTrackById] ━━━');
     debugPrint('[getTrackById] trackId="$trackId" (empty=${trackId.isEmpty})');
@@ -751,7 +753,7 @@ class MessagingApiService {
       return null;
     }
     final token = await _token();
-    final uri = Uri.parse('$_tracksBase/$trackId');
+    final uri = Uri.parse('$_tracksV2Base/$trackId');
     debugPrint('[getTrackById] GET $uri');
     final res = await _client.get(uri, headers: _headers(token));
     debugPrint('[getTrackById] status=${res.statusCode}');
@@ -792,9 +794,9 @@ class MessagingApiService {
     return track;
   }
 
-  // GET /api/public/tracks/v1/{trackId} — returns permalink
+  // GET /api/tracks/v2/{trackId} — returns permalink
   Future<String?> getTrackPermalink({required String trackId}) async {
-    final uri = Uri.parse('$_tracksBase/$trackId');
+    final uri = Uri.parse('$_tracksV2Base/$trackId');
     final res = await _client.get(
       uri,
       headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
