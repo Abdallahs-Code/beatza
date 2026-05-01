@@ -5,7 +5,6 @@ class MessageModel {
   final String content;
   final List<String> seenBy;
   final DateTime createdAt;
-  final bool isReceiverBlocked;
 
   const MessageModel({
     required this.id,
@@ -14,7 +13,6 @@ class MessageModel {
     required this.content,
     required this.seenBy,
     required this.createdAt,
-    this.isReceiverBlocked = false,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -31,7 +29,6 @@ class MessageModel {
       createdAt:
           DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.now(),
-      isReceiverBlocked: json['isReceiverBlocked'] == true,
     );
   }
 }

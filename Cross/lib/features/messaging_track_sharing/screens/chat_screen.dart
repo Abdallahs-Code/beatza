@@ -136,32 +136,24 @@ class _ChatScreenState extends State<ChatScreen> {
       await _socket.connect(token: token);
       _socket.onMessageInRoom = _onIncomingMessage;
     }
-    // Check blockingMe from public profile — covers the case where the receiver
-    // has blocked us but the messages API hasn't reflected it yet.
     await _checkReceiverBlockingMe();
   }
 
   Future<void> _checkReceiverBlockingMe() async {
     final rid = _receiverId;
     debugPrint('━━━ [ChatScreen._checkReceiverBlockingMe] ━━━');
-    debugPrint(
-      '[ChatScreen._checkReceiverBlockingMe] receiverId="$rid" (null=${rid == null})',
-    );
     if (rid == null || rid.isEmpty) {
       debugPrint(
-        '[ChatScreen._checkReceiverBlockingMe] ⚠️ receiverId unknown — skipping blockingMe check',
+        '[ChatScreen._checkReceiverBlockingMe] ⚠️ receiverId unknown — skipping',
       );
       return;
     }
     try {
-      final blockingMe = await _api.getPublicProfileBlockingMe(userId: rid);
+      final blockingMe = await _api.getProfileBlockingMe(userId: rid);
       debugPrint(
         '[ChatScreen._checkReceiverBlockingMe] blockingMe=$blockingMe  current _isBlockedByReceiver=$_isBlockedByReceiver',
       );
       if (blockingMe && mounted && !_isBlockedByReceiver) {
-        debugPrint(
-          '[ChatScreen._checkReceiverBlockingMe] → receiver is blocking us — setting _isBlockedByReceiver=true',
-        );
         setState(() => _isBlockedByReceiver = true);
       }
     } catch (e) {
@@ -221,19 +213,6 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
 
-      // Per-message isReceiverBlocked check:
-      // Find the first message sent by the OTHER user and read isReceiverBlocked.
-      bool perMessageBlockedByReceiver = false;
-      for (final msg in allMsgs) {
-        if (msg.senderId.isNotEmpty && msg.senderId != _currentUserId) {
-          perMessageBlockedByReceiver = msg.isReceiverBlocked;
-          debugPrint(
-            '[ChatScreen._loadMessages] Per-message check: senderId=${msg.senderId} isReceiverBlocked=${msg.isReceiverBlocked}',
-          );
-          break;
-        }
-      }
-
       setState(() {
         if (loadMore) {
           _messages = [...result.messages.reversed, ..._messages];
@@ -243,7 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _hasMore = result.messages.length == 20;
         }
         _isReceiverBlocked = result.isReceiverBlocked;
-        _isBlockedByReceiver = result.isBlockedByReceiver || perMessageBlockedByReceiver;
+        _isBlockedByReceiver = result.isReceiverBlocked;
         debugPrint(
           '[ChatScreen._loadMessages] BLOCK STATE → isReceiverBlocked=$_isReceiverBlocked  isBlockedByReceiver=$_isBlockedByReceiver',
         );

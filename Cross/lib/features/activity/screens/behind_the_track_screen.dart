@@ -63,6 +63,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   bool _isReposted = false;
   String? _currentUserId;
 
+  // First reposter fetched from the public reposts API
+  EngagementUser? _firstReposter;
+
   bool get _isCurrentlyPlaying {
     final svc = PlaybackStreamingEngineService.shared;
     return svc.state.currentTrack?.id == _track?.id && svc.state.isPlaying;
@@ -110,6 +113,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       
       _checkLikeStatus();
       _checkRepostStatus();
+      _fetchFirstReposter();
       _fetchOwnerProfile();
       final uid = await AuthApiService().getStoredUserId();
       if (mounted) {
@@ -178,6 +182,22 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       if (!mounted) return;
       if (result.$1 == 200 && result.$2 is RepostStatus) {
         setState(() => _isReposted = (result.$2 as RepostStatus).reposted);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fetchFirstReposter() async {
+    try {
+      final result = await _engagementApi.getTrackReposters(
+        trackId: widget.trackId,
+        limit: 1,
+      );
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is List) {
+        final list = result.$2 as List<EngagementUser>;
+        if (list.isNotEmpty) {
+          setState(() => _firstReposter = list.first);
+        }
       }
     } catch (_) {}
   }
@@ -271,10 +291,6 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     final ownerId = widget.trackOwnerId;
     if (ownerId.isEmpty) return;
     await ProfileNavigator.push(context, ownerId);
-  }
-
-  Future<void> _navigateToActor() async {
-    await ProfileNavigator.push(context, widget.actorUserId);
   }
 
   Future<void> _toggleOwnerFollow() async {
@@ -843,9 +859,12 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   }
 
   Widget _buildActorRow() {
-    final isLike = widget.activityType == 'track_liked';
+    final reposter = _firstReposter;
+    if (reposter == null) return const SizedBox.shrink();
+
+    final avatarUrl = reposter.avatarUrl ?? '';
     return InkWell(
-      onTap: _navigateToActor,
+      onTap: () => ProfileNavigator.push(context, reposter.userId),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Row(
@@ -853,13 +872,12 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             CircleAvatar(
               radius: 18,
               backgroundColor: AppColors.containerMid,
-              backgroundImage: widget.actorAvatarUrl.isNotEmpty
-                  ? NetworkImage(widget.actorAvatarUrl)
-                  : null,
-              child: widget.actorAvatarUrl.isEmpty
+              backgroundImage:
+                  avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+              child: avatarUrl.isEmpty
                   ? Text(
-                      widget.actorName.isNotEmpty
-                          ? widget.actorName[0].toUpperCase()
+                      reposter.displayName.isNotEmpty
+                          ? reposter.displayName[0].toUpperCase()
                           : '?',
                       style: TextStyle(
                         color: AppColors.whiteSmoke,
@@ -874,9 +892,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               text: TextSpan(
                 style: TextStyle(color: AppColors.greyIcon, fontSize: 14),
                 children: [
-                  TextSpan(text: isLike ? 'Liked by ' : 'Reposted by '),
+                  const TextSpan(text: 'Reposted by '),
                   TextSpan(
-                    text: widget.actorName,
+                    text: reposter.displayName,
                     style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontWeight: FontWeight.w600,

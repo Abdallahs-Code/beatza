@@ -145,12 +145,16 @@ class MessagingApiService {
           inner['isCurrentUserBlocked'] == true ||
           inner['blockedBySender'] == true ||
           inner['isBlocked'] == true;
+      final isReceiverBlocked = inner['isReceiverBlocked'] == true;
+      debugPrint(
+        '[getChatMessages] isReceiverBlocked=$isReceiverBlocked  isBlockedByReceiver=$isBlockedByReceiver',
+      );
       return (
         messages: msgList
             .whereType<Map<String, dynamic>>()
             .map(MessageModel.fromJson)
             .toList(),
-        isReceiverBlocked: inner['isReceiverBlocked'] == true,
+        isReceiverBlocked: isReceiverBlocked,
         isBlockedByReceiver: isBlockedByReceiver,
       );
     }
@@ -598,6 +602,38 @@ class MessagingApiService {
     return [];
   }
 
+  // GET /api/profile/v1/{userId} — returns blockingMe field (private endpoint).
+  Future<bool> getProfileBlockingMe({required String userId}) async {
+    debugPrint('━━━ [getProfileBlockingMe] ━━━');
+    if (userId.isEmpty) {
+      debugPrint('[getProfileBlockingMe] ❌ Empty userId — aborting');
+      return false;
+    }
+    try {
+      final token = await _token();
+      final uri = Uri.parse('${_apiServices.baseUrl}/api/profile/v1/$userId');
+      debugPrint('[getProfileBlockingMe] GET $uri');
+      final res = await _client.get(uri, headers: _headers(token));
+      debugPrint('[getProfileBlockingMe] status=${res.statusCode}');
+      debugPrint(
+        '[getProfileBlockingMe] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}',
+      );
+      final data = _decode(res);
+      if (res.statusCode != 200 || data is! Map) {
+        debugPrint(
+          '[getProfileBlockingMe] ❌ Non-200 or non-Map. status=${res.statusCode}',
+        );
+        return false;
+      }
+      final blockingMe = data['amIBlocked'] == true;
+      debugPrint('[getProfileBlockingMe] ✅ amIBlocked=$blockingMe');
+      return blockingMe;
+    } catch (e) {
+      debugPrint('[getProfileBlockingMe] ❌ EXCEPTION: $e');
+      return false;
+    }
+  }
+
   // GET /api/public/profile/v1/{userId} — returns the user's profileLink slug
   Future<String?> getUserProfileLink({required String userId}) async {
     debugPrint('━━━ [getUserProfileLink] ━━━');
@@ -628,46 +664,6 @@ class MessagingApiService {
     final profileLink = data['profileLink']?.toString().trim() ?? '';
     debugPrint('[getUserProfileLink] ✅ profileLink="$profileLink"');
     return profileLink.isEmpty ? null : profileLink;
-  }
-
-  // GET /api/public/profile/v1/{userId} — returns blockingMe field.
-  // Used when opening a chat to detect if the receiver has blocked the current user.
-  Future<bool> getPublicProfileBlockingMe({required String userId}) async {
-    debugPrint('━━━ [getPublicProfileBlockingMe] ━━━');
-    debugPrint(
-      '[getPublicProfileBlockingMe] userId="$userId" (empty=${userId.isEmpty})',
-    );
-    if (userId.isEmpty) {
-      debugPrint('[getPublicProfileBlockingMe] ❌ Empty userId — aborting');
-      return false;
-    }
-    try {
-      final token = await _token();
-      final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/profile/v1/$userId',
-      );
-      debugPrint('[getPublicProfileBlockingMe] GET $uri');
-      final res = await _client.get(uri, headers: _headers(token));
-      debugPrint('[getPublicProfileBlockingMe] status=${res.statusCode}');
-      debugPrint(
-        '[getPublicProfileBlockingMe] body=${res.body.length > 500 ? "${res.body.substring(0, 500)}...(truncated)" : res.body}',
-      );
-      final data = _decode(res);
-      if (res.statusCode != 200 || data is! Map) {
-        debugPrint(
-          '[getPublicProfileBlockingMe] ❌ Non-200 or non-Map. status=${res.statusCode}',
-        );
-        return false;
-      }
-      final blockingMe = data['blockingMe'] == true;
-      debugPrint(
-        '[getPublicProfileBlockingMe] ✅ blockingMe=$blockingMe isBlocked=${data['isBlocked']}',
-      );
-      return blockingMe;
-    } catch (e) {
-      debugPrint('[getPublicProfileBlockingMe] ❌ EXCEPTION: $e');
-      return false;
-    }
   }
 
   // GET /api/public/tracks/v1/permalink/{profileLink}/{permalink}
