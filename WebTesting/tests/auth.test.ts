@@ -148,7 +148,7 @@ test.describe("authentication (Sad Path)", () => {
     for (const record of invalidPasswords) {
       test(`Should reject: ${record.desc}`, async ({ page }) => {
         const authForm = new AuthForm(page);
-        await authForm.FillPassword(record.input);
+        await authForm.FillPassword(record.input, true);
         if (record.desc != 'Empty password') {
           authForm.ClickNextBtn("password")
         }
@@ -179,7 +179,7 @@ test.describe("authentication (Sad Path)", () => {
     }
     test('Should accept valid password and progress', async ({ page }) => {
       const authModal = new AuthForm(page);
-      await authModal.FillPassword('ValidPass@123');
+      await authModal.FillPassword('ValidPass@123', true);
       await authModal.ClickNextBtn("password")
       await expect(authModal.displayNameTxtbox).toBeVisible();
     });
