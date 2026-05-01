@@ -71,6 +71,7 @@ class EngagementSocialInteractionsRoutes {
         trackArtist: args['trackArtist'] as String,
         trackThumbnailUrl: args['trackThumbnailUrl'] as String?,
         currentPositionSeconds: args['currentPositionSeconds'] as int? ?? 0,
+        syncWithPlayer: args['syncWithPlayer'] as bool? ?? true,
       );
     },
   };

@@ -78,6 +78,10 @@ class _SearchScreenState extends State<SearchScreen>
   String? _resultsError;
   String _activeQuery = '';
 
+  // Permalink result (replaces normal results when a permalink is detected)
+  bool _isPermalinkResult = false;
+  Map<String, dynamic>? _permalinkTrackData;
+
   // Result tabs: All | Tracks | Profiles | Playlists | Albums
   static const List<String> _resultTabs = [
     'All',
@@ -129,6 +133,8 @@ class _SearchScreenState extends State<SearchScreen>
       _searchResult = null;
       _enrichedResults = {};
       _resultsError = null;
+      _isPermalinkResult = false;
+      _permalinkTrackData = null;
     });
   }
 
@@ -216,6 +222,42 @@ class _SearchScreenState extends State<SearchScreen>
     await _service.deleteSearchHistoryItem(historyId);
   }
 
+  // ── Permalink detection ────────────────────────────────────────────────────
+
+  // Returns (profileLink, permalink) if the query looks like a track permalink
+  // URL or path (e.g. "https://…/user-1234/cairo-grid" or "user-1234/cairo-grid").
+  // Returns null if the query should be treated as a normal keyword search.
+  (String, String)? _extractPermalink(String query) {
+    final q = query.trim();
+
+    // Full URL — extract last two non-empty path segments
+    if (q.contains('://')) {
+      try {
+        final uri = Uri.parse(q);
+        final segments =
+            uri.pathSegments.where((s) => s.isNotEmpty).toList();
+        if (segments.length >= 2) {
+          return (segments[segments.length - 2], segments.last);
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    // Path style: "/profileLink/permalink" or "profileLink/permalink"
+    final normalized = q.startsWith('/') ? q.substring(1) : q;
+    final parts = normalized.split('/');
+    if (parts.length == 2) {
+      final profileLink = parts[0].trim();
+      final permalink = parts[1].trim();
+      final slug = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9\-_]*$');
+      if (slug.hasMatch(profileLink) && slug.hasMatch(permalink)) {
+        return (profileLink, permalink);
+      }
+    }
+
+    return null;
+  }
+
   // ── Search submission ──────────────────────────────────────────────────────
 
   Future<void> _submitSearch(String query) async {
@@ -224,12 +266,21 @@ class _SearchScreenState extends State<SearchScreen>
 
     _focusNode.unfocus();
 
+    // Route to permalink search if the query is a track URL / path
+    final permalinkParts = _extractPermalink(q);
+    if (permalinkParts != null) {
+      await _submitPermalinkSearch(permalinkParts.$1, permalinkParts.$2);
+      return;
+    }
+
     setState(() {
       _state = _SearchState.results;
       _activeQuery = q;
       _resultsLoading = true;
       _resultsError = null;
       _searchResult = null;
+      _isPermalinkResult = false;
+      _permalinkTrackData = null;
     });
 
     final (code, data) = await _service.globalSearch(query: q);
@@ -283,6 +334,53 @@ class _SearchScreenState extends State<SearchScreen>
         _resultsLoading = false;
       });
     }
+  }
+
+  // ── Permalink search ───────────────────────────────────────────────────────
+
+  Future<void> _submitPermalinkSearch(
+    String profileLink,
+    String permalink,
+  ) async {
+    setState(() {
+      _state = _SearchState.results;
+      _activeQuery = '$profileLink/$permalink';
+      _resultsLoading = true;
+      _resultsError = null;
+      _searchResult = null;
+      _isPermalinkResult = true;
+      _permalinkTrackData = null;
+    });
+
+    final (code, data) = await _service.getTrackByPermalinkV2(
+      profileLink: profileLink,
+      permalink: permalink,
+    );
+    if (!mounted) return;
+
+    if (code == 200 && data is Map<String, dynamic>) {
+      setState(() {
+        _permalinkTrackData = data;
+        _resultsLoading = false;
+      });
+    } else {
+      setState(() {
+        _resultsError = code == 404
+            ? 'No track found for this permalink'
+            : (data?.toString() ?? 'Failed to load track');
+        _resultsLoading = false;
+        _isPermalinkResult = false;
+      });
+    }
+  }
+
+  Future<void> _onPermalinkResultTap(Map<String, dynamic> trackData) async {
+    final trackId = trackData['trackId'] as String? ?? '';
+    if (trackId.isNotEmpty) {
+      _service.addToSearchHistory(id: trackId, type: 'track');
+    }
+    final track = PlaybackTrackModel.fromApiJson(trackData);
+    await PlaybackStreamingEngineService.shared.playTrack(track);
   }
 
   // ── Result item taps ───────────────────────────────────────────────────────
@@ -490,6 +588,11 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
+    // Permalink result: single track, no tabs
+    if (_isPermalinkResult && _permalinkTrackData != null) {
+      return _buildPermalinkResult(_permalinkTrackData!);
+    }
+
     if (_searchResult == null) return const SizedBox.shrink();
 
     final allResults = _searchResult!.results;
@@ -547,6 +650,41 @@ class _SearchScreenState extends State<SearchScreen>
           onTap: () => _onResultTap(item),
         );
       },
+    );
+  }
+
+  Widget _buildPermalinkResult(Map<String, dynamic> trackData) {
+    final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+    final image = trackData['image'] as Map<String, dynamic>? ?? {};
+    final artists = (basicInfo['mainArtists'] as List<dynamic>? ?? []);
+    final title = basicInfo['title'] as String? ?? 'Unknown Track';
+    final artist = artists.isNotEmpty ? artists.first.toString() : '';
+    final imageUrl = image['imgLink'] as String?;
+    final trackId = trackData['trackId'] as String? ?? '';
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Text(
+            'Track found',
+            style: TextStyle(
+              color: AppColors.white54,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        SearchResultTile(
+          id: trackId,
+          type: 'track',
+          title: title,
+          subtitle: artist.isNotEmpty ? artist : null,
+          imageUrl: imageUrl,
+          onTap: () => _onPermalinkResultTap(trackData),
+        ),
+      ],
     );
   }
 }
