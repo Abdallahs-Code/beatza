@@ -24,21 +24,21 @@ export class MessagePage {
         this.page = page;
 
         this.pageTitle = page.getByRole('heading', { name: 'Messages', exact: true });
-        this.newMessageButton = page.getByTestId('messages-new-button');
+        this.newMessageButton = page.getByRole('button', { name: 'New' });
 
-        this.conversationList = page.getByTestId('messages-conversation-list');
-        this.selectedConversation = page.getByTestId('messages-selected-conversation');
-        this.conversationHeader = page.getByTestId('messages-conversation-header');
-        this.conversationActions = page.getByTestId('messages-conversation-actions');
-        this.markAsUnreadButton = page.getByTestId('messages-mark-unread-button');
-        this.deleteConversationButton = page.getByTestId('messages-delete-button');
-        this.blockUserButton = page.getByTestId('messages-block-button');
-        this.reportUserButton = page.getByTestId('messages-report-button');
+        this.conversationList = page.locator('div.w-\[30%\]');
+        this.selectedConversation = page.locator('div.w-\[67%\]');
+        this.conversationHeader = page.getByRole('link', { name: /beatzatesting|Messages/i }).first();
+        this.conversationActions = page.locator('div.flex.items-center.gap-2').filter({ has: page.getByRole('button', { name: 'Mark as unread' }) });
+        this.markAsUnreadButton = page.getByRole('button', { name: 'Mark as unread' });
+        this.deleteConversationButton = page.getByRole('button').filter({ has: page.locator('svg') }).nth(0);
+        this.blockUserButton = page.getByRole('button', { name: 'Block' });
+        this.reportUserButton = page.getByRole('button', { name: 'Report' });
 
-        this.messageThread = page.getByTestId('messages-thread');
-        this.messageComposer = page.getByTestId('messages-composer');
-        this.messageInput = page.getByTestId('messages-compose-input');
-        this.sendButton = page.getByTestId('messages-send-button');
+        this.messageThread = page.locator('div.flex-1.overflow-y-auto.scrollbar-hide');
+        this.messageComposer = page.locator('div.flex.flex-col.gap-3.mb-5.mt-20');
+        this.messageInput = page.locator('textarea.w-full.h-25.bg-off-black');
+        this.sendButton = page.locator('div.flex.justify-end button:has-text("Send")');
     }
 
     getConversationByName(name: string) {

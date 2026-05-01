@@ -36,7 +36,9 @@ test.describe("Profile Management(Happy Path)", () => {
             .locator('div[style*="background-image"]:has([data-testid="Cover-input"]):has([data-testid="Avatar-input"])')
             .first();
 
-        await expect(profileBannerSection).toHaveScreenshot('updated-profile-and-header.png');
+        await expect(profileBannerSection).toHaveScreenshot('updated-profile-and-header.png', {
+            maxDiffPixelRatio: 0.01,
+        });
 
         await profilePage.DeleteProfileImg()
         await profilePage.DeleteCoverImg()

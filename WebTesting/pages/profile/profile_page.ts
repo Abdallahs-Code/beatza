@@ -64,8 +64,8 @@ export class ProfilePage {
         this.repostsLink = profilePage.getByTestId("")
         this.followBtn = profilePage.getByTestId("Follow-button")
         this.sendMsgBtn = profilePage.getByTestId("SendMsg-button")
-        this.msgInput = profilePage.getByRole("textbox")
-        this.dialogSendBtn = profilePage.getByRole("button", { name: "Send" })
+        this.msgInput = profilePage.locator("textarea.w-full.h-29.bg-off-black")
+        this.dialogSendBtn = profilePage.locator("div.ml-auto button:has-text('Send')")
 
     }
     async ClickFollowBtn() {
