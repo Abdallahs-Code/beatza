@@ -99,7 +99,7 @@ class LibraryHistoryApiService {
     String accessToken,
   ) async {
     final response = await _client.get(
-      Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v1/liked/$userId'),
+      Uri.parse('${_apiServices.baseUrl}/api/public/tracks/v2/liked/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',

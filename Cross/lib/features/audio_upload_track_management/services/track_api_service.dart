@@ -15,7 +15,7 @@ class TrackApiService {
   late final String _authBase2;
   late final String _authBaseSlash;
   late final String _publicBase;
-  late final String _publicSingleTrackBase;
+  late final String _publicV2Base;
   late final String _playbackBase;
 
   TrackApiService({
@@ -30,7 +30,7 @@ class TrackApiService {
     _authBaseSlash = '${_apiServices.baseUrl}/api/tracks/v2/';
 
     _publicBase = '${_apiServices.baseUrl}/api/public/tracks/v1';
-    _publicSingleTrackBase = '${_apiServices.baseUrl}/api/public/tracks/v2';
+    _publicV2Base = '${_apiServices.baseUrl}/api/public/tracks/v2';
     _playbackBase = '${_apiServices.baseUrl}/api/playback/v1';
   }
 
@@ -399,7 +399,7 @@ class TrackApiService {
           : {'Content-Type': 'application/json', 'User-Agent': 'Android'};
 
       final response = await _client.get(
-        Uri.parse('$_publicSingleTrackBase/$trackId'),
+        Uri.parse('$_publicV2Base/$trackId'),
         headers: headers,
       );
       final data = jsonDecode(response.body);
@@ -455,7 +455,7 @@ class TrackApiService {
 
   // ─────────────────────────────────────────────
   // Get tracks liked by a user (public — no audioLink)
-  // GET /api/public/tracks/v1/liked/{userId}
+  // GET /api/public/tracks/v2/liked/{userId}
   //
   // Returns (200, List<Track>)
   // ─────────────────────────────────────────────
@@ -463,7 +463,7 @@ class TrackApiService {
     if (userId.trim().isEmpty) return (400, 'Invalid user ID');
     try {
       final response = await _client.get(
-        Uri.parse('$_publicBase/liked/$userId'),
+        Uri.parse('$_publicV2Base/liked/$userId'),
         headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
       );
       final data = jsonDecode(response.body);
