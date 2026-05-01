@@ -30,6 +30,8 @@ export class ProfilePage {
 
     followBtn: Locator
     sendMsgBtn: Locator
+    msgInput: Locator
+    dialogSendBtn: Locator
 
     constructor(page: Page) {
         const profilePage = page;
@@ -62,6 +64,8 @@ export class ProfilePage {
         this.repostsLink = profilePage.getByTestId("")
         this.followBtn = profilePage.getByTestId("Follow-button")
         this.sendMsgBtn = profilePage.getByTestId("SendMsg-button")
+        this.msgInput = profilePage.getByRole("textbox")
+        this.dialogSendBtn = profilePage.getByRole("button", { name: "Send" })
 
     }
     async ClickFollowBtn() {

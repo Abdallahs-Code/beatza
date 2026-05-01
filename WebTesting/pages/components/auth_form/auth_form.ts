@@ -93,9 +93,11 @@ export class AuthForm {
         await this.emailTxtBox.pressSequentially(email, { delay: 150 })
     }
 
-    async FillPassword(pass: string) {
+    async FillPassword(pass: string, capcha: boolean) {
         await this.passwordTxtBox.pressSequentially(pass, { delay: 150 })
-        await this.captchaInput.pressSequentially("test123")
+        if (capcha) {
+            await this.captchaInput.pressSequentially("test123")
+        }
     }
 
     async FillDate(month: Months, day: number, year: number) {
@@ -141,13 +143,13 @@ export class AuthForm {
     async Login(EmailTest: string, password: string) {
         await this.FillEmail(EmailTest)
         await this.ClickNextBtn("email")
-        await this.FillPassword(password)
+        await this.FillPassword(password, true)
         await this.ClickNextBtn("password")
     }
     async Signup(EmailTest: string) {
         await this.FillEmail(EmailTest)
         await this.ClickNextBtn("email")
-        await this.FillPassword("Beatza@123")
+        await this.FillPassword("Beatza@123", false)
         await this.ClickNextBtn("password")
 
         await this.FillDate("February", 5, 2005);

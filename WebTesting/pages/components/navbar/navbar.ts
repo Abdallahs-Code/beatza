@@ -24,6 +24,7 @@ export class Navbar {
     profileBtn: Locator;
     nofications: Locator;
     messages: Locator;
+    viewAllMessagesLink: Locator;
     moreDropdown: MoreDropdown;
     profileDropdown: ProfileDropdown;
 
@@ -55,6 +56,7 @@ export class Navbar {
 
         this.nofications = navbar.getByTestId("notifications")
         this.messages = navbar.getByTestId("messages")
+        this.viewAllMessagesLink = page.getByRole("link", { name: "View all messages" })
 
         this.more_btn = navbar.getByTestId("more_button")
         this.moreDropdown = new MoreDropdown(page)
