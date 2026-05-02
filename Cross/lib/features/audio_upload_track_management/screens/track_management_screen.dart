@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/audio_upload_track_management_routes.dart';
 
 class TrackManagementScreen extends StatefulWidget {
@@ -232,6 +234,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
   // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       appBar: AppBar(

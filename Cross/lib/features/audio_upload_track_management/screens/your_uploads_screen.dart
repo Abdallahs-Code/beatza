@@ -11,6 +11,8 @@ import 'package:cross_team5/features/audio_upload_track_management/screens/uploa
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 
 enum _Sort { recentlyAdded, trackName }
@@ -239,6 +241,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     final tracks = _filteredTracks();
 
     return Scaffold(

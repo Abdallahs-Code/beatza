@@ -12,6 +12,8 @@ import 'package:cross_team5/features/authentication_user_management/screens/pass
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_back_button.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_title_text.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class EmailEntryScreen extends StatefulWidget {
@@ -155,6 +157,7 @@ class _EmailEntryScreenState extends State<EmailEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
@@ -250,6 +253,7 @@ class _RobotCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardDark,
@@ -314,6 +318,7 @@ class _CaptchaSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -500,6 +505,7 @@ class _AnimatedCaptchaCanvasState extends State<_AnimatedCaptchaCanvas>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, _) => CustomPaint(

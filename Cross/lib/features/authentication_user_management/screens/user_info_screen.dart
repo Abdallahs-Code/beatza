@@ -8,6 +8,8 @@ import 'package:cross_team5/features/authentication_user_management/screens/chec
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/features/library/models/account_settings_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/library/services/account_settings_api_service.dart';
 
 class UserInfoScreen extends StatefulWidget {
@@ -326,6 +328,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(

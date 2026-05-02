@@ -6,6 +6,8 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/welcome_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -66,6 +68,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       body: Stack(
         children: [

@@ -23,6 +23,8 @@ import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../models/spotlight_models.dart';
 import '../../premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'edit_spotlight_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -941,6 +943,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: FutureBuilder<void>(

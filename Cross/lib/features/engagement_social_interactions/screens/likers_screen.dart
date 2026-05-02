@@ -17,6 +17,8 @@ import 'package:cross_team5/features/engagement_social_interactions/models/engag
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/widgets/engagement_user_tile.dart';
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class LikersScreen extends StatefulWidget {
@@ -177,6 +179,7 @@ class _LikersScreenState extends State<LikersScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(

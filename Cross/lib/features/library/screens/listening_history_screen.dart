@@ -8,6 +8,8 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/library/services/library_history_api_service.dart';
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 
 class ListeningHistoryScreen extends StatefulWidget {
@@ -139,6 +141,7 @@ class _ListeningHistoryScreenState extends State<ListeningHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       bottomNavigationBar: const LibraryBottomArea(),
@@ -211,6 +214,7 @@ class _ListeningHistoryEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(

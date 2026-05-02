@@ -5,6 +5,8 @@ import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../../audio_upload_track_management/screens/your_uploads_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../../audio_upload_track_management/screens/upload_track_screen.dart';
 
 class ArtistStudioScreen extends StatefulWidget {
@@ -164,6 +166,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(

@@ -14,6 +14,8 @@ import '../services/feed_search_api_service.dart';
 import '../widgets/search_result_tile.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class GenreTracksScreen extends StatefulWidget {
@@ -153,6 +155,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       appBar: AppBar(
