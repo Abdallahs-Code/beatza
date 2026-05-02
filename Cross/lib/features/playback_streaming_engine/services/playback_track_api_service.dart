@@ -37,6 +37,19 @@ class PlaybackTrackApiService {
     );
 
     debugPrint('[PlaybackTrackApiService] GET $url → ${response.statusCode}');
+    if (response.statusCode == 403) {
+      debugPrint('[PlaybackTrackApiService] ⚠️ 403 for $trackId — returning blocked track');
+      return [
+        PlaybackTrackModel(
+          id: trackId,
+          title: 'Restricted Track',
+          artistName: '',
+          accessState: PlaybackAccessState.blocked,
+          isAvailableForUser: false,
+          blockedReason: 'This track is not available in your region.',
+        ),
+      ];
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       debugPrint('[PlaybackTrackApiService] ❌ body: ${response.body}');
       throw Exception(

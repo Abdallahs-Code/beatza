@@ -52,6 +52,29 @@ class ProfileNavigator {
     };
   }
 
+  /// Returns true if the authenticated user currently follows [targetUserId].
+  ///
+  /// Uses the same following-list check as [push] / [pushViaState] so all
+  /// follow-state queries stay consistent across the app.
+  static Future<bool> checkIsFollowing(String targetUserId) async {
+    final normalizedTarget = targetUserId.trim();
+    if (normalizedTarget.isEmpty) return false;
+    final currentUserId = await AuthApiService().getStoredUserId();
+    final normalizedCurrent = currentUserId?.trim() ?? '';
+    if (normalizedCurrent.isEmpty) return false;
+    try {
+      final result = await SocialApiService().getFollowing(
+        userId: normalizedCurrent,
+      );
+      if (result.$1 == 200 && result.$2 is List) {
+        return (result.$2 as List).any(
+          (u) => u is Follower && u.userId.trim() == normalizedTarget,
+        );
+      }
+    } catch (_) {}
+    return false;
+  }
+
   /// Navigates to the user profile screen.
   ///
   /// Automatically fetches the token, current user ID, and resolves the

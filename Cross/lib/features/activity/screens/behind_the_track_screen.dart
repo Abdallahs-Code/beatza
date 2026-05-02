@@ -143,7 +143,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
-      final profile = await UserProfileService().getUserProfile(ownerId, token);
+      final profileFuture = UserProfileService().getUserProfile(ownerId, token);
+      final followFuture = ProfileNavigator.checkIsFollowing(ownerId);
+      final profile = await profileFuture;
+      final isFollowed = await followFuture;
       if (!mounted) return;
       setState(() {
         _ownerDisplayName = profile.displayName.trim().isEmpty
@@ -156,7 +159,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         _ownerCountry = profile.country.trim().isEmpty
             ? null
             : profile.country.trim();
-        _ownerIsFollowed = profile.isFollowed;
+        _ownerIsFollowed = isFollowed;
       });
     } catch (_) {}
   }
@@ -716,7 +719,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                                       width: 36,
                                       height: 36,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
+                                      errorBuilder: (_, __, e) => Container(
                                         width: 36,
                                         height: 36,
                                         color: AppColors.tileDark5,

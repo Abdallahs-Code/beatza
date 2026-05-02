@@ -3190,18 +3190,12 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
     final artistId = widget.track.artistId;
     if (artistId == null || artistId.isEmpty) return;
     try {
-      final token = await AuthApiService().getStoredAccessToken();
-      if (token == null || !mounted) return;
       final userId = await AuthApiService().getStoredUserId();
-      final profile = await UserProfileService().getUserProfile(
-        artistId,
-        token,
-      );
       if (!mounted) return;
-      setState(() {
-        _currentUserId = userId;
-        _isFollowing = profile.isFollowed;
-      });
+      setState(() => _currentUserId = userId);
+      final isFollowing = await ProfileNavigator.checkIsFollowing(artistId);
+      if (!mounted) return;
+      setState(() => _isFollowing = isFollowing);
     } catch (_) {}
   }
 
