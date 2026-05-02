@@ -7,14 +7,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
-import 'package:cross_team5/core/theme/app_text.dart';
-import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/screens/playlist_detail_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_card.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/create_playlist_sheet.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class MyPlaylistsScreen extends StatefulWidget {
   const MyPlaylistsScreen({super.key});
@@ -25,7 +25,6 @@ class MyPlaylistsScreen extends StatefulWidget {
 
 class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
   final PlaylistApiService _playlistService = PlaylistApiService();
-  final AuthApiService _authService = AuthApiService();
 
   List<PlaylistModel> _playlists = [];
   bool _isLoading = true;
@@ -51,14 +50,15 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     });
 
     try {
-      final (statusCode, playlists) =
-          await _playlistService.getMyPlaylists();
+      final (statusCode, playlists) = await _playlistService.getMyPlaylists();
+
+      debugPrint("GET /api/playlists/v1/my-playlists -> $statusCode");
 
       if (!mounted) return;
 
       if (statusCode == 200) {
         setState(() {
-          _playlists = playlists;
+          _playlists = playlists.where((p) => !p.isAlbum).toList();
           _isLoading = false;
         });
       } else if (statusCode == 401) {
@@ -86,8 +86,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     return state.isPro;
   }
 
-  bool get _atFreeLimit =>
-      !_isPro && _playlists.length >= _freeUserLimit;
+  bool get _atFreeLimit => !_isPro && _playlists.length >= _freeUserLimit;
 
   void _onCreatePlaylist() {
     if (_atFreeLimit) {
@@ -102,23 +101,21 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
-        title: const Text(
+        title: Text(
           'Upgrade to Pro',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
-        content: const Text(
+        content: Text(
           'Free users can create up to 2 playlists. Upgrade to Pro for unlimited playlists.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: AppColors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.white54)),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.crusta),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.crusta),
             onPressed: () {
               Navigator.pop(ctx);
               // Navigate to premium screen
@@ -152,12 +149,67 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PlaylistDetailScreen(
-          playlistId: playlist.id,
-          isOwner: true,
-        ),
+        builder: (_) =>
+            PlaylistDetailScreen(playlistId: playlist.id, isOwner: true),
       ),
     ).then((_) => _loadPlaylists());
+  }
+
+  void _onEditPlaylist(PlaylistModel playlist) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditPlaylistScreen(playlist: playlist)),
+    ).then((updated) {
+      if (updated == true) _loadPlaylists();
+    });
+  }
+
+  Future<void> _onDeletePlaylist(PlaylistModel playlist) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        title: Text(
+          'Delete Playlist',
+          style: TextStyle(color: AppColors.whiteSmoke),
+        ),
+        content: Text(
+          'Delete "${playlist.title}"? This cannot be undone.',
+          style: TextStyle(color: AppColors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final (statusCode, deleted) = await _playlistService.deletePlaylist(
+      playlistId: playlist.id,
+    );
+
+    if (!mounted) return;
+    if (statusCode == 200 && deleted) {
+      setState(() => _playlists.removeWhere((p) => p.id == playlist.id));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Playlist deleted.')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete playlist. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -168,13 +220,13 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         backgroundColor: AppColors.pureBlack,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Your Playlists',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -182,11 +234,11 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _onCreatePlaylist,
-        backgroundColor:
-            _atFreeLimit ? Colors.grey : AppColors.crusta,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: _atFreeLimit ? Colors.grey : AppColors.crusta,
+        child: Icon(Icons.add, color: AppColors.whiteSmoke),
       ),
       body: _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
@@ -210,13 +262,9 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       color: AppColors.crusta,
       child: CustomScrollView(
         slivers: [
-          if (_atFreeLimit)
-            SliverToBoxAdapter(
-              child: _buildFreeLimitBanner(),
-            ),
+          if (_atFreeLimit) SliverToBoxAdapter(child: _buildFreeLimitBanner()),
           SliverPadding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
@@ -224,6 +272,8 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
                   child: PlaylistCard(
                     playlist: _playlists[index],
                     onTap: () => _onPlaylistTap(_playlists[index]),
+                    onMenuEdit: () => _onEditPlaylist(_playlists[index]),
+                    onMenuDelete: () => _onDeletePlaylist(_playlists[index]),
                   ),
                 ),
                 childCount: _playlists.length,
@@ -243,23 +293,24 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.crusta.withOpacity(0.4)),
+        border: Border.all(color: AppColors.crusta.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.lock_outline,
-              color: AppColors.crusta, size: 20),
+          Icon(Icons.lock_outline, color: AppColors.crusta, size: 20),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Free plan: 2 playlist limit reached. Upgrade to Pro for unlimited playlists.',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: AppColors.white70, fontSize: 13),
             ),
           ),
           TextButton(
             onPressed: _showUpgradeDialog,
-            child: const Text('Upgrade',
-                style: TextStyle(color: AppColors.crusta)),
+            child: const Text(
+              'Upgrade',
+              style: TextStyle(color: AppColors.crusta),
+            ),
           ),
         ],
       ),
@@ -273,40 +324,41 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.queue_music_rounded,
-              color: Colors.white38,
-              size: 72,
-            ),
+            Icon(Icons.queue_music_rounded, color: AppColors.white54, size: 72),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'No playlists yet',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Create your first playlist and start adding tracks.',
-              style: TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.crusta,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.whiteSmoke,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 14),
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
               onPressed: _onCreatePlaylist,
               icon: const Icon(Icons.add),
-              label: const Text('Create Playlist',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
+              label: const Text(
+                'Create Playlist',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -321,20 +373,20 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline,
-                color: Colors.white54, size: 48),
+            Icon(Icons.error_outline, color: AppColors.white54, size: 48),
             const SizedBox(height: 16),
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54),
+              style: TextStyle(color: AppColors.white54),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _loadPlaylists,
               style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.crusta,
-                  foregroundColor: Colors.white),
+                backgroundColor: AppColors.crusta,
+                foregroundColor: AppColors.whiteSmoke,
+              ),
               child: const Text('Retry'),
             ),
           ],

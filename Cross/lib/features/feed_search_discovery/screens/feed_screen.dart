@@ -1,28 +1,15 @@
 // Screen: FeedScreen
 // Module 8 — Feed, Search & Discovery
 //
-// Layout (matches module_8_screens.pdf pages 7-9, SoundCloud feed UI):
-//   - Full-screen black background
-//   - Two tabs at top centre: "Discover" | "Following"
-//     • Discover → calls getTrendingTracks() → fetches each track by ID
-//     • Following → calls getUserFeed()
-//   - Vertical PageView (TikTok-style) — one card per track
-//   - When a card becomes the current page:
-//       1. Show "Tap to preview" overlay
-//       2. On tap, fetch full track details (by ID from feed/trending), then
-//          auto-play audio via PlaybackStreamingEngineService.shared.playTrack()
-//          with mute state applied
-//       3. Scrolling away stops the audio (pause, not stop — better UX)
-//   - Mute state is a single ValueNotifier<bool> shared across all cards
-//   - Global mute toggle shown as speaker icon on the cover art
-//   - ▶ play button tap → fetch full track → playTrack → mini player appears
-//   - Bottom nav bar active on "Feed" item
+// Two tabs:
+//   • Discover → getTrendingTracks() → fetch each track by ID → FeedCard
+//   • Following → getUserFeed() → fetch each track by ID → FeedCard
+//     (feed items carry actor info; full track data supplies title/audio/art)
 //
-// Integration points:
-//   - PlaybackStreamingEngineService.shared.playTrack(PlaybackTrackModel)
-//     triggers the global mini player bar (set up in main scaffold)
-//   - User avatar tap → UserProfileSocialIdentityRoutes.userProfileRoute
-//   - Like / comment wired via FeedCard widget (see CLAUDE CODE TODOs there)
+// Audio behaviour (FeedCard handles locally):
+//   - Muted by default, no audio plays
+//   - Tap "Tap to preview" overlay first, then unmuting starts local audio
+//   - Tap ▶ → stops local audio, global mini-player takes over
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
@@ -35,6 +22,7 @@ import '../widgets/feed_card.dart';
 
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -45,29 +33,25 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen>
     with SingleTickerProviderStateMixin {
-  // ── State ──────────────────────────────────────────────────────────────────
   late TabController _tabController;
   final FeedSearchApiService _service = FeedSearchApiService();
 
   // Mute state shared across all FeedCards
   final ValueNotifier<bool> _isMuted = ValueNotifier<bool>(true);
 
-  // ── Discover (trending) tab state ──────────────────────────────────────────
+  // ── Discover (trending) tab ────────────────────────────────────────────────
   List<Map<String, dynamic>> _discoverTracks = [];
   bool _discoverLoading = true;
   String? _discoverError;
   final PageController _discoverPageController = PageController();
   int _discoverCurrentPage = 0;
 
-  // ── Following (feed) tab state ─────────────────────────────────────────────
-  List<FeedItemModel> _feedItems = [];
+  // ── Following tab — enriched: feed actor info + full track data ────────────
+  List<({FeedItemModel item, Map<String, dynamic> track})> _feedItems = [];
   bool _feedLoading = true;
   String? _feedError;
   final PageController _feedPageController = PageController();
   int _feedCurrentPage = 0;
-
-  // Track which item is being fetched for playback (loading state)
-  String? _loadingTrackId;
 
   @override
   void initState() {
@@ -95,14 +79,13 @@ class _FeedScreenState extends State<FeedScreen>
     });
 
     final (statusCode, data) = await _service.getTrendingTracks(limit: 20);
-
     if (!mounted) return;
 
     if (statusCode == 200 && data is List) {
       final ids = TrendingItemModel.listFromJson(data);
-      // Fetch full track details for each trending ID concurrently
-      final futures = ids.map((item) => _service.getTrackById(item.id));
-      final results = await Future.wait(futures);
+      final results = await Future.wait(
+        ids.map((item) => _service.getTrackById(item.id)),
+      );
 
       final tracks = <Map<String, dynamic>>[];
       for (final (code, trackData) in results) {
@@ -132,14 +115,30 @@ class _FeedScreenState extends State<FeedScreen>
     });
 
     final (statusCode, data) = await _service.getUserFeed(limit: 20);
-
     if (!mounted) return;
 
     if (statusCode == 200 && data is List) {
-      setState(() {
-        _feedItems = FeedItemModel.listFromJson(data);
-        _feedLoading = false;
-      });
+      final items = FeedItemModel.listFromJson(data);
+
+      // Fetch full track details concurrently for each feed item
+      final results = await Future.wait(
+        items.map((item) => _service.getTrackById(item.id)),
+      );
+
+      final enriched = <({FeedItemModel item, Map<String, dynamic> track})>[];
+      for (int i = 0; i < items.length; i++) {
+        final (code, trackData) = results[i];
+        if (code == 200 && trackData is Map<String, dynamic>) {
+          enriched.add((item: items[i], track: trackData));
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _feedItems = enriched;
+          _feedLoading = false;
+        });
+      }
     } else {
       setState(() {
         _feedError = data?.toString() ?? 'Failed to load feed';
@@ -150,34 +149,11 @@ class _FeedScreenState extends State<FeedScreen>
 
   // ── Playback ───────────────────────────────────────────────────────────────
 
-  /// Called when the user taps ▶ on a Discover card.
-  /// The track data is already fetched (it's in _discoverTracks).
   Future<void> _playDiscoverTrack(Map<String, dynamic> trackData) async {
     final track = PlaybackTrackModel.fromApiJson(trackData);
     await PlaybackStreamingEngineService.shared.playTrack(track);
   }
 
-  /// Called when the user taps ▶ on a Following/Feed card.
-  /// The feed item only has ID + basic info — fetch full details first.
-  Future<void> _playFeedItem(FeedItemModel item) async {
-    if (_loadingTrackId == item.id) return;
-    setState(() => _loadingTrackId = item.id);
-
-    final (statusCode, trackData) = await _service.getTrackById(item.id);
-    if (!mounted) return;
-    setState(() => _loadingTrackId = null);
-
-    if (statusCode == 200 && trackData is Map<String, dynamic>) {
-      final track = PlaybackTrackModel.fromApiJson(trackData);
-      await PlaybackStreamingEngineService.shared.playTrack(track);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not load track: $trackData')),
-      );
-    }
-  }
-
-  /// Navigate to actor's profile.
   Future<void> _openActorProfile(String actorId) async {
     await ProfileNavigator.push(context, actorId);
   }
@@ -193,10 +169,7 @@ class _FeedScreenState extends State<FeedScreen>
       body: TabBarView(
         controller: _tabController,
         physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _buildDiscoverTab(),
-          _buildFollowingTab(),
-        ],
+        children: [_buildDiscoverTab(), _buildFollowingTab()],
       ),
       bottomNavigationBar: const CommonBottomNavBar(
         currentItem: AppNavItem.feed,
@@ -213,10 +186,10 @@ class _FeedScreenState extends State<FeedScreen>
           bottom: false,
           child: TabBar(
             controller: _tabController,
-            indicatorColor: Colors.white,
+            indicatorColor: AppColors.whiteSmoke,
             indicatorWeight: 2,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white54,
+            labelColor: AppColors.whiteSmoke,
+            unselectedLabelColor: AppColors.white54,
             labelStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -245,33 +218,31 @@ class _FeedScreenState extends State<FeedScreen>
     }
 
     if (_discoverTracks.isEmpty) {
-      return const Center(
-        child: Text('No trending tracks', style: TextStyle(color: Colors.white54)),
+      return Center(
+        child: Text(
+          'No trending tracks',
+          style: TextStyle(color: AppColors.white54),
+        ),
       );
     }
 
     return PageView.builder(
       controller: _discoverPageController,
       scrollDirection: Axis.vertical,
-      onPageChanged: (index) {
-        setState(() => _discoverCurrentPage = index);
-      },
+      onPageChanged: (index) => setState(() => _discoverCurrentPage = index),
       itemCount: _discoverTracks.length,
       itemBuilder: (context, index) {
         final trackData = _discoverTracks[index];
-        final isCurrent = index == _discoverCurrentPage;
-        final basicInfo =
-            trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+        final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
         final image = trackData['image'] as Map<String, dynamic>? ?? {};
-        final artists =
-            (basicInfo['mainArtists'] as List<dynamic>? ?? [])
-                .map((e) => e.toString())
-                .toList();
+        final artists = (basicInfo['mainArtists'] as List<dynamic>? ?? [])
+            .map((e) => e.toString())
+            .toList();
 
         return FeedCard(
           key: ValueKey('discover_$index'),
           itemId: (trackData['trackId'] ?? trackData['_id'] ?? '').toString(),
-          isCurrent: isCurrent,
+          isCurrent: index == _discoverCurrentPage,
           isMuted: _isMuted,
           audioUrl: (trackData['audio'] as Map<String, dynamic>?)?['audioLink']
               ?.toString(),
@@ -279,10 +250,11 @@ class _FeedScreenState extends State<FeedScreen>
           displayName: basicInfo['title']?.toString() ?? 'Unknown',
           actorName: artists.isNotEmpty ? artists.first : 'Unknown Artist',
           actorId: trackData['posterId']?.toString() ?? '',
+          permalink: basicInfo['permalink']?.toString(),
           isFollowing: false,
           likeCount: trackData['numLikes'] as int? ?? 0,
           commentCount: trackData['numComments'] as int? ?? 0,
-          isLiked: false,
+          isLiked: trackData['isLikedByUser'] as bool? ?? false,
           isRepost: false,
           onPlayTap: () => _playDiscoverTrack(trackData),
           onActorTap: () =>
@@ -310,11 +282,11 @@ class _FeedScreenState extends State<FeedScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.people_outline, color: Colors.white54, size: 64),
+            Icon(Icons.people_outline, color: AppColors.white54, size: 64),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Follow artists to see their tracks here',
-              style: TextStyle(color: Colors.white54, fontSize: 16),
+              style: TextStyle(color: AppColors.white54, fontSize: 16),
               textAlign: TextAlign.center,
             ),
           ],
@@ -325,29 +297,34 @@ class _FeedScreenState extends State<FeedScreen>
     return PageView.builder(
       controller: _feedPageController,
       scrollDirection: Axis.vertical,
-      onPageChanged: (index) {
-        setState(() => _feedCurrentPage = index);
-      },
+      onPageChanged: (index) => setState(() => _feedCurrentPage = index),
       itemCount: _feedItems.length,
       itemBuilder: (context, index) {
-        final item = _feedItems[index];
-        final isCurrent = index == _feedCurrentPage;
+        final entry = _feedItems[index];
+        final item = entry.item;
+        final trackData = entry.track;
+        final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+        final image = trackData['image'] as Map<String, dynamic>? ?? {};
 
         return FeedCard(
-          key: ValueKey('feed_${item.id}'),
-          itemId: item.id,
-          isCurrent: isCurrent,
+          key: ValueKey('feed_${item.id}_$index'),
+          itemId: (trackData['trackId'] ?? trackData['_id'] ?? item.id)
+              .toString(),
+          isCurrent: index == _feedCurrentPage,
           isMuted: _isMuted,
-          imgLink: item.imgLink,
-          displayName: item.displayName,
+          audioUrl: (trackData['audio'] as Map<String, dynamic>?)?['audioLink']
+              ?.toString(),
+          imgLink: image['imgLink']?.toString(),
+          displayName: basicInfo['title']?.toString() ?? 'Unknown',
           actorName: item.displayName,
           actorId: item.actorId,
+          permalink: basicInfo['permalink']?.toString(),
           isFollowing: true,
-          likeCount: 0,
-          commentCount: 0,
-          isLiked: false,
+          likeCount: trackData['numLikes'] as int? ?? 0,
+          commentCount: trackData['numComments'] as int? ?? 0,
+          isLiked: trackData['isLikedByUser'] as bool? ?? false,
           isRepost: item.isRepost,
-          onPlayTap: () => _playFeedItem(item),
+          onPlayTap: () => _playDiscoverTrack(trackData),
           onActorTap: () => _openActorProfile(item.actorId),
         );
       },
@@ -361,11 +338,11 @@ class _FeedScreenState extends State<FeedScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, color: Colors.white54, size: 48),
+          Icon(Icons.error_outline, color: AppColors.white54, size: 48),
           const SizedBox(height: 12),
           Text(
             error,
-            style: const TextStyle(color: Colors.white54),
+            style: TextStyle(color: AppColors.white54),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),

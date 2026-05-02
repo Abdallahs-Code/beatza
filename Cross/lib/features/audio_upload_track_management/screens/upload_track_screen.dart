@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track_model.dart';
@@ -14,16 +15,120 @@ import 'package:cross_team5/features/audio_upload_track_management/screens/your_
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 
+// ── Geo-blocking data ────────────────────────────────────────────────────────
+
+const _kGeoRegions = [
+  'Africa', 'Antarctica', 'Asia', 'Europe',
+  'NorthAmerica', 'Oceania', 'SouthAmerica',
+];
+
+const _kGeoDisplayNames = <String, String>{
+  'NorthAmerica': 'North America',
+  'SouthAmerica': 'South America',
+  'CongoDemocraticRepublic': 'DR Congo',
+  'CongoRepublic': 'Republic of Congo',
+  'BurkinaFaso': 'Burkina Faso',
+  'CaboVerde': 'Cabo Verde',
+  'CentralAfricanRepublic': 'Central African Republic',
+  'KoreaNorth': 'North Korea',
+  'KoreaSouth': 'South Korea',
+  'CostaRica': 'Costa Rica',
+  'CzechRepublic': 'Czech Republic',
+  'ElSalvador': 'El Salvador',
+  'EquatorialGuinea': 'Equatorial Guinea',
+  'GuineaBissau': 'Guinea-Bissau',
+  'MarshallIslands': 'Marshall Islands',
+  'NewZealand': 'New Zealand',
+  'NorthMacedonia': 'North Macedonia',
+  'PapuaNewGuinea': 'Papua New Guinea',
+  'SaintKittsAndNevis': 'Saint Kitts & Nevis',
+  'SaintLucia': 'Saint Lucia',
+  'SaintVincentAndTheGrenadines': 'Saint Vincent & the Grenadines',
+  'SanMarino': 'San Marino',
+  'SaoTomeAndPrincipe': 'São Tomé & Príncipe',
+  'SaudiArabia': 'Saudi Arabia',
+  'SierraLeone': 'Sierra Leone',
+  'SolomonIslands': 'Solomon Islands',
+  'SouthAfrica': 'South Africa',
+  'SouthSudan': 'South Sudan',
+  'SriLanka': 'Sri Lanka',
+  'TimorLeste': 'Timor-Leste',
+  'TrinidadAndTobago': 'Trinidad & Tobago',
+  'UnitedArabEmirates': 'United Arab Emirates',
+  'UnitedKingdom': 'United Kingdom',
+  'UnitedStates': 'United States',
+  'VaticanCity': 'Vatican City',
+  'AntiguaAndBarbuda': 'Antigua & Barbuda',
+  'BosniaAndHerzegovina': 'Bosnia & Herzegovina',
+  'DominicanRepublic': 'Dominican Republic',
+  'Ivory Coast': 'Ivory Coast',
+};
+
+const _kRegionCountries = <String, List<String>>{
+  'Africa': [
+    'Algeria', 'Angola', 'Benin', 'Botswana', 'BurkinaFaso', 'Burundi',
+    'CaboVerde', 'Cameroon', 'CentralAfricanRepublic', 'Chad', 'Comoros',
+    'CongoDemocraticRepublic', 'CongoRepublic', 'Djibouti', 'Egypt',
+    'EquatorialGuinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia',
+    'Ghana', 'Guinea', 'GuineaBissau', 'Ivory Coast', 'Kenya', 'Lesotho',
+    'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania',
+    'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria',
+    'Rwanda', 'SaoTomeAndPrincipe', 'Senegal', 'Seychelles', 'SierraLeone',
+    'Somalia', 'SouthAfrica', 'SouthSudan', 'Sudan', 'Tanzania', 'Togo',
+    'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+  ],
+  'Antarctica': [],
+  'Asia': [
+    'Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan',
+    'Brunei', 'Cambodia', 'China', 'Cyprus', 'Georgia', 'India', 'Indonesia',
+    'Iran', 'Iraq', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan',
+    'Laos', 'Lebanon', 'Malaysia', 'Maldives', 'Mongolia', 'Myanmar', 'Nepal',
+    'KoreaNorth', 'Oman', 'Pakistan', 'Palestine', 'Philippines', 'Qatar',
+    'Russia', 'SaudiArabia', 'Singapore', 'KoreaSouth', 'SriLanka', 'Syria',
+    'Taiwan', 'Tajikistan', 'Thailand', 'TimorLeste', 'Turkey', 'Turkmenistan',
+    'UnitedArabEmirates', 'Uzbekistan', 'Vietnam', 'Yemen',
+  ],
+  'Europe': [
+    'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'BosniaAndHerzegovina',
+    'Bulgaria', 'Croatia', 'Cyprus', 'CzechRepublic', 'Denmark', 'Estonia',
+    'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland',
+    'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Liechtenstein', 'Lithuania',
+    'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands',
+    'NorthMacedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia',
+    'SanMarino', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden',
+    'Switzerland', 'Ukraine', 'UnitedKingdom', 'VaticanCity',
+  ],
+  'NorthAmerica': [
+    'AntiguaAndBarbuda', 'Bahamas', 'Barbados', 'Belize', 'Canada', 'CostaRica',
+    'Cuba', 'Dominica', 'DominicanRepublic', 'ElSalvador', 'Grenada', 'Guatemala',
+    'Haiti', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama',
+    'SaintKittsAndNevis', 'SaintLucia', 'SaintVincentAndTheGrenadines',
+    'TrinidadAndTobago', 'UnitedStates',
+  ],
+  'Oceania': [
+    'Australia', 'Fiji', 'Kiribati', 'MarshallIslands', 'Micronesia', 'Nauru',
+    'NewZealand', 'Palau', 'PapuaNewGuinea', 'Samoa', 'SolomonIslands', 'Tonga',
+    'Tuvalu', 'Vanuatu',
+  ],
+  'SouthAmerica': [
+    'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Guyana',
+    'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela',
+  ],
+};
+
+String _displayGeoName(String key) =>
+    _kGeoDisplayNames[key] ??
+    key.replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (_) => ' ');
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 class DashedRectPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
   final double gap;
 
-  DashedRectPainter({
-    this.color = Colors.white,
-    this.strokeWidth = 1.0,
-    this.gap = 5.0,
-  });
+  DashedRectPainter({Color? color, this.strokeWidth = 1.0, this.gap = 5.0})
+    : color = color ?? AppColors.whiteSmoke;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -79,11 +184,18 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   final _captionController = TextEditingController();
   final _tagsController = TextEditingController();
   final _artistInputController = TextEditingController();
+  final _recordLabelController = TextEditingController();
+  final _publisherController = TextEditingController();
+  final _isrcController = TextEditingController();
+  final _pLineController = TextEditingController();
   final List<String> _artists = [];
 
   int _currentTabIndex = 0;
   bool _isSaving = false;
+  bool _isDeleting = false;
   bool _isInit = false;
+  List<String> _selectedRegions = [];
+  List<String> _selectedCountries = [];
 
   String _privacy = 'public';
   final DateTime _scheduleDate = DateTime.now().add(const Duration(days: 1));
@@ -98,9 +210,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   bool _enableAppPlayback = true;
   String _availability = 'worldwide';
   String _licensing = 'all_rights';
+  bool _mobileProPreview = false;
 
   int get _uploadStepsCompleted {
-    final bool inEditMode = _editingTrack != null || _editingServerTrack != null;
+    final bool inEditMode =
+        _editingTrack != null || _editingServerTrack != null;
     int c = 0;
     if (inEditMode || _selectedFile != null) c++;
     if (_coverImage != null) c++;
@@ -126,12 +240,52 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       } else if (args is Track) {
         _editingServerTrack = args;
         _selectedFileName = args.title;
+
+        // basic info
         _titleController.text = args.title;
         _genreController.text = args.genre;
         _descriptionController.text = args.description;
+        _captionController.text = args.caption;
         _tagsController.text = args.tags.join(', ');
         _privacy = args.isPrivate ? 'unlisted' : 'public';
         if (args.mainArtists.isNotEmpty) _artists.addAll(args.mainArtists);
+
+        // permissions
+        _enableDirectDownloads = args.enableDirectDownload;
+        _offlineListening = args.offlineListening;
+        _includeInRssFeed = args.includeInRssFeed;
+        _displayEmbedCode = args.displayedEmbedCode;
+        _enableAppPlayback = args.enableAppPlayback;
+
+        // license
+        _licensing = args.licenseType == 'creativeCommons'
+            ? 'creative_commons'
+            : 'all_rights';
+
+        // geo-blocking
+        _availability = args.geoBlockingMode;
+        _selectedRegions = List.from(args.geoBlockingRegions);
+        _selectedCountries = List.from(args.geoBlockingCountries);
+
+        // advanced
+        _containsExplicitContent = args.explicitContent;
+        _recordLabelController.text = args.recordLabel ?? '';
+        _publisherController.text = args.publisher ?? '';
+        _isrcController.text = args.isrc ?? '';
+        _pLineController.text = args.pLine ?? '';
+
+        // mobileProPreview
+        _mobileProPreview = args.mobileProPreview;
+
+        // release date
+        if (args.releaseDate.isNotEmpty) {
+          final parsed = DateTime.tryParse(args.releaseDate);
+          if (parsed != null) {
+            _releaseDate = parsed;
+            _enableReleaseDate = true;
+          }
+        }
+
         _uploadComplete = true;
       } else if (args is TrackModel) {
         _editingTrack = args;
@@ -141,7 +295,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _descriptionController.text = args.description;
         _captionController.text = args.caption;
         _tagsController.text = args.descriptiveTags.join(', ');
-        _privacy = args.visibility == TrackVisibility.private ||
+        _privacy =
+            args.visibility == TrackVisibility.private ||
                 args.visibility == TrackVisibility.unlisted
             ? 'unlisted'
             : 'public';
@@ -162,6 +317,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     _captionController.dispose();
     _tagsController.dispose();
     _artistInputController.dispose();
+    _recordLabelController.dispose();
+    _publisherController.dispose();
+    _isrcController.dispose();
+    _pLineController.dispose();
     super.dispose();
   }
 
@@ -182,7 +341,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
     _uploadSubscription?.cancel();
     _uploadSubscription = _audioService.mockUploadStream().listen(
-          (progress) {
+      (progress) {
         if (mounted) setState(() => _uploadProgress = progress);
       },
       onDone: () {
@@ -232,8 +391,12 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
   Future<void> _updateServerTrack() async {
     final track = _editingServerTrack!;
+    if (track.id.trim().isEmpty) {
+      _showErrorSnack('Cannot update: track ID is missing.');
+      return;
+    }
     if (_titleController.text.trim().isEmpty) {
-      _snack('Please enter a track title', isError: true);
+      _showErrorSnack('Please enter a track title');
       return;
     }
 
@@ -264,26 +427,51 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       caption: _captionController.text.trim().isNotEmpty
           ? _captionController.text.trim()
           : null,
+      enableDirectDownload: _enableDirectDownloads,
+      offlineListening: _offlineListening,
+      includeInRssFeed: _includeInRssFeed,
+      displayedEmbedCode: _displayEmbedCode,
+      enableAppPlayback: _enableAppPlayback,
+      licensing: _licensing,
+      containsExplicit: _containsExplicitContent,
+      releaseDate: _enableReleaseDate ? _releaseDate.toIso8601String() : null,
+      recordLabel: _recordLabelController.text.trim().isNotEmpty
+          ? _recordLabelController.text.trim()
+          : null,
+      publisher: _publisherController.text.trim().isNotEmpty
+          ? _publisherController.text.trim()
+          : null,
+      isrc: _isrcController.text.trim().isNotEmpty
+          ? _isrcController.text.trim()
+          : null,
+      pLine: _pLineController.text.trim().isNotEmpty
+          ? _pLineController.text.trim()
+          : null,
+      availability: _availability,
+      geoBlockingRegions: _selectedRegions,
+      geoBlockingCountries: _selectedCountries,
     );
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
+      // Update mobileProPreview via its dedicated endpoint
+      await _trackApiService.updateMobileProPreview(
+        trackId: track.id,
+        mobileProPreview: _mobileProPreview,
+      );
+      if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Track updated successfully'),
-          backgroundColor: Color(0xFF2A2A2A),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showSuccessSnack(
+        'Track Updated',
+        subtitle: _titleController.text.trim(),
       );
     } else {
-      _snack(
+      _showErrorSnack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
             : 'Update failed. Please try again.',
-        isError: true,
       );
     }
   }
@@ -291,11 +479,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   Future<void> _uploadNewTrack() async {
     if (_selectedFile == null || !_uploadComplete) return;
     if (_titleController.text.trim().isEmpty) {
-      _snack('Please enter a track title', isError: true);
+      _showErrorSnack('Please enter a track title');
+      return;
+    }
+    if (_artists.isEmpty) {
+      _showErrorSnack('Please add at least one artist');
       return;
     }
     if (_selectedFile!.path == null) {
-      _snack('Audio file path is unavailable', isError: true);
+      _showErrorSnack('Audio file path is unavailable');
       return;
     }
 
@@ -316,34 +508,56 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         RegExp(r'[^a-z0-9]+'),
         '-',
       ),
-      mainArtists: _artists,
+      artists: _artists,
       genre: _genreController.text.trim(),
       tags: tags,
       description: _descriptionController.text.trim(),
-      isPrivate: _privacy == 'unlisted',
+      privacy: _privacy == 'unlisted',
       caption: _captionController.text.trim(),
+      enableDirectDownload: _enableDirectDownloads,
+      offlineListening: _offlineListening,
+      includeInRssFeed: _includeInRssFeed,
+      displayedEmbedCode: _displayEmbedCode,
+      enableAppPlayback: _enableAppPlayback,
+      licensing: _licensing,
+      containsExplicit: _containsExplicitContent,
+      releaseDate: _enableReleaseDate ? _releaseDate.toIso8601String() : null,
+      recordLabel: _recordLabelController.text.trim().isNotEmpty
+          ? _recordLabelController.text.trim()
+          : null,
+      publisher: _publisherController.text.trim().isNotEmpty
+          ? _publisherController.text.trim()
+          : null,
+      isrc: _isrcController.text.trim().isNotEmpty
+          ? _isrcController.text.trim()
+          : null,
+      pLine: _pLineController.text.trim().isNotEmpty
+          ? _pLineController.text.trim()
+          : null,
+      availability: _availability,
+      geoBlockingRegions: _selectedRegions,
+      geoBlockingCountries: _selectedCountries,
+      mobileProPreview: _mobileProPreview,
     );
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (result.$1 == 201) {
-      final resultData = result.$2 as Map<String, dynamic>?;
+      final resultData = result.$2 is Map<String, dynamic>
+          ? result.$2 as Map<String, dynamic>
+          : null;
       final serverId = resultData?['trackId'] as String?;
 
-      await _audioService.saveTrackData(
-        _selectedFile!,
-        {
-          'title': _titleController.text.trim(),
-          'genre': _genreController.text.trim(),
-          'description': _descriptionController.text.trim(),
-          'caption': _captionController.text.trim(),
-          'tags': _tagsController.text.trim(),
-          'visibility': _privacy,
-          'coverImagePath': _coverImage?.path,
-        },
-        serverId: serverId,
-      );
+      await _audioService.saveTrackData(_selectedFile!, {
+        'title': _titleController.text.trim(),
+        'genre': _genreController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'caption': _captionController.text.trim(),
+        'tags': _tagsController.text.trim(),
+        'visibility': _privacy,
+        'coverImagePath': _coverImage?.path,
+      }, serverId: serverId);
 
       if (!mounted) return;
 
@@ -354,32 +568,41 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
       messenger.showSnackBar(
         SnackBar(
-          backgroundColor: const Color(0xFF2A2A2A),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: AppColors.containerMid,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
           elevation: 10,
           duration: const Duration(seconds: 5),
           content: Row(
             children: [
-              const Icon(Icons.check_circle, color: Color(0xFFFF5500), size: 28),
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.primaryOrange,
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Upload Successful',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       trackTitle,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 12,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -391,19 +614,24 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 onTap: () {
                   messenger.hideCurrentSnackBar();
                   navigator.push(
-                    MaterialPageRoute(builder: (_) => const YourUploadsScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const YourUploadsScreen(),
+                    ),
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF5500),
+                    color: AppColors.primaryOrange,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
+                  child: Text(
                     'SEE TRACK',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -416,11 +644,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ),
       );
     } else {
-      _snack(
+      _showErrorSnack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
             : 'Upload failed. Please try again.',
-        isError: true,
       );
     }
   }
@@ -428,11 +655,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   Future<void> _updateExistingTrack() async {
     final track = _editingTrack!;
     if (_titleController.text.trim().isEmpty) {
-      _snack('Please enter a track title', isError: true);
+      _showErrorSnack('Please enter a track title');
       return;
     }
     if (track.serverId == null || track.serverId!.trim().isEmpty) {
-      _snack('Cannot update: server ID not available for this track.', isError: true);
+      _showErrorSnack('Cannot update: server ID not available for this track.');
       return;
     }
 
@@ -449,7 +676,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       imageFilePath: _coverImage?.path,
       title: _titleController.text.trim(),
       mainArtists: _artists.isNotEmpty ? _artists : null,
-      genre: _genreController.text.trim().isNotEmpty ? _genreController.text.trim() : null,
+      genre: _genreController.text.trim().isNotEmpty
+          ? _genreController.text.trim()
+          : null,
       tags: tags.isNotEmpty ? tags : null,
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -458,65 +687,166 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       caption: _captionController.text.trim().isNotEmpty
           ? _captionController.text.trim()
           : null,
+      enableDirectDownload: _enableDirectDownloads,
+      offlineListening: _offlineListening,
+      includeInRssFeed: _includeInRssFeed,
+      displayedEmbedCode: _displayEmbedCode,
+      enableAppPlayback: _enableAppPlayback,
+      licensing: _licensing,
+      containsExplicit: _containsExplicitContent,
+      releaseDate: _enableReleaseDate ? _releaseDate.toIso8601String() : null,
+      recordLabel: _recordLabelController.text.trim().isNotEmpty
+          ? _recordLabelController.text.trim()
+          : null,
+      publisher: _publisherController.text.trim().isNotEmpty
+          ? _publisherController.text.trim()
+          : null,
+      isrc: _isrcController.text.trim().isNotEmpty
+          ? _isrcController.text.trim()
+          : null,
+      pLine: _pLineController.text.trim().isNotEmpty
+          ? _pLineController.text.trim()
+          : null,
+      availability: _availability,
+      geoBlockingRegions: _selectedRegions,
+      geoBlockingCountries: _selectedCountries,
     );
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
+      // Update mobileProPreview via its dedicated endpoint
+      if (track.serverId != null) {
+        await _trackApiService.updateMobileProPreview(
+          trackId: track.serverId!,
+          mobileProPreview: _mobileProPreview,
+        );
+      }
+      if (!mounted) return;
       final updated = track.copyWith(
         title: _titleController.text.trim(),
         genre: _genreController.text.trim(),
         descriptiveTags: tags,
         description: _descriptionController.text.trim(),
         caption: _captionController.text.trim(),
-        visibility: _privacy == 'unlisted' ? TrackVisibility.unlisted : TrackVisibility.public,
+        visibility: _privacy == 'unlisted'
+            ? TrackVisibility.unlisted
+            : TrackVisibility.public,
         coverImagePath: _coverImage?.path ?? track.coverImagePath,
       );
 
-      final list = List<TrackModel>.from(AudioUploadService.globalMockTracksNotifier.value);
+      final list = List<TrackModel>.from(
+        AudioUploadService.globalMockTracksNotifier.value,
+      );
       final idx = list.indexWhere((t) => t.id == track.id);
       if (idx != -1) list[idx] = updated;
       AudioUploadService.globalMockTracksNotifier.value = list;
 
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Track updated successfully'),
-          backgroundColor: Color(0xFF2A2A2A),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showSuccessSnack(
+        'Track Updated',
+        subtitle: _titleController.text.trim(),
       );
     } else {
-      _snack(
+      _showErrorSnack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
             : 'Update failed. Please try again.',
-        isError: true,
       );
     }
   }
 
   Widget _coverPlaceholder() {
     return CustomPaint(
-      painter: DashedRectPainter(color: Colors.white54, strokeWidth: 1.5, gap: 6),
+      painter: DashedRectPainter(
+        color: AppColors.white54,
+        strokeWidth: 1.5,
+        gap: 6,
+      ),
       child: Container(
         width: 90,
         height: 90,
         alignment: Alignment.center,
-        child: const Icon(Icons.camera_alt_outlined, color: Colors.white, size: 28),
+        child: Icon(
+          Icons.camera_alt_outlined,
+          color: AppColors.whiteSmoke,
+          size: 28,
+        ),
       ),
     );
   }
 
-  void _snack(String msg, {bool isError = false}) {
+  void _showSuccessSnack(String title, {String? subtitle}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.red[800] : const Color(0xFF2A2A2A),
+        backgroundColor: AppColors.containerMid,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+        elevation: 10,
+        duration: const Duration(seconds: 4),
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: AppColors.primaryOrange, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (subtitle != null && subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: AppColors.white70, fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF3B1111),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+        elevation: 10,
+        duration: const Duration(seconds: 5),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -551,14 +881,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     ];
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (_) => ListView.builder(
         itemCount: genres.length,
         itemBuilder: (_, i) => ListTile(
-          title: Text(genres[i], style: const TextStyle(color: Colors.white)),
+          title: Text(genres[i], style: TextStyle(color: AppColors.whiteSmoke)),
           trailing: _genreController.text == genres[i]
               ? const Icon(Icons.check, color: Colors.orange)
               : null,
@@ -572,10 +902,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 
   Future<void> _selectDate(
-      BuildContext context,
-      DateTime initial,
-      void Function(DateTime) onPicked,
-      ) async {
+    BuildContext context,
+    DateTime initial,
+    void Function(DateTime) onPicked,
+  ) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -583,11 +913,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       lastDate: DateTime(2050),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.dark(
+          colorScheme: ColorScheme.dark(
             primary: Color(0xFF1DB954),
-            onPrimary: Colors.white,
-            surface: Color(0xFF1E1E1E),
-            onSurface: Colors.white,
+            onPrimary: AppColors.whiteSmoke,
+            surface: AppColors.surfaceMid,
+            onSurface: AppColors.whiteSmoke,
           ),
         ),
         child: child!,
@@ -621,22 +951,24 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       builder: (context, state, _) {
         final isPro = state.isPro;
         return Scaffold(
-          backgroundColor: const Color(0xFF0F0F0F),
+          backgroundColor: AppColors.backgroundDark3,
           appBar: AppBar(
-            backgroundColor: const Color(0xFF0F0F0F),
+            backgroundColor: AppColors.backgroundDark3,
             elevation: 0,
             leadingWidth: 80,
             leading: TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: AppColors.white70, fontSize: 16),
               ),
             ),
             title: Text(
-              (_editingTrack != null || _editingServerTrack != null) ? 'Update Track' : 'Upload',
-              style: const TextStyle(
-                color: Colors.white,
+              (_editingTrack != null || _editingServerTrack != null)
+                  ? 'Update Track'
+                  : 'Upload',
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -654,8 +986,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     ),
                     child: Text(
                       '$_uploadStepsCompleted/4',
-                      style: const TextStyle(
-                        color: Color(0xFFD47AFA),
+                      style: TextStyle(
+                        color: AppColors.flashPurple,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -681,11 +1013,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         children: [
-                          if (_currentTabIndex != 0 && !isPro) _buildProBanner(),
-                          if (_currentTabIndex != 0 && !isPro) const SizedBox(height: 20),
-                          if (_currentTabIndex == 0) _buildTrackInfoTab(context, isPro),
+                          if (_currentTabIndex != 0 && !isPro)
+                            _buildProBanner(),
+                          if (_currentTabIndex != 0 && !isPro)
+                            const SizedBox(height: 20),
+                          if (_currentTabIndex == 0)
+                            _buildTrackInfoTab(context, isPro),
                           if (_currentTabIndex == 1) _buildAdvancedTab(context),
-                          if (_currentTabIndex == 2) _buildPermissionsTab(isPro),
+                          if (_currentTabIndex == 2)
+                            _buildPermissionsTab(isPro),
                           const SizedBox(height: 24),
                           _buildSaveButton(),
                           const SizedBox(height: 40),
@@ -701,18 +1037,19 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       },
     );
   }
+
   Widget _buildTabBar() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: AppColors.white24),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
           _tabItem(0, 'Track Info'),
-          Container(width: 1, height: 20, color: Colors.white24),
+          Container(width: 1, height: 20, color: AppColors.white24),
           _tabItem(1, 'Advanced'),
-          Container(width: 1, height: 20, color: Colors.white24),
+          Container(width: 1, height: 20, color: AppColors.white24),
           _tabItem(2, 'Permissions'),
         ],
       ),
@@ -727,7 +1064,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: sel ? Colors.white12 : Colors.transparent,
+            color: sel ? AppColors.white12 : Colors.transparent,
             borderRadius: BorderRadius.horizontal(
               left: index == 0 ? const Radius.circular(20) : Radius.zero,
               right: index == 2 ? const Radius.circular(20) : Radius.zero,
@@ -737,7 +1074,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: sel ? Colors.white : Colors.white54,
+              color: sel ? AppColors.whiteSmoke : AppColors.white54,
               fontWeight: sel ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -765,14 +1102,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                         fit: BoxFit.cover,
                       )
                     : _editingServerTrack?.imageUrl != null
-                        ? Image.network(
-                            _editingServerTrack!.imageUrl!,
-                            width: 90,
-                            height: 90,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stack) => _coverPlaceholder(),
-                          )
-                        : _coverPlaceholder(),
+                    ? Image.network(
+                        _editingServerTrack!.imageUrl!,
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stack) =>
+                            _coverPlaceholder(),
+                      )
+                    : _coverPlaceholder(),
               ),
             ),
             const SizedBox(width: 16),
@@ -780,15 +1118,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Filename',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(color: AppColors.white54, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _selectedFileName ?? 'Tap below to select track',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
@@ -798,7 +1136,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (_editingTrack != null || _editingServerTrack != null)
-                    const Icon(Icons.lock_outline, color: Colors.white38, size: 20)
+                    Icon(Icons.lock_outline, color: AppColors.white54, size: 20)
                   else if (_selectedFile == null)
                     GestureDetector(
                       onTap: _pickAndUploadFile,
@@ -808,12 +1146,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white),
+                          border: Border.all(color: AppColors.whiteSmoke),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Select File',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     )
@@ -830,17 +1171,24 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white),
+                              border: Border.all(color: AppColors.whiteSmoke),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Replace',
-                              style: TextStyle(color: Colors.white, fontSize: 12),
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.check_circle, color: Colors.green, size: 24),
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 24,
+                        ),
                       ],
                     ),
                 ],
@@ -873,9 +1221,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           hint: 'Add a caption to your post (optional)',
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Privacy',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: AppColors.white70, fontSize: 12),
         ),
         const SizedBox(height: 12),
         _radioRight('Public', 'Anyone can find this', 'public'),
@@ -889,21 +1237,25 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white10,
+              color: AppColors.white10,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.access_time_filled, color: Colors.white38, size: 20),
+                Icon(
+                  Icons.access_time_filled,
+                  color: AppColors.white54,
+                  size: 20,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Schedule your release with ',
-                  style: TextStyle(color: Colors.white38, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                 ),
                 Text(
                   'Artist Pro',
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: AppColors.white54,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -914,7 +1266,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         const SizedBox(height: 16),
         Text(
           'Schedule',
-          style: TextStyle(color: isPro ? Colors.white70 : Colors.white38, fontSize: 12),
+          style: TextStyle(
+            color: isPro ? AppColors.white70 : AppColors.white54,
+            fontSize: 12,
+          ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -922,7 +1277,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             Expanded(
               child: Text(
                 'Set date and time to make your\ntrack public (Artist Pro).',
-                style: TextStyle(color: isPro ? Colors.white : Colors.white38, fontSize: 12),
+                style: TextStyle(
+                  color: isPro ? AppColors.whiteSmoke : AppColors.white54,
+                  fontSize: 12,
+                ),
               ),
             ),
             if (isPro)
@@ -938,7 +1296,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         const SizedBox(height: 8),
         Text(
           'Your track stays private until release.',
-          style: TextStyle(color: isPro ? Colors.white54 : Colors.white38, fontSize: 12),
+          style: TextStyle(
+            color: isPro ? AppColors.white54 : AppColors.white54,
+            fontSize: 12,
+          ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -946,15 +1307,19 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             GestureDetector(
               onTap: isPro && _enableReleaseDate
                   ? () => _selectDate(
-                context,
-                _releaseDate,
-                    (d) => setState(() => _releaseDate = d),
-              )
+                      context,
+                      _releaseDate,
+                      (d) => setState(() => _releaseDate = d),
+                    )
                   : null,
               child: Text(
-                _formatDate(isPro && _enableReleaseDate ? _releaseDate : _scheduleDate),
+                _formatDate(
+                  isPro && _enableReleaseDate ? _releaseDate : _scheduleDate,
+                ),
                 style: TextStyle(
-                  color: isPro && _enableReleaseDate ? Colors.white : Colors.white38,
+                  color: isPro && _enableReleaseDate
+                      ? AppColors.whiteSmoke
+                      : AppColors.white54,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -964,7 +1329,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             Text(
               _scheduleTime.format(context),
               style: TextStyle(
-                color: isPro && _enableReleaseDate ? Colors.white : Colors.white38,
+                color: isPro && _enableReleaseDate
+                    ? AppColors.whiteSmoke
+                    : AppColors.white54,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -1001,8 +1368,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               children: [
                 Text(
                   'PROCESSING $_uploadProgress%',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -1010,7 +1377,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 ),
                 GestureDetector(
                   onTap: _cancelUpload,
-                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                  child: Icon(
+                    Icons.close,
+                    color: AppColors.whiteSmoke,
+                    size: 14,
+                  ),
                 ),
               ],
             ),
@@ -1030,7 +1401,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             style: TextStyle(
               color: _artists.isEmpty
                   ? const Color(0xFFE57373)
-                  : Colors.white70,
+                  : AppColors.white70,
               fontSize: 12,
             ),
             children: const [
@@ -1047,46 +1418,46 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           children: _artists
               .map(
                 (a) => Chip(
-              label: Text(
-                a,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                  label: Text(
+                    a,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: AppColors.white12,
+                  deleteIcon: const Icon(
+                    Icons.close,
+                    color: Colors.black,
+                    size: 16,
+                  ),
+                  onDeleted: () => setState(() => _artists.remove(a)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Colors.transparent),
+                  ),
                 ),
-              ),
-              backgroundColor: Colors.white12,
-              deleteIcon: const Icon(
-                Icons.close,
-                color: Colors.black,
-                size: 16,
-              ),
-              onDeleted: () => setState(() => _artists.remove(a)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Colors.transparent),
-              ),
-            ),
-          )
+              )
               .toList(),
         ),
         if (_artists.isNotEmpty) const SizedBox(height: 12),
         TextField(
           controller: _artistInputController,
-          style: const TextStyle(color: Colors.white38, fontSize: 16),
+          style: TextStyle(color: AppColors.white54, fontSize: 16),
           decoration: InputDecoration(
             hintText: 'Add artist name',
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 16),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white24),
+            hintStyle: TextStyle(color: AppColors.white54, fontSize: 16),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white24),
             ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white38),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             isDense: true,
             suffixIcon: IconButton(
-              icon: const Icon(Icons.add, color: Colors.white54),
+              icon: Icon(Icons.add, color: AppColors.white54),
               onPressed: _addArtist,
             ),
           ),
@@ -1100,7 +1471,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               style: TextStyle(color: Color(0xFFE57373), fontSize: 12),
             ),
           ),
-        const Divider(color: Colors.white24, height: 24),
+        Divider(color: AppColors.white24, height: 24),
       ],
     );
   }
@@ -1121,12 +1492,13 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       children: [
         _inputField(
           'Record label',
+          controller: _recordLabelController,
           hint: 'Add your record label if applicable',
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Release date',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: AppColors.white70, fontSize: 12),
         ),
         const SizedBox(height: 8),
         Row(
@@ -1135,15 +1507,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             GestureDetector(
               onTap: _enableReleaseDate
                   ? () => _selectDate(
-                context,
-                _releaseDate,
-                    (d) => setState(() => _releaseDate = d),
-              )
+                      context,
+                      _releaseDate,
+                      (d) => setState(() => _releaseDate = d),
+                    )
                   : null,
               child: Text(
                 _formatDate(_releaseDate),
                 style: TextStyle(
-                  color: _enableReleaseDate ? Colors.white : Colors.white54,
+                  color: _enableReleaseDate
+                      ? AppColors.whiteSmoke
+                      : AppColors.white54,
                   fontSize: 16,
                 ),
               ),
@@ -1155,21 +1529,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
           ],
         ),
-        const Divider(color: Colors.white24, height: 24),
+        Divider(color: AppColors.white24, height: 24),
         const SizedBox(height: 8),
-        _inputField(
-          'Publisher ⓘ',
-          hint: 'Add your publisher if you have one',
-        ),
+        _inputField('Publisher ⓘ', controller: _publisherController, hint: 'Add your publisher if you have one'),
         const SizedBox(height: 24),
-        _inputField(
-          'ISRC ⓘ',
-          hint: 'e.g. USABC2312345',
-        ),
+        _inputField('ISRC ⓘ', controller: _isrcController, hint: 'e.g. USABC2312345'),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Content warning',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: AppColors.white70, fontSize: 12),
         ),
         const SizedBox(height: 8),
         Row(
@@ -1179,7 +1547,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(2),
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   child: const Text(
                     'E',
                     style: TextStyle(
@@ -1190,9 +1558,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Contains explicit content',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
                 ),
               ],
             ),
@@ -1203,12 +1571,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
           ],
         ),
-        const Divider(color: Colors.white24, height: 24),
+        Divider(color: AppColors.white24, height: 24),
         const SizedBox(height: 8),
-        _inputField(
-          'P line ⓘ',
-          hint: 'e.g. 2024 [Owner Name]',
-        ),
+        _inputField('P line ⓘ', controller: _pLineController, hint: 'e.g. 2024 [Owner Name]'),
       ],
     );
   }
@@ -1217,48 +1582,48 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Access Settings',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          style: TextStyle(color: AppColors.white54, fontSize: 12),
         ),
         const SizedBox(height: 16),
         _switchTile(
           'Enable direct downloads',
           'Allow listeners to download the original audio file.',
           _enableDirectDownloads,
-              (v) => setState(() => _enableDirectDownloads = v),
+          (v) => setState(() => _enableDirectDownloads = v),
         ),
         _switchTile(
           'Offline listening',
           'Allows this track to be played without an internet connection.',
           _offlineListening,
-              (v) => setState(() => _offlineListening = v),
+          (v) => setState(() => _offlineListening = v),
         ),
         _switchTile(
           'Include in RSS feed',
           'Choose whether this track appears in your public RSS feed.',
           _includeInRssFeed,
-              (v) => setState(() => _includeInRssFeed = v),
+          (v) => setState(() => _includeInRssFeed = v),
         ),
         _switchTile(
           'Display embed code',
           "Choose whether this track's embedded-player code is displayed publicly.",
           _displayEmbedCode,
-              (v) => setState(() => _displayEmbedCode = v),
+          (v) => setState(() => _displayEmbedCode = v),
         ),
         _switchTile(
           'Enable app playback',
           'Choose whether this track is playable outside of Beatza.',
           _enableAppPlayback,
-              (v) => setState(() => _enableAppPlayback = v),
+          (v) => setState(() => _enableAppPlayback = v),
         ),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Engagement privacy',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: AppColors.white70, fontSize: 14),
             ),
             if (!isPro)
               Container(
@@ -1273,7 +1638,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     SizedBox(width: 4),
                     Text(
                       'Unlock with Artist Pro',
-                      style: TextStyle(color: Colors.orangeAccent, fontSize: 10),
+                      style: TextStyle(
+                        color: Colors.orangeAccent,
+                        fontSize: 10,
+                      ),
                     ),
                   ],
                 ),
@@ -1290,7 +1658,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               'Allow people to comment on your track',
               '',
               _allowComments,
-                  (v) {
+              (v) {
                 if (isPro) setState(() => _allowComments = v);
               },
               disabled: !isPro,
@@ -1306,7 +1674,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               'Show track comments to public',
               '',
               _showCommentsToPublic,
-                  (v) {
+              (v) {
                 if (isPro) setState(() => _showCommentsToPublic = v);
               },
               disabled: !isPro,
@@ -1317,9 +1685,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Availability',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: AppColors.white70, fontSize: 14),
             ),
             if (!isPro)
               Container(
@@ -1334,7 +1702,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     SizedBox(width: 4),
                     Text(
                       'Unlock with Artist Pro',
-                      style: TextStyle(color: Colors.orangeAccent, fontSize: 10),
+                      style: TextStyle(
+                        color: Colors.orangeAccent,
+                        fontSize: 10,
+                      ),
                     ),
                   ],
                 ),
@@ -1351,19 +1722,76 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ProRadioTile(
           title: 'Exclusive regions',
           selected: _availability == 'exclusive',
-          onTap: isPro ? () => setState(() => _availability = 'exclusive') : _showProModal,
+          onTap: isPro
+              ? () => setState(() => _availability = 'exclusive')
+              : _showProModal,
           isPro: isPro,
         ),
         ProRadioTile(
           title: 'Blocked regions',
           selected: _availability == 'blocked',
-          onTap: isPro ? () => setState(() => _availability = 'blocked') : _showProModal,
+          onTap: isPro
+              ? () => setState(() => _availability = 'blocked')
+              : _showProModal,
           isPro: isPro,
         ),
+        if (isPro && _availability != 'worldwide') ...[
+          const SizedBox(height: 12),
+          _buildGeoSelector(),
+        ],
         const SizedBox(height: 16),
-        const Text(
+        // ── Mobile Pro Preview ────────────────────────────────────────────
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Mobile Pro Preview',
+              style: TextStyle(color: AppColors.white70, fontSize: 14),
+            ),
+            if (!isPro)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B2F2F),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.orangeAccent, size: 12),
+                    SizedBox(width: 4),
+                    Text(
+                      'Unlock with Artist Pro',
+                      style: TextStyle(
+                        color: Colors.orangeAccent,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: isPro ? null : _showProModal,
+          child: AbsorbPointer(
+            absorbing: !isPro,
+            child: _switchTile(
+              'Enable mobile pro preview',
+              'Allow a mobile preview of this track for Pro listeners.',
+              _mobileProPreview,
+              (v) {
+                if (isPro) setState(() => _mobileProPreview = v);
+              },
+              disabled: !isPro,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
           'Licensing',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          style: TextStyle(color: AppColors.white54, fontSize: 12),
         ),
         const SizedBox(height: 16),
         _radioRight(
@@ -1383,13 +1811,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       ],
     );
   }
+
   Widget _buildProBanner() {
     return GestureDetector(
       onTap: _showProModal,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
+          color: AppColors.surfaceMid,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -1400,21 +1829,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 color: const Color(0xFF8A2BE2).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.flash_on,
-                color: Colors.white38,
-                size: 16,
-              ),
+              child: Icon(Icons.flash_on, color: AppColors.white54, size: 16),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Amplify your track with ',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
             ),
-            const Text(
+            Text(
               'Artist Pro',
               style: TextStyle(
-                color: Colors.white38,
+                color: AppColors.white54,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -1426,30 +1851,27 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 
   Widget _inputField(
-      String label, {
-        TextEditingController? controller,
-        String? hint,
-        void Function(String)? onChanged,
-      }) {
+    String label, {
+    TextEditingController? controller,
+    String? hint,
+    void Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white38, fontSize: 12),
-        ),
+        Text(label, style: TextStyle(color: AppColors.white54, fontSize: 12)),
         TextField(
           controller: controller,
           onChanged: onChanged,
-          style: const TextStyle(color: Colors.white38, fontSize: 16),
+          style: TextStyle(color: AppColors.white54, fontSize: 16),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.white38, fontSize: 16),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white24),
+            hintStyle: TextStyle(color: AppColors.white54, fontSize: 16),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white24),
             ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white38),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             isDense: true,
@@ -1465,10 +1887,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
+          Text(label, style: TextStyle(color: AppColors.white70, fontSize: 12)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1477,27 +1896,27 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 value,
                 style: TextStyle(
                   color: value == 'Help fans discover your track'
-                      ? Colors.white38
-                      : Colors.white,
+                      ? AppColors.white54
+                      : AppColors.whiteSmoke,
                   fontSize: 16,
                 ),
               ),
-              const Icon(Icons.unfold_more, color: Colors.white54, size: 20),
+              Icon(Icons.unfold_more, color: AppColors.white54, size: 20),
             ],
           ),
-          const Divider(color: Colors.white24, height: 16),
+          Divider(color: AppColors.white24, height: 16),
         ],
       ),
     );
   }
 
   Widget _radioRight(
-      String title,
-      String subtitle,
-      String value, {
-        String? groupValue,
-        void Function(String)? onChanged,
-      }) {
+    String title,
+    String subtitle,
+    String value, {
+    String? groupValue,
+    void Function(String)? onChanged,
+  }) {
     final gv = groupValue ?? _privacy;
     final fn = onChanged ?? (v) => setState(() => _privacy = v);
     final sel = value == gv;
@@ -1514,8 +1933,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1524,8 +1943,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: AppColors.white54,
                         fontSize: 12,
                         height: 1.4,
                       ),
@@ -1539,9 +1958,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: sel ? Colors.white : Colors.transparent,
+                color: sel ? AppColors.whiteSmoke : Colors.transparent,
                 border: Border.all(
-                  color: sel ? Colors.white : Colors.white54,
+                  color: sel ? AppColors.whiteSmoke : AppColors.white54,
                   width: 1.5,
                 ),
               ),
@@ -1556,12 +1975,12 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 
   Widget _switchTile(
-      String title,
-      String subtitle,
-      bool value,
-      void Function(bool) onChange, {
-        bool disabled = false,
-      }) {
+    String title,
+    String subtitle,
+    bool value,
+    void Function(bool) onChange, {
+    bool disabled = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -1577,7 +1996,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    color: disabled ? Colors.white38 : Colors.white,
+                    color: disabled ? AppColors.white54 : AppColors.whiteSmoke,
                     fontSize: 14,
                   ),
                 ),
@@ -1586,7 +2005,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: disabled ? Colors.white24 : Colors.white54,
+                      color: disabled ? AppColors.white24 : AppColors.white54,
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -1598,7 +2017,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           CupertinoSwitch(
             value: value,
             activeTrackColor: Colors.green,
-            inactiveTrackColor: Colors.white24,
+            inactiveTrackColor: AppColors.white24,
             onChanged: disabled ? null : onChange,
           ),
         ],
@@ -1606,20 +2025,172 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     );
   }
 
+  void _showGeoBlockingPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.container,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.4,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, controller) => _GeoBlockingSheet(
+          initialRegions: Set.from(_selectedRegions),
+          initialCountries: Set.from(_selectedCountries),
+          scrollController: controller,
+          onSave: (regions, countries) => setState(() {
+            _selectedRegions = regions.toList();
+            _selectedCountries = countries.toList();
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeoSelector() {
+    final hasSelections =
+        _selectedRegions.isNotEmpty || _selectedCountries.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasSelections) ...[
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              ..._selectedRegions.map((r) => _geoChip(r, isRegion: true)),
+              ..._selectedCountries.map((c) => _geoChip(c, isRegion: false)),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _showGeoBlockingPicker,
+            icon: Icon(
+              Icons.add_location_alt_outlined,
+              color: AppColors.white54,
+              size: 16,
+            ),
+            label: Text(
+              'Add continent or country',
+              style: TextStyle(color: AppColors.white54, fontSize: 13),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.white24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _geoChip(String key, {required bool isRegion}) {
+    return Chip(
+      label: Text(
+        _displayGeoName(key),
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor:
+          isRegion ? AppColors.primaryOrange : AppColors.whiteSmoke,
+      deleteIcon: const Icon(Icons.close, size: 14, color: Colors.black54),
+      onDeleted: () => setState(() {
+        if (isRegion) {
+          _selectedRegions.remove(key);
+        } else {
+          _selectedCountries.remove(key);
+        }
+      }),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide.none,
+      ),
+    );
+  }
+
+  Future<void> _deleteTrack() async {
+    final trackId = _editingServerTrack?.id ?? _editingTrack?.serverId;
+    if (trackId == null || trackId.trim().isEmpty) {
+      _showErrorSnack('Cannot delete: track ID is missing.');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.containerMid,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Delete Track',
+          style: TextStyle(color: AppColors.whiteSmoke, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${_titleController.text.trim()}"? This cannot be undone.',
+          style: TextStyle(color: AppColors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF6B6B))),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    final result = await _trackApiService.deleteTrack(trackId: trackId);
+    if (!mounted) return;
+    setState(() => _isDeleting = false);
+
+    if (result.$1 == 200) {
+      Navigator.pop(context);
+      _showSuccessSnack('Track Deleted', subtitle: _titleController.text.trim());
+    } else {
+      _showErrorSnack(
+        result.$2.toString().isNotEmpty
+            ? result.$2.toString()
+            : 'Delete failed. Please try again.',
+      );
+    }
+  }
+
   Widget _buildSaveButton() {
-    final ready = _editingTrack != null || _editingServerTrack != null || (_selectedFile != null && _uploadComplete);
+    final isEditing = _editingTrack != null || _editingServerTrack != null;
+    final ready =
+        isEditing || (_selectedFile != null && _uploadComplete);
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            onPressed: (ready && !_isSaving) ? _saveTrack : null,
+            onPressed: (ready && !_isSaving && !_isDeleting) ? _saveTrack : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: ready ? Colors.white : Colors.white10,
+              backgroundColor: ready ? AppColors.whiteSmoke : AppColors.white10,
               disabledBackgroundColor: _isSaving
-                  ? Colors.white
-                  : Colors.white10,
+                  ? AppColors.whiteSmoke
+                  : AppColors.white10,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
@@ -1627,28 +2198,61 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
             child: _isSaving
                 ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                color: Colors.black,
-                strokeWidth: 2,
-              ),
-            )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.black,
+                      strokeWidth: 2,
+                    ),
+                  )
                 : Text(
-              'Save',
-              style: TextStyle(
-                color: ready ? Colors.black : Colors.white38,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                    'Save',
+                    style: TextStyle(
+                      color: ready ? Colors.black : AppColors.white54,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ),
+        if (isEditing) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: (_isSaving || _isDeleting) ? null : _deleteTrack,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFFF6B6B)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: _isDeleting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFF6B6B),
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                'Delete Track',
+                style: TextStyle(
+                  color: _isSaving ? AppColors.white54 : const Color(0xFFFF6B6B),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-        ),
+        ],
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Confirm your sounds comply with our Terms.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white38, fontSize: 11),
+          style: TextStyle(color: AppColors.white54, fontSize: 11),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -1656,10 +2260,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             context,
             MaterialPageRoute(builder: (_) => const ArtistTermsScreen()),
           ),
-          child: const Text(
+          child: Text(
             'TERMS OF USE',
             style: TextStyle(
-              color: Colors.white38,
+              color: AppColors.white54,
               fontSize: 11,
               fontWeight: FontWeight.bold,
               decoration: TextDecoration.underline,
@@ -1667,6 +2271,292 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Geo-blocking picker ───────────────────────────────────────────────────────
+
+class _GeoItem {
+  final String key;
+  final String display;
+  final bool isRegion;
+  const _GeoItem({
+    required this.key,
+    required this.display,
+    required this.isRegion,
+  });
+}
+
+class _GeoBlockingSheet extends StatefulWidget {
+  final Set<String> initialRegions;
+  final Set<String> initialCountries;
+  final ScrollController scrollController;
+  final void Function(Set<String> regions, Set<String> countries) onSave;
+
+  const _GeoBlockingSheet({
+    required this.initialRegions,
+    required this.initialCountries,
+    required this.scrollController,
+    required this.onSave,
+  });
+
+  @override
+  State<_GeoBlockingSheet> createState() => _GeoBlockingSheetState();
+}
+
+class _GeoBlockingSheetState extends State<_GeoBlockingSheet> {
+  late Set<String> _regions;
+  late Set<String> _countries;
+  final _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _regions = Set.from(widget.initialRegions);
+    _countries = Set.from(widget.initialCountries);
+    _search.addListener(
+      () => setState(() => _query = _search.text.toLowerCase().trim()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  List<_GeoItem> _buildItems() {
+    final items = <_GeoItem>[];
+    for (final region in _kGeoRegions) {
+      final regionDisplay = _displayGeoName(region);
+      final countries = _kRegionCountries[region] ?? [];
+      final regionMatches =
+          _query.isEmpty || regionDisplay.toLowerCase().contains(_query);
+      final matchingCountries = regionMatches
+          ? countries
+          : countries
+              .where(
+                (c) => _displayGeoName(c).toLowerCase().contains(_query),
+              )
+              .toList();
+
+      if (!regionMatches && matchingCountries.isEmpty) continue;
+
+      items.add(
+        _GeoItem(key: region, display: regionDisplay, isRegion: true),
+      );
+      for (final country in matchingCountries) {
+        items.add(
+          _GeoItem(
+            key: country,
+            display: _displayGeoName(country),
+            isRegion: false,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _buildItems();
+    final selectedCount = _regions.length + _countries.length;
+
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 12, bottom: 4),
+          width: 36,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppColors.white24,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Text(
+                'Regions & Countries',
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  widget.onSave(_regions, _countries);
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  selectedCount > 0 ? 'Done ($selectedCount)' : 'Done',
+                  style: TextStyle(
+                    color: AppColors.primaryOrange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: TextField(
+            controller: _search,
+            style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Add continent or country',
+              hintStyle: TextStyle(color: AppColors.white54, fontSize: 14),
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.white54,
+                size: 20,
+              ),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: AppColors.white54,
+                        size: 18,
+                      ),
+                      onPressed: _search.clear,
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppColors.white10,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Expanded(
+          child: items.isEmpty
+              ? Center(
+                  child: Text(
+                    'No results',
+                    style: TextStyle(color: AppColors.white54),
+                  ),
+                )
+              : ListView.builder(
+                  controller: widget.scrollController,
+                  itemCount: items.length,
+                  itemBuilder: (_, i) {
+                    final item = items[i];
+                    final sel = item.isRegion
+                        ? _regions.contains(item.key)
+                        : _countries.contains(item.key);
+                    return ListTile(
+                      contentPadding: EdgeInsets.only(
+                        left: item.isRegion ? 16 : 36,
+                        right: 16,
+                      ),
+                      leading: item.isRegion
+                          ? Icon(
+                              Icons.public,
+                              color: sel
+                                  ? AppColors.primaryOrange
+                                  : AppColors.white54,
+                              size: 18,
+                            )
+                          : null,
+                      title: Text(
+                        item.display,
+                        style: TextStyle(
+                          color: sel
+                              ? AppColors.primaryOrange
+                              : AppColors.whiteSmoke,
+                          fontSize: item.isRegion ? 15 : 14,
+                          fontWeight: item.isRegion
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      trailing: sel
+                          ? Icon(
+                              Icons.check,
+                              color: AppColors.primaryOrange,
+                              size: 18,
+                            )
+                          : null,
+                      tileColor:
+                          sel ? AppColors.white10 : Colors.transparent,
+                      onTap: () => setState(() {
+                        if (item.isRegion) {
+                          if (sel) {
+                            _regions.remove(item.key);
+                          } else {
+                            _regions.add(item.key);
+                          }
+                        } else {
+                          if (sel) {
+                            _countries.remove(item.key);
+                          } else {
+                            _countries.add(item.key);
+                          }
+                        }
+                      }),
+                    );
+                  },
+                ),
+        ),
+        if (selectedCount > 0)
+          Container(
+            constraints: const BoxConstraints(maxHeight: 56),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.white12)),
+            ),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                ..._regions.map((r) => _chip(r, isRegion: true)),
+                ..._countries.map((c) => _chip(c, isRegion: false)),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _chip(String key, {required bool isRegion}) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Chip(
+        label: Text(
+          _displayGeoName(key),
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor:
+            isRegion ? AppColors.primaryOrange : AppColors.whiteSmoke,
+        deleteIcon: const Icon(Icons.close, size: 14, color: Colors.black54),
+        onDeleted: () => setState(() {
+          if (isRegion) {
+            _regions.remove(key);
+          } else {
+            _countries.remove(key);
+          }
+        }),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide.none,
+        ),
+      ),
     );
   }
 }

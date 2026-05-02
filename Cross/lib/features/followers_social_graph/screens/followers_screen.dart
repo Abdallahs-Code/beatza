@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 // Package imports
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
@@ -7,6 +8,7 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class FollowersScreen extends StatefulWidget {
   final String userId;
@@ -109,7 +111,9 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
   }
 
   Future<void> _followUser(String targetUserId) async {
-    final previousIndex = _followers.indexWhere((f) => f.userId == targetUserId);
+    final previousIndex = _followers.indexWhere(
+      (f) => f.userId == targetUserId,
+    );
     if (previousIndex == -1) return;
     if (_followers[previousIndex].isBlocked) return;
 
@@ -134,7 +138,9 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
   }
 
   Future<void> _unfollowUser(String targetUserId) async {
-    final previousIndex = _followers.indexWhere((f) => f.userId == targetUserId);
+    final previousIndex = _followers.indexWhere(
+      (f) => f.userId == targetUserId,
+    );
     if (previousIndex == -1) return;
     if (_followers[previousIndex].isBlocked) return;
 
@@ -261,19 +267,19 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white54, width: 1.5),
+                  border: Border.all(color: AppColors.white54, width: 1.5),
                 ),
-                child: const Icon(Icons.group, color: Colors.white, size: 22),
+                child: Icon(Icons.group, color: AppColors.whiteSmoke, size: 22),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'People who follow you back',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -281,12 +287,12 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
                     SizedBox(height: 2),
                     Text(
                       'See your true friends',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: TextStyle(color: AppColors.white70, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.white70),
+              Icon(Icons.chevron_right, color: AppColors.white70),
             ],
           ),
         ),
@@ -294,9 +300,7 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
     );
   }
 
-  Widget _buildScrollableMessage({
-    required Widget child,
-  }) {
+  Widget _buildScrollableMessage({required Widget child}) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
@@ -312,14 +316,12 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
       appBar: AppBar(
         title: const Text('Followers'),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.whiteSmoke,
       ),
       body: RefreshIndicator(
         onRefresh: _loadFollowers,
         child: _isLoading
-            ? _buildScrollableMessage(
-                child: const CircularProgressIndicator(),
-              )
+            ? _buildScrollableMessage(child: const CircularProgressIndicator())
             : _errorMessage != null
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -348,8 +350,9 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
             : ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: _followers.length + 1,
-                separatorBuilder: (context, index) =>
-                    index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
+                separatorBuilder: (context, index) => index == 0
+                    ? const SizedBox.shrink()
+                    : const Divider(height: 1),
                 itemBuilder: (context, index) {
                   if (index == 0) return _buildTrueFriendsBanner();
                   final follower = _followers[index - 1];
@@ -373,6 +376,7 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
                 },
               ),
       ),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 }

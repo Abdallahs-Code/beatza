@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class ProRadioTile extends StatelessWidget {
   final String title;
@@ -26,7 +27,9 @@ class ProRadioTile extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                color: isPro || selected ? Colors.white : Colors.white38,
+                color: isPro || selected
+                    ? AppColors.whiteSmoke
+                    : AppColors.white54,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -36,11 +39,11 @@ class ProRadioTile extends StatelessWidget {
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: selected ? Colors.white : Colors.transparent,
+                color: selected ? AppColors.whiteSmoke : Colors.transparent,
                 border: Border.all(
                   color: selected
-                      ? Colors.white
-                      : (isPro ? Colors.white54 : Colors.white24),
+                      ? AppColors.whiteSmoke
+                      : (isPro ? AppColors.white54 : AppColors.white24),
                   width: 1.5,
                 ),
               ),

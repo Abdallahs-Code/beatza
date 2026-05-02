@@ -2,9 +2,7 @@ import 'package:cross_team5/features/messaging_track_sharing/models/chat_model.d
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:flutter/material.dart';
-
-const _kBg = Color(0xFF111111);
-const _kOrange = Color(0xFFFF5500);
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class SendToSheet extends StatefulWidget {
   /// The track permalink (link) to pre-fill in the chat input.
@@ -68,8 +66,8 @@ class _SendToSheetState extends State<SendToSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: _kBg,
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDark,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       padding: const EdgeInsets.only(top: 12, bottom: 24),
@@ -80,19 +78,19 @@ class _SendToSheetState extends State<SendToSheet> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: AppColors.white24,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 16),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'SEND TO',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   letterSpacing: 2.2,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -106,21 +104,27 @@ class _SendToSheetState extends State<SendToSheet> {
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: CircularProgressIndicator(
-                    color: _kOrange, strokeWidth: 2),
+                  color: AppColors.primaryOrange,
+                  strokeWidth: 2,
+                ),
               ),
             )
           else if (_error != null)
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Text(_error!,
-                  style: const TextStyle(color: Colors.white38, fontSize: 14)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: AppColors.white54, fontSize: 14),
+              ),
             )
           else if (_chats.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
-                child: Text('No recent conversations',
-                    style: TextStyle(color: Colors.white38, fontSize: 14)),
+                child: Text(
+                  'No recent conversations',
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
+                ),
               ),
             )
           else
@@ -144,15 +148,15 @@ class _SendToSheetState extends State<SendToSheet> {
                         children: [
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor: const Color(0xFF2A2A2A),
+                            backgroundColor: AppColors.containerMid,
                             backgroundImage: photo.isNotEmpty
                                 ? NetworkImage(photo)
                                 : null,
                             child: photo.isEmpty
                                 ? Text(
                                     _initials(name),
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -167,8 +171,10 @@ class _SendToSheetState extends State<SendToSheet> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 12),
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],

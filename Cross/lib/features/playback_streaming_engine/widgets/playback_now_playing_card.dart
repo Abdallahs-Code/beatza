@@ -139,7 +139,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.multitrack_audio_rounded,
                   color: AppColors.whiteSmoke,
@@ -153,7 +153,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             track?.title ?? 'No track selected',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -164,7 +164,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             track?.artistName ?? 'Choose one of the test tracks below',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.white60, fontSize: 14),
+            style: TextStyle(color: AppColors.white60, fontSize: 14),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -173,7 +173,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             children: [
               _StatusChip(label: _buildStatusLabel(widget.state.status)),
               if (track != null)
-                _StatusChip(label: _buildAccessLabel(track.accessState)),
+                _StatusChip(label: _buildAccessLabel(track)),
               if (widget.state.message != null &&
                   widget.state.message!.trim().isNotEmpty)
                 _StatusChip(label: widget.state.message!, highlighted: true),
@@ -192,7 +192,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                     ),
                   )
                 : _waveformPeaks.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'Waveform unavailable',
                       style: TextStyle(color: AppColors.white60, fontSize: 12),
@@ -226,7 +226,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                           height: 96,
                           barWidth: 3,
                           gap: 2,
-                          activeColor: const Color(0xFFFF5500),
+                          activeColor: AppColors.primaryOrange,
                           inactiveColor: const Color(0xFFBDBDBD),
                         ),
                       );
@@ -237,12 +237,12 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             children: [
               Text(
                 _formatDuration(widget.state.currentPosition),
-                style: const TextStyle(color: AppColors.white60, fontSize: 12),
+                style: TextStyle(color: AppColors.white60, fontSize: 12),
               ),
               const Spacer(),
               Text(
                 _formatDuration(Duration(milliseconds: maxSeek.toInt())),
-                style: const TextStyle(color: AppColors.white60, fontSize: 12),
+                style: TextStyle(color: AppColors.white60, fontSize: 12),
               ),
             ],
           ),
@@ -292,10 +292,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
                 child: Text(
                   '${(widget.state.volume * 100).round()}%',
                   textAlign: TextAlign.end,
-                  style: const TextStyle(
-                    color: AppColors.white60,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppColors.white60, fontSize: 12),
                 ),
               ),
             ],
@@ -319,10 +316,11 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
     };
   }
 
-  String _buildAccessLabel(PlaybackAccessState accessState) {
-    return switch (accessState) {
+  String _buildAccessLabel(PlaybackTrackModel track) {
+    return switch (track.accessState) {
       PlaybackAccessState.playable => 'Full track',
-      PlaybackAccessState.preview => 'Preview only',
+      PlaybackAccessState.preview =>
+        track.mobileProPreview ? 'Pro preview' : 'Preview only',
       PlaybackAccessState.blocked => 'Not playable',
     };
   }
@@ -367,7 +365,7 @@ class SoundCloudWaveform extends StatelessWidget {
     this.height = 100,
     this.barWidth = 3,
     this.gap = 2,
-    this.activeColor = const Color(0xFFFF5500),
+    this.activeColor = AppColors.primaryOrange,
     this.inactiveColor = const Color(0xFFBDBDBD),
   });
 

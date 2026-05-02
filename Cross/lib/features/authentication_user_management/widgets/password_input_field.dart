@@ -1,6 +1,8 @@
 // Dart imports
 import 'package:flutter/material.dart';
 
+import 'package:cross_team5/core/theme/app_colors.dart';
+
 class PasswordInputField extends StatefulWidget {
   final String hintText;
   final TextEditingController controller;
@@ -23,12 +25,12 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
     return TextField(
       controller: widget.controller,
       obscureText: _obscureText,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: AppColors.whiteSmoke),
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: const TextStyle(color: Colors.white54),
+        hintStyle: TextStyle(color: AppColors.white54),
         filled: true,
-        fillColor: const Color(0xFF333333),
+        fillColor: AppColors.inputFill,
         suffixIcon: IconButton(
           onPressed: () {
             setState(() {
@@ -39,20 +41,20 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
             _obscureText
                 ? Icons.visibility_outlined
                 : Icons.visibility_off_outlined,
-            color: Colors.white54,
+            color: AppColors.white54,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.white54),
+          borderSide: BorderSide(color: AppColors.white54),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.white54),
+          borderSide: BorderSide(color: AppColors.white54),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.white70),
+          borderSide: BorderSide(color: AppColors.white70),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

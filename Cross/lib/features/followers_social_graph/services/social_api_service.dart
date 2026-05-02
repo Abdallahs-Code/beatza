@@ -153,10 +153,7 @@ class SocialApiService {
 
       return (
         response.statusCode,
-        _extractMessage(
-          response,
-          fallbackMessage: "Failed to fetch followers",
-        ),
+        _extractMessage(response, fallbackMessage: "Failed to fetch followers"),
       );
     } catch (err) {
       return (500, "Request failed: $err");
@@ -186,10 +183,7 @@ class SocialApiService {
 
       return (
         response.statusCode,
-        _extractMessage(
-          response,
-          fallbackMessage: "Failed to fetch following",
-        ),
+        _extractMessage(response, fallbackMessage: "Failed to fetch following"),
       );
     } catch (err) {
       return (500, "Request failed: $err");

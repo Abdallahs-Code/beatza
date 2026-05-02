@@ -9,6 +9,7 @@
 // Pull-to-refresh: RefreshIndicator
 
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/audio_upload_track_management_routes.dart';
@@ -133,7 +134,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
           content: Text(
             nowPrivate ? 'Track set to private' : 'Track set to public',
           ),
-          backgroundColor: const Color(0xFF2A2A2A),
+          backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -166,10 +167,10 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
+        backgroundColor: AppColors.container,
+        title: Text(
           'Delete track',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteSmoke),
         ),
         content: Text(
           'Delete "${track.title}"? This cannot be undone.',
@@ -217,9 +218,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Track deleted'),
-          backgroundColor: Color(0xFF2A2A2A),
+          backgroundColor: AppColors.containerMid,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -232,26 +233,29 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: AppColors.homeBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0A),
+        backgroundColor: AppColors.homeBackground,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Your Tracks',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppColors.whiteSmoke),
         actions: [
           IconButton(
             icon: const Icon(
               Icons.cloud_upload_outlined,
-              color: Color(0xFFFF5500),
+              color: AppColors.primaryOrange,
             ),
             onPressed: () =>
                 Navigator.pushNamed(context, AudioUploadRoutes.uploadTrack),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white54),
+            icon: Icon(Icons.refresh, color: AppColors.white54),
             onPressed: _loadTracks,
           ),
         ],
@@ -263,7 +267,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
           : RefreshIndicator(
               onRefresh: _loadTracks,
               color: Colors.orange,
-              backgroundColor: const Color(0xFF1A1A1A),
+              backgroundColor: AppColors.container,
               child: _tracks.isEmpty ? _emptyState() : _trackList(),
             ),
     );
@@ -304,9 +308,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF141414),
+            color: AppColors.backgroundDark2,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: AppColors.white10),
           ),
           child: Row(
             children: [
@@ -315,7 +319,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C1C1C),
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: ClipRRect(
@@ -324,12 +328,10 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                       ? Image.network(
                           track.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const Icon(
-                            Icons.music_note,
-                            color: Colors.white54,
-                          ),
+                          errorBuilder: (_, _, _) =>
+                              Icon(Icons.music_note, color: AppColors.white54),
                         )
-                      : const Icon(Icons.music_note, color: Colors.white54),
+                      : Icon(Icons.music_note, color: AppColors.white54),
                 ),
               ),
               const SizedBox(width: 14),
@@ -343,8 +345,8 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                       track.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -354,29 +356,29 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                       children: [
                         Icon(
                           track.isPrivate ? Icons.lock_outline : Icons.public,
-                          color: const Color(0xFF9A9A9A),
+                          color: AppColors.greyMedium,
                           size: 12,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           track.isPrivate ? 'Private' : 'Public',
-                          style: const TextStyle(
-                            color: Color(0xFF9A9A9A),
+                          style: TextStyle(
+                            color: AppColors.greyMedium,
                             fontSize: 12,
                           ),
                         ),
                         if (track.numPlays > 0) ...[
-                          const Text(
+                          Text(
                             ' · ',
                             style: TextStyle(
-                              color: Color(0xFF9A9A9A),
+                              color: AppColors.greyMedium,
                               fontSize: 12,
                             ),
                           ),
                           Text(
                             '${_fmt(track.numPlays)} plays',
-                            style: const TextStyle(
-                              color: Color(0xFF9A9A9A),
+                            style: TextStyle(
+                              color: AppColors.greyMedium,
                               fontSize: 12,
                             ),
                           ),
@@ -403,27 +405,24 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                   else
                     Switch(
                       value: !track.isPrivate,
-                      activeThumbColor: const Color(0xFFFF5500),
+                      activeThumbColor: AppColors.primaryOrange,
                       onChanged: (_) => _toggleVisibility(track),
                     ),
                   Text(
                     track.isPrivate ? 'Private' : 'Public',
-                    style: const TextStyle(
-                      color: Color(0xFF9A9A9A),
-                      fontSize: 10,
-                    ),
+                    style: TextStyle(color: AppColors.greyMedium, fontSize: 10),
                   ),
                 ],
               ),
 
               // More options
               PopupMenuButton<String>(
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert,
-                  color: Color(0xFF9A9A9A),
+                  color: AppColors.greyMedium,
                   size: 20,
                 ),
-                color: const Color(0xFF1A1A1A),
+                color: AppColors.container,
                 onSelected: (v) {
                   if (v == 'delete') _deleteTrack(track);
                 },
@@ -468,7 +467,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.whiteSmoke,
               ),
             ),
           ],
@@ -496,7 +495,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
             label: const Text('Upload first track'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.whiteSmoke,
             ),
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 // Package imports
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
@@ -58,7 +59,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                   height: 300,
                   width: 300,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 4),
+                    border: Border.all(color: AppColors.whiteSmoke, width: 4),
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
@@ -77,7 +78,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                     children: [
                       // Status icon
                       if (_status == 'approving')
-                        const CircularProgressIndicator(color: Colors.white)
+                        CircularProgressIndicator(color: AppColors.whiteSmoke)
                       else if (_status == 'success')
                         const Icon(
                           Icons.check_circle,
@@ -100,8 +101,8 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                             : _status == 'success'
                             ? '✓ Login approved!'
                             : 'Approval failed',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -111,9 +112,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                       // Subtext for success
                       if (_status == 'success') ...[
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Return to desktop to continue',
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: AppColors.white70),
                         ),
                       ],
 
@@ -123,7 +124,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                         ElevatedButton(
                           onPressed: _resetScanner,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: AppColors.whiteSmoke,
                             foregroundColor: Colors.black,
                           ),
                           child: const Text('Try Again'),

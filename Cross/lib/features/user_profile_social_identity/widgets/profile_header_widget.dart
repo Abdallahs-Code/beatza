@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 // Package imports
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
@@ -19,7 +20,7 @@ class ProfileHeaderWidget extends StatelessWidget {
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 64),
           decoration: BoxDecoration(
-            color: const Color(0xFF141414),
+            color: AppColors.backgroundDark2,
             image: userProfile.bannerImgLink.trim().isNotEmpty
                 ? DecorationImage(
                     image: NetworkImage(userProfile.bannerImgLink),
@@ -40,11 +41,11 @@ class ProfileHeaderWidget extends StatelessWidget {
               ),
             ),
             child: userProfile.bannerImgLink.trim().isEmpty
-                ? const Center(
+                ? Center(
                     child: Icon(
                       Icons.image_not_supported_outlined,
                       size: 48,
-                      color: Colors.white38,
+                      color: AppColors.white54,
                     ),
                   )
                 : null,
@@ -57,7 +58,7 @@ class ProfileHeaderWidget extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF0A0A0A), width: 5),
+                border: Border.all(color: AppColors.homeBackground, width: 5),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.25),
@@ -68,7 +69,7 @@ class ProfileHeaderWidget extends StatelessWidget {
               ),
               child: CircleAvatar(
                 radius: 64,
-                backgroundColor: const Color(0xFF1E1E1E),
+                backgroundColor: AppColors.surfaceMid,
                 child: ClipOval(
                   child: SizedBox(
                     width: 128,
@@ -111,8 +112,8 @@ class _AvatarFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF1E1E1E),
-      child: const Icon(Icons.person, size: 52, color: Color(0xFF71717A)),
+      color: AppColors.surfaceMid,
+      child: Icon(Icons.person, size: 52, color: AppColors.greyZinc),
     );
   }
 }

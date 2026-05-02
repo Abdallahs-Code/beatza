@@ -28,7 +28,7 @@ class RecentlyPlayedScreen extends StatelessWidget {
                     icon: Icons.arrow_back_ios_new_rounded,
                     onTap: () => Navigator.pop(context),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Text(
                         AppText.recentlyPlayed,
@@ -92,14 +92,14 @@ class _RecentlyPlayedEmptyState extends StatelessWidget {
               color: AppColors.tileDark,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.library_music_rounded,
               color: AppColors.white60,
               size: 28,
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

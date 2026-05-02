@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -22,7 +23,7 @@ enum TrackRepeatMode { none, all, one }
 
 class PlaybackStreamingEngineService extends ChangeNotifier {
   static final PlaybackStreamingEngineService shared =
-  PlaybackStreamingEngineService._shared();
+      PlaybackStreamingEngineService._shared();
 
   final AudioPlayerClient _audioPlayerClient;
   final FlutterSecureStorage _storage;
@@ -39,6 +40,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   bool _previewLimitReached = false;
   String? _lastHistoryReportedTrackId;
+
+  // ── V2 listen-count tracking ─────────────────────────────────────────────
+  // High-water mark: the furthest position (in seconds) the user has reached
+  // in the current track session. Using max() prevents seek-backward inflation.
+  int _maxListenedSeconds = 0;
+  // UUID generated once per track session; sent as sessionIdPlay for server-side
+  // deduplication. Refreshed each time a new track starts.
+  String _currentListenSessionId = '';
+  // Prevents double-reporting the same track (e.g. completion then immediate skip).
+  String? _lastListenCountReportedTrackId;
+
   int _outputLevelRequestId = 0;
   Future<bool> Function()? _ensureNextTrackAvailable;
 
@@ -55,20 +67,22 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   TrackRepeatMode _repeatMode = TrackRepeatMode.none;
 
   PlaybackStreamingEngineService._shared()
-      : _audioPlayerClient = AudioplayersClient(),
-        _storage = const FlutterSecureStorage(),
-        _httpClient = http.Client() {
+    : _audioPlayerClient = AudioplayersClient(),
+      _storage = const FlutterSecureStorage(),
+      _httpClient = http.Client() {
     _bindPlayerStreams();
+    _bindSubscriptionListener();
   }
 
   PlaybackStreamingEngineService({
     AudioPlayerClient? audioPlayerClient,
     FlutterSecureStorage? storage,
     http.Client? httpClient,
-  })  : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
-        _storage = storage ?? const FlutterSecureStorage(),
-        _httpClient = httpClient ?? http.Client() {
+  }) : _audioPlayerClient = audioPlayerClient ?? AudioplayersClient(),
+       _storage = storage ?? const FlutterSecureStorage(),
+       _httpClient = httpClient ?? http.Client() {
     _bindPlayerStreams();
+    _bindSubscriptionListener();
   }
 
   PlaybackStateModel get state => _state;
@@ -83,12 +97,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   TrackRepeatMode get repeatMode => _repeatMode;
 
   Future<void> playTrack(
-      PlaybackTrackModel track, {
-        List<PlaybackTrackModel>? queue,
-        int? startIndex,
-        Future<bool> Function()? ensureNextTrackAvailable,
-        bool countForAd = true,
-      }) async {
+    PlaybackTrackModel track, {
+    List<PlaybackTrackModel>? queue,
+    int? startIndex,
+    Future<bool> Function()? ensureNextTrackAvailable,
+    bool countForAd = true,
+  }) async {
     // Never interrupt an ad. When the ad finishes its onAdFinished callback
     // calls playTrack with countForAd:false, bypassing this guard because
     // isAdPlaying is already false at that point.
@@ -98,13 +112,15 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     // Using countForAd:false for the post-ad resume call avoids double-counting.
     if (countForAd && !PaymentService.subscriptionSuccessNotifier.isPro) {
       final bool adScheduled = AdService.shared.checkAndScheduleAd(
-        onAdFinished: () => unawaited(playTrack(
-          track,
-          queue: queue,
-          startIndex: startIndex,
-          ensureNextTrackAvailable: ensureNextTrackAvailable,
-          countForAd: false,
-        )),
+        onAdFinished: () => unawaited(
+          playTrack(
+            track,
+            queue: queue,
+            startIndex: startIndex,
+            ensureNextTrackAvailable: ensureNextTrackAvailable,
+            countForAd: false,
+          ),
+        ),
       );
       if (adScheduled) {
         _outputLevelRequestId++;
@@ -140,7 +156,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       );
     } else {
       final int existingIndex = _activeQueue.indexWhere(
-            (item) => item.id == track.id,
+        (item) => item.id == track.id,
       );
       if (existingIndex >= 0) {
         _currentQueueIndex = existingIndex;
@@ -162,7 +178,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         _state.copyWith(
           currentTrack: track,
           status: PlaybackStatus.blocked,
-          message: track.blockedReason ?? 'This track is currently unavailable.',
+          message:
+              track.blockedReason ?? 'This track is currently unavailable.',
           currentPosition: Duration.zero,
           totalDuration: track.duration ?? Duration.zero,
         ),
@@ -188,6 +205,16 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     try {
+      // Finalize listen-count for the track we are leaving before its state
+      // (position, session ID) is reset below.
+      final String? previousTrackId = _state.currentTrack?.id;
+      if (previousTrackId != null) _finalizeListenCount(previousTrackId);
+
+      // Start a fresh listen session for the incoming track.
+      _maxListenedSeconds = 0;
+      _currentListenSessionId = _generateUuid();
+      _lastListenCountReportedTrackId = null;
+
       _previewLimitReached = false;
       _lastHistoryReportedTrackId = null;
 
@@ -212,7 +239,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
       PlaybackTrackModel trackToPlay = track;
       try {
-        final localPath = await OfflineDownloadService.shared.getLocalTrackPath(track.id);
+        final localPath = await OfflineDownloadService.shared.getLocalTrackPath(
+          track.id,
+        );
         if (seq != _playSeq) return;
         if (localPath != null && await File(localPath).exists()) {
           if (seq != _playSeq) return;
@@ -231,7 +260,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
       // This call won the race — confirm playback and restore event processing.
       _ignorePlayerStateUpdates = false;
-      _updateState(_state.copyWith(status: PlaybackStatus.playing, clearMessage: true));
+      _updateState(
+        _state.copyWith(status: PlaybackStatus.playing, clearMessage: true),
+      );
       _reportTrackPlayedIfNeeded();
       await _enforceCurrentOutputLevelForTrack(track.id);
     } catch (error) {
@@ -345,8 +376,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   Future<void> stop() async {
     _outputLevelRequestId++;
-    _playSeq++;                        // cancel any in-progress playTrack
-    _ignorePlayerStateUpdates = false; // restore so the stopped event is processed
+    _playSeq++; // cancel any in-progress playTrack
+    _ignorePlayerStateUpdates =
+        false; // restore so the stopped event is processed
     await _audioPlayerClient.stop();
     _previewLimitReached = false;
     _updateState(
@@ -423,10 +455,10 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   void _setQueueContext(
-      List<PlaybackTrackModel> queue, {
-        String? preferredTrackId,
-        int? preferredIndex,
-      }) {
+    List<PlaybackTrackModel> queue, {
+    String? preferredTrackId,
+    int? preferredIndex,
+  }) {
     _activeQueue = List<PlaybackTrackModel>.from(queue);
 
     if (_activeQueue.isEmpty) {
@@ -477,7 +509,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     final int currentIndexInPagedTracks = pagedTracks.indexWhere(
-          (item) => item.id == currentTrack.id,
+      (item) => item.id == currentTrack.id,
     );
 
     if (currentIndexInPagedTracks < 0) {
@@ -504,6 +536,72 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     });
   }
 
+  // Re-evaluate gating on the current track and queue whenever the listener's
+  // Pro status flips. Without this, a Pro user who cancels mid-session keeps
+  // playing the full track because the cached models were locked at parse time.
+  void _bindSubscriptionListener() {
+    PaymentService.subscriptionSuccessNotifier.addListener(
+      _onSubscriptionChanged,
+    );
+  }
+
+  PlaybackTrackModel _reapplyAccessState(PlaybackTrackModel track) {
+    final bool effectivelyPlayable =
+        track.enableAppPlayback && track.isAvailableForUser;
+    final bool isProListener =
+        PaymentService.subscriptionSuccessNotifier.value.isPro;
+    final bool gateToPreview =
+        effectivelyPlayable && track.mobileProPreview && !isProListener;
+    final PlaybackAccessState resolved = effectivelyPlayable
+        ? (gateToPreview
+              ? PlaybackAccessState.preview
+              : PlaybackAccessState.playable)
+        : PlaybackAccessState.blocked;
+
+    if (resolved == track.accessState) return track;
+    return track.copyWith(
+      accessState: resolved,
+      previewDuration: gateToPreview ? const Duration(seconds: 30) : null,
+    );
+  }
+
+  void _onSubscriptionChanged() {
+    if (_activeQueue.isNotEmpty) {
+      _activeQueue = _activeQueue.map(_reapplyAccessState).toList();
+    }
+
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) return;
+
+    final PlaybackTrackModel updated = _reapplyAccessState(currentTrack);
+    if (identical(updated, currentTrack)) return;
+
+    if (updated.accessState == PlaybackAccessState.preview) {
+      // Downgrade: enforce the 30s cap on the in-progress track.
+      final Duration limit = updated.effectivePreviewDuration;
+      if (_state.currentPosition >= limit) {
+        _previewLimitReached = true;
+        unawaited(_audioPlayerClient.pause());
+        unawaited(_audioPlayerClient.seek(Duration.zero));
+        _updateState(
+          _state.copyWith(
+            currentTrack: updated,
+            status: PlaybackStatus.previewEnded,
+            currentPosition: limit,
+            message: 'Preview finished. Unlock the full track to keep listening.',
+          ),
+        );
+      } else {
+        _updateState(_state.copyWith(currentTrack: updated));
+      }
+    } else {
+      // Upgrade or unchanged status: clear preview latch so the engine
+      // resumes treating the track as fully playable.
+      _previewLimitReached = false;
+      _updateState(_state.copyWith(currentTrack: updated));
+    }
+  }
+
   void _handlePlayerStateChanged(PlayerState playerState) {
     // During a track transition suppress all audio-player events — playTrack()
     // owns state until it either confirms playback or hands off to a newer call.
@@ -512,13 +610,13 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     final PlaybackStatus nextStatus = switch (playerState) {
       PlayerState.playing => PlaybackStatus.playing,
       PlayerState.paused =>
-      _previewLimitReached
-          ? PlaybackStatus.previewEnded
-          : PlaybackStatus.paused,
+        _previewLimitReached
+            ? PlaybackStatus.previewEnded
+            : PlaybackStatus.paused,
       PlayerState.stopped =>
-      _previewLimitReached
-          ? PlaybackStatus.previewEnded
-          : PlaybackStatus.stopped,
+        _previewLimitReached
+            ? PlaybackStatus.previewEnded
+            : PlaybackStatus.stopped,
       PlayerState.completed => PlaybackStatus.completed,
       PlayerState.disposed => PlaybackStatus.stopped,
     };
@@ -544,6 +642,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       return;
     }
 
+    // Track furthest listened position for V2 play-count reporting.
+    final int posSeconds = position.inSeconds;
+    if (posSeconds > _maxListenedSeconds) {
+      _maxListenedSeconds = posSeconds;
+    }
+
     if (currentTrack.accessState == PlaybackAccessState.preview) {
       final Duration previewLimit = currentTrack.effectivePreviewDuration;
       if (position >= previewLimit) {
@@ -564,6 +668,10 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     _outputLevelRequestId++;
     _previewLimitReached = false;
+
+    // Report the completed track's full listen duration before moving on.
+    final String? completedId = _state.currentTrack?.id;
+    if (completedId != null) _finalizeListenCount(completedId);
 
     // Ad counting now happens inside playTrack(), so advancing to the next
     // track here will automatically trigger the ad check when that track starts.
@@ -627,23 +735,57 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     );
   }
 
+  // Records the track in listening history once per track session (on play start).
   void _reportTrackPlayedIfNeeded() {
     final PlaybackTrackModel? currentTrack = _state.currentTrack;
-    if (currentTrack == null) {
-      return;
-    }
-
-    if (currentTrack.id.trim().isEmpty) {
-      return;
-    }
-
-    if (_lastHistoryReportedTrackId == currentTrack.id) {
-      return;
-    }
+    if (currentTrack == null || currentTrack.id.trim().isEmpty) return;
+    if (_lastHistoryReportedTrackId == currentTrack.id) return;
 
     _lastHistoryReportedTrackId = currentTrack.id;
     _sendPlayedHistoryRequest(currentTrack.id);
-    _sendListenCountRequest(currentTrack.id);
+  }
+
+  // Sends the V2 play-count request for [trackId] using the accumulated
+  // listen duration. Guards against double-reporting the same session.
+  void _finalizeListenCount(String trackId) {
+    if (trackId.isEmpty) {
+      debugPrint('[ListenCount] ⏭️ skip — empty trackId');
+      return;
+    }
+    if (_lastListenCountReportedTrackId == trackId) {
+      debugPrint('[ListenCount] ⏭️ skip — already reported for $trackId');
+      return;
+    }
+    if (_maxListenedSeconds <= 0) {
+      debugPrint('[ListenCount] ⏭️ skip — _maxListenedSeconds=0 for $trackId');
+      return;
+    }
+
+    debugPrint(
+      '[ListenCount] 📤 finalizing trackId=$trackId, '
+      'listenedDuration=${_maxListenedSeconds}s, sessionId=$_currentListenSessionId',
+    );
+    _lastListenCountReportedTrackId = trackId;
+    _sendListenCountRequest(
+      trackId: trackId,
+      listenedDuration: _maxListenedSeconds,
+      sessionId: _currentListenSessionId.isEmpty
+          ? _generateUuid()
+          : _currentListenSessionId,
+    );
+  }
+
+  // RFC 4122 UUID v4 using cryptographically secure random bytes.
+  String _generateUuid() {
+    final b = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant 1
+    String hex(int v) => v.toRadixString(16).padLeft(2, '0');
+    return '${hex(b[0])}${hex(b[1])}${hex(b[2])}${hex(b[3])}-'
+        '${hex(b[4])}${hex(b[5])}-'
+        '${hex(b[6])}${hex(b[7])}-'
+        '${hex(b[8])}${hex(b[9])}-'
+        '${hex(b[10])}${hex(b[11])}${hex(b[12])}${hex(b[13])}${hex(b[14])}${hex(b[15])}';
   }
 
   Future<void> _sendPlayedHistoryRequest(String trackId) async {
@@ -675,21 +817,41 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
   }
 
-  Future<void> _sendListenCountRequest(String trackId) async {
+  Future<void> _sendListenCountRequest({
+    required String trackId,
+    required int listenedDuration,
+    required String sessionId,
+  }) async {
     try {
       final String? accessToken = await _storage.read(key: 'access_token');
-      if (accessToken == null || accessToken.trim().isEmpty) return;
-      final String url =
-          '${ApiServices().baseUrl}/api/tracks/v1/listen/$trackId';
-      await _httpClient.patch(
+      if (accessToken == null || accessToken.trim().isEmpty) {
+        debugPrint('[ListenCount] ❌ no access token — skipping');
+        return;
+      }
+      final url = '${ApiServices().baseUrl}/api/tracks/v2/listen';
+      debugPrint(
+        '[ListenCount] PATCH $url body={trackId:$trackId, '
+        'listenedDuration:$listenedDuration, sessionIdPlay:$sessionId}',
+      );
+      final response = await _httpClient.patch(
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
           'User-Agent': 'Android',
         },
+        body: jsonEncode({
+          'trackId': trackId,
+          'listenedDuration': listenedDuration,
+          'sessionIdPlay': sessionId,
+        }),
       );
-    } catch (_) {}
+      debugPrint(
+        '[ListenCount] ← ${response.statusCode} body=${response.body}',
+      );
+    } catch (error) {
+      debugPrint('[ListenCount] ❌ network error: $error');
+    }
   }
 
   void toggleShuffle() {
@@ -697,19 +859,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
     final PlaybackTrackModel? currentTrack =
         _currentQueueIndex >= 0 && _currentQueueIndex < _activeQueue.length
-            ? _activeQueue[_currentQueueIndex]
-            : null;
+        ? _activeQueue[_currentQueueIndex]
+        : null;
 
     if (!_isShuffled) {
       _originalQueue = List<PlaybackTrackModel>.from(_activeQueue);
-      final List<PlaybackTrackModel> remaining =
-          List<PlaybackTrackModel>.from(_activeQueue);
+      final List<PlaybackTrackModel> remaining = List<PlaybackTrackModel>.from(
+        _activeQueue,
+      );
       if (currentTrack != null) remaining.removeAt(_currentQueueIndex);
       remaining.shuffle(Random());
-      _activeQueue = [
-        ?currentTrack,
-        ...remaining,
-      ];
+      _activeQueue = [?currentTrack, ...remaining];
       _currentQueueIndex = 0;
       _isShuffled = true;
     } else {
@@ -740,8 +900,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     if (absoluteIndex < 0 || absoluteIndex >= _activeQueue.length) return;
     if (absoluteIndex == _currentQueueIndex) return;
 
-    final List<PlaybackTrackModel> queue =
-        List<PlaybackTrackModel>.from(_activeQueue);
+    final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+      _activeQueue,
+    );
     queue.removeAt(absoluteIndex);
     _activeQueue = queue;
 
@@ -763,8 +924,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     if (absNew < 0 || absNew >= _activeQueue.length) return;
     if (absOld == absNew) return;
 
-    final List<PlaybackTrackModel> queue =
-        List<PlaybackTrackModel>.from(_activeQueue);
+    final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+      _activeQueue,
+    );
     final PlaybackTrackModel item = queue.removeAt(absOld);
     queue.insert(absNew, item);
     _activeQueue = queue;
@@ -777,8 +939,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _activeQueue = [track];
       _currentQueueIndex = 0;
     } else {
-      final List<PlaybackTrackModel> queue =
-          List<PlaybackTrackModel>.from(_activeQueue);
+      final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+        _activeQueue,
+      );
       queue.insert(_currentQueueIndex + 1, track);
       _activeQueue = queue;
     }
@@ -786,8 +949,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   void addToQueueLast(PlaybackTrackModel track) {
-    final List<PlaybackTrackModel> queue =
-        List<PlaybackTrackModel>.from(_activeQueue);
+    final List<PlaybackTrackModel> queue = List<PlaybackTrackModel>.from(
+      _activeQueue,
+    );
     queue.add(track);
     _activeQueue = queue;
     notifyListeners();

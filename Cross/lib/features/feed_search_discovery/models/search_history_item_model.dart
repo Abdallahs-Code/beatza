@@ -1,5 +1,5 @@
 // Model: SearchHistoryItemModel
-// Shape from GET /api/feed/v1/search/history
+// Shape from GET /api/public/feed/v1/search/history
 // Response:
 // [ { "id": "string", "type": "track", "title": "string",
 //     "imageUrl": "string", "metadata": "string" } ]
@@ -37,8 +37,10 @@ class SearchHistoryItemModel {
 
   static List<SearchHistoryItemModel> listFromJson(List<dynamic> list) {
     return list
-        .map((item) =>
-            SearchHistoryItemModel.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) =>
+              SearchHistoryItemModel.fromJson(item as Map<String, dynamic>),
+        )
         .toList();
   }
 }

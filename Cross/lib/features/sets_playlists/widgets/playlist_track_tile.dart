@@ -19,7 +19,6 @@ class PlaylistTrackTile extends StatelessWidget {
     this.onRemove,
     this.onTap,
   });
-  
 
   String _formatDuration(int seconds) {
     final m = seconds ~/ 60;
@@ -41,10 +40,13 @@ class PlaylistTrackTile extends StatelessWidget {
           children: [
             // Drag handle
             if (showDragHandle)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(right: 10),
-                child: Icon(Icons.drag_handle,
-                    color: Colors.white38, size: 20),
+                child: Icon(
+                  Icons.drag_handle,
+                  color: AppColors.white54,
+                  size: 20,
+                ),
               ),
 
             // Track thumbnail
@@ -56,7 +58,7 @@ class PlaylistTrackTile extends StatelessWidget {
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      errorBuilder: (_, _, _) => _placeholder(),
                     )
                   : _placeholder(),
             ),
@@ -69,8 +71,8 @@ class PlaylistTrackTile extends StatelessWidget {
                 children: [
                   Text(
                     track.title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -80,8 +82,7 @@ class PlaylistTrackTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     track.displayArtist,
-                    style: const TextStyle(
-                        color: Colors.white54, fontSize: 12),
+                    style: TextStyle(color: AppColors.white54, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -92,14 +93,17 @@ class PlaylistTrackTile extends StatelessWidget {
             // Duration
             Text(
               _formatDuration(track.durationInSeconds),
-              style: const TextStyle(color: Colors.white38, fontSize: 12),
+              style: TextStyle(color: AppColors.white54, fontSize: 12),
             ),
 
             // Remove button (owner only)
             if (onRemove != null)
               IconButton(
-                icon: const Icon(Icons.remove_circle_outline,
-                    color: Colors.red, size: 20),
+                icon: const Icon(
+                  Icons.remove_circle_outline,
+                  color: Colors.red,
+                  size: 20,
+                ),
                 onPressed: onRemove,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32),
@@ -115,7 +119,7 @@ class PlaylistTrackTile extends StatelessWidget {
       width: 48,
       height: 48,
       color: AppColors.tileDark,
-      child: const Icon(Icons.music_note, color: Colors.white24, size: 20),
+      child: Icon(Icons.music_note, color: AppColors.white24, size: 20),
     );
   }
 }

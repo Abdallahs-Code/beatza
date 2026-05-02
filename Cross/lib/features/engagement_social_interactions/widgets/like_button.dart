@@ -20,6 +20,7 @@
 // mobile app where count is non-tappable).
 
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class LikeButton extends StatelessWidget {
   final bool isLiked;
@@ -70,7 +71,7 @@ class LikeButton extends StatelessWidget {
             child: Text(
               _formatCount(likeCount),
               style: TextStyle(
-                color: isLiked ? Colors.white : Colors.grey[400],
+                color: isLiked ? AppColors.whiteSmoke : Colors.grey[400],
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

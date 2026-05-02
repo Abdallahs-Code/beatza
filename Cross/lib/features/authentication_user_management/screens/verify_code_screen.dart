@@ -147,7 +147,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
         height: 76,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFFD9D9D9),
+          color: AppColors.greyInputDark,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -183,11 +183,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                   children: [
                     const SizedBox(height: 18),
 
-                    const Text(
+                    Text(
                       "An account exists\nwith this email address!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 25,
                         fontWeight: FontWeight.w800,
                         height: 1.25,
@@ -196,11 +196,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
                     const SizedBox(height: 26),
 
-                    const Text(
+                    Text(
                       "We can connect your Google credentials to this account\nso you can use it to log in next time.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         height: 1.45,
                       ),
@@ -208,11 +208,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
                     const SizedBox(height: 20),
 
-                    const Text(
+                    Text(
                       "To continue, enter the code we have sent to this email as\nverification.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         height: 1.45,
                       ),
@@ -264,8 +264,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleVerify,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB3B3B3),
-                          disabledBackgroundColor: const Color(0xFFB3B3B3),
+                          backgroundColor: AppColors.greyButton,
+                          disabledBackgroundColor: AppColors.greyButton,
                           foregroundColor: Colors.black,
                           disabledForegroundColor: Colors.black,
                           elevation: 0,
@@ -283,7 +283,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                                   color: Colors.black,
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 "Continue",
                                 style: TextStyle(
                                   fontSize: 17,
@@ -300,7 +300,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       child: Text(
                         _isSendingAgain ? "Sending..." : "Send again",
                         style: const TextStyle(
-                          color: Color(0xFF2F7CF6),
+                          color: AppColors.blueAccent,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
@@ -309,11 +309,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
                     const SizedBox(height: 28),
 
-                    const Text(
+                    Text(
                       "Otherwise, you can go back and choose another\nauthentication method.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 14,
                         height: 1.45,
                       ),

@@ -1,4 +1,5 @@
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
@@ -10,11 +11,8 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/messaging_track_sharing/widgets/messages_tab.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:flutter/material.dart';
-
-const _kBg = Color(0xFF111111);
-const _kSurface = Color(0xFF1C1C1C);
-const _kOrange = Color(0xFFFF5500);
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
@@ -31,11 +29,11 @@ class _ActivityScreenState extends State<ActivityScreen>
   MessageFilter _messageFilter = MessageFilter.all;
 
   // ── Secondary-data cache keyed by ID so tiles never re-fetch on scroll ──
-  final Map<String, bool> _followCache = {};          // actorUserId → isFollowing
-  final Map<String, bool> _likeCache = {};            // commentId   → isLiked
+  final Map<String, bool> _followCache = {}; // actorUserId → isFollowing
+  final Map<String, bool> _likeCache = {}; // commentId   → isLiked
   final Map<String, PlaybackTrackModel?> _trackCache = {}; // trackId → track
-  final Map<String, bool> _trackFetchedCache = {};    // trackId → was attempted
-  final Map<String, int?> _timestampCache = {};       // commentId → timestamp
+  final Map<String, bool> _trackFetchedCache = {}; // trackId → was attempted
+  final Map<String, int?> _timestampCache = {}; // commentId → timestamp
   final Set<String> _readyIds = {};
   bool _initialLoadComplete = false;
 
@@ -86,7 +84,9 @@ class _ActivityScreenState extends State<ActivityScreen>
   }
 
   static String _trackIdFor(ActivityNotificationModel n) =>
-      (n.target.trackId?.isNotEmpty == true) ? n.target.trackId! : n.target.targetId;
+      (n.target.trackId?.isNotEmpty == true)
+      ? n.target.trackId!
+      : n.target.targetId;
 
   bool get _tilesLoading {
     if (_initialLoadComplete) return false;
@@ -114,7 +114,10 @@ class _ActivityScreenState extends State<ActivityScreen>
         _trackCache[_trackIdFor(n)] = track;
         _trackFetchedCache[_trackIdFor(n)] = true;
       }
-      if (commentTimestamp != null) _timestampCache[n.target.targetId] = commentTimestamp;
+      if (commentTimestamp != null) {
+        _timestampCache[n.target.targetId] = commentTimestamp;
+      }
+        
     });
   }
 
@@ -126,8 +129,12 @@ class _ActivityScreenState extends State<ActivityScreen>
         ..._controller.todayNotifications,
         ..._controller.olderNotifications,
       ];
-      final remaining = all.where((n) => !_readyIds.contains(n.notificationId)).length;
-      debugPrint('[READY] $notificationId — ${_readyIds.length}/${all.length} remaining=$remaining');
+      final remaining = all
+          .where((n) => !_readyIds.contains(n.notificationId))
+          .length;
+      debugPrint(
+        '[READY] $notificationId — ${_readyIds.length}/${all.length} remaining=$remaining',
+      );
       if (all.isNotEmpty && remaining == 0) {
         _initialLoadComplete = true;
         debugPrint('[READY] ALL DONE — revealing list');
@@ -148,7 +155,7 @@ class _ActivityScreenState extends State<ActivityScreen>
   Future<void> _openNotificationFilterSheet() async {
     final selected = await showModalBottomSheet<ActivityNotificationFilter>(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -163,27 +170,35 @@ class _ActivityScreenState extends State<ActivityScreen>
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               ...ActivityNotificationFilter.values.map((f) {
                 final sel = f == _controller.filter;
                 return ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 20),
-                  leading: Icon(f.icon,
-                      color: sel ? _kOrange : Colors.white70, size: 22),
-                  title: Text(f.label,
-                      style: TextStyle(
-                        color: sel ? _kOrange : Colors.white,
-                        fontSize: 15,
-                        fontWeight:
-                            sel ? FontWeight.w700 : FontWeight.w400,
-                      )),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                  leading: Icon(
+                    f.icon,
+                    color: sel ? AppColors.primaryOrange : AppColors.white70,
+                    size: 22,
+                  ),
+                  title: Text(
+                    f.label,
+                    style: TextStyle(
+                      color: sel
+                          ? AppColors.primaryOrange
+                          : AppColors.whiteSmoke,
+                      fontSize: 15,
+                      fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+                    ),
+                  ),
                   trailing: sel
-                      ? const Icon(Icons.check_rounded,
-                          color: _kOrange, size: 20)
+                      ? Icon(
+                          Icons.check_rounded,
+                          color: AppColors.primaryOrange,
+                          size: 20,
+                        )
                       : null,
                   onTap: () => Navigator.of(ctx).pop(f),
                 );
@@ -199,7 +214,7 @@ class _ActivityScreenState extends State<ActivityScreen>
   Future<void> _openMessageFilterSheet() async {
     final selected = await showModalBottomSheet<MessageFilter>(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -214,7 +229,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -230,19 +245,20 @@ class _ActivityScreenState extends State<ActivityScreen>
     }
   }
 
-  Widget _msgFilterTile(
-      BuildContext ctx, MessageFilter f, String label) {
+  Widget _msgFilterTile(BuildContext ctx, MessageFilter f, String label) {
     final sel = f == _messageFilter;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-      title: Text(label,
-          style: TextStyle(
-            color: sel ? _kOrange : Colors.white,
-            fontSize: 15,
-            fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
-          )),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: sel ? AppColors.primaryOrange : AppColors.whiteSmoke,
+          fontSize: 15,
+          fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+        ),
+      ),
       trailing: sel
-          ? const Icon(Icons.check_rounded, color: _kOrange, size: 20)
+          ? Icon(Icons.check_rounded, color: AppColors.primaryOrange, size: 20)
           : null,
       onTap: () => Navigator.of(ctx).pop(f),
     );
@@ -253,33 +269,34 @@ class _ActivityScreenState extends State<ActivityScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _kBg,
+      backgroundColor: AppColors.backgroundDark,
       appBar: _buildAppBar(),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildNotificationsTab(),
-          _buildMessagesTab(),
-        ],
+        children: [_buildNotificationsTab(), _buildMessagesTab()],
       ),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: _kBg,
+      backgroundColor: AppColors.backgroundDark,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, size: 20),
+        icon: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: AppColors.whiteSmoke,
+          size: 20,
+        ),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
-      title: const Text(
+      title: Text(
         'Activity',
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.whiteSmoke,
           fontSize: 17,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -292,15 +309,14 @@ class _ActivityScreenState extends State<ActivityScreen>
             child: const Text(
               'Mark all read',
               style: TextStyle(
-                color: _kOrange,
+                color: AppColors.primaryOrange,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
         IconButton(
-          icon: const Icon(Icons.tune_rounded,
-              color: Colors.white, size: 22),
+          icon: Icon(Icons.tune_rounded, color: AppColors.whiteSmoke, size: 22),
           onPressed: _openFilterSheet,
         ),
       ],
@@ -308,15 +324,19 @@ class _ActivityScreenState extends State<ActivityScreen>
         preferredSize: const Size.fromHeight(44),
         child: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
+          indicatorColor: AppColors.primaryOrange,
           indicatorWeight: 2,
           indicatorSize: TabBarIndicatorSize.tab,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white38,
+          labelColor: AppColors.whiteSmoke,
+          unselectedLabelColor: AppColors.white54,
           labelStyle: const TextStyle(
-              fontSize: 15, fontWeight: FontWeight.w600),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
           unselectedLabelStyle: const TextStyle(
-              fontSize: 15, fontWeight: FontWeight.w400),
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+          ),
           tabs: const [
             Tab(text: 'Notifications'),
             Tab(text: 'Messages'),
@@ -331,12 +351,14 @@ class _ActivityScreenState extends State<ActivityScreen>
   Widget _buildNotificationsTab() {
     if (_controller.isLoading && _controller.notifications.isEmpty) {
       return const Center(
-          child: CircularProgressIndicator(
-              color: _kOrange, strokeWidth: 2));
+        child: CircularProgressIndicator(
+          color: AppColors.primaryOrange,
+          strokeWidth: 2,
+        ),
+      );
     }
 
-    if (_controller.errorMessage != null &&
-        _controller.notifications.isEmpty) {
+    if (_controller.errorMessage != null && _controller.notifications.isEmpty) {
       return _buildErrorState(_controller.errorMessage!);
     }
 
@@ -346,30 +368,33 @@ class _ActivityScreenState extends State<ActivityScreen>
     if (today.isEmpty && older.isEmpty) return _buildEmptyState();
 
     Widget tile(ActivityNotificationModel n) => _NotificationTile(
-          key: ValueKey(n.notificationId),
-          notification: n,
-          controller: _controller,
-          initialIsFollowing: _followCache[n.actor.userId],
-          initialIsLiked: _likeCache[n.target.targetId],
-          initialTrack: _trackCache[_trackIdFor(n)],
-          initialTrackFetched: _trackFetchedCache[_trackIdFor(n)] ?? false,
-          initialCommentTimestamp: _timestampCache[n.target.targetId],
-          onDataFetched: (isFollowing, isLiked, track, trackFetched, commentTimestamp) =>
-              _onTileDataFetched(n,
-                  isFollowing: isFollowing,
-                  isLiked: isLiked,
-                  track: track,
-                  trackFetched: trackFetched,
-                  commentTimestamp: commentTimestamp),
-          onTileReady: () => _onTileReady(n.notificationId),
-        );
+      key: ValueKey(n.notificationId),
+      notification: n,
+      controller: _controller,
+      initialIsFollowing: _followCache[n.actor.userId],
+      initialIsLiked: _likeCache[n.target.targetId],
+      initialTrack: _trackCache[_trackIdFor(n)],
+      initialTrackFetched: _trackFetchedCache[_trackIdFor(n)] ?? false,
+      initialCommentTimestamp: _timestampCache[n.target.targetId],
+      onDataFetched:
+          (isFollowing, isLiked, track, trackFetched, commentTimestamp) =>
+              _onTileDataFetched(
+                n,
+                isFollowing: isFollowing,
+                isLiked: isLiked,
+                track: track,
+                trackFetched: trackFetched,
+                commentTimestamp: commentTimestamp,
+              ),
+      onTileReady: () => _onTileReady(n.notificationId),
+    );
 
     // SingleChildScrollView + Column builds ALL children eagerly (no lazy
     // viewport). This is required so every tile's initState fires immediately
     // and onTileReady callbacks can fill _readyIds.
     final list = RefreshIndicator(
-      color: _kOrange,
-      backgroundColor: _kSurface,
+      color: AppColors.primaryOrange,
+      backgroundColor: AppColors.surface,
       onRefresh: _controller.refresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -390,9 +415,11 @@ class _ActivityScreenState extends State<ActivityScreen>
       ),
     );
 
-    debugPrint('[LOADING_GATE] tilesLoading=$_tilesLoading '
-        'ready=${_readyIds.length} total=${today.length + older.length} '
-        'initialComplete=$_initialLoadComplete');
+    debugPrint(
+      '[LOADING_GATE] tilesLoading=$_tilesLoading '
+      'ready=${_readyIds.length} total=${today.length + older.length} '
+      'initialComplete=$_initialLoadComplete',
+    );
 
     return Stack(
       children: [
@@ -400,9 +427,12 @@ class _ActivityScreenState extends State<ActivityScreen>
         if (_tilesLoading)
           Positioned.fill(
             child: Container(
-              color: _kBg,
+              color: AppColors.backgroundDark,
               child: const Center(
-                child: CircularProgressIndicator(color: _kOrange, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryOrange,
+                  strokeWidth: 2,
+                ),
               ),
             ),
           ),
@@ -413,11 +443,14 @@ class _ActivityScreenState extends State<ActivityScreen>
   Widget _sectionLabel(String text) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
-      child: Text(text,
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 
@@ -430,21 +463,28 @@ class _ActivityScreenState extends State<ActivityScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                color: Colors.white38, size: 42),
+            Icon(
+              Icons.error_outline_rounded,
+              color: AppColors.white54,
+              size: 42,
+            ),
             const SizedBox(height: 16),
-            Text(message,
-                textAlign: TextAlign.center,
-                style:
-                    const TextStyle(color: Colors.white54, fontSize: 14)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
+            ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: _controller.refresh,
-              child: const Text('Try again',
-                  style: TextStyle(
-                      color: _kOrange,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Try again',
+                style: TextStyle(
+                  color: AppColors.primaryOrange,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -453,33 +493,39 @@ class _ActivityScreenState extends State<ActivityScreen>
   }
 
   Widget _buildEmptyState() {
-    final filtered =
-        _controller.filter != ActivityNotificationFilter.all;
+    final filtered = _controller.filter != ActivityNotificationFilter.all;
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         const SizedBox(height: 120),
-        const Icon(Icons.notifications_none_rounded,
-            color: Colors.white24, size: 60),
+        Icon(
+          Icons.notifications_none_rounded,
+          color: AppColors.white24,
+          size: 60,
+        ),
         const SizedBox(height: 20),
         Text(
           filtered
               ? 'No ${_controller.filter.label.toLowerCase()} yet'
               : 'No notifications yet',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 10),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
             'When new activity happens, it will show up here.',
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: Colors.white38, fontSize: 14, height: 1.5),
+              color: AppColors.white54,
+              fontSize: 14,
+              height: 1.5,
+            ),
           ),
         ),
         if (filtered) ...[
@@ -487,11 +533,14 @@ class _ActivityScreenState extends State<ActivityScreen>
           Center(
             child: TextButton(
               onPressed: _controller.showAllNotifications,
-              child: const Text('Show all notifications',
-                  style: TextStyle(
-                      color: _kOrange,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Show all notifications',
+                style: TextStyle(
+                  color: AppColors.primaryOrange,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -526,7 +575,8 @@ class _NotificationTile extends StatefulWidget {
     PlaybackTrackModel? track,
     bool trackFetched,
     int? commentTimestamp,
-  ) onDataFetched;
+  )
+  onDataFetched;
 
   // Called once all secondary API calls for this tile have completed.
   final VoidCallback onTileReady;
@@ -566,10 +616,9 @@ class _NotificationTileState extends State<_NotificationTile> {
 
   ActivityNotificationModel get n => widget.notification;
 
-  String get _resolvedTrackId =>
-      (n.target.trackId?.isNotEmpty == true)
-          ? n.target.trackId!
-          : n.target.targetId;
+  String get _resolvedTrackId => (n.target.trackId?.isNotEmpty == true)
+      ? n.target.trackId!
+      : n.target.targetId;
 
   @override
   void initState() {
@@ -608,7 +657,9 @@ class _NotificationTileState extends State<_NotificationTile> {
       }
     }
 
-    debugPrint('[TILE_INIT] ${n.notificationId} type=${n.activityType} pending=$_pendingLoads');
+    debugPrint(
+      '[TILE_INIT] ${n.notificationId} type=${n.activityType} pending=$_pendingLoads',
+    );
 
     // Nothing to fetch — report ready after first frame.
     if (_pendingLoads == 0) {
@@ -630,7 +681,13 @@ class _NotificationTileState extends State<_NotificationTile> {
     bool trackFetched = false,
     int? commentTimestamp,
   }) {
-    widget.onDataFetched(isFollowing, isLiked, track, trackFetched, commentTimestamp);
+    widget.onDataFetched(
+      isFollowing,
+      isLiked,
+      track,
+      trackFetched,
+      commentTimestamp,
+    );
     _pendingLoads--;
     debugPrint('[TILE] ${n.notificationId} pending=$_pendingLoads');
     if (_pendingLoads <= 0 && !_tileReadyFired) {
@@ -649,7 +706,13 @@ class _NotificationTileState extends State<_NotificationTile> {
     }
     try {
       final track = await PlaybackTrackApiService().getSingleTrackById(trackId);
-      if (mounted) setState(() { _track = track; _trackFetched = true; });
+      if (mounted) {
+        setState(() {
+          _track = track;
+          _trackFetched = true;
+        });
+      }
+        
       _completePending(track: track, trackFetched: true);
     } catch (_) {
       if (mounted) setState(() => _trackFetched = true);
@@ -660,10 +723,17 @@ class _NotificationTileState extends State<_NotificationTile> {
   Future<void> _checkFollowStatus() async {
     try {
       final currentUserId = await AuthApiService().getStoredUserId();
-      if (currentUserId == null) { _completePending(); return; }
-      final result = await SocialApiService().getFollowing(userId: currentUserId);
+      if (currentUserId == null) {
+        _completePending();
+        return;
+      }
+      final result = await SocialApiService().getFollowing(
+        userId: currentUserId,
+      );
       if (result.$1 == 200 && result.$2 is List) {
-        final isFollowing = (result.$2 as List<Follower>).any((f) => f.userId == n.actor.userId);
+        final isFollowing = (result.$2 as List<Follower>).any(
+          (f) => f.userId == n.actor.userId,
+        );
         if (mounted) setState(() => _isFollowing = isFollowing);
         _completePending(isFollowing: isFollowing);
       } else {
@@ -699,15 +769,27 @@ class _NotificationTileState extends State<_NotificationTile> {
       return;
     }
     try {
-      final result = await _engagementService.getTrackComments(trackId: trackId, limit: 100);
+      final result = await _engagementService.getTrackComments(
+        trackId: trackId,
+        limit: 100,
+      );
       if (result.$1 == 200 && result.$2 is List) {
         final match = (result.$2 as List<Comment>).cast<Comment?>().firstWhere(
           (c) => c?.commentId == commentId,
           orElse: () => null,
         );
         if (match != null) {
-          if (mounted) setState(() { _isLiked = match.isLikedByUser; _commentTimestamp = match.timestamp; });
-          _completePending(isLiked: match.isLikedByUser, commentTimestamp: match.timestamp);
+          if (mounted) {
+            setState(() {
+              _isLiked = match.isLikedByUser;
+              _commentTimestamp = match.timestamp;
+            });
+          }
+            
+          _completePending(
+            isLiked: match.isLikedByUser,
+            commentTimestamp: match.timestamp,
+          );
         } else {
           _completePending();
         }
@@ -788,7 +870,22 @@ class _NotificationTileState extends State<_NotificationTile> {
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TrackOptionsSheet(track: track),
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        onBehindThisTrack: () =>
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BehindTheTrackScreen(
+                  trackId: track.id,
+                  actorName: track.artistName,
+                  actorAvatarUrl: track.artworkUrl ?? '',
+                  actorUserId: track.artistId ?? '',
+                  activityType: 'new_track',
+                  trackOwnerId: track.artistId ?? '',
+                ),
+              ),
+            ),
+      ),
     );
   }
 
@@ -841,12 +938,12 @@ class _NotificationTileState extends State<_NotificationTile> {
 
     return InkWell(
       onTap: _handleTap,
-      splashColor: Colors.white.withValues(alpha: 0.04),
-      highlightColor: Colors.white.withValues(alpha: 0.03),
+      splashColor: AppColors.whiteSmoke.withValues(alpha: 0.04),
+      highlightColor: AppColors.whiteSmoke.withValues(alpha: 0.03),
       child: Container(
         color: n.read
             ? Colors.transparent
-            : Colors.white.withValues(alpha: 0.04),
+            : AppColors.whiteSmoke.withValues(alpha: 0.04),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -862,8 +959,8 @@ class _NotificationTileState extends State<_NotificationTile> {
                       children: [
                         TextSpan(
                           text: n.actor.displayName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             height: 1.4,
@@ -871,8 +968,8 @@ class _NotificationTileState extends State<_NotificationTile> {
                         ),
                         TextSpan(
                           text: '  ${_ts(n.createdAt)}',
-                          style: const TextStyle(
-                            color: Colors.white38,
+                          style: TextStyle(
+                            color: AppColors.white54,
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                             height: 1.4,
@@ -890,10 +987,7 @@ class _NotificationTileState extends State<_NotificationTile> {
                 ],
               ),
             ),
-            if (trailing != null) ...[
-              const SizedBox(width: 12),
-              trailing,
-            ],
+            if (trailing != null) ...[const SizedBox(width: 12), trailing],
           ],
         ),
       ),
@@ -909,15 +1003,15 @@ class _NotificationTileState extends State<_NotificationTile> {
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: const Color(0xFF2A2A2A),
+            backgroundColor: AppColors.containerMid,
             backgroundImage: n.actor.avatarUrl.trim().isNotEmpty
                 ? NetworkImage(n.actor.avatarUrl)
                 : null,
             child: n.actor.avatarUrl.trim().isEmpty
                 ? Text(
                     _initials(n.actor.displayName),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
@@ -933,11 +1027,14 @@ class _NotificationTileState extends State<_NotificationTile> {
               decoration: BoxDecoration(
                 color: _badgeColor(n.activityType),
                 shape: BoxShape.circle,
-                border: Border.all(color: _kBg, width: 2),
+                border: Border.all(color: AppColors.backgroundDark, width: 2),
               ),
               child: Center(
-                child: Icon(_badgeIcon(n.activityType),
-                    color: Colors.white, size: 10),
+                child: Icon(
+                  _badgeIcon(n.activityType),
+                  color: AppColors.whiteSmoke,
+                  size: 10,
+                ),
               ),
             ),
           ),
@@ -949,19 +1046,17 @@ class _NotificationTileState extends State<_NotificationTile> {
   Widget _descriptionText() {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(
-          color: Color(0xFFAAAAAA),
-          fontSize: 14,
-          height: 1.4,
-        ),
+        style: TextStyle(color: AppColors.greyIcon, fontSize: 14, height: 1.4),
         children: _descSpans(),
       ),
     );
   }
 
   List<TextSpan> _descSpans() {
-    const bold =
-        TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
+    final bold = TextStyle(
+      color: AppColors.whiteSmoke,
+      fontWeight: FontWeight.w600,
+    );
 
     switch (n.activityType) {
       case 'track_liked':
@@ -977,8 +1072,7 @@ class _NotificationTileState extends State<_NotificationTile> {
             : (n.target.title?.trim() ?? '…');
         return [
           const TextSpan(text: 'commented '),
-          if (comment.isNotEmpty)
-            TextSpan(text: '"$comment"', style: bold),
+          if (comment.isNotEmpty) TextSpan(text: '"$comment"', style: bold),
           if (title.isNotEmpty) ...[
             const TextSpan(text: ' on '),
             TextSpan(text: title, style: bold),
@@ -1027,22 +1121,28 @@ class _NotificationTileState extends State<_NotificationTile> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: _isFollowing ? const Color(0xFF2A2A2A) : _kOrange,
+            color: _isFollowing
+                ? AppColors.containerMid
+                : AppColors.primaryOrange,
             borderRadius: BorderRadius.circular(20),
           ),
           alignment: Alignment.center,
           child: _isFollowLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
+                    color: AppColors.whiteSmoke,
+                    strokeWidth: 2,
+                  ),
+                )
               : Text(
                   _isFollowing ? 'Following' : 'Follow',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
         ),
       );
@@ -1066,19 +1166,25 @@ class _NotificationTileState extends State<_NotificationTile> {
                 errorBuilder: (_, _, _) => Container(
                   width: 52,
                   height: 52,
-                  color: const Color(0xFF222222),
+                  color: AppColors.cardDark2,
                   alignment: Alignment.center,
-                  child: const Icon(Icons.graphic_eq_rounded,
-                      color: Color(0xFF555555), size: 26),
+                  child: Icon(
+                    Icons.graphic_eq_rounded,
+                    color: AppColors.greyDark3,
+                    size: 26,
+                  ),
                 ),
               )
             : Container(
                 width: 52,
                 height: 52,
-                color: const Color(0xFF222222),
+                color: AppColors.cardDark2,
                 alignment: Alignment.center,
-                child: const Icon(Icons.graphic_eq_rounded,
-                    color: Color(0xFF555555), size: 26),
+                child: Icon(
+                  Icons.graphic_eq_rounded,
+                  color: AppColors.greyDark3,
+                  size: 26,
+                ),
               ),
       );
       if (_track != null) {
@@ -1122,7 +1228,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     required bool filled,
     required VoidCallback onTap,
   }) {
-    final color = filled ? _kOrange : const Color(0xFF999999);
+    final color = filled ? AppColors.primaryOrange : AppColors.greyMuted;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1132,8 +1238,8 @@ class _NotificationTileState extends State<_NotificationTile> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: filled
-                ? _kOrange.withValues(alpha: 0.5)
-                : const Color(0xFF333333),
+                ? AppColors.primaryOrange.withValues(alpha: 0.5)
+                : AppColors.inputFill,
           ),
         ),
         child: Row(
@@ -1141,11 +1247,14 @@ class _NotificationTileState extends State<_NotificationTile> {
           children: [
             Icon(icon, color: color, size: 14),
             const SizedBox(width: 5),
-            Text(label,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500)),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
@@ -1176,19 +1285,19 @@ class _NotificationTileState extends State<_NotificationTile> {
   Color _badgeColor(String type) {
     switch (type) {
       case 'track_liked':
-        return const Color(0xFFFF4B6E);
+        return AppColors.notifLike;
       case 'track_commented':
-        return const Color(0xFF4B9EFF);
+        return AppColors.notifComment;
       case 'track_reposted':
-        return const Color(0xFF2DB44A);
+        return AppColors.notifFollow;
       case 'user_followed':
-        return const Color(0xFFFF5500);
+        return AppColors.primaryOrange;
       case 'new_track':
-        return const Color(0xFFF59E0B);
+        return AppColors.notifOther;
       case 'user_mentioned':
-        return const Color(0xFFA855F7);
+        return AppColors.notifAlt;
       default:
-        return _kOrange;
+        return AppColors.primaryOrange;
     }
   }
 

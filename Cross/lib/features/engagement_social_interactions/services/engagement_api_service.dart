@@ -819,8 +819,10 @@ class EngagementApiService {
       // final response = await _client.get(uri, headers: headers);
       // final data = jsonDecode(response.body);
       // print(response.body);
-      final accessToken = await FlutterSecureStorage().read(key: "access_token");
-            final response = await http.Client().get(
+      final accessToken = await FlutterSecureStorage().read(
+        key: "access_token",
+      );
+      final response = await http.Client().get(
         Uri.parse("https://beatza.me/api/engagement/mentions/v1/followers"),
         headers: {
           "Content-Type": "application/json",
@@ -830,7 +832,6 @@ class EngagementApiService {
       );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-
         // final users = data
         //     .map((e) => MentionUser(
         //           userId: (e['userId'] ?? '').toString(),
@@ -840,11 +841,6 @@ class EngagementApiService {
         //     .where((u) => u.userId.isNotEmpty)
         //     .toList();
 
-
-
-
-
-  
         // final users = (data as List<dynamic>)
         //     .whereType<Map<String, dynamic>>()
         //     .where((e) => (e['userId']?.toString().trim() ?? '').isNotEmpty)
@@ -854,26 +850,26 @@ class EngagementApiService {
         //           avatarUrl: e['avatarUrl']?.toString(),
         //         ))
         //     .toList();
-        
 
-
-    
         final users = (data as List<dynamic>)
-    .map((e) {
-      final map = e as Map<String, dynamic>;
+            .map((e) {
+              final map = e as Map<String, dynamic>;
 
-      return MentionUser(
-        userId: (map['userId'] ?? '').toString(),
-        displayName: (map['displayName'] ?? '').toString(),
-        avatarUrl: map['avatarUrl']?.toString(),
-      );
-    })
-    .where((u) => u.userId.isNotEmpty)
-    .toList();
+              return MentionUser(
+                userId: (map['userId'] ?? '').toString(),
+                displayName: (map['displayName'] ?? '').toString(),
+                avatarUrl: map['avatarUrl']?.toString(),
+              );
+            })
+            .where((u) => u.userId.isNotEmpty)
+            .toList();
 
         return (200, users);
       }
-      return (response.statusCode, data is Map ? data['message'] ?? 'Failed' : 'Failed');
+      return (
+        response.statusCode,
+        data is Map ? data['message'] ?? 'Failed' : 'Failed',
+      );
     } catch (err) {
       return (500, "Network error: $err");
     }

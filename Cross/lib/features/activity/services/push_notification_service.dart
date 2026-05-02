@@ -8,13 +8,18 @@ import 'package:cross_team5/features/activity/models/activity_notification_model
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
 // ─── Top-level helpers (must be accessible from background isolate) ───────────
 
+// Parses an FCM data map into an ActivityNotificationModel.
+// The backend sends actor/target as JSON-encoded strings under the keys
+// "actor" and "target", with all other fields as plain strings.
+// Pattern A is kept as a fallback in case the format ever changes.
 ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
-  // (A) — full JSON string under a single key
+  // (A) — full notification JSON encoded as a string under a single key
   for (final key in ['notification', 'payload', 'data']) {
     try {
       final raw = data[key];
@@ -26,19 +31,22 @@ ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
     } catch (_) {}
   }
 
-  // (B) — flattened fields; actor/target are JSON-encoded strings
-  // (FCM delivers all data values as strings, so this is the common path)
-  try {
-    final actorRaw = data['actor'];
-    final targetRaw = data['target'];
-    if (actorRaw is String && targetRaw is String) {
+  // (B) — actor/target as nested Maps (actual backend format).
+  //   Also handles the legacy case where they arrive as JSON-encoded strings.
+  if (data.containsKey('actor') || data.containsKey('activityType')) {
+    try {
       final merged = Map<String, dynamic>.from(data);
-      merged['actor'] = jsonDecode(actorRaw);
-      merged['target'] = jsonDecode(targetRaw);
-      merged['read'] = data['read'] == 'true';
+      final actorRaw = merged['actor'];
+      final targetRaw = merged['target'];
+      if (actorRaw is String) merged['actor'] = jsonDecode(actorRaw);
+      if (targetRaw is String) merged['target'] = jsonDecode(targetRaw);
+      // read may arrive as bool or as the string "true"/"false"
+      if (merged['read'] is String) {
+        merged['read'] = merged['read'] == 'true';
+      }
       return ActivityNotificationModel.fromJson(merged);
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
   return null;
 }
@@ -66,9 +74,6 @@ String _buildBody(ActivityNotificationModel n) {
   }
 }
 
-// Serialises just the fields needed for navigation into a compact JSON string
-// that can be stored as a local-notification payload.
-// Must be top-level so the background isolate can call it.
 String _buildActivityPayload(ActivityNotificationModel n) {
   return jsonEncode({
     't': 'a',
@@ -83,26 +88,28 @@ String _buildActivityPayload(ActivityNotificationModel n) {
   });
 }
 
-// Called when a data-only FCM message arrives while the app is in the
-// background or killed.  FCM auto-shows messages that carry a `notification`
-// field — this handler only runs when there is NO notification field.
+// Handles data-only FCM messages while the app is in the background / killed.
+// FCM auto-shows messages that carry a `notification` field — this handler
+// only runs when there is NO notification field.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
-  if (message.notification != null) return; // FCM already showed it
+  debugPrint(
+    '[FCM bg] title="${message.notification?.title}" data=${message.data}',
+  );
+
+  if (message.notification != null) return;
 
   final notification = _parseFromData(message.data);
   if (notification == null) return;
 
-  // Include the payload so that a tap on this notification can be routed
-  // correctly by the main isolate's _onLocalNotificationTap / getNotificationAppLaunchDetails.
-  final payload = _buildActivityPayload(notification);
-
   final plugin = FlutterLocalNotificationsPlugin();
-  await plugin.initialize(const InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-  ));
+  await plugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+  );
   await plugin.show(
     notification.notificationId.hashCode.abs() % 100000,
     notification.actor.displayName,
@@ -117,7 +124,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         icon: '@mipmap/ic_launcher',
       ),
     ),
-    payload: payload,
+    payload: _buildActivityPayload(notification),
   );
 }
 
@@ -144,8 +151,9 @@ class PushNotificationService {
     icon: '@mipmap/ic_launcher',
   );
 
-  static const _notificationDetails =
-      NotificationDetails(android: _androidDetails);
+  static const _notificationDetails = NotificationDetails(
+    android: _androidDetails,
+  );
 
   static const _msgChannelId = 'beatza_messages';
   static const _msgChannelName = 'Messages';
@@ -160,18 +168,32 @@ class PushNotificationService {
     icon: '@mipmap/ic_launcher',
   );
 
-  static const _msgNotificationDetails =
-      NotificationDetails(android: _msgAndroidDetails);
+  static const _msgNotificationDetails = NotificationDetails(
+    android: _msgAndroidDetails,
+  );
 
   Future<void> initialize() async {
+    // ── Step 1: capture launch-from-local-notification details BEFORE
+    //   calling _plugin.initialize().  On Android (flutter_local_notifications
+    //   v15+) calling getNotificationAppLaunchDetails() after initialize()
+    //   always returns null.
+    NotificationAppLaunchDetails? localLaunchDetails;
     if (Platform.isAndroid || Platform.isIOS) {
-      // Must be registered before runApp.
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      localLaunchDetails = await _plugin.getNotificationAppLaunchDetails();
+    }
 
+    // ── Step 2: FCM setup ────────────────────────────────────────────────────
+    if (Platform.isAndroid || Platform.isIOS) {
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
       await FirebaseMessaging.instance.requestPermission();
 
       // Foreground FCM message → show via local notification.
       FirebaseMessaging.onMessage.listen((message) {
+        debugPrint(
+          '[FCM fg] title="${message.notification?.title}" data=${message.data}',
+        );
         final notification = _parseFromData(message.data);
         if (notification != null) show(notification);
       });
@@ -180,48 +202,61 @@ class PushNotificationService {
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
         final notification = _parseFromData(message.data);
         if (notification != null) {
-          unawaited(NotificationNavigationService.shared
-              .handleActivityNotification(notification));
+          unawaited(
+            NotificationNavigationService.shared.handleActivityNotification(
+              notification,
+            ),
+          );
         }
       });
 
-      // App was KILLED → user tapped a system FCM notification that woke us.
-      // Navigator is not ready yet, so the service queues it as pending and
-      // HomeScreen executes it after its first frame.
-      final initial = await FirebaseMessaging.instance.getInitialMessage();
-      if (initial != null) {
-        final notification = _parseFromData(initial.data);
-        if (notification != null) {
-          unawaited(NotificationNavigationService.shared
-              .handleActivityNotification(notification));
-        }
-      }
+      // NOTE: getInitialMessage() is intentionally NOT called here.
+      // The Firebase Flutter plugin requires it to be called from a widget
+      // (after runApp) to reliably receive the initial message on Android.
+      // It is called from HomeScreen via handleInitialFcmMessage() below.
     }
 
-    // flutter_local_notifications — handles taps on in-app (foreground /
-    // background) notifications shown by this service.
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    // ── Step 3: initialise local-notifications plugin ────────────────────────
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     await _plugin.initialize(
       const InitializationSettings(android: androidSettings),
       onDidReceiveNotificationResponse: _onLocalNotificationTap,
     );
     await _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
 
-    // Handles the case where the app was KILLED and re-launched by tapping a
-    // local notification (e.g. one shown by _firebaseMessagingBackgroundHandler
-    // for a data-only FCM message).  getInitialMessage() covers FCM-delivered
-    // notifications; this covers our own locally-shown ones.
-    if (Platform.isAndroid || Platform.isIOS) {
-      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
-      if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
-        final response = launchDetails.notificationResponse;
-        if (response != null) _onLocalNotificationTap(response);
-      }
+    // ── Step 4: handle app launched from a local notification (data-only FCM
+    //   shown by the background handler).  Details were captured in Step 1.
+    if (localLaunchDetails != null &&
+        localLaunchDetails.didNotificationLaunchApp) {
+      final response = localLaunchDetails.notificationResponse;
+      if (response != null) _onLocalNotificationTap(response);
     }
+  }
+
+  /// Call this from HomeScreen.initState (inside addPostFrameCallback).
+  ///
+  /// The Firebase Flutter plugin requires getInitialMessage() to be called
+  /// from a widget after the app is running, not from main() before runApp().
+  /// Calling it too early returns null on Android even when the app was
+  /// genuinely opened by tapping an FCM notification.
+  Future<void> handleInitialFcmMessage() async {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial == null) return;
+      final notification = _parseFromData(initial.data);
+      if (notification != null) {
+        await NotificationNavigationService.shared.handleActivityNotification(
+          notification,
+        );
+      }
+    } catch (_) {}
   }
 
   void _onLocalNotificationTap(NotificationResponse response) {
@@ -252,19 +287,23 @@ class PushNotificationService {
           ),
           createdAt: DateTime.now(),
         );
-        unawaited(NotificationNavigationService.shared
-            .handleActivityNotification(notification));
+        unawaited(
+          NotificationNavigationService.shared.handleActivityNotification(
+            notification,
+          ),
+        );
       } else if (type == 'm') {
-        unawaited(NotificationNavigationService.shared.handleChatNotification(
-          chatId: data['cid'] as String? ?? '',
-          receiverName: data['rn'] as String? ?? '',
-          receiverPhotoUrl: data['rp'] as String? ?? '',
-        ));
+        unawaited(
+          NotificationNavigationService.shared.handleChatNotification(
+            chatId: data['cid'] as String? ?? '',
+            receiverName: data['rn'] as String? ?? '',
+            receiverPhotoUrl: data['rp'] as String? ?? '',
+          ),
+        );
       }
     } catch (_) {}
   }
 
-  // Call after login (and on every app launch while logged in).
   Future<void> registerFcmToken(String accessToken) async {
     if (!Platform.isAndroid && !Platform.isIOS) return;
     try {
@@ -281,15 +320,19 @@ class PushNotificationService {
 
   Future<void> _postFcmToken(String accessToken, String fcmToken) async {
     try {
-      await http.post(
-        Uri.parse('${ApiServices().baseUrl}/api/notifications/v1/fcm-token'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-          'User-Agent': 'Android',
-        },
-        body: jsonEncode({'token': fcmToken, 'platform': 'android'}),
-      ).timeout(const Duration(seconds: 10));
+      await http
+          .post(
+            Uri.parse(
+              '${ApiServices().baseUrl}/api/notifications/v1/fcm-token',
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $accessToken',
+              'User-Agent': 'Android',
+            },
+            body: jsonEncode({'token': fcmToken, 'platform': 'android'}),
+          )
+          .timeout(const Duration(seconds: 10));
     } catch (_) {}
   }
 
@@ -299,8 +342,7 @@ class PushNotificationService {
     required String chatId,
     String receiverPhotoUrl = '',
   }) async {
-    final body =
-        content.startsWith('track::') ? 'sent you a track' : content;
+    final body = content.startsWith('track::') ? 'sent you a track' : content;
     final id = chatId.hashCode.abs() % 100000;
     final payload = jsonEncode({
       't': 'm',
@@ -308,8 +350,13 @@ class PushNotificationService {
       'rn': senderName,
       'rp': receiverPhotoUrl,
     });
-    await _plugin.show(id, senderName, body, _msgNotificationDetails,
-        payload: payload);
+    await _plugin.show(
+      id,
+      senderName,
+      body,
+      _msgNotificationDetails,
+      payload: payload,
+    );
   }
 
   Future<void> show(ActivityNotificationModel notification) async {

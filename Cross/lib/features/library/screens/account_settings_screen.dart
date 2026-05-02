@@ -33,27 +33,56 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final settings = await _api.getSettings(token);
-      if (mounted) setState(() { _settings = settings; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _settings = settings;
+          _loading = false;
+        });
+      }
+        
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString().replaceAll('Exception: ', ''); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceAll('Exception: ', '');
+          _loading = false;
+        });
+      }
+        
     }
   }
 
   Future<void> _patch(AccountSettings updated) async {
     if (_saving) return;
-    setState(() { _settings = updated; _saving = true; });
+    setState(() {
+      _settings = updated;
+      _saving = true;
+    });
     try {
       final token = await _auth.getStoredAccessToken();
       if (token == null) throw Exception('Not authenticated');
       final confirmed = await _api.updateSettings(token, updated);
-      if (mounted) setState(() { _settings = confirmed; _saving = false; });
+      if (mounted) {
+        setState(() {
+          _settings = confirmed;
+          _saving = false;
+        });
+      }
+        
     } catch (_) {
-      if (mounted) setState(() { _saving = false; });
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
+        
     }
   }
 
@@ -67,7 +96,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             _buildHeader(),
             if (_loading)
               const Expanded(
-                child: Center(child: CircularProgressIndicator(color: AppColors.brilliantOrange)),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.brilliantOrange,
+                  ),
+                ),
               )
             else if (_error != null)
               Expanded(
@@ -75,11 +108,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_error!, style: const TextStyle(color: AppColors.white60, fontSize: 14), textAlign: TextAlign.center),
+                      Text(
+                        _error!,
+                        style: TextStyle(
+                          color: AppColors.white60,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: 16),
                       TextButton(
                         onPressed: _load,
-                        child: const Text('Retry', style: TextStyle(color: AppColors.brilliantOrange)),
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(color: AppColors.brilliantOrange),
+                        ),
                       ),
                     ],
                   ),
@@ -96,17 +139,17 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         children: [
                           _buildSectionLabel('Profile'),
                           const SizedBox(height: 4),
-                          _buildCard(children: [
-                            _buildDobTile(),
-                            _divider(),
-                            _buildGenderTile(),
-                          ]),
+                          _buildCard(
+                            children: [
+                              _buildDobTile(),
+                              _divider(),
+                              _buildGenderTile(),
+                            ],
+                          ),
                           const SizedBox(height: 28),
                           _buildSectionLabel('Appearance'),
                           const SizedBox(height: 4),
-                          _buildCard(children: [
-                            _buildThemeTile(),
-                          ]),
+                          _buildCard(children: [_buildThemeTile()]),
                         ],
                       ),
                     ),
@@ -117,7 +160,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         child: SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brilliantOrange),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.brilliantOrange,
+                          ),
                         ),
                       ),
                   ],
@@ -141,13 +187,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.whiteSmoke, size: 20),
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: AppColors.whiteSmoke,
+                  size: 20,
+                ),
               ),
             ),
-            const Center(
+            Center(
               child: Text(
                 'Account',
-                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 22, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -159,7 +213,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Widget _buildSectionLabel(String label) {
     return Text(
       label.toUpperCase(),
-      style: const TextStyle(color: AppColors.white60, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.8),
+      style: TextStyle(
+        color: AppColors.white60,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.8,
+      ),
     );
   }
 
@@ -173,7 +232,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  Widget _divider() => const Divider(height: 1, color: Color(0xFF2A2A2A), indent: 16, endIndent: 16);
+  Widget _divider() => Divider(
+    height: 1,
+    color: AppColors.containerMid,
+    indent: 16,
+    endIndent: 16,
+  );
 
   Widget _buildDobTile() {
     final dob = _settings?.dateOfBirth ?? '';
@@ -186,18 +250,23 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            const Icon(Icons.cake_outlined, color: AppColors.white60, size: 20),
+            Icon(Icons.cake_outlined, color: AppColors.white60, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Date of Birth', style: TextStyle(color: AppColors.white60, fontSize: 12)),
+                  Text(
+                    'Date of Birth',
+                    style: TextStyle(color: AppColors.white60, fontSize: 12),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     display.isEmpty ? 'Not set' : display,
                     style: TextStyle(
-                      color: display.isEmpty ? AppColors.white60 : AppColors.whiteSmoke,
+                      color: display.isEmpty
+                          ? AppColors.white60
+                          : AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -205,7 +274,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
+            Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
           ],
         ),
       ),
@@ -220,18 +289,23 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            const Icon(Icons.person_outline, color: AppColors.white60, size: 20),
+            Icon(Icons.person_outline, color: AppColors.white60, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Gender', style: TextStyle(color: AppColors.white60, fontSize: 12)),
+                  Text(
+                    'Gender',
+                    style: TextStyle(color: AppColors.white60, fontSize: 12),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     gender.isEmpty ? 'Not set' : gender,
                     style: TextStyle(
-                      color: gender.isEmpty ? AppColors.white60 : AppColors.whiteSmoke,
+                      color: gender.isEmpty
+                          ? AppColors.white60
+                          : AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -239,7 +313,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
+            Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
           ],
         ),
       ),
@@ -256,7 +330,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         child: Row(
           children: [
             Icon(
-              theme == 'Light' ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              theme == 'Light'
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
               color: AppColors.white60,
               size: 20,
             ),
@@ -265,13 +341,23 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Theme', style: TextStyle(color: AppColors.white60, fontSize: 12)),
+                  Text(
+                    'Theme',
+                    style: TextStyle(color: AppColors.white60, fontSize: 12),
+                  ),
                   const SizedBox(height: 2),
-                  Text(theme, style: const TextStyle(color: AppColors.whiteSmoke, fontSize: 15, fontWeight: FontWeight.w500)),
+                  Text(
+                    theme,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
+            Icon(Icons.chevron_right, color: AppColors.white60, size: 22),
           ],
         ),
       ),
@@ -284,8 +370,25 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       final datePart = iso.split('T').first;
       final parts = datePart.split('-');
       if (parts.length < 3) return datePart;
-      final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final dt = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
     } catch (_) {
       return iso;
@@ -307,16 +410,29 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     }
 
     const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
 
     final currentYear = DateTime.now().year;
-    final years = List<int>.generate(currentYear - 1949, (i) => currentYear - i);
+    final years = List<int>.generate(
+      currentYear - 1949,
+      (i) => currentYear - i,
+    );
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: AppColors.surfaceMid,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -334,17 +450,25 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
             final InputDecoration dropdownDecoration = InputDecoration(
               filled: true,
-              fillColor: const Color(0xFF2A2A2A),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              fillColor: AppColors.containerMid,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: AppColors.brilliantOrange, width: 1.2),
+                borderSide: const BorderSide(
+                  color: AppColors.brilliantOrange,
+                  width: 1.2,
+                ),
               ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             );
 
             Widget buildDropdown<T>({
@@ -356,32 +480,53 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               return DropdownButtonFormField<T>(
                 initialValue: value,
                 isExpanded: true,
-                dropdownColor: const Color(0xFF1E1E1E),
-                style: const TextStyle(color: Colors.white, fontSize: 15),
-                icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.white60),
+                dropdownColor: AppColors.surfaceMid,
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
+                icon: Icon(Icons.keyboard_arrow_down, color: AppColors.white60),
                 decoration: dropdownDecoration,
-                hint: Text(hint, style: const TextStyle(color: AppColors.white60, fontSize: 15)),
+                hint: Text(
+                  hint,
+                  style: TextStyle(color: AppColors.white60, fontSize: 15),
+                ),
                 items: items,
-                selectedItemBuilder: (_) => items.map((item) => Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(item.value == null ? '' : item.value.toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 15), overflow: TextOverflow.ellipsis),
-                )).toList(),
+                selectedItemBuilder: (_) => items
+                    .map(
+                      (item) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          item.value == null ? '' : item.value.toString(),
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
+                            fontSize: 15,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
                 onChanged: onChanged,
               );
             }
 
             return Padding(
               padding: EdgeInsets.only(
-                left: 16, right: 16, top: 20,
+                left: 16,
+                right: 16,
+                top: 20,
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Date of Birth',
-                      style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text(
+                    'Date of Birth',
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -390,11 +535,18 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         child: buildDropdown<int>(
                           value: selectedMonth,
                           hint: 'Month',
-                          items: List.generate(12, (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(monthNames[i], style: const TextStyle(color: Colors.white)),
-                          )),
-                          onChanged: (v) => setSheetState(() => selectedMonth = v),
+                          items: List.generate(
+                            12,
+                            (i) => DropdownMenuItem(
+                              value: i + 1,
+                              child: Text(
+                                monthNames[i],
+                                style: TextStyle(color: AppColors.whiteSmoke),
+                              ),
+                            ),
+                          ),
+                          onChanged: (v) =>
+                              setSheetState(() => selectedMonth = v),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -403,11 +555,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         child: buildDropdown<int>(
                           value: selectedDay,
                           hint: 'Day',
-                          items: days.map((d) => DropdownMenuItem(
-                            value: d,
-                            child: Text('$d', style: const TextStyle(color: Colors.white)),
-                          )).toList(),
-                          onChanged: (v) => setSheetState(() => selectedDay = v),
+                          items: days
+                              .map(
+                                (d) => DropdownMenuItem(
+                                  value: d,
+                                  child: Text(
+                                    '$d',
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) =>
+                              setSheetState(() => selectedDay = v),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -416,11 +578,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         child: buildDropdown<int>(
                           value: selectedYear,
                           hint: 'Year',
-                          items: years.map((y) => DropdownMenuItem(
-                            value: y,
-                            child: Text('$y', style: const TextStyle(color: Colors.white)),
-                          )).toList(),
-                          onChanged: (v) => setSheetState(() => selectedYear = v),
+                          items: years
+                              .map(
+                                (y) => DropdownMenuItem(
+                                  value: y,
+                                  child: Text(
+                                    '$y',
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) =>
+                              setSheetState(() => selectedYear = v),
                         ),
                       ),
                     ],
@@ -429,14 +601,18 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (selectedMonth != null && selectedDay != null && selectedYear != null)
+                      onPressed:
+                          (selectedMonth != null &&
+                              selectedDay != null &&
+                              selectedYear != null)
                           ? () {
                               Navigator.pop(sheetContext);
                               if (_settings != null) {
-                                final iso = DateTime(selectedYear!, selectedMonth!, selectedDay!)
-                                    .toIso8601String()
-                                    .split('T')
-                                    .first;
+                                final iso = DateTime(
+                                  selectedYear!,
+                                  selectedMonth!,
+                                  selectedDay!,
+                                ).toIso8601String().split('T').first;
                                 _patch(_settings!.copyWith(dateOfBirth: iso));
                               }
                             }
@@ -444,12 +620,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brilliantOrange,
                         disabledBackgroundColor: const Color(0xFF3A2A1A),
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.whiteSmoke,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Text('Save', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -465,7 +649,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     const options = ['Dark', 'Light'];
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: AppColors.surfaceMid,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -476,28 +660,67 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: Text('Theme',
-                      style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    'Theme',
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
                 ...options.map((opt) {
                   final selected = opt == currentTheme;
                   return ListTile(
                     leading: Icon(
-                      opt == 'Light' ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                      color: selected ? AppColors.brilliantOrange : AppColors.white60,
+                      opt == 'Light'
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined,
+                      color: selected
+                          ? AppColors.brilliantOrange
+                          : AppColors.white60,
                       size: 20,
                     ),
-                    title: Text(opt,
-                        style: TextStyle(
-                            color: selected ? AppColors.brilliantOrange : AppColors.whiteSmoke,
-                            fontSize: 15)),
-                    trailing: selected ? const Icon(Icons.check, color: AppColors.brilliantOrange, size: 20) : null,
-                    onTap: () {
+                    title: Text(
+                      opt,
+                      style: TextStyle(
+                        color: selected
+                            ? AppColors.brilliantOrange
+                            : AppColors.whiteSmoke,
+                        fontSize: 15,
+                      ),
+                    ),
+                    trailing: selected
+                        ? const Icon(
+                            Icons.check,
+                            color: AppColors.brilliantOrange,
+                            size: 20,
+                          )
+                        : null,
+                    onTap: () async {
+                      // Close the bottom sheet immediately
                       Navigator.pop(context);
+
                       if (!selected && _settings != null) {
-                        _patch(_settings!.copyWith(theme: opt));
+                        // 1. Update local state
+                        setState(() {
+                          _settings = _settings!.copyWith(theme: opt);
+                        });
+
+                        // 2. Save to API
+                        await _patch(_settings!);
+
+                        // 3. Navigate to Splash Screen to fully reload with new theme
+                        // Note: Replace '/' with your actual splash route name if different
+                        if (mounted) {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/',
+                            (route) => false,
+                          );
+                        }
                       }
                     },
                   );
@@ -514,7 +737,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     const options = ['Male', 'Female'];
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: AppColors.surfaceMid,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -525,18 +748,36 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
                   child: Text(
                     'Select Gender',
-                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 ...options.map((opt) {
                   final selected = opt == currentGender;
                   return ListTile(
-                    title: Text(opt, style: TextStyle(color: selected ? AppColors.brilliantOrange : AppColors.whiteSmoke, fontSize: 15)),
-                    trailing: selected ? const Icon(Icons.check, color: AppColors.brilliantOrange, size: 20) : null,
+                    title: Text(
+                      opt,
+                      style: TextStyle(
+                        color: selected
+                            ? AppColors.brilliantOrange
+                            : AppColors.whiteSmoke,
+                        fontSize: 15,
+                      ),
+                    ),
+                    trailing: selected
+                        ? const Icon(
+                            Icons.check,
+                            color: AppColors.brilliantOrange,
+                            size: 20,
+                          )
+                        : null,
                     onTap: () {
                       Navigator.pop(context);
                       if (!selected && _settings != null) {

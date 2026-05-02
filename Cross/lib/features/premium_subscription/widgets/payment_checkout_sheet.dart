@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/payment_service.dart';
 
 class CardNumberFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     String text = newValue.text.replaceAll(RegExp(r'\s+\b|\b\s'), '');
     if (text.length > 16) text = text.substring(0, 16);
 
@@ -18,13 +22,19 @@ class CardNumberFormatter extends TextInputFormatter {
       }
     }
     var string = buffer.toString();
-    return newValue.copyWith(text: string, selection: TextSelection.collapsed(offset: string.length));
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
   }
 }
 
 class ExpiryDateFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     String text = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (text.length > 4) text = text.substring(0, 4);
 
@@ -34,7 +44,10 @@ class ExpiryDateFormatter extends TextInputFormatter {
       if (i == 1 && text.length > 2) buffer.write(' / ');
     }
     var string = buffer.toString();
-    return newValue.copyWith(text: string, selection: TextSelection.collapsed(offset: string.length));
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
   }
 }
 
@@ -151,7 +164,9 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       }
 
       // إخبار التطبيق والواجهة فوراً بأن المستخدم أصبح Pro (سيستمر في التأكد من الـ API بالخلفية)
-      PaymentService.subscriptionSuccessNotifier.setOptimisticPro(actualPriceId);
+      PaymentService.subscriptionSuccessNotifier.setOptimisticPro(
+        actualPriceId,
+      );
 
       if (_isAddingNewCard && _saveInfo) {
         final cardNumber = _cardNumberController.text.replaceAll(' ', '');
@@ -184,17 +199,30 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: const Color(0xFF2C2C2E).withValues(alpha: 0.95),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor: AppColors.paymentDialogBg.withValues(alpha: 0.95),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           elevation: 0,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Purchase successful', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
+                Text(
+                  'Purchase successful',
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                const Text('You have successfully completed your order', style: TextStyle(color: Colors.white70, fontSize: 14), textAlign: TextAlign.center),
+                Text(
+                  'You have successfully completed your order',
+                  style: TextStyle(color: AppColors.white70, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 28),
                 SizedBox(
                   width: double.infinity,
@@ -204,13 +232,22 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0A84FF),
+                      backgroundColor: AppColors.iOSBlue,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('Ok, got it', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      'Ok, got it',
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -231,12 +268,14 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFFF2F2F7),
+        color: AppColors.paymentLightBg,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 20, right: 20, top: 16,
+        left: 20,
+        right: 20,
+        top: 16,
       ),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -268,14 +307,26 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _selectedMethod == 'apple_pay' ? const Color(0xFF0A84FF) : Colors.transparent, width: 2),
+                border: Border.all(
+                  color: _selectedMethod == 'apple_pay'
+                      ? AppColors.iOSBlue
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.apple, color: Colors.white, size: 24),
+                children: [
+                  Icon(Icons.apple, color: AppColors.whiteSmoke, size: 24),
                   SizedBox(width: 4),
-                  Text('Pay', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Pay',
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -287,16 +338,35 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF00D632),
+                color: AppColors.successGreen,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _selectedMethod == 'link' ? const Color(0xFF0A84FF) : Colors.transparent, width: 2),
+                border: Border.all(
+                  color: _selectedMethod == 'link'
+                      ? AppColors.iOSBlue
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Text('Pay with ', style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Pay with ',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   Icon(Icons.link, color: Colors.black, size: 24),
-                  Text('link', style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'link',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -308,58 +378,129 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                 Expanded(child: Divider(color: Colors.black26)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('Or pay using', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                  child: Text(
+                    'Or pay using',
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
                 ),
                 Expanded(child: Divider(color: Colors.black26)),
               ],
             ),
           ),
           if (_savedCardLast4 != null) ...[
-            const Text('Saved', style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500)),
+            const Text(
+              'Saved',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () => setState(() => _selectedMethod = 'saved'),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _selectedMethod == 'saved' ? const Color(0xFF0A84FF) : Colors.black12, width: _selectedMethod == 'saved' ? 2 : 1),
+                  border: Border.all(
+                    color: _selectedMethod == 'saved'
+                        ? AppColors.iOSBlue
+                        : Colors.black12,
+                    width: _selectedMethod == 'saved' ? 2 : 1,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 40, height: 24,
-                      decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(4)),
-                      child: const Center(child: Icon(Icons.circle, color: Colors.orange, size: 12)),
+                      width: 40,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.circle,
+                          color: Colors.orange,
+                          size: 12,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    Text('•••• $_savedCardLast4', style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w500)),
+                    Text(
+                      '•••• $_savedCardLast4',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     const Spacer(),
-                    const Text('View more', style: TextStyle(color: Color(0xFF0A84FF), fontSize: 14)),
+                    const Text(
+                      'View more',
+                      style: TextStyle(color: AppColors.iOSBlue, fontSize: 14),
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
           ],
-          const Text('New payment method', style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500)),
+          const Text(
+            'New payment method',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 8),
           Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.black12)),
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.black12),
+            ),
             child: Column(
               children: [
                 ListTile(
                   onTap: () => setState(() => _isAddingNewCard = true),
                   leading: const Icon(Icons.credit_card, color: Colors.black),
-                  title: const Text('New card', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+                  title: const Text(
+                    'New card',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 const Divider(height: 1, color: Colors.black12, indent: 48),
                 ListTile(
                   onTap: () => setState(() => _selectedMethod = 'cashapp'),
-                  leading: Container(padding: const EdgeInsets.all(4), decoration: BoxDecoration(color: const Color(0xFF00D632), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.attach_money, color: Colors.white, size: 16)),
-                  title: const Text('Cash App Pay', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
-                  trailing: _selectedMethod == 'cashapp' ? const Icon(Icons.check_circle, color: Color(0xFF0A84FF)) : null,
+                  leading: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.successGreen,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Icon(
+                      Icons.attach_money,
+                      color: AppColors.whiteSmoke,
+                      size: 16,
+                    ),
+                  ),
+                  title: const Text(
+                    'Cash App Pay',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  trailing: _selectedMethod == 'cashapp'
+                      ? const Icon(Icons.check_circle, color: AppColors.iOSBlue)
+                      : null,
                 ),
               ],
             ),
@@ -368,27 +509,50 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
-              child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.w500)),
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0A84FF),
+                backgroundColor: AppColors.iOSBlue,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: _isLoading ? null : _processPayment,
               child: _isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: AppColors.whiteSmoke,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Pay EGP ${widget.plan['amount']}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.lock, color: Colors.white, size: 16),
-                ],
-              ),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Pay EGP ${widget.plan['amount']}',
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(Icons.lock, color: AppColors.whiteSmoke, size: 16),
+                      ],
+                    ),
             ),
           ),
           const SizedBox(height: 30),
@@ -411,22 +575,58 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                   _isAddingNewCard = false;
                   _errorMessage = null;
                 }),
-                child: const Padding(padding: EdgeInsets.only(right: 8.0, top: 4, bottom: 4), child: Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20)),
+                child: const Padding(
+                  padding: EdgeInsets.only(right: 8.0, top: 4, bottom: 4),
+                  child: Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.black87,
+                    size: 20,
+                  ),
+                ),
               ),
-              const Text('Add card', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text(
+                'Add card',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
-          const Text('Card information', style: TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)),
+          const Text(
+            'Card information',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 8),
           Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black12)),
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.black12),
+            ),
             child: Column(
               children: [
                 TextField(
                   controller: _cardNumberController,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, CardNumberFormatter()],
-                  decoration: const InputDecoration(hintText: 'Card number', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14), hintStyle: TextStyle(color: Colors.black38)),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    CardNumberFormatter(),
+                  ],
+                  decoration: const InputDecoration(
+                    hintText: 'Card number',
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    hintStyle: TextStyle(color: Colors.black38),
+                  ),
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                 ),
@@ -436,21 +636,49 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                     Expanded(
                       child: TextField(
                         controller: _expiryController,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly, ExpiryDateFormatter()],
-                        decoration: const InputDecoration(hintText: 'MM / YY', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14), hintStyle: TextStyle(color: Colors.black38)),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          ExpiryDateFormatter(),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: 'MM / YY',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          hintStyle: TextStyle(color: Colors.black38),
+                        ),
                         keyboardType: TextInputType.datetime,
-                        style: const TextStyle(color: Colors.black, fontSize: 16),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                     Container(width: 1, height: 48, color: Colors.black12),
                     Expanded(
                       child: TextField(
                         controller: _cvcController,
-                        inputFormatters: [LengthLimitingTextInputFormatter(4), FilteringTextInputFormatter.digitsOnly],
-                        decoration: const InputDecoration(hintText: 'CVC', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14), hintStyle: TextStyle(color: Colors.black38)),
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(4),
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: 'CVC',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          hintStyle: TextStyle(color: Colors.black38),
+                        ),
                         keyboardType: TextInputType.number,
                         obscureText: true,
-                        style: const TextStyle(color: Colors.black, fontSize: 16),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -459,46 +687,105 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('Billing address', style: TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)),
+          const Text(
+            'Billing address',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 8),
           Container(
-            decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.black12), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke,
+              border: Border.all(color: Colors.black12),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: ListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
-              title: const Text('Country or region', style: TextStyle(fontSize: 11, color: Colors.black54)),
-              subtitle: const Text('Egypt', style: TextStyle(fontSize: 16, color: Colors.black)),
-              trailing: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+              title: const Text(
+                'Country or region',
+                style: TextStyle(fontSize: 11, color: Colors.black54),
+              ),
+              subtitle: const Text(
+                'Egypt',
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
+              trailing: const Icon(
+                Icons.keyboard_arrow_down,
+                color: Colors.black54,
+              ),
             ),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Checkbox(value: _saveInfo, activeColor: const Color(0xFF0A84FF), onChanged: (val) => setState(() => _saveInfo = val ?? true), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))),
-              const Expanded(child: Text('Save my info for faster checkout with Link', style: TextStyle(fontSize: 14, color: Colors.black87))),
+              Checkbox(
+                value: _saveInfo,
+                activeColor: AppColors.iOSBlue,
+                onChanged: (val) => setState(() => _saveInfo = val ?? true),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Expanded(
+                child: Text(
+                  'Save my info for faster checkout with Link',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
-              child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.w500)),
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0A84FF), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.iOSBlue,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onPressed: _isLoading ? null : _processPayment,
               child: _isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: AppColors.whiteSmoke,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Pay EGP ${widget.plan['amount']}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.lock, color: Colors.white, size: 16),
-                ],
-              ),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Pay EGP ${widget.plan['amount']}',
+                          style: TextStyle(
+                            color: AppColors.whiteSmoke,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(Icons.lock, color: AppColors.whiteSmoke, size: 16),
+                      ],
+                    ),
             ),
           ),
           const SizedBox(height: 30),

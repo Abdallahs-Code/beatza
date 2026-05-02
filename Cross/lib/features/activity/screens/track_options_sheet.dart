@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
@@ -7,11 +8,36 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+
+enum TrackOptionsVariant { normalTrack, ownTrack, behindTrack, feedTrack }
 
 class TrackOptionsSheet extends StatefulWidget {
   final PlaybackTrackModel track;
+  final TrackOptionsVariant variant;
 
-  const TrackOptionsSheet({super.key, required this.track});
+  /// Called when "Edit track" is tapped (ownTrack variant only).
+  final VoidCallback? onEditTrack;
+
+  /// Called when "Show me fewer posts like that" is tapped (feedTrack variant only).
+  final VoidCallback? onShowFewerPosts;
+
+  /// Called when "Switch to Classic feed" is tapped (feedTrack variant only).
+  final VoidCallback? onSwitchToClassicFeed;
+
+  /// Called when "Behind this track" is tapped. Sheet pops itself first,
+  /// then invokes this callback so the caller handles navigation.
+  final VoidCallback? onBehindThisTrack;
+
+  const TrackOptionsSheet({
+    super.key,
+    required this.track,
+    this.variant = TrackOptionsVariant.normalTrack,
+    this.onEditTrack,
+    this.onShowFewerPosts,
+    this.onSwitchToClassicFeed,
+    this.onBehindThisTrack,
+  });
 
   @override
   State<TrackOptionsSheet> createState() => _TrackOptionsSheetState();
@@ -25,136 +51,137 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   bool _isReposted = false;
   late int _repostCount;
 
-  List<({String receiverId, String name, String photoUrl})> _recentContacts = [];
+  List<({String receiverId, String name, String photoUrl})> _recentContacts =
+      [];
   String? _trackPermalink;
+
+  bool get _hasSendTo => widget.variant != TrackOptionsVariant.feedTrack;
+  bool get _hasRepost => widget.variant != TrackOptionsVariant.ownTrack;
+  bool get _hasGoToProfile => widget.variant != TrackOptionsVariant.ownTrack;
+  bool get _hasReport => widget.variant != TrackOptionsVariant.ownTrack;
+  bool get _hasBehindThisTrack =>
+      widget.variant != TrackOptionsVariant.behindTrack;
+  bool get _hasStartStation => widget.variant != TrackOptionsVariant.feedTrack;
+  bool get _hasEditTrack => widget.variant == TrackOptionsVariant.ownTrack;
+  bool get _hasFeedOptions => widget.variant == TrackOptionsVariant.feedTrack;
 
   @override
   void initState() {
     super.initState();
     _repostCount = widget.track.numReposts;
+    // Pre-populate _trackPermalink synchronously before the first build so the
+    // Message button always has a non-empty link even if the user taps it
+    // immediately before the async network calls in _loadSendToData finish.
+    final rawPermalink = widget.track.permalink?.trim();
+    if (rawPermalink != null && rawPermalink.isNotEmpty) {
+      _trackPermalink = 'track::permalink:"$rawPermalink",profilelink:""';
+    }
     _checkLikeStatus();
-    _checkRepostStatus();
+    if (_hasRepost) _checkRepostStatus();
     _loadSendToData();
   }
 
   Future<void> _loadSendToData() async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('[SendTo] STEP 0 — _loadSendToData() called');
-    debugPrint('[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"');
+    debugPrint('[SendTo] START variant=${widget.variant.name}');
+    debugPrint('[SendTo] track.id="${widget.track.id}"  track.title="${widget.track.title}"');
+    debugPrint('[SendTo] track.permalink="${widget.track.permalink}"  track.artistId="${widget.track.artistId}"');
 
-    // ── Step 1: get current user id ─────────────────────────────────────────
-    debugPrint('[SendTo] STEP 1 — reading currentUserId from secure storage');
+    final permalink = widget.track.permalink?.trim();
+    final artistId = widget.track.artistId ?? '';
+    debugPrint('[SendTo] permalink="$permalink"  artistId="$artistId"');
+
+    if (permalink == null || permalink.isEmpty) {
+      debugPrint('[SendTo] ⚠️ permalink is null/empty — _trackPermalink stays null, Message will send blank link');
+    }
+
+    // ── STEP 1: current user ─────────────────────────────────────────────────
     final currentUserId = await AuthApiService().getStoredUserId();
-    debugPrint('[SendTo] STEP 1 result → currentUserId="$currentUserId" (isNull=${currentUserId == null}, isEmpty=${currentUserId?.isEmpty})');
+    debugPrint('[SendTo] S1 currentUserId="$currentUserId"  isNull=${currentUserId == null}  isEmpty=${currentUserId?.isEmpty}');
     if (currentUserId == null || currentUserId.isEmpty) {
-      debugPrint('[SendTo] STEP 1 ❌ ABORTED — no currentUserId. Send To section will NOT show.');
+      debugPrint('[SendTo] S1 ❌ not logged in — skipping followers & profileLink');
       return;
     }
-    debugPrint('[SendTo] STEP 1 ✅ currentUserId OK');
 
-    // ── Step 2: resolve permalink and artistId ──────────────────────────────
-    debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
-    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"');
-    final permalink = widget.track.permalink?.isNotEmpty == true ? widget.track.permalink : null;
-    final artistId = widget.track.artistId ?? '';
-    debugPrint('[SendTo] STEP 2 ✅ permalink="$permalink" artistId="$artistId"');
-
-    // ── Step 3: fetch track owner's profileLink ──────────────────────────────
-    debugPrint('[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"');
+    // ── STEP 2: profileLink (needed for full attach-in-chat format) ──────────
     String profileLink = '';
     if (artistId.isNotEmpty) {
       try {
-        profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
-        debugPrint('[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})');
-        if (profileLink.isEmpty) {
-          debugPrint('[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
-        }
+        profileLink =
+            await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
+        debugPrint('[SendTo] S2 profileLink="$profileLink"  empty=${profileLink.isEmpty}');
       } catch (e) {
-        debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
+        debugPrint('[SendTo] S2 ❌ getUserProfileLink threw: $e');
       }
     } else {
-      debugPrint('[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.');
+      debugPrint('[SendTo] S2 ⚠️ artistId empty — skipping profileLink fetch');
     }
 
-    // Build payload in new format — used in all setState calls below
-    String buildPayload() {
-      if (permalink == null || permalink.isEmpty) return '';
-      return 'track::permalink:"$permalink",profilelink:"$profileLink"';
+    // Update _trackPermalink now that we have the profileLink
+    if (permalink != null && permalink.isNotEmpty && mounted) {
+      final fullPayload = 'track::permalink:"$permalink",profilelink:"$profileLink"';
+      setState(() => _trackPermalink = fullPayload);
+      debugPrint('[SendTo] S2 updated _trackPermalink="$fullPayload"');
     }
 
-    // ── Step 4: get followers ────────────────────────────────────────────────
-    debugPrint('[SendTo] STEP 4 — calling SocialApiService().getFollowers(userId=$currentUserId)');
-    debugPrint('[SendTo] STEP 4   URL will be: [baseUrl]/api/social/v1/followers/$currentUserId');
+    // ── STEP 3: fetch followers for Send To quick-access section ─────────────
+    debugPrint('[SendTo] S3 calling getFollowers(userId=$currentUserId)');
     try {
       final result = await SocialApiService().getFollowers(userId: currentUserId);
-      debugPrint('[SendTo] STEP 4 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
+      debugPrint('[SendTo] S3 status=${result.$1}  dataType=${result.$2.runtimeType}');
 
       if (result.$1 != 200) {
-        debugPrint('[SendTo] STEP 4 ❌ Non-200 status=${result.$1}. data="${result.$2}". Send To will NOT show.');
-        if (mounted) setState(() => _trackPermalink = buildPayload());
+        debugPrint('[SendTo] S3 ❌ non-200 — no contacts to show');
         return;
       }
-      debugPrint('[SendTo] STEP 3 ✅ status 200');
 
-      // ── Step 4: inspect raw list returned by getFollowers ─────────────────
-      debugPrint('[SendTo] STEP 4 — inspecting raw result.second');
+      // ── STEP 4: cast list ──────────────────────────────────────────────────
       final rawList = result.$2;
-      debugPrint('[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}');
-      debugPrint('[SendTo] STEP 4   rawList is List? ${rawList is List}');
+      debugPrint('[SendTo] S4 rawList.runtimeType=${rawList.runtimeType}  isList=${rawList is List}');
       if (rawList is List) {
-        debugPrint('[SendTo] STEP 4   rawList.length=${rawList.length}');
-        for (var i = 0; i < rawList.length; i++) {
-          final item = rawList[i];
-          debugPrint('[SendTo] STEP 4   item[$i] runtimeType=${item.runtimeType} value=$item');
+        debugPrint('[SendTo] S4 rawList.length=${rawList.length}');
+        if (rawList.isNotEmpty) {
+          debugPrint('[SendTo] S4 first element runtimeType=${rawList.first.runtimeType}');
         }
-      } else {
-        debugPrint('[SendTo] STEP 4 ❌ rawList is NOT a List — this is why followers are empty. Actual type: ${rawList.runtimeType}, value: $rawList');
       }
 
-      // ── Step 5: cast to List<Follower> ────────────────────────────────────
-      debugPrint('[SendTo] STEP 5 — casting items to Follower via whereType<Follower>()');
       List<Follower> followers = [];
-      if (rawList is List) {
-        followers = rawList.whereType<Follower>().toList();
-        debugPrint('[SendTo] STEP 5   rawList.length=${rawList.length}  followers after whereType=${followers.length}');
-        if (rawList.isNotEmpty && followers.isEmpty) {
-          debugPrint('[SendTo] STEP 5 ❌ whereType<Follower>() filtered out ALL items. Items are ${rawList.first.runtimeType}, not Follower.');
-        }
-        for (final f in followers) {
-          debugPrint('[SendTo] STEP 5   Follower → userId="${f.userId}" displayName="${f.displayName}" profileImgLink="${f.profileImgLink}"');
+      try {
+        followers = rawList is List ? List<Follower>.from(rawList) : [];
+        debugPrint('[SendTo] S4 cast succeeded  followers.length=${followers.length}');
+      } catch (castErr) {
+        debugPrint('[SendTo] S4 ❌ List<Follower>.from() threw: $castErr');
+        if (rawList is List) {
+          for (final item in rawList) {
+            debugPrint('[SendTo] S4 fallback inspect item: type=${item.runtimeType}  value=$item');
+          }
         }
       }
-      debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
 
-      // ── Step 6: filter out empty userIds ──────────────────────────────────
-      debugPrint('[SendTo] STEP 6 — filtering followers with empty userId');
+      // ── STEP 5: filter & build contacts ───────────────────────────────────
       final validFollowers = followers.where((f) => f.userId.isNotEmpty).toList();
-      debugPrint('[SendTo] STEP 6   before filter=${followers.length}  after filter=${validFollowers.length}');
-      for (final f in validFollowers) {
-        debugPrint('[SendTo] STEP 6   valid → userId="${f.userId}" name="${f.displayName}"');
+      debugPrint('[SendTo] S5 validFollowers.length=${validFollowers.length}  (before=${followers.length})');
+      for (final f in validFollowers.take(3)) {
+        debugPrint('[SendTo] S5 sample: userId="${f.userId}"  name="${f.displayName}"  photo="${f.profileImgLink}"');
       }
 
-      // ── Step 7: setState ───────────────────────────────────────────────────
-      debugPrint('[SendTo] STEP 7 — about to call setState. mounted=$mounted');
       if (!mounted) {
-        debugPrint('[SendTo] STEP 7 ❌ widget unmounted before setState — contacts will NOT be set');
+        debugPrint('[SendTo] S5 ❌ widget unmounted — skipping setState');
         return;
       }
-      final contacts = validFollowers
-          .take(6)
-          .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
-          .toList();
-      debugPrint('[SendTo] STEP 7   contacts to set: ${contacts.length}');
+
       setState(() {
-        _recentContacts = contacts;
-        _trackPermalink = buildPayload();
+        _recentContacts = validFollowers
+            .take(6)
+            .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
+            .toList();
       });
-      debugPrint('[SendTo] STEP 7 ✅ setState done. _recentContacts.length=${_recentContacts.length}');
-      debugPrint('[SendTo] STEP 7   Send To section WILL show: ${_recentContacts.isNotEmpty}');
+      debugPrint('[SendTo] S6 ✅ _recentContacts=${_recentContacts.length}');
+      debugPrint('[SendTo] S6 Send To section will show: ${_hasSendTo && _recentContacts.isNotEmpty}  (hasSendTo=$_hasSendTo)');
+
     } catch (e, stack) {
-      debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
-      debugPrint('[SendTo] STEP 3   stack: $stack');
-      if (mounted) setState(() => _trackPermalink = buildPayload());
+      debugPrint('[SendTo] ❌ EXCEPTION: $e');
+      debugPrint('[SendTo] stack: $stack');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
@@ -218,33 +245,35 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   void _viewComments() {
     final nav = Navigator.of(context, rootNavigator: true);
     nav.pop();
-    nav.push(MaterialPageRoute(
-      builder: (_) => CommentsScreen(
-        trackId: widget.track.id,
-        trackTitle: widget.track.title,
-        trackArtist: widget.track.artistName,
-        trackThumbnailUrl: widget.track.artworkUrl,
-        currentPositionSeconds: 0,
+    nav.push(
+      MaterialPageRoute(
+        builder: (_) => CommentsScreen(
+          trackId: widget.track.id,
+          trackTitle: widget.track.title,
+          trackArtist: widget.track.artistName,
+          trackThumbnailUrl: widget.track.artworkUrl,
+          currentPositionSeconds: 0,
+        ),
       ),
-    ));
+    );
   }
 
   void _openSendToSheet() {
     final link = _trackPermalink ?? '';
+    debugPrint('[SendTo] Message tapped — link="$link"  isEmpty=${link.isEmpty}');
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder: (_) => SendToSheet(
-        trackLink: link,
-        trackTitle: widget.track.title,
-      ),
+      builder: (_) =>
+          SendToSheet(trackLink: link, trackTitle: widget.track.title),
     );
   }
 
   void _sendToContact(String receiverId, String name, String photoUrl) {
     final link = _trackPermalink ?? '';
+    debugPrint('[SendTo] contact tapped — receiverId="$receiverId"  link="$link"');
     Navigator.of(context, rootNavigator: true).pop();
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
@@ -283,12 +312,27 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
     );
   }
 
+  void _playNext() {
+    PlaybackStreamingEngineService.shared.addToQueueNext(widget.track);
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _playLast() {
+    PlaybackStreamingEngineService.shared.addToQueueLast(widget.track);
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  void _behindThisTrack() {
+    Navigator.of(context, rootNavigator: true).pop();
+    widget.onBehindThisTrack?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF090909),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDeepest,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: SafeArea(
         top: false,
@@ -314,13 +358,15 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   child: _TrackHeaderCard(track: widget.track),
                 ),
                 const SizedBox(height: 22),
-                if (_recentContacts.isNotEmpty) ...[
-                  const Padding(
+
+                // ── Send To ──────────────────────────────────────────────────
+                if (_hasSendTo && _recentContacts.isNotEmpty) ...[
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
                       'SEND TO',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.white70,
                         letterSpacing: 2.2,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -333,24 +379,32 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Row(
                       children: _recentContacts
-                          .map((c) => _SendToContact(
-                                name: c.name,
-                                photoUrl: c.photoUrl,
-                                onTap: () => _sendToContact(c.receiverId, c.name, c.photoUrl),
-                              ))
+                          .map(
+                            (c) => _SendToContact(
+                              name: c.name,
+                              photoUrl: c.photoUrl,
+                              onTap: () => _sendToContact(
+                                c.receiverId,
+                                c.name,
+                                c.photoUrl,
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
                   const SizedBox(height: 18),
                   const Divider(color: Colors.white12, height: 1),
                 ],
+
+                // ── Share ────────────────────────────────────────────────────
                 const SizedBox(height: 18),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -368,71 +422,129 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                         label: 'Message',
                         onTap: _openSendToSheet,
                       ),
-                      const _ShareAction(icon: Icons.copy_outlined, label: 'Copy link'),
-                      const _ShareAction(icon: Icons.qr_code_2_outlined, label: 'QR code'),
-                      const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
-                      const _ShareAction(icon: Icons.chat_bubble_outline, label: 'WhatsApp'),
-                      const _ShareAction(icon: Icons.camera_alt_outlined, label: 'Stories'),
+                      const _ShareAction(
+                        icon: Icons.copy_outlined,
+                        label: 'Copy link',
+                      ),
+                      const _ShareAction(
+                        icon: Icons.qr_code_2_outlined,
+                        label: 'QR code',
+                      ),
+                      const _ShareAction(
+                        icon: Icons.sms_outlined,
+                        label: 'SMS',
+                      ),
+                      const _ShareAction(
+                        icon: Icons.chat_bubble_outline,
+                        label: 'WhatsApp',
+                      ),
+                      const _ShareAction(
+                        icon: Icons.camera_alt_outlined,
+                        label: 'Stories',
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 18),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
+
+                // ── Group 1: playback + management ───────────────────────────
                 _OptionTile(
                   icon: _isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   label: _isLiked ? 'Liked' : 'Like',
-                  color: _isLiked ? Colors.orange : Colors.white,
+                  color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                   onTap: _toggleLike,
                 ),
-                const _OptionTile(
+                if (_hasEditTrack)
+                  _OptionTile(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit track',
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      widget.onEditTrack?.call();
+                    },
+                  ),
+                _OptionTile(
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
+                  onTap: _playNext,
                 ),
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.format_list_bulleted_rounded,
                   label: 'Play last',
+                  onTap: _playLast,
                 ),
-                const _OptionTile(
+                _OptionTile(
                   icon: Icons.playlist_add_outlined,
                   label: 'Add to playlist',
                 ),
-                const _OptionTile(
-                  icon: Icons.radio_outlined,
-                  label: 'Start station',
-                ),
+                if (_hasStartStation)
+                  _OptionTile(
+                    icon: Icons.radio_outlined,
+                    label: 'Start station',
+                  ),
                 const SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
-                _OptionTile(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Go to profile',
-                  onTap: _goToProfile,
-                ),
+
+                // ── Group 2: social ──────────────────────────────────────────
+                if (_hasGoToProfile)
+                  _OptionTile(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Go to profile',
+                    onTap: _goToProfile,
+                  ),
                 _OptionTile(
                   icon: Icons.mode_comment_outlined,
                   label: 'View comments',
                   onTap: _viewComments,
                 ),
-                _OptionTile(
-                  icon: Icons.repeat_rounded,
-                  label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                  color: _isReposted ? Colors.orange : Colors.white,
-                  onTap: _openRepost,
-                ),
+                if (_hasRepost)
+                  _OptionTile(
+                    icon: Icons.repeat_rounded,
+                    label: _isReposted ? 'Reposted' : 'Repost on Beatza',
+                    color: _isReposted ? Colors.orange : AppColors.whiteSmoke,
+                    onTap: _openRepost,
+                  ),
+
+                // ── Feed-specific ────────────────────────────────────────────
+                if (_hasFeedOptions) ...[
+                  const SizedBox(height: 10),
+                  const Divider(color: Colors.white12, height: 1),
+                  const SizedBox(height: 10),
+                  _OptionTile(
+                    icon: Icons.thumb_down_outlined,
+                    label: 'Show me fewer posts like that',
+                    onTap: widget.onShowFewerPosts,
+                  ),
+                  _OptionTile(
+                    icon: Icons.view_list_outlined,
+                    label: 'Switch to Classic feed',
+                    onTap: widget.onSwitchToClassicFeed,
+                  ),
+                ],
+
                 const SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
-                const _OptionTile(
-                  icon: Icons.graphic_eq,
-                  label: 'Behind this track',
-                ),
-                const _OptionTile(
-                  icon: Icons.outlined_flag_rounded,
-                  label: 'Report',
-                ),
+
+                // ── Group 3: discovery + moderation ─────────────────────────
+                if (_hasBehindThisTrack)
+                  _OptionTile(
+                    icon: Icons.graphic_eq,
+                    label: 'Behind this track',
+                    onTap: widget.onBehindThisTrack != null
+                        ? _behindThisTrack
+                        : null,
+                  ),
+                if (_hasReport)
+                  _OptionTile(
+                    icon: Icons.outlined_flag_rounded,
+                    label: 'Report',
+                  ),
               ],
             ),
           ),
@@ -491,20 +603,21 @@ class _TrackHeaderCard extends StatelessWidget {
                       height: 82,
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: track.artworkUrl != null &&
+                      child:
+                          track.artworkUrl != null &&
                               track.artworkUrl!.trim().isNotEmpty
                           ? Image.network(
                               track.artworkUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const Icon(
-                                Icons.album_rounded,
-                                color: Colors.black54,
-                                size: 34,
-                              ),
+                                    Icons.album_rounded,
+                                    color: Colors.black54,
+                                    size: 34,
+                                  ),
                             )
                           : const Icon(
                               Icons.album_rounded,
@@ -526,8 +639,8 @@ class _TrackHeaderCard extends StatelessWidget {
                     track.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -537,8 +650,7 @@ class _TrackHeaderCard extends StatelessWidget {
                     track.artistName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 15),
+                    style: TextStyle(color: AppColors.white70, fontSize: 15),
                   ),
                 ],
               ),
@@ -572,14 +684,16 @@ class _ShareAction extends StatelessWidget {
               width: 62,
               height: 62,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: AppColors.whiteSmoke.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 30),
+              child: Icon(icon, color: AppColors.whiteSmoke, size: 30),
             ),
             const SizedBox(height: 8),
-            Text(label,
-                style: const TextStyle(color: Colors.white, fontSize: 13)),
+            Text(
+              label,
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
+            ),
           ],
         ),
       ),
@@ -611,16 +725,18 @@ class _SendToContact extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 31,
-              backgroundColor: const Color(0xFF2A2A2A),
-              backgroundImage:
-                  photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              backgroundColor: AppColors.containerMid,
+              backgroundImage: photoUrl.isNotEmpty
+                  ? NetworkImage(photoUrl)
+                  : null,
               child: photoUrl.isEmpty
                   ? Text(
                       _initials(name),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
@@ -632,8 +748,7 @@ class _SendToContact extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style:
-                    const TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 12),
               ),
             ),
           ],
@@ -658,19 +773,18 @@ class _OptionTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color color;
 
-  const _OptionTile({
+  _OptionTile({
     required this.icon,
     required this.label,
     this.onTap,
-    this.color = Colors.white,
-  });
+    Color? color,
+  }) : color = color ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       dense: false,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 26, vertical: 2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 26, vertical: 2),
       leading: Icon(icon, color: color, size: 33),
       title: Text(
         label,
@@ -692,7 +806,7 @@ class _VinylPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final basePaint = Paint()..color = Colors.black;
     final ringPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
+      ..color = AppColors.whiteSmoke.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final centerPaint = Paint()

@@ -29,7 +29,9 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import '../services/public_tracks_paging_service.dart';
+import '../mini_player_state.dart';
 
 // Tracks whether the expanded player is currently open so the mini player hides
 final ValueNotifier<bool> _isExpandedPlayerVisible = ValueNotifier<bool>(false);
@@ -41,7 +43,9 @@ final ValueNotifier<String?> _trackCommentPosted = ValueNotifier<String?>(null);
 
 // Notifies the engagement bar that the CommentsScreen was closed so it can
 // refresh the displayed comment count.
-final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(null);
+final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(
+  null,
+);
 
 final Map<String, List<double>> _expandedWaveformCache =
     <String, List<double>>{};
@@ -110,6 +114,15 @@ class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
                       !overlayVisibility.shouldShowMiniPlayerOnCurrentRoute ||
                       _isTransientSheetOpening.value;
 
+                  final double targetHeight = shouldHideMiniPlayer
+                      ? 0.0
+                      : kMiniPlayerTotalHeight;
+                  if (miniPlayerHeightNotifier.value != targetHeight) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      miniPlayerHeightNotifier.value = targetHeight;
+                    });
+                  }
+
                   if (shouldHideMiniPlayer) {
                     return const SizedBox.shrink();
                   }
@@ -124,7 +137,8 @@ class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
                           builder: (context, _) => _MiniPlayerCard(
                             state: state,
                             isAdPlaying: AdService.shared.isAdPlaying,
-                            adRemainingSeconds: AdService.shared.remainingSeconds,
+                            adRemainingSeconds:
+                                AdService.shared.remainingSeconds,
                             onTap: () => _openExpandedPlayer(context),
                             onPlayPauseTap: globalPlayer.togglePlayPause,
                             onDeviceTap: () => _showDeviceSheet(context),
@@ -195,9 +209,11 @@ class _MiniPlayerCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1C),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: AppColors.whiteSmoke.withValues(alpha: 0.08),
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -213,19 +229,19 @@ class _MiniPlayerCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isAdPlaying || isBlocked
                           ? Colors.white12
-                          : Colors.white,
+                          : AppColors.whiteSmoke,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       isAdPlaying
                           ? Icons.campaign_rounded
                           : isBlocked
-                              ? Icons.music_off_rounded
-                              : (state.isPlaying
-                                  ? Icons.pause_rounded
-                                  : Icons.play_arrow_rounded),
+                          ? Icons.music_off_rounded
+                          : (state.isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded),
                       color: isAdPlaying || isBlocked
-                          ? Colors.white38
+                          ? AppColors.white54
                           : Colors.black,
                       size: 26,
                     ),
@@ -241,8 +257,8 @@ class _MiniPlayerCard extends StatelessWidget {
                         isAdPlaying ? 'Ad playing' : track.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
@@ -252,8 +268,10 @@ class _MiniPlayerCard extends StatelessWidget {
                         isAdPlaying
                             ? '$adRemainingSeconds s remaining'
                             : isBlocked
+                            ? (track.isAvailableForUser
                                 ? 'Not available'
-                                : track.artistName,
+                                : 'Not available in your region')
+                            : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -341,7 +359,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                     width: 42,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white38,
+                      color: AppColors.white54,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -387,8 +405,8 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                     track.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.whiteSmoke,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -437,8 +455,8 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                       track.artistName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                      style: TextStyle(
+                                        color: AppColors.white70,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -463,11 +481,9 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                             actorName: track.artistName,
                                             actorAvatarUrl:
                                                 track.artworkUrl ?? '',
-                                            actorUserId:
-                                                track.artistId ?? '',
+                                            actorUserId: track.artistId ?? '',
                                             activityType: 'new_track',
-                                            trackOwnerId:
-                                                track.artistId ?? '',
+                                            trackOwnerId: track.artistId ?? '',
                                           ),
                                         ),
                                       );
@@ -481,19 +497,19 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                         color: Colors.black,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             Icons.graphic_eq,
-                                            color: Colors.white70,
+                                            color: AppColors.white70,
                                             size: 14,
                                           ),
                                           SizedBox(width: 6),
                                           Text(
                                             'Behind this track',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: AppColors.whiteSmoke,
                                               fontSize: 13,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -502,6 +518,45 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                       ),
                                     ),
                                   ),
+                                  if (track.mobileProPreview &&
+                                      track.accessState ==
+                                          PlaybackAccessState.preview) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.proBadgePurple
+                                            .withValues(alpha: 0.22),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: AppColors.proBadgePurple,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.lock_outline_rounded,
+                                            color: AppColors.proBadgePurple,
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Pro preview · ${track.effectivePreviewDuration.inSeconds}s · Upgrade for full track',
+                                            style: TextStyle(
+                                              color: AppColors.whiteSmoke,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -573,6 +628,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                       // Ad overlay — covers the entire player when an ad is active.
                       if (_isAdPlaying)
                         const Positioned.fill(child: AdPlayerWidget()),
+                      //const Positioned.fill(child: AdOverlay()),
                     ],
                   ),
                 ),
@@ -790,18 +846,24 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white10,
+              color: AppColors.white10,
               borderRadius: BorderRadius.circular(30),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.music_off_rounded, color: Colors.white38, size: 20),
+                Icon(
+                  Icons.music_off_rounded,
+                  color: AppColors.white54,
+                  size: 20,
+                ),
                 SizedBox(width: 8),
                 Text(
-                  'Not available',
+                  (_globalPlayer.state.currentTrack?.isAvailableForUser ?? true)
+                      ? 'Not available'
+                      : 'Not available in your region',
                   style: TextStyle(
-                    color: Colors.white54,
+                    color: AppColors.white54,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1027,8 +1089,8 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
           children: [
             Text(
               _formatDuration(_position),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -1036,7 +1098,7 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
             const SizedBox(width: 8),
             Text(
               _formatDuration(_totalDuration),
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: AppColors.white70, fontSize: 13),
             ),
           ],
         ),
@@ -1093,7 +1155,7 @@ class _ExpandedProgressSectionState extends State<_ExpandedProgressSection> {
                                   width: 4,
                                   height: 8,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2C6BED),
+                                    color: AppColors.linkBlue,
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
@@ -1148,7 +1210,7 @@ class _ExpandedTrackWaveformPainter extends CustomPainter {
     if (visibleBars <= 0) return;
 
     final Paint playedPaint = Paint()
-      ..color = const Color(0xFFFF5500)
+      ..color = AppColors.primaryOrange
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.round;
 
@@ -1247,7 +1309,7 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
                     : _volume < 0.5
                     ? Icons.volume_down_rounded
                     : Icons.volume_up_rounded,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 20,
               ),
             ),
@@ -1256,8 +1318,8 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 2,
-                thumbColor: Colors.white,
-                activeTrackColor: Colors.white,
+                thumbColor: AppColors.whiteSmoke,
+                activeTrackColor: AppColors.whiteSmoke,
                 inactiveTrackColor: Colors.white30,
                 overlayShape: SliderComponentShape.noOverlay,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
@@ -1315,7 +1377,7 @@ class _ExpandedArtworkBackground extends StatelessWidget {
           ),
         ),
         Positioned.fill(
-          child: Container(color: Colors.white.withValues(alpha: 0.20)),
+          child: Container(color: AppColors.whiteSmoke.withValues(alpha: 0.20)),
         ),
       ],
     );
@@ -1334,7 +1396,7 @@ class _ArtworkFallback extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha: 0.96),
+            AppColors.whiteSmoke.withValues(alpha: 0.96),
             AppColors.gentlePeach,
             AppColors.brilliantOrange.withValues(alpha: 0.35),
           ],
@@ -1368,7 +1430,7 @@ class _TopCircleButton extends StatelessWidget {
           color: Colors.black,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.white, size: 28),
+        child: Icon(icon, color: AppColors.whiteSmoke, size: 28),
       ),
     );
   }
@@ -1400,7 +1462,11 @@ class _PlayerActionButton extends StatelessWidget {
             color: Colors.black,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: Colors.white, size: isPrimary ? 40 : 28),
+          child: Icon(
+            icon,
+            color: AppColors.whiteSmoke,
+            size: isPrimary ? 40 : 28,
+          ),
         ),
       ),
     );
@@ -1419,13 +1485,13 @@ class _BottomMetric extends StatelessWidget {
     final Widget content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white, size: 26),
+        Icon(icon, color: AppColors.whiteSmoke, size: 26),
         if (label.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -1468,7 +1534,7 @@ Future<void> _showDeviceSheet(BuildContext context) async {
     await showModalBottomSheet<void>(
       context: navigatorContext,
       useRootNavigator: true,
-      backgroundColor: const Color(0xFF171717),
+      backgroundColor: AppColors.cardDark3,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
@@ -1492,38 +1558,38 @@ Future<void> _showDeviceSheet(BuildContext context) async {
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Current Device',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 22),
-                const _SheetOptionRow(
+                _SheetOptionRow(
                   icon: Icons.smartphone_outlined,
                   iconColor: AppColors.brilliantOrange,
                   label: 'Speaker',
                 ),
                 const SizedBox(height: 28),
-                Divider(color: Colors.white.withValues(alpha: 0.12)),
+                Divider(color: AppColors.whiteSmoke.withValues(alpha: 0.12)),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Other Devices',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 22),
-                const _SheetOptionRow(
+                _SheetOptionRow(
                   icon: Icons.speaker_phone_outlined,
                   label: 'AirPlay or Bluetooth',
                 ),
                 const SizedBox(height: 24),
-                const _SheetOptionRow(
+                _SheetOptionRow(
                   icon: Icons.cast_outlined,
                   label: 'Google Cast',
                 ),
@@ -1551,15 +1617,23 @@ Future<void> _showShareSheet(
   final String artistId = track.artistId ?? '';
   String profileLink = '';
   if (permalink.isNotEmpty && artistId.isNotEmpty) {
-    debugPrint('[_showShareSheet] Fetching profileLink for artistId="$artistId"');
+    debugPrint(
+      '[_showShareSheet] Fetching profileLink for artistId="$artistId"',
+    );
     try {
-      profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
-      debugPrint('[_showShareSheet] profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+      profileLink =
+          await MessagingApiService().getUserProfileLink(userId: artistId) ??
+          '';
+      debugPrint(
+        '[_showShareSheet] profileLink="$profileLink" (empty=${profileLink.isEmpty})',
+      );
     } catch (e) {
       debugPrint('[_showShareSheet] ❌ getUserProfileLink threw: $e');
     }
   } else {
-    debugPrint('[_showShareSheet] ⚠️ permalink="$permalink" artistId="$artistId" — one is empty, skipping profileLink fetch');
+    debugPrint(
+      '[_showShareSheet] ⚠️ permalink="$permalink" artistId="$artistId" — one is empty, skipping profileLink fetch',
+    );
   }
   final String trackLink = permalink.isNotEmpty
       ? 'track::permalink:"$permalink",profilelink:"$profileLink"'
@@ -1578,8 +1652,8 @@ Future<void> _showShareSheet(
       isScrollControlled: true,
       builder: (sheetContext) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF090909),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundDeepest,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
           child: SafeArea(
@@ -1604,7 +1678,7 @@ Future<void> _showShareSheet(
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: AppColors.whiteSmoke.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Row(
@@ -1614,7 +1688,7 @@ Future<void> _showShareSheet(
                           height: 86,
                           clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child:
@@ -1623,11 +1697,12 @@ Future<void> _showShareSheet(
                               ? Image.network(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(
-                                    Icons.album_rounded,
-                                    color: Colors.black54,
-                                    size: 34,
-                                  ),
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.album_rounded,
+                                        color: Colors.black54,
+                                        size: 34,
+                                      ),
                                 )
                               : const Icon(
                                   Icons.album_rounded,
@@ -1644,8 +1719,8 @@ Future<void> _showShareSheet(
                                 track.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: AppColors.whiteSmoke,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -1655,8 +1730,8 @@ Future<void> _showShareSheet(
                                 track.artistName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white70,
+                                style: TextStyle(
+                                  color: AppColors.white70,
                                   fontSize: 15,
                                 ),
                               ),
@@ -1667,10 +1742,10 @@ Future<void> _showShareSheet(
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
+                  Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -1708,7 +1783,10 @@ Future<void> _showShareSheet(
                           icon: Icons.qr_code_2_outlined,
                           label: 'QR code',
                         ),
-                        const _ShareAction(icon: Icons.sms_outlined, label: 'SMS'),
+                        const _ShareAction(
+                          icon: Icons.sms_outlined,
+                          label: 'SMS',
+                        ),
                         const _ShareAction(
                           icon: Icons.chat_bubble_outline,
                           label: 'WhatsApp',
@@ -1739,14 +1817,52 @@ Future<void> _showTrackOptionsSheet(
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;
 
+  final currentUserId = await AuthApiService().getStoredUserId();
+  final isOwnTrack =
+      currentUserId != null &&
+      currentUserId.isNotEmpty &&
+      track.artistId != null &&
+      track.artistId == currentUserId;
+
+  // ignore: use_build_context_synchronously
+  final BuildContext? freshContext = appNavigatorKey.currentContext;
+  if (freshContext == null) return;
+
   await showModalBottomSheet<void>(
-    context: navigatorContext,
+    context: freshContext,
     useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _TrackOptionsSheetContent(track: track),
+    builder: (_) => TrackOptionsSheet(
+      track: track,
+      variant: isOwnTrack
+          ? TrackOptionsVariant.ownTrack
+          : TrackOptionsVariant.normalTrack,
+      onBehindThisTrack: () {
+        final navCtx = appNavigatorKey.currentContext;
+        if (navCtx == null) return;
+        Navigator.of(navCtx, rootNavigator: true).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BehindTheTrackScreen(
+              trackId: track.id,
+              actorName: track.artistName,
+              actorAvatarUrl: track.artworkUrl ?? '',
+              actorUserId: track.artistId ?? '',
+              activityType: 'new_track',
+              trackOwnerId: track.artistId ?? '',
+            ),
+          ),
+        );
+      },
+    ),
   );
 }
+
+/// Public entry point for opening the track options sheet from outside this file.
+Future<void> showTrackOptionsSheet(
+  BuildContext context,
+  PlaybackTrackModel track,
+) => _showTrackOptionsSheet(context, track);
 
 class _TrackOptionsHeaderCard extends StatelessWidget {
   final PlaybackTrackModel track;
@@ -1795,7 +1911,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                       height: 82,
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child:
@@ -1830,8 +1946,8 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                     track.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1841,7 +1957,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                     track.artistName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                    style: TextStyle(color: AppColors.white70, fontSize: 15),
                   ),
                 ],
               ),
@@ -1859,12 +1975,12 @@ class _TrackOptionTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color color;
 
-  const _TrackOptionTile({
+  _TrackOptionTile({
     required this.icon,
     required this.label,
     this.onTap,
-    this.color = Colors.white,
-  });
+    Color? color,
+  }) : color = color ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {
@@ -1890,7 +2006,7 @@ class _VinylPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint basePaint = Paint()..color = Colors.black;
     final Paint ringPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
+      ..color = AppColors.whiteSmoke.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final Paint centerPaint = Paint()
@@ -1990,7 +2106,7 @@ class _MiniLikeButtonState extends State<_MiniLikeButton> {
       constraints: const BoxConstraints(),
       icon: Icon(
         _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-        color: _isLiked ? Colors.orange : Colors.white,
+        color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
         size: 26,
       ),
     );
@@ -2189,7 +2305,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
                 _isLiked
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                color: _isLiked ? Colors.orange : Colors.white,
+                color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                 size: 26,
               ),
               if (_likeCount > 0) ...[
@@ -2198,8 +2314,8 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
                   onTap: _openLikersScreen,
                   child: Text(
                     _formatCount(_likeCount),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -2215,17 +2331,17 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.mode_comment_outlined,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 26,
               ),
               if (_commentCount > 0) ...[
                 const SizedBox(height: 4),
                 Text(
                   _formatCount(_commentCount),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -2285,7 +2401,8 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   bool _isReposted = false;
   late int _repostCount;
 
-  List<({String receiverId, String name, String photoUrl})> _recentContacts = [];
+  List<({String receiverId, String name, String photoUrl})> _recentContacts =
+      [];
   String _trackLink = '';
 
   @override
@@ -2300,7 +2417,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   Future<void> _loadSendToData() async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('[SendTo] STEP 0 — _loadSendToData() called');
-    debugPrint('[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"');
+    debugPrint(
+      '[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"',
+    );
 
     // Step 1: currentUserId
     debugPrint('[SendTo] STEP 1 — reading currentUserId');
@@ -2314,26 +2433,38 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
     // Step 2: resolve permalink and artistId
     debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
-    debugPrint('[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"');
+    debugPrint(
+      '[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"',
+    );
     final link = widget.track.permalink ?? '';
     final artistId = widget.track.artistId ?? '';
     debugPrint('[SendTo] STEP 2 ✅ permalink="$link" artistId="$artistId"');
 
     // Step 3: fetch track owner's profileLink
-    debugPrint('[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"');
+    debugPrint(
+      '[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"',
+    );
     String profileLink = '';
     if (artistId.isNotEmpty) {
       try {
-        profileLink = await MessagingApiService().getUserProfileLink(userId: artistId) ?? '';
-        debugPrint('[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})');
+        profileLink =
+            await MessagingApiService().getUserProfileLink(userId: artistId) ??
+            '';
+        debugPrint(
+          '[SendTo] STEP 3 ✅ profileLink="$profileLink" (empty=${profileLink.isEmpty})',
+        );
         if (profileLink.isEmpty) {
-          debugPrint('[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"');
+          debugPrint(
+            '[SendTo] STEP 3 ⚠️ getUserProfileLink returned null/empty for artistId="$artistId"',
+          );
         }
       } catch (e) {
         debugPrint('[SendTo] STEP 3 ❌ getUserProfileLink threw: $e');
       }
     } else {
-      debugPrint('[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.');
+      debugPrint(
+        '[SendTo] STEP 3 ⚠️ artistId is empty — posterId missing from track model. profileLink will be empty.',
+      );
     }
 
     String buildPayload() {
@@ -2343,13 +2474,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
 
     // Step 4: fetch followers
     debugPrint('[SendTo] STEP 3 — calling getFollowers(userId=$currentUserId)');
-    debugPrint('[SendTo] STEP 3   URL: [baseUrl]/api/social/v1/followers/$currentUserId');
+    debugPrint(
+      '[SendTo] STEP 3   URL: [baseUrl]/api/public/social/v1/followers/$currentUserId',
+    );
     try {
-      final result = await SocialApiService().getFollowers(userId: currentUserId);
-      debugPrint('[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}');
+      final result = await SocialApiService().getFollowers(
+        userId: currentUserId,
+      );
+      debugPrint(
+        '[SendTo] STEP 3 result → status=${result.$1}  dataType=${result.$2.runtimeType}',
+      );
 
       if (result.$1 != 200) {
-        debugPrint('[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"');
+        debugPrint(
+          '[SendTo] STEP 3 ❌ Non-200 status=${result.$1}  data="${result.$2}"',
+        );
         if (mounted) setState(() => _trackLink = buildPayload());
         return;
       }
@@ -2358,15 +2497,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       // Step 4: inspect raw list
       debugPrint('[SendTo] STEP 4 — inspecting raw list');
       final rawList = result.$2;
-      debugPrint('[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}');
+      debugPrint(
+        '[SendTo] STEP 4   rawList.runtimeType=${rawList.runtimeType}',
+      );
       debugPrint('[SendTo] STEP 4   rawList is List? ${rawList is List}');
       if (rawList is List) {
         debugPrint('[SendTo] STEP 4   rawList.length=${rawList.length}');
         for (var i = 0; i < rawList.length; i++) {
-          debugPrint('[SendTo] STEP 4   item[$i] type=${rawList[i].runtimeType}  value=${rawList[i]}');
+          debugPrint(
+            '[SendTo] STEP 4   item[$i] type=${rawList[i].runtimeType}  value=${rawList[i]}',
+          );
         }
       } else {
-        debugPrint('[SendTo] STEP 4 ❌ rawList is NOT a List — type: ${rawList.runtimeType}  value: $rawList');
+        debugPrint(
+          '[SendTo] STEP 4 ❌ rawList is NOT a List — type: ${rawList.runtimeType}  value: $rawList',
+        );
       }
 
       // Step 5: cast to Follower
@@ -2374,12 +2519,18 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       List<Follower> followers = [];
       if (rawList is List) {
         followers = rawList.whereType<Follower>().toList();
-        debugPrint('[SendTo] STEP 5   input=${rawList.length}  after cast=${followers.length}');
+        debugPrint(
+          '[SendTo] STEP 5   input=${rawList.length}  after cast=${followers.length}',
+        );
         if (rawList.isNotEmpty && followers.isEmpty) {
-          debugPrint('[SendTo] STEP 5 ❌ ALL items filtered out — items are ${rawList.first.runtimeType}, not Follower');
+          debugPrint(
+            '[SendTo] STEP 5 ❌ ALL items filtered out — items are ${rawList.first.runtimeType}, not Follower',
+          );
         }
         for (final f in followers) {
-          debugPrint('[SendTo] STEP 5   Follower → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"');
+          debugPrint(
+            '[SendTo] STEP 5   Follower → userId="${f.userId}" name="${f.displayName}" img="${f.profileImgLink}"',
+          );
         }
       }
       debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
@@ -2387,7 +2538,9 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       // Step 6: filter empty userIds
       debugPrint('[SendTo] STEP 6 — filtering empty userIds');
       final valid = followers.where((f) => f.userId.isNotEmpty).toList();
-      debugPrint('[SendTo] STEP 6   before=${followers.length}  after=${valid.length}');
+      debugPrint(
+        '[SendTo] STEP 6   before=${followers.length}  after=${valid.length}',
+      );
 
       // Step 7: setState
       debugPrint('[SendTo] STEP 7 — setState. mounted=$mounted');
@@ -2397,13 +2550,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       }
       final contacts = valid
           .take(6)
-          .map((f) => (receiverId: f.userId, name: f.displayName, photoUrl: f.profileImgLink ?? ''))
+          .map(
+            (f) => (
+              receiverId: f.userId,
+              name: f.displayName,
+              photoUrl: f.profileImgLink ?? '',
+            ),
+          )
           .toList();
       setState(() {
         _recentContacts = contacts;
         _trackLink = buildPayload();
       });
-      debugPrint('[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}');
+      debugPrint(
+        '[SendTo] STEP 7 ✅ _recentContacts.length=${_recentContacts.length}  Send To visible: ${_recentContacts.isNotEmpty}',
+      );
     } catch (e, stack) {
       debugPrint('[SendTo] STEP 3 ❌ EXCEPTION: $e');
       debugPrint('[SendTo]   stack: $stack');
@@ -2416,14 +2577,16 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     Navigator.of(context, rootNavigator: true).pop();
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
-    Navigator.of(navCtx, rootNavigator: true).push(MaterialPageRoute(
-      builder: (_) => ChatScreen(
-        receiverId: receiverId,
-        receiverName: name,
-        receiverPhotoUrl: photoUrl,
-        initialContent: _trackLink,
+    Navigator.of(navCtx, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          receiverId: receiverId,
+          receiverName: name,
+          receiverPhotoUrl: photoUrl,
+          initialContent: _trackLink,
+        ),
       ),
-    ));
+    );
   }
 
   void _openSendToSheet() {
@@ -2432,10 +2595,8 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder: (_) => SendToSheet(
-        trackLink: _trackLink,
-        trackTitle: widget.track.title,
-      ),
+      builder: (_) =>
+          SendToSheet(trackLink: _trackLink, trackTitle: widget.track.title),
     );
   }
 
@@ -2552,8 +2713,8 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF090909),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDeepest,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: SafeArea(
@@ -2581,12 +2742,12 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 ),
                 const SizedBox(height: 22),
                 if (_recentContacts.isNotEmpty) ...[
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
                       'SEND TO',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.white70,
                         letterSpacing: 2.2,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -2599,23 +2760,29 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Row(
                       children: _recentContacts
-                          .map((c) => _SendToContactBubble(
-                                name: c.name,
-                                photoUrl: c.photoUrl,
-                                onTap: () => _sendToContact(c.receiverId, c.name, c.photoUrl),
-                              ))
+                          .map(
+                            (c) => _SendToContactBubble(
+                              name: c.name,
+                              photoUrl: c.photoUrl,
+                              onTap: () => _sendToContact(
+                                c.receiverId,
+                                c.name,
+                                c.photoUrl,
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
                   const SizedBox(height: 18),
                   const Divider(color: Colors.white12, height: 1),
                 ],
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
                     'SHARE',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       letterSpacing: 2.2,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -2628,7 +2795,11 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
                     children: [
-                      _ShareAction(icon: Icons.send_outlined, label: 'Message', onTap: _openSendToSheet),
+                      _ShareAction(
+                        icon: Icons.send_outlined,
+                        label: 'Message',
+                        onTap: _openSendToSheet,
+                      ),
                       _ShareAction(
                         icon: Icons.copy_outlined,
                         label: 'Copy link',
@@ -2657,15 +2828,16 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   label: _isLiked ? 'Liked' : 'Like',
-                  color: _isLiked ? Colors.orange : Colors.white,
+                  color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                   onTap: _toggleLike,
                 ),
                 _TrackOptionTile(
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
                   onTap: () {
-                    PlaybackStreamingEngineService.shared
-                        .addToQueueNext(widget.track);
+                    PlaybackStreamingEngineService.shared.addToQueueNext(
+                      widget.track,
+                    );
                     Navigator.pop(context);
                   },
                 ),
@@ -2673,20 +2845,21 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                   icon: Icons.format_list_bulleted_rounded,
                   label: 'Play last',
                   onTap: () {
-                    PlaybackStreamingEngineService.shared
-                        .addToQueueLast(widget.track);
+                    PlaybackStreamingEngineService.shared.addToQueueLast(
+                      widget.track,
+                    );
                     Navigator.pop(context);
                   },
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.playlist_add_outlined,
                   label: 'Add to playlist',
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.radio_outlined,
                   label: 'Start station',
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
                 _TrackOptionTile(
@@ -2702,7 +2875,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 _TrackOptionTile(
                   icon: Icons.repeat_rounded,
                   label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                  color: _isReposted ? Colors.orange : Colors.white,
+                  color: _isReposted ? Colors.orange : AppColors.whiteSmoke,
                   onTap: _openRepost,
                 ),
                 const SizedBox(height: 10),
@@ -2729,7 +2902,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                     );
                   },
                 ),
-                const _TrackOptionTile(
+                _TrackOptionTile(
                   icon: Icons.outlined_flag_rounded,
                   label: 'Report',
                 ),
@@ -2747,11 +2920,8 @@ class _SheetOptionRow extends StatelessWidget {
   final String label;
   final Color iconColor;
 
-  const _SheetOptionRow({
-    required this.icon,
-    required this.label,
-    this.iconColor = Colors.white,
-  });
+  _SheetOptionRow({required this.icon, required this.label, Color? iconColor})
+    : iconColor = iconColor ?? AppColors.whiteSmoke;
 
   @override
   Widget build(BuildContext context) {
@@ -2759,7 +2929,10 @@ class _SheetOptionRow extends StatelessWidget {
       children: [
         Icon(icon, color: iconColor, size: 28),
         const SizedBox(width: 16),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 16)),
+        Text(
+          label,
+          style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
+        ),
       ],
     );
   }
@@ -2785,15 +2958,15 @@ class _ShareAction extends StatelessWidget {
               width: 62,
               height: 62,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: AppColors.whiteSmoke.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 30),
+              child: Icon(icon, color: AppColors.whiteSmoke, size: 30),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
             ),
           ],
         ),
@@ -2824,15 +2997,18 @@ class _SendToContactBubble extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 31,
-              backgroundColor: const Color(0xFF2A2A2A),
-              backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              backgroundColor: AppColors.containerMid,
+              backgroundImage: photoUrl.isNotEmpty
+                  ? NetworkImage(photoUrl)
+                  : null,
               child: photoUrl.isEmpty
                   ? Text(
                       _initials(name),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
@@ -2844,7 +3020,7 @@ class _SendToContactBubble extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 12),
               ),
             ),
           ],
@@ -2934,10 +3110,10 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
           Expanded(
             child: TextField(
               controller: _controller,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: const InputDecoration(
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
+              decoration: InputDecoration(
                 hintText: 'Comment...',
-                hintStyle: TextStyle(color: Colors.white70, fontSize: 14),
+                hintStyle: TextStyle(color: AppColors.white70, fontSize: 14),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
@@ -3014,16 +3190,12 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
     final artistId = widget.track.artistId;
     if (artistId == null || artistId.isEmpty) return;
     try {
-      final token = await AuthApiService().getStoredAccessToken();
-      if (token == null || !mounted) return;
       final userId = await AuthApiService().getStoredUserId();
-      final profile =
-          await UserProfileService().getUserProfile(artistId, token);
       if (!mounted) return;
-      setState(() {
-        _currentUserId = userId;
-        _isFollowing = profile.isFollowed;
-      });
+      setState(() => _currentUserId = userId);
+      final isFollowing = await ProfileNavigator.checkIsFollowing(artistId);
+      if (!mounted) return;
+      setState(() => _isFollowing = isFollowing);
     } catch (_) {}
   }
 
@@ -3057,19 +3229,19 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
       icon: _isLoading
-          ? const SizedBox(
+          ? SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Colors.white70,
+                color: AppColors.white70,
               ),
             )
           : Icon(
               _isFollowing
                   ? Icons.person_remove_outlined
                   : Icons.person_add_alt_1_outlined,
-              color: _isFollowing ? Colors.orange : Colors.white70,
+              color: _isFollowing ? Colors.orange : AppColors.white70,
               size: 26,
             ),
     );
@@ -3161,16 +3333,16 @@ class _NextUpSheetState extends State<_NextUpSheet> {
 
     final List<PlaybackTrackModel> playingNext =
         (currentIndex >= 0 && currentIndex + 1 < queue.length)
-            ? queue.sublist(currentIndex + 1)
-            : <PlaybackTrackModel>[];
+        ? queue.sublist(currentIndex + 1)
+        : <PlaybackTrackModel>[];
 
     final bool showPlayingNext =
         repeatMode != TrackRepeatMode.one && playingNext.isNotEmpty;
 
     return Container(
       height: maxHeight,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0A0A0A),
+      decoration: BoxDecoration(
+        color: AppColors.homeBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
@@ -3195,18 +3367,18 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       size: 28,
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Text(
                         'Next Up',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -3219,7 +3391,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                       Icons.shuffle_rounded,
                       color: isShuffled
                           ? AppColors.brilliantOrange
-                          : Colors.white54,
+                          : AppColors.white54,
                       size: 24,
                     ),
                   ),
@@ -3236,7 +3408,7 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                             Icons.repeat_rounded,
                             color: repeatMode == TrackRepeatMode.all
                                 ? AppColors.brilliantOrange
-                                : Colors.white54,
+                                : AppColors.white54,
                             size: 24,
                           ),
                   ),
@@ -3257,12 +3429,12 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                       padding: EdgeInsets.zero,
                       children: [
                         if (currentTrack != null) ...[
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
                             child: Text(
                               'Currently playing',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: AppColors.white54,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.6,
@@ -3273,12 +3445,12 @@ class _NextUpSheetState extends State<_NextUpSheet> {
                           const SizedBox(height: 6),
                         ],
                         if (showPlayingNext) ...[
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                             child: Text(
                               'Playing next',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: AppColors.white54,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.6,
@@ -3341,14 +3513,15 @@ class _QueueCurrentTrackTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               color: Colors.grey.shade800,
             ),
-            child: track.artworkUrl != null &&
-                    track.artworkUrl!.trim().isNotEmpty
+            child:
+                track.artworkUrl != null && track.artworkUrl!.trim().isNotEmpty
                 ? Image.network(
                     track.artworkUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(Icons.album_rounded, color: Colors.white54),
+                    errorBuilder: (_, _, _) =>
+                        Icon(Icons.album_rounded, color: AppColors.white54),
                   )
-                : const Icon(Icons.album_rounded, color: Colors.white54),
+                : Icon(Icons.album_rounded, color: AppColors.white54),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3360,8 +3533,8 @@ class _QueueCurrentTrackTile extends StatelessWidget {
                   track.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -3371,7 +3544,7 @@ class _QueueCurrentTrackTile extends StatelessWidget {
                   track.artistName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  style: TextStyle(color: AppColors.white54, fontSize: 13),
                 ),
               ],
             ),
@@ -3410,7 +3583,7 @@ class _QueueNextTrackTile extends StatelessWidget {
                 color: Color(0xFFE53935),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.remove, color: Colors.white, size: 18),
+              child: Icon(Icons.remove, color: AppColors.whiteSmoke, size: 18),
             ),
           ),
           const SizedBox(width: 10),
@@ -3422,14 +3595,15 @@ class _QueueNextTrackTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               color: Colors.grey.shade800,
             ),
-            child: track.artworkUrl != null &&
-                    track.artworkUrl!.trim().isNotEmpty
+            child:
+                track.artworkUrl != null && track.artworkUrl!.trim().isNotEmpty
                 ? Image.network(
                     track.artworkUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(Icons.album_rounded, color: Colors.white54),
+                    errorBuilder: (_, _, _) =>
+                        Icon(Icons.album_rounded, color: AppColors.white54),
                   )
-                : const Icon(Icons.album_rounded, color: Colors.white54),
+                : Icon(Icons.album_rounded, color: AppColors.white54),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3441,8 +3615,8 @@ class _QueueNextTrackTile extends StatelessWidget {
                   track.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -3452,7 +3626,7 @@ class _QueueNextTrackTile extends StatelessWidget {
                   track.artistName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  style: TextStyle(color: AppColors.white54, fontSize: 13),
                 ),
               ],
             ),
@@ -3460,9 +3634,9 @@ class _QueueNextTrackTile extends StatelessWidget {
           const SizedBox(width: 8),
           ReorderableDragStartListener(
             index: index,
-            child: const Icon(
+            child: Icon(
               Icons.drag_handle_rounded,
-              color: Colors.white38,
+              color: AppColors.white54,
               size: 24,
             ),
           ),

@@ -119,9 +119,9 @@ class _PasswordScreenState extends State<PasswordScreen> {
               Text(
                 key: const Key('test_password_email_display'),
                 widget.email,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontWeight: FontWeight.w500,
                 ),
               ),

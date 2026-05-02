@@ -17,6 +17,7 @@ import 'package:cross_team5/features/engagement_social_interactions/models/engag
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/widgets/engagement_user_tile.dart';
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class LikersScreen extends StatefulWidget {
   final String trackId;
@@ -180,7 +181,7 @@ class _LikersScreenState extends State<LikersScreen>
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.whiteSmoke,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -252,7 +253,7 @@ class _LikersScreenState extends State<LikersScreen>
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.whiteSmoke,
               ),
               child: const Text('Retry'),
             ),

@@ -68,6 +68,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   // History (while typing)
   List<SearchHistoryItemModel> _history = [];
+  Map<String, String?> _historyImages = {};
   bool _historyLoading = false;
 
   // Results (after submit)
@@ -147,7 +148,10 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   Future<void> _loadSuggestions(String query) async {
-    setState(() { _suggestionsLoading = true; _suggestionsError = null; });
+    setState(() {
+      _suggestionsLoading = true;
+      _suggestionsError = null;
+    });
     final (code, data) = await _service.getSearchSuggestions(query);
     if (!mounted) return;
     if (code == 200 && data is List) {
@@ -167,16 +171,40 @@ class _SearchScreenState extends State<SearchScreen>
   // ── History ────────────────────────────────────────────────────────────────
 
   Future<void> _loadHistory() async {
-    setState(() => _historyLoading = true);
     final (code, data) = await _service.getSearchHistory();
     if (!mounted) return;
     if (code == 200 && data is List) {
+      final items = SearchHistoryItemModel.listFromJson(data);
+
+      // API stores only id+type; fetch images client-side for items missing one
+      final images = <String, String?>{};
+      await Future.wait(
+        items.map((item) async {
+          if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+            images[item.id] = item.imageUrl;
+            return;
+          }
+          if (item.type == 'track') {
+            final (c, trackData) = await _service.getTrackById(item.id);
+            if (c == 200 && trackData is Map<String, dynamic>) {
+              final img = trackData['image'] as Map<String, dynamic>? ?? {};
+              images[item.id] = img['imgLink']?.toString();
+            }
+          } else if (item.type == 'user') {
+            final (c, userData) = await _service.getUserById(item.id);
+            if (c == 200 && userData is Map<String, dynamic>) {
+              images[item.id] = userData['profileImgLink']?.toString();
+            }
+          }
+        }),
+      );
+
+      if (!mounted) return;
       setState(() {
-        _history = SearchHistoryItemModel.listFromJson(data);
+        _history = items;
+        _historyImages = images;
         _historyLoading = false;
       });
-    } else {
-      setState(() => _historyLoading = false);
     }
   }
 
@@ -212,30 +240,36 @@ class _SearchScreenState extends State<SearchScreen>
 
       // Concurrently fetch display details for each result item
       final enriched = <String, Map<String, dynamic>>{};
-      await Future.wait(parsed.results.map((item) async {
-        if (item.type == 'track') {
-          final (c, trackData) = await _service.getTrackById(item.id);
-          if (c == 200 && trackData is Map<String, dynamic>) {
-            final basicInfo = trackData['basicInfo'] as Map<String, dynamic>? ?? {};
-            final image = trackData['image'] as Map<String, dynamic>? ?? {};
-            final artists = (basicInfo['mainArtists'] as List<dynamic>? ?? []);
-            enriched[item.id] = {
-              'title': basicInfo['title'] ?? item.id,
-              'imageUrl': image['imgLink'],
-              'subtitle': artists.isNotEmpty ? artists.first.toString() : 'Track',
-            };
+      await Future.wait(
+        parsed.results.map((item) async {
+          if (item.type == 'track') {
+            final (c, trackData) = await _service.getTrackById(item.id);
+            if (c == 200 && trackData is Map<String, dynamic>) {
+              final basicInfo =
+                  trackData['basicInfo'] as Map<String, dynamic>? ?? {};
+              final image = trackData['image'] as Map<String, dynamic>? ?? {};
+              final artists =
+                  (basicInfo['mainArtists'] as List<dynamic>? ?? []);
+              enriched[item.id] = {
+                'title': basicInfo['title'] ?? item.id,
+                'imageUrl': image['imgLink'],
+                'subtitle': artists.isNotEmpty
+                    ? artists.first.toString()
+                    : 'Track',
+              };
+            }
+          } else if (item.type == 'user') {
+            final (c, userData) = await _service.getUserById(item.id);
+            if (c == 200 && userData is Map<String, dynamic>) {
+              enriched[item.id] = {
+                'title': userData['displayName'] ?? item.id,
+                'imageUrl': userData['profileImgLink'],
+                'subtitle': userData['profileLink'] ?? 'User',
+              };
+            }
           }
-        } else if (item.type == 'user') {
-          final (c, userData) = await _service.getUserById(item.id);
-          if (c == 200 && userData is Map<String, dynamic>) {
-            enriched[item.id] = {
-              'title': userData['displayName'] ?? item.id,
-              'imageUrl': userData['profileImgLink'],
-              'subtitle': userData['profileLink'] ?? 'User',
-            };
-          }
-        }
-      }));
+        }),
+      );
 
       if (!mounted) return;
       setState(() {
@@ -277,9 +311,7 @@ class _SearchScreenState extends State<SearchScreen>
       // Playlist / Album — TODO Module 7
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${item.type} detail screen coming soon'),
-          ),
+          SnackBar(content: Text('${item.type} detail screen coming soon')),
         );
       }
     }
@@ -309,9 +341,7 @@ class _SearchScreenState extends State<SearchScreen>
             ),
 
             // ── Body depending on state ─────────────────────────────────────
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -356,17 +386,19 @@ class _SearchScreenState extends State<SearchScreen>
           if (_suggestionsLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.orange),
+              ),
             )
           else if (hasSuggestions)
             ..._suggestions.map(
               (s) => ListTile(
-                leading: const Icon(Icons.search, color: AppColors.white54),
+                leading: Icon(Icons.search, color: AppColors.white54),
                 title: Text(
                   s.title,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.north_west,
                   color: AppColors.white54,
                   size: 16,
@@ -381,12 +413,12 @@ class _SearchScreenState extends State<SearchScreen>
 
         // ── Recently searched ──────────────────────────────────────────────
         if (hasHistory && query.isEmpty) ...[
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
               'Recently searched',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -397,7 +429,7 @@ class _SearchScreenState extends State<SearchScreen>
               id: item.id,
               title: item.title,
               subtitle: item.metadata,
-              imageUrl: item.imageUrl,
+              imageUrl: _historyImages[item.id] ?? item.imageUrl,
               type: item.type,
               onTap: () {
                 _searchController.text = item.title;
@@ -408,14 +440,19 @@ class _SearchScreenState extends State<SearchScreen>
           ),
         ],
 
-        if (!_suggestionsLoading && !hasSuggestions && !hasHistory && query.isNotEmpty)
+        if (!_suggestionsLoading &&
+            !hasSuggestions &&
+            !hasHistory &&
+            query.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Center(
               child: Text(
                 _suggestionsError ?? 'No suggestions found',
                 style: TextStyle(
-                  color: _suggestionsError != null ? Colors.orange : AppColors.white54,
+                  color: _suggestionsError != null
+                      ? Colors.orange
+                      : AppColors.white54,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -439,11 +476,14 @@ class _SearchScreenState extends State<SearchScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(_resultsError!, style: const TextStyle(color: Colors.white54)),
+            Text(_resultsError!, style: TextStyle(color: AppColors.white54)),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => _submitSearch(_activeQuery),
-              child: const Text('Retry', style: TextStyle(color: Colors.orange)),
+              child: const Text(
+                'Retry',
+                style: TextStyle(color: Colors.orange),
+              ),
             ),
           ],
         ),
@@ -465,8 +505,8 @@ class _SearchScreenState extends State<SearchScreen>
           controller: _tabController,
           isScrollable: true,
           indicatorColor: Colors.orange,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white54,
+          labelColor: AppColors.whiteSmoke,
+          unselectedLabelColor: AppColors.white54,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: _resultTabs.map((t) => Tab(text: t)).toList(),
         ),
@@ -488,11 +528,8 @@ class _SearchScreenState extends State<SearchScreen>
 
   Widget _buildResultList(List<SearchResultItem> items) {
     if (items.isEmpty) {
-      return const Center(
-        child: Text(
-          'No results',
-          style: TextStyle(color: AppColors.white54),
-        ),
+      return Center(
+        child: Text('No results', style: TextStyle(color: AppColors.white54)),
       );
     }
 

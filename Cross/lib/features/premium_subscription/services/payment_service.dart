@@ -12,7 +12,8 @@ class SubscriptionState {
 }
 
 class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
-  SubscriptionStatusNotifier() : super(SubscriptionState(isPro: false, currentPriceId: null));
+  SubscriptionStatusNotifier()
+    : super(SubscriptionState(isPro: false, currentPriceId: null));
 
   bool get isPro => value.isPro;
   String? get currentPriceId => value.currentPriceId;
@@ -32,7 +33,10 @@ class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
         return;
       }
 
-      final responseBody = await PaymentService._sendPaymentRequest('GET', '/api/payment/v1/subscriptions');
+      final responseBody = await PaymentService._sendPaymentRequest(
+        'GET',
+        '/api/payment/v1/subscriptions',
+      );
       final data = jsonDecode(responseBody);
 
       if (data['success'] == true && data['data'] != null) {
@@ -44,11 +48,14 @@ class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
 
         final status = actualSub['status']?.toString().toLowerCase() ?? '';
 
-        if (status == 'active' || status == 'trialing' || status == 'incomplete' || status == 'past_due') {
-
+        if (status == 'active' ||
+            status == 'trialing' ||
+            status == 'incomplete' ||
+            status == 'past_due') {
           String? priceId;
 
-          if (actualSub['priceId'] != null && actualSub['priceId'].toString().isNotEmpty) {
+          if (actualSub['priceId'] != null &&
+              actualSub['priceId'].toString().isNotEmpty) {
             priceId = actualSub['priceId'].toString();
           } else if (actualSub['plan'] != null) {
             if (actualSub['plan'] is String) {
@@ -58,7 +65,8 @@ class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
             }
           }
 
-          priceId ??= actualSub['items']?['data']?[0]?['price']?['id']?.toString();
+          priceId ??= actualSub['items']?['data']?[0]?['price']?['id']
+              ?.toString();
 
           _isOptimisticWait = false;
           _pollingTimer?.cancel();
@@ -87,7 +95,9 @@ class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
     _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       attempts++;
       await checkStatusFromApi();
-      try { await PaymentService.refreshToken(); } catch(_) {}
+      try {
+        await PaymentService.refreshToken();
+      } catch (_) {}
 
       if (!_isOptimisticWait || attempts >= 5) {
         _isOptimisticWait = false;
@@ -114,13 +124,18 @@ class PaymentService {
   static const String baseUrl = "https://beatza.me";
   static const _storage = FlutterSecureStorage();
 
-  static final SubscriptionStatusNotifier subscriptionSuccessNotifier = SubscriptionStatusNotifier();
+  static final SubscriptionStatusNotifier subscriptionSuccessNotifier =
+      SubscriptionStatusNotifier();
 
   static Future<String?> _getToken() async {
     return await _storage.read(key: 'access_token');
   }
 
-  static Future<String> _sendPaymentRequest(String method, String endpoint, {Map<String, dynamic>? body}) async {
+  static Future<String> _sendPaymentRequest(
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
     String? token = await _getToken();
     if (token == null) throw Exception('No access token found');
 
@@ -128,16 +143,28 @@ class PaymentService {
 
     Future<HttpClientResponse> makeRequest(String currentToken) async {
       final httpClient = HttpClient();
-      final request = method == 'POST' ? await httpClient.postUrl(url)
-          : method == 'PATCH' ? await httpClient.patchUrl(url)
-          : method == 'DELETE' ? await httpClient.deleteUrl(url)
+      final request = method == 'POST'
+          ? await httpClient.postUrl(url)
+          : method == 'PATCH'
+          ? await httpClient.patchUrl(url)
+          : method == 'DELETE'
+          ? await httpClient.deleteUrl(url)
           : await httpClient.getUrl(url);
 
-      request.headers.set('Authorization', 'Bearer $currentToken', preserveHeaderCase: true);
-      request.headers.set('Content-Type', 'application/json', preserveHeaderCase: true);
+      request.headers.set(
+        'Authorization',
+        'Bearer $currentToken',
+        preserveHeaderCase: true,
+      );
+      request.headers.set(
+        'Content-Type',
+        'application/json',
+        preserveHeaderCase: true,
+      );
       request.headers.set('User-Agent', 'Android', preserveHeaderCase: true);
 
-      if (body != null && (method == 'POST' || method == 'PATCH' || method == 'DELETE')) {
+      if (body != null &&
+          (method == 'POST' || method == 'PATCH' || method == 'DELETE')) {
         request.write(jsonEncode(body));
       }
       return await request.close();
@@ -165,15 +192,24 @@ class PaymentService {
   }
 
   static Future<Map<String, dynamic>> getPlans() async {
-    final responseBody = await _sendPaymentRequest('GET', '/api/payment/v1/plans');
+    final responseBody = await _sendPaymentRequest(
+      'GET',
+      '/api/payment/v1/plans',
+    );
     return jsonDecode(responseBody)['data'];
   }
 
   static Future<void> registerStripeCustomer(String paymentMethodId) async {
     try {
-      await _sendPaymentRequest('POST', '/api/payment/v1/user', body: {'paymentMethodId': paymentMethodId});
+      await _sendPaymentRequest(
+        'POST',
+        '/api/payment/v1/user',
+        body: {'paymentMethodId': paymentMethodId},
+      );
     } catch (e) {
-      if (!e.toString().toLowerCase().contains('already has a stripe customer id')) {
+      if (!e.toString().toLowerCase().contains(
+        'already has a stripe customer id',
+      )) {
         rethrow;
       }
     }
@@ -181,9 +217,15 @@ class PaymentService {
 
   static Future<void> createSubscription(String priceId) async {
     try {
-      await _sendPaymentRequest('POST', '/api/payment/v1/subscriptions', body: {'priceId': priceId});
+      await _sendPaymentRequest(
+        'POST',
+        '/api/payment/v1/subscriptions',
+        body: {'priceId': priceId},
+      );
     } catch (e) {
-      if (e.toString().toLowerCase().contains('already has an active subscription')) {
+      if (e.toString().toLowerCase().contains(
+        'already has an active subscription',
+      )) {
         await updateSubscription(priceId);
       } else {
         rethrow;
@@ -192,11 +234,19 @@ class PaymentService {
   }
 
   static Future<void> updateSubscription(String priceId) async {
-    await _sendPaymentRequest('PATCH', '/api/payment/v1/subscriptions', body: {'priceId': priceId});
+    await _sendPaymentRequest(
+      'PATCH',
+      '/api/payment/v1/subscriptions',
+      body: {'priceId': priceId},
+    );
   }
 
   static Future<void> cancelSubscription() async {
-    await _sendPaymentRequest('DELETE', '/api/payment/v1/subscriptions', body: {'cancelAtPeriodEnd': false});
+    await _sendPaymentRequest(
+      'DELETE',
+      '/api/payment/v1/subscriptions',
+      body: {'cancelAtPeriodEnd': false},
+    );
   }
 
   static Future<void> refreshToken() async {
@@ -231,7 +281,10 @@ class PaymentService {
 
   static Future<Map<String, dynamic>?> getCurrentSubscriptionDetails() async {
     try {
-      final responseBody = await _sendPaymentRequest('GET', '/api/payment/v1/subscriptions');
+      final responseBody = await _sendPaymentRequest(
+        'GET',
+        '/api/payment/v1/subscriptions',
+      );
       final jsonResponse = jsonDecode(responseBody);
 
       if (jsonResponse['success'] == true && jsonResponse['data'] != null) {

@@ -29,6 +29,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 
@@ -77,8 +78,8 @@ class CommentTile extends StatelessWidget {
                     comment.displayName.isNotEmpty
                         ? comment.displayName[0].toUpperCase()
                         : '?',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -99,8 +100,8 @@ class CommentTile extends StatelessWidget {
                     Flexible(
                       child: Text(
                         comment.displayName,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -123,13 +124,13 @@ class CommentTile extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2C6BED),
+                            color: AppColors.linkBlue,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             'at ${comment.formattedTimestamp}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
@@ -244,7 +245,7 @@ class CommentTile extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -268,13 +269,13 @@ class CommentTile extends StatelessWidget {
             // Play from timestamp — hidden for replies where server stores 0.
             if (comment.timestamp > 0)
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.play_arrow_rounded,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                 ),
                 title: Text(
                   'Play from ${comment.formattedTimestamp}',
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -285,10 +286,13 @@ class CommentTile extends StatelessWidget {
             // Go to profile
             if (onGoToProfileTap != null)
               ListTile(
-                leading: const Icon(Icons.person_outline, color: Colors.white),
-                title: const Text(
+                leading: Icon(
+                  Icons.person_outline,
+                  color: AppColors.whiteSmoke,
+                ),
+                title: Text(
                   'Go to profile',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -298,8 +302,11 @@ class CommentTile extends StatelessWidget {
 
             // Copy text
             ListTile(
-              leading: const Icon(Icons.copy_outlined, color: Colors.white),
-              title: const Text('Copy', style: TextStyle(color: Colors.white)),
+              leading: Icon(Icons.copy_outlined, color: AppColors.whiteSmoke),
+              title: Text(
+                'Copy',
+                style: TextStyle(color: AppColors.whiteSmoke),
+              ),
               onTap: () {
                 Navigator.pop(sheetContext);
                 Clipboard.setData(ClipboardData(text: comment.content));
@@ -323,37 +330,37 @@ class CommentTile extends StatelessWidget {
             // ── Other user's comment: Report / Block ──
             if (!isOwn && comment.userId.isNotEmpty) ...[
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.outlined_flag_rounded,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                 ),
-                title: const Text(
+                title: Text(
                   'Report',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Comment reported'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.flag_outlined, color: Colors.white),
-                title: const Text(
+                leading: Icon(Icons.flag_outlined, color: AppColors.whiteSmoke),
+                title: Text(
                   'Report as spam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Comment reported as spam'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -385,10 +392,10 @@ class CommentTile extends StatelessWidget {
         await showDialog<bool>(
           context: context,
           builder: (dialogCtx) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A1A),
-            title: const Text(
+            backgroundColor: AppColors.container,
+            title: Text(
               'Block user?',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteSmoke),
             ),
             content: const Text(
               'This user will no longer be able to follow or interact with '
@@ -398,9 +405,9 @@ class CommentTile extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogCtx, false),
-                child: const Text(
+                child: Text(
                   'CANCEL',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: AppColors.white70),
                 ),
               ),
               TextButton(
@@ -434,7 +441,7 @@ class CommentTile extends StatelessWidget {
               ? '${comment.displayName} has been blocked'
               : (result.$2?.toString() ?? 'Could not block user'),
         ),
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.container,
         duration: const Duration(seconds: 3),
       ),
     );

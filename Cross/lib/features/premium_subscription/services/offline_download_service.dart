@@ -10,13 +10,16 @@ import 'package:cross_team5/features/playback_streaming_engine/services/mock_pla
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 
 class OfflineDownloadService {
-  static final OfflineDownloadService shared = OfflineDownloadService._internal();
+  static final OfflineDownloadService shared =
+      OfflineDownloadService._internal();
 
   bool _wasPro = false;
 
   OfflineDownloadService._internal() {
     _wasPro = PaymentService.subscriptionSuccessNotifier.isPro;
-    PaymentService.subscriptionSuccessNotifier.addListener(_onSubscriptionChanged);
+    PaymentService.subscriptionSuccessNotifier.addListener(
+      _onSubscriptionChanged,
+    );
   }
 
   void _onSubscriptionChanged() {
@@ -30,7 +33,9 @@ class OfflineDownloadService {
   Future<void> clearAllDownloads() async {
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final tracks = List<PlaybackTrackModel>.from(downloadedTracksNotifier.value);
+      final tracks = List<PlaybackTrackModel>.from(
+        downloadedTracksNotifier.value,
+      );
       for (final track in tracks) {
         final file = File('${dir.path}/${track.id}.mp3');
         if (await file.exists()) await file.delete();
@@ -45,8 +50,10 @@ class OfflineDownloadService {
 
   final _storage = const FlutterSecureStorage();
 
-  final ValueNotifier<List<PlaybackTrackModel>> downloadedTracksNotifier = ValueNotifier([]);
-  final ValueNotifier<Map<String, double>> downloadProgressNotifier = ValueNotifier({});
+  final ValueNotifier<List<PlaybackTrackModel>> downloadedTracksNotifier =
+      ValueNotifier([]);
+  final ValueNotifier<Map<String, double>> downloadProgressNotifier =
+      ValueNotifier({});
 
   Future<void> loadDownloadedTracks() async {
     if (!PaymentService.subscriptionSuccessNotifier.isPro) {
@@ -57,8 +64,11 @@ class OfflineDownloadService {
       final String? data = await _storage.read(key: 'offline_track_ids');
       if (data != null && data.isNotEmpty) {
         final List<dynamic> ids = jsonDecode(data);
-        final allMockTracks = MockPlaybackAccessService.shared.accessibilityDemoTracks;
-        final loadedTracks = allMockTracks.where((t) => ids.contains(t.id)).toList();
+        final allMockTracks =
+            MockPlaybackAccessService.shared.accessibilityDemoTracks;
+        final loadedTracks = allMockTracks
+            .where((t) => ids.contains(t.id))
+            .toList();
 
         final dir = await getApplicationDocumentsDirectory();
         final List<PlaybackTrackModel> verifiedTracks = [];
@@ -77,7 +87,9 @@ class OfflineDownloadService {
   }
 
   void _updateProgress(String trackId, double progress) {
-    final progressMap = Map<String, double>.from(downloadProgressNotifier.value);
+    final progressMap = Map<String, double>.from(
+      downloadProgressNotifier.value,
+    );
     progressMap[trackId] = progress;
     downloadProgressNotifier.value = progressMap;
   }
@@ -107,18 +119,24 @@ class OfflineDownloadService {
       await sink.close();
       _updateProgress(track.id, 1.0);
 
-      final currentList = List<PlaybackTrackModel>.from(downloadedTracksNotifier.value);
+      final currentList = List<PlaybackTrackModel>.from(
+        downloadedTracksNotifier.value,
+      );
       currentList.add(track);
       downloadedTracksNotifier.value = currentList;
 
-      final progressMap = Map<String, double>.from(downloadProgressNotifier.value);
+      final progressMap = Map<String, double>.from(
+        downloadProgressNotifier.value,
+      );
       progressMap.remove(track.id);
       downloadProgressNotifier.value = progressMap;
 
       await _saveToStorage();
     } catch (e) {
       debugPrint('Download error: $e');
-      final progressMap = Map<String, double>.from(downloadProgressNotifier.value);
+      final progressMap = Map<String, double>.from(
+        downloadProgressNotifier.value,
+      );
       progressMap.remove(track.id);
       downloadProgressNotifier.value = progressMap;
     }

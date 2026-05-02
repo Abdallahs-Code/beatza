@@ -4,14 +4,14 @@
 // Endpoints covered:
 //   GET  /api/feed/v1/feed                         → getUserFeed
 //   GET  /api/feed/v1/trending-tracks/{userId}     → getTrendingTracks
-//   GET  /api/feed/v1/search                       → globalSearch
-//   GET  /api/feed/v1/search/suggestions           → getSearchSuggestions
-//   GET  /api/feed/v1/search/history               → getSearchHistory
-//   POST /api/feed/v1/search/add-to-history        → addToSearchHistory
-//   DELETE /api/feed/v1/search/history/{historyId} → deleteSearchHistoryItem
-//   GET  /api/public/tracks/v1/permalink/{profileLink}/{permalink}
+//   GET  /api/public/feed/v1/search                       → globalSearch
+//   GET  /api/public/feed/v1/search/suggestions           → getSearchSuggestions
+//   GET  /api/feed/v1/search/history                      → getSearchHistory
+//   POST /api/feed/v1/search/add-to-history               → addToSearchHistory
+//   DELETE /api/feed/v1/search/history/{historyId}        → deleteSearchHistoryItem
+//   GET  /api/public/tracks/v2/permalink/{profileLink}/{permalink}
 //                                                  → getTrackByPermalink
-//   GET  /api/public/tracks/v1/{id}               → getTrackById (for details)
+//   GET  /api/public/tracks/v2/{id}               → getTrackById (for details)
 //
 // Service pattern: constructor injection, returns Future<(int, dynamic)>.
 // Token read from FlutterSecureStorage key 'access_token'.
@@ -32,9 +32,9 @@ class FeedSearchApiService {
     ApiServices? apiServices,
     FlutterSecureStorage? storage,
     http.Client? client,
-  })  : _apiServices = apiServices ?? ApiServices(),
-        _storage = storage ?? const FlutterSecureStorage(),
-        _client = client ?? http.Client();
+  }) : _apiServices = apiServices ?? ApiServices(),
+       _storage = storage ?? const FlutterSecureStorage(),
+       _client = client ?? http.Client();
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -47,10 +47,10 @@ class FeedSearchApiService {
   }
 
   Map<String, String> _authHeaders(String token) => {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'User-Agent': 'Android',
-      };
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+    'User-Agent': 'Android',
+  };
 
   // ── GET /api/feed/v1/feed ────────────────────────────────────────────────
   // Returns: (200, List<dynamic>) | (401, message) | (500, message)
@@ -98,14 +98,15 @@ class FeedSearchApiService {
       final userId = await _getUserId();
       if (userId == null) return (401, 'No user ID found');
 
-      final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/feed/v1/trending-tracks/$userId',
-      ).replace(
-        queryParameters: {
-          'offset': offset.toString(),
-          'limit': limit.toString(),
-        },
-      );
+      final uri =
+          Uri.parse(
+            '${_apiServices.baseUrl}/api/public/feed/v1/trending-tracks/$userId',
+          ).replace(
+            queryParameters: {
+              'offset': offset.toString(),
+              'limit': limit.toString(),
+            },
+          );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
       final body = jsonDecode(response.body);
@@ -143,14 +144,16 @@ class FeedSearchApiService {
           return (200, body);
         }
       }
-      return (response.statusCode,
-          body is Map ? (body['message'] ?? 'Error') : 'Error');
+      return (
+        response.statusCode,
+        body is Map ? (body['message'] ?? 'Error') : 'Error',
+      );
     } catch (err) {
       return (500, 'Network error: $err');
     }
   }
 
-  // ── GET /api/public/tracks/v1/{id} ───────────────────────────────────────
+  // ── GET /api/public/tracks/v2/{id} ───────────────────────────────────────
   // Fetches full track details by ID (used to hydrate feed/trending items
   // before navigating to player or displaying in the feed card).
   // Returns: (200, Map<String, dynamic>) | (404, message) | (500, message)
@@ -160,7 +163,7 @@ class FeedSearchApiService {
       if (token == null) return (401, 'No access token');
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/public/tracks/v1/$trackId',
+        '${_apiServices.baseUrl}/api/public/tracks/v2/$trackId',
       );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
@@ -177,7 +180,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/tracks/v1/permalink/{profileLink}/{permalink} ─────────
+  // ── GET /api/public/tracks/v2/permalink/{profileLink}/{permalink} ─────────
   // Returns: (200, Map<String, dynamic> data) | (404, message) | (500, message)
   // Response data shape documented in module_8_apis_ (permalink endpoint).
   Future<(int, dynamic)> getTrackByPermalink({
@@ -189,7 +192,7 @@ class FeedSearchApiService {
       if (token == null) return (401, 'No access token');
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/public/tracks/v1/permalink/$profileLink/$permalink',
+        '${_apiServices.baseUrl}/api/public/tracks/v2/permalink/$profileLink/$permalink',
       );
 
       final response = await _client.get(uri, headers: _authHeaders(token));
@@ -206,7 +209,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/feed/v1/search ──────────────────────────────────────────────
+  // ── GET /api/public/feed/v1/search ──────────────────────────────────────────────
   // Required: q (keyword)
   // Optional: type (everything|tracks|users|playlists|albums),
   //           dateRange (hour|day|week|month|year|all),
@@ -222,7 +225,7 @@ class FeedSearchApiService {
     String? usage,
     String? tag,
     String? location,
-    int offset = 1,
+    int offset = 0,
     int limit = 20,
   }) async {
     try {
@@ -242,11 +245,13 @@ class FeedSearchApiService {
       if (location != null) params['location'] = location;
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/feed/v1/search',
+        '${_apiServices.baseUrl}/api/public/feed/v1/search',
       ).replace(queryParameters: params);
 
       final response = await _client.get(uri, headers: _authHeaders(token));
-      debugPrint('[FeedSearch] globalSearch ${response.statusCode} — ${response.body}');
+      debugPrint(
+        '[FeedSearch] globalSearch ${response.statusCode} — ${response.body}',
+      );
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -266,7 +271,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/feed/v1/search/suggestions ──────────────────────────────────
+  // ── GET /api/public/feed/v1/search/suggestions ──────────────────────────────────
   // Required: q (partial keyword)
   // Returns: (200, List<dynamic>) | (400, message) | (401, message) | (500, message)
   Future<(int, dynamic)> getSearchSuggestions(String query) async {
@@ -275,11 +280,13 @@ class FeedSearchApiService {
       if (token == null) return (401, 'No access token');
 
       final uri = Uri.parse(
-        '${_apiServices.baseUrl}/api/feed/v1/search/suggestions',
+        '${_apiServices.baseUrl}/api/public/feed/v1/search/suggestions',
       ).replace(queryParameters: {'q': query});
 
       final response = await _client.get(uri, headers: _authHeaders(token));
-      debugPrint('[FeedSearch] suggestions ${response.statusCode} — ${response.body}');
+      debugPrint(
+        '[FeedSearch] suggestions ${response.statusCode} — ${response.body}',
+      );
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -297,7 +304,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/feed/v1/search/history ──────────────────────────────────────
+  // ── GET /api/feed/v1/search/history ──────────────────────────────────────────
   // Returns: (200, List<dynamic>) | (401, message) | (500, message)
   Future<(int, dynamic)> getSearchHistory() async {
     try {
@@ -320,7 +327,7 @@ class FeedSearchApiService {
     }
   }
 
-  // ── POST /api/feed/v1/search/add-to-history ───────────────────────────────
+  // ── POST /api/feed/v1/search/add-to-history ──────────────────────────────────
   // Body: { "id": "string", "type": "track" }
   // Returns: (201, null) | (400, message) | (401, message) | (500, message)
   Future<(int, dynamic)> addToSearchHistory({
@@ -350,7 +357,32 @@ class FeedSearchApiService {
     }
   }
 
-  // ── DELETE /api/feed/v1/search/history/{historyId} ────────────────────────
+  // ── GET /api/tracks/v2/ ──────────────────────────────────────────────────
+  // Returns: (200, Map<String,dynamic> data) with {tracks:[...], paginationInfo:{...}}
+  // Query params: page (int, default 1), limit (int, default 30)
+  Future<(int, dynamic)> getPublicTracks({int page = 1, int limit = 30}) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, 'No access token');
+
+      final uri = Uri.parse('${_apiServices.baseUrl}/api/tracks/v2/').replace(
+        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+      );
+
+      final response = await _client.get(uri, headers: _authHeaders(token));
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final data = body['data'] as Map<String, dynamic>?;
+        return (200, data ?? body);
+      }
+      return (response.statusCode, body['message'] ?? 'Error');
+    } catch (err) {
+      return (500, 'Network error: $err');
+    }
+  }
+
+  // ── DELETE /api/feed/v1/search/history/{historyId} ───────────────────────────
   // Returns: (204, null) | (401, message) | (404, message) | (500, message)
   Future<(int, dynamic)> deleteSearchHistoryItem(String historyId) async {
     try {

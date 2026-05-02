@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 
@@ -16,7 +17,7 @@ class QuickReplyOptionsMenu {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.container,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -35,10 +36,13 @@ class QuickReplyOptionsMenu {
             ),
             if (comment.timestamp > 0)
               ListTile(
-                leading: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                leading: Icon(
+                  Icons.play_arrow_rounded,
+                  color: AppColors.whiteSmoke,
+                ),
                 title: Text(
                   'Play from ${comment.formattedTimestamp}',
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -47,10 +51,13 @@ class QuickReplyOptionsMenu {
               ),
             if (onGoToProfileTap != null)
               ListTile(
-                leading: const Icon(Icons.person_outline, color: Colors.white),
-                title: const Text(
+                leading: Icon(
+                  Icons.person_outline,
+                  color: AppColors.whiteSmoke,
+                ),
+                title: Text(
                   'Go to profile',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -58,8 +65,11 @@ class QuickReplyOptionsMenu {
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.copy_outlined, color: Colors.white),
-              title: const Text('Copy', style: TextStyle(color: Colors.white)),
+              leading: Icon(Icons.copy_outlined, color: AppColors.whiteSmoke),
+              title: Text(
+                'Copy',
+                style: TextStyle(color: AppColors.whiteSmoke),
+              ),
               onTap: () {
                 Navigator.pop(sheetContext);
                 Clipboard.setData(ClipboardData(text: comment.content));
@@ -79,31 +89,37 @@ class QuickReplyOptionsMenu {
               ),
             if (!isOwn && comment.userId.isNotEmpty) ...[
               ListTile(
-                leading: const Icon(Icons.outlined_flag_rounded, color: Colors.white),
-                title: const Text('Report', style: TextStyle(color: Colors.white)),
+                leading: Icon(
+                  Icons.outlined_flag_rounded,
+                  color: AppColors.whiteSmoke,
+                ),
+                title: Text(
+                  'Report',
+                  style: TextStyle(color: AppColors.whiteSmoke),
+                ),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Comment reported'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.flag_outlined, color: Colors.white),
-                title: const Text(
+                leading: Icon(Icons.flag_outlined, color: AppColors.whiteSmoke),
+                title: Text(
                   'Report as spam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Comment reported as spam'),
-                      backgroundColor: Color(0xFF1A1A1A),
+                      backgroundColor: AppColors.container,
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -126,15 +142,17 @@ class QuickReplyOptionsMenu {
   }
 
   static Future<void> _confirmBlock(
-      BuildContext context, Comment comment) async {
+    BuildContext context,
+    Comment comment,
+  ) async {
     final bool confirmed =
         await showDialog<bool>(
           context: context,
           builder: (dialogCtx) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A1A),
-            title: const Text(
+            backgroundColor: AppColors.container,
+            title: Text(
               'Block user?',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteSmoke),
             ),
             content: const Text(
               'This user will no longer be able to follow or interact with '
@@ -144,9 +162,9 @@ class QuickReplyOptionsMenu {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogCtx, false),
-                child: const Text(
+                child: Text(
                   'CANCEL',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: AppColors.white70),
                 ),
               ),
               TextButton(
@@ -180,7 +198,7 @@ class QuickReplyOptionsMenu {
               ? '${comment.displayName} has been blocked'
               : (result.$2?.toString() ?? 'Could not block user'),
         ),
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.container,
         duration: const Duration(seconds: 3),
       ),
     );

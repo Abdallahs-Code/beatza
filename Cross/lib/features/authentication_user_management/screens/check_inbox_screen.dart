@@ -79,10 +79,10 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
 
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 "Click on the link we sent to",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 18),
+                style: TextStyle(color: AppColors.white70, fontSize: 18),
               ),
 
               const SizedBox(height: 6),
@@ -91,8 +91,8 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 key: const Key('test_check_inbox_email'),
                 widget.email,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 19,
                   fontWeight: FontWeight.bold,
                 ),
@@ -106,7 +106,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 child: RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: AppColors.white70),
                     children: [
                       const TextSpan(
                         text: "No email in your inbox or spam folder? ",
@@ -129,7 +129,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 height: 230,
                 width: 230,
                 alignment: Alignment.center,
-                child: const Icon(Icons.send, size: 140, color: Colors.white),
+                child: Icon(Icons.send, size: 140, color: AppColors.whiteSmoke),
               ),
 
               const SizedBox(height: 34),
@@ -148,7 +148,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.whiteSmoke,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
@@ -178,11 +178,11 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
 
               GestureDetector(
                 onTap: _openHelpCenter,
-                child: const Text(
+                child: Text(
                   "If you still need help, visit our Help Center.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.white70,
                     fontSize: 14,
                     height: 1.4,
                   ),

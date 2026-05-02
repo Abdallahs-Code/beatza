@@ -1,4 +1,4 @@
-﻿// Screen: PlaylistDetailScreen
+// Screen: PlaylistDetailScreen
 // Shows a single playlist with its paginated tracks (API #2 / #8).
 // Supports:
 //  - Reordering tracks via drag-and-drop (API #17)
@@ -9,10 +9,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/activity/screens/playlist_options_sheet.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_track_tile.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final String playlistId;
@@ -38,7 +40,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
   // Pagination
   int _page = 1;
-  int _limit = 20;
   bool _hasMore = true;
   bool _isFetchingMore = false;
   final ScrollController _scrollController = ScrollController();
@@ -75,12 +76,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
     try {
       final (statusCode, playlist) = widget.isOwner
-          ? await _service.getPlaylistWithTracks(
-              playlistId: widget.playlistId,
-            )
+          ? await _service.getPlaylistWithTracks(playlistId: widget.playlistId)
           : await _service.getPublicPlaylistWithTracks(
               playlistId: widget.playlistId,
             );
+
+      debugPrint("GET /api/playlists/v1/${widget.playlistId} -> $statusCode");
 
       if (!mounted) return;
 
@@ -115,12 +116,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     setState(() => _isFetchingMore = true);
 
     final (statusCode, playlist) = widget.isOwner
-        ? await _service.getPlaylistWithTracks(
-            playlistId: widget.playlistId,
-          )
+        ? await _service.getPlaylistWithTracks(playlistId: widget.playlistId)
         : await _service.getPublicPlaylistWithTracks(
             playlistId: widget.playlistId,
           );
+
+    debugPrint(
+      "GET /api/playlists/v1/${widget.playlistId} (page $_page) -> $statusCode",
+    );
 
     if (!mounted) return;
 
@@ -155,6 +158,10 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       newPosition: newIndex,
     );
 
+    debugPrint(
+      "PATCH /api/playlists/v1/${widget.playlistId}/tracks -> $statusCode",
+    );
+
     setState(() => _isReordering = false);
 
     if (!mounted) return;
@@ -185,6 +192,10 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       trackId: track.id,
     );
 
+    debugPrint(
+      "DELETE /api/playlists/v1/${widget.playlistId}/tracks/${track.id} -> $statusCode",
+    );
+
     if (!mounted) return;
     if (statusCode != 200) {
       setState(() => _tracks.insert(index, track));
@@ -207,8 +218,11 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     );
     if (!confirmed) return;
 
-    final (statusCode, deleted) =
-        await _service.deletePlaylist(playlistId: widget.playlistId);
+    final (statusCode, deleted) = await _service.deletePlaylist(
+      playlistId: widget.playlistId,
+    );
+
+    debugPrint("DELETE /api/playlists/v1/${widget.playlistId} -> $statusCode");
 
     if (!mounted) return;
     if (statusCode == 200 && deleted) {
@@ -246,15 +260,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
-        title:
-            Text(title, style: const TextStyle(color: Colors.white)),
-        content:
-            Text(content, style: const TextStyle(color: Colors.white70)),
+        title: Text(title, style: TextStyle(color: AppColors.whiteSmoke)),
+        content: Text(content, style: TextStyle(color: AppColors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: Colors.white54)),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -281,12 +292,30 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     });
   }
 
+  void _openOptionsSheet() {
+    final playlist = _playlist;
+    if (playlist == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PlaylistOptionsSheet(
+        playlist: playlist,
+        isOwner: widget.isOwner,
+        onEdit: _navigateToEdit,
+        onDelete: _deletePlaylist,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: _buildAppBar(),
       body: _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
@@ -295,13 +324,13 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       backgroundColor: AppColors.pureBlack,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: Icon(Icons.arrow_back, color: AppColors.whiteSmoke),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
         _playlist?.title ?? 'Playlist',
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
@@ -309,41 +338,23 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         overflow: TextOverflow.ellipsis,
       ),
       actions: [
-        if (widget.isOwner && _playlist != null) ...[
-          if (_isReordering)
-            const Padding(
-              padding: EdgeInsets.all(14),
-              child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: AppColors.crusta)),
-            ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, color: Colors.white),
-            onPressed: _navigateToEdit,
-          ),
-          PopupMenuButton<String>(
-            color: AppColors.surfaceDark,
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
-              if (value == 'delete') _deletePlaylist();
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                    SizedBox(width: 8),
-                    Text('Delete playlist',
-                        style: TextStyle(color: Colors.red)),
-                  ],
-                ),
+        if (widget.isOwner && _isReordering)
+          const Padding(
+            padding: EdgeInsets.all(14),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.crusta,
               ),
-            ],
+            ),
           ),
-        ],
+        if (_playlist != null)
+          IconButton(
+            icon: Icon(Icons.more_vert, color: AppColors.whiteSmoke),
+            onPressed: _openOptionsSheet,
+          ),
       ],
     );
   }
@@ -362,18 +373,20 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline,
-                  color: Colors.white54, size: 48),
+              Icon(Icons.error_outline, color: AppColors.white54, size: 48),
               const SizedBox(height: 16),
-              Text(_error!,
-                  style: const TextStyle(color: Colors.white54),
-                  textAlign: TextAlign.center),
+              Text(
+                _error!,
+                style: TextStyle(color: AppColors.white54),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadPlaylist,
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.crusta,
-                    foregroundColor: Colors.white),
+                  backgroundColor: AppColors.crusta,
+                  foregroundColor: AppColors.whiteSmoke,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -401,7 +414,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                 padding: EdgeInsets.all(16),
                 child: Center(
                   child: CircularProgressIndicator(
-                      color: AppColors.crusta, strokeWidth: 2),
+                    color: AppColors.crusta,
+                    strokeWidth: 2,
+                  ),
                 ),
               ),
             ),
@@ -432,7 +447,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                       width: 220,
                       height: 220,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholderArt(),
+                      errorBuilder: (_, _, _) => _placeholderArt(),
                     )
                   : _placeholderArt(),
             ),
@@ -441,8 +456,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           // Title
           Text(
             p.title,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
@@ -452,20 +467,17 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: p.isPrivate
                       ? AppColors.cardDark2
-                      : AppColors.crusta.withOpacity(0.15),
+                      : AppColors.crusta.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   p.isPrivate ? 'Private' : 'Public',
                   style: TextStyle(
-                    color: p.isPrivate
-                        ? Colors.white54
-                        : AppColors.crusta,
+                    color: p.isPrivate ? AppColors.white54 : AppColors.crusta,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -474,8 +486,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               const SizedBox(width: 10),
               Text(
                 '${p.listOfTracks.length} tracks · ${mins}m',
-                style: const TextStyle(
-                    color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: AppColors.white54, fontSize: 13),
               ),
             ],
           ),
@@ -483,8 +494,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             const SizedBox(height: 10),
             Text(
               p.description,
-              style: const TextStyle(
-                  color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: AppColors.white54, fontSize: 13),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -493,16 +503,19 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           // Stats row
           Row(
             children: [
-              const Icon(Icons.favorite_border,
-                  color: Colors.white54, size: 18),
+              Icon(Icons.favorite_border, color: AppColors.white54, size: 18),
               const SizedBox(width: 4),
-              Text('${p.numOfLikes}',
-                  style: const TextStyle(color: Colors.white54)),
+              Text(
+                '${p.numOfLikes}',
+                style: TextStyle(color: AppColors.white54),
+              ),
               const SizedBox(width: 16),
-              const Icon(Icons.repeat, color: Colors.white54, size: 18),
+              Icon(Icons.repeat, color: AppColors.white54, size: 18),
               const SizedBox(width: 4),
-              Text('${p.numOfReposts}',
-                  style: const TextStyle(color: Colors.white54)),
+              Text(
+                '${p.numOfReposts}',
+                style: TextStyle(color: AppColors.white54),
+              ),
             ],
           ),
           if (widget.isOwner && _tracks.isNotEmpty)
@@ -511,8 +524,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               child: Text(
                 'Hold and drag to reorder tracks',
                 style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
-                    fontSize: 11),
+                  color: AppColors.whiteSmoke.withValues(alpha: 0.3),
+                  fontSize: 11,
+                ),
               ),
             ),
         ],
@@ -530,8 +544,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           key: ValueKey(track.id),
           index: index,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: PlaylistTrackTile(
               track: track,
               showDragHandle: true,
@@ -547,8 +560,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) => Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: PlaylistTrackTile(track: _tracks[index]),
         ),
         childCount: _tracks.length,
@@ -561,8 +573,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       width: 220,
       height: 220,
       color: AppColors.cardDark,
-      child: const Icon(Icons.queue_music,
-          color: Colors.white24, size: 80),
+      child: Icon(Icons.queue_music, color: AppColors.white24, size: 80),
     );
   }
 }
@@ -572,16 +583,16 @@ class _EmptyTracksState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(32),
+    return Padding(
+      padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.music_note, color: Colors.white24, size: 56),
-          SizedBox(height: 14),
+          Icon(Icons.music_note, color: AppColors.white24, size: 56),
+          const SizedBox(height: 14),
           Text(
             'No tracks in this playlist',
-            style: TextStyle(color: Colors.white54, fontSize: 15),
+            style: TextStyle(color: AppColors.white54, fontSize: 15),
           ),
         ],
       ),

@@ -36,8 +36,9 @@ void main() {
     mockClient = MockHttpClient();
     mockStorage = MockFlutterSecureStorage();
 
-    when(() => mockStorage.read(key: 'access_token'))
-        .thenAnswer((_) async => fakeToken);
+    when(
+      () => mockStorage.read(key: 'access_token'),
+    ).thenAnswer((_) async => fakeToken);
 
     service = PlaylistApiService(
       apiServices: FakeApiServices(),
@@ -81,8 +82,11 @@ void main() {
   }
 
   http.Response jsonResponse(dynamic body, int statusCode) {
-    return http.Response(jsonEncode(body), statusCode,
-        headers: {'content-type': 'application/json'});
+    return http.Response(
+      jsonEncode(body),
+      statusCode,
+      headers: {'content-type': 'application/json'},
+    );
   }
 
   // ── PlaylistModel.fromJson ───────────────────────────────────────────────
@@ -126,11 +130,13 @@ void main() {
         },
       };
 
-      when(() => mockClient.post(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          )).thenAnswer((_) async => jsonResponse(responseBody, 200));
+      when(
+        () => mockClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => jsonResponse(responseBody, 200));
 
       final (statusCode, playlist) = await service.createPlaylist(
         playlistName: 'New Playlist',
@@ -143,26 +149,32 @@ void main() {
     });
 
     test('returns 403 when free user hits limit', () async {
-      when(() => mockClient.post(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          )).thenAnswer((_) async =>
-          jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(
+        () => mockClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async => jsonResponse({'message': 'Not enough permissions'}, 403),
+      );
 
-      final (statusCode, playlist) =
-          await service.createPlaylist(playlistName: 'Extra');
+      final (statusCode, playlist) = await service.createPlaylist(
+        playlistName: 'Extra',
+      );
 
       expect(statusCode, 403);
       expect(playlist, isNull);
     });
 
     test('returns 401 when token is missing', () async {
-      when(() => mockStorage.read(key: 'access_token'))
-          .thenAnswer((_) async => null);
+      when(
+        () => mockStorage.read(key: 'access_token'),
+      ).thenAnswer((_) async => null);
 
-      final (statusCode, playlist) =
-          await service.createPlaylist(playlistName: 'New');
+      final (statusCode, playlist) = await service.createPlaylist(
+        playlistName: 'New',
+      );
 
       expect(statusCode, 401);
       expect(playlist, isNull);
@@ -183,8 +195,9 @@ void main() {
         },
       };
 
-      when(() => mockClient.get(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => jsonResponse(responseBody, 200));
+      when(
+        () => mockClient.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => jsonResponse(responseBody, 200));
 
       final (statusCode, playlists) = await service.getMyPlaylists();
 
@@ -194,8 +207,9 @@ void main() {
     });
 
     test('returns empty list on 401', () async {
-      when(() => mockStorage.read(key: 'access_token'))
-          .thenAnswer((_) async => null);
+      when(
+        () => mockStorage.read(key: 'access_token'),
+      ).thenAnswer((_) async => null);
 
       final (statusCode, playlists) = await service.getMyPlaylists();
 
@@ -209,11 +223,13 @@ void main() {
 
   group('addTrackToPlaylist', () {
     test('returns 200 and success message', () async {
-      when(() => mockClient.patch(
-            any(),
-            headers: any(named: 'headers'),
-          )).thenAnswer((_) async => jsonResponse(
-          {'message': 'Track added to playlist successfully'}, 200));
+      when(
+        () => mockClient.patch(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => jsonResponse({
+          'message': 'Track added to playlist successfully',
+        }, 200),
+      );
 
       final (statusCode, message) = await service.addTrackToPlaylist(
         playlistId: 'playlist_001',
@@ -225,11 +241,11 @@ void main() {
     });
 
     test('returns 403 when not owner', () async {
-      when(() => mockClient.patch(
-            any(),
-            headers: any(named: 'headers'),
-          )).thenAnswer((_) async =>
-          jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(
+        () => mockClient.patch(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => jsonResponse({'message': 'Not enough permissions'}, 403),
+      );
 
       final (statusCode, _) = await service.addTrackToPlaylist(
         playlistId: 'playlist_001',
@@ -244,9 +260,12 @@ void main() {
 
   group('removeTrackFromPlaylist', () {
     test('returns 200 on success', () async {
-      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async =>
-          jsonResponse({'message': 'Track removed successfully'}, 200));
+      when(
+        () => mockClient.delete(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            jsonResponse({'message': 'Track removed successfully'}, 200),
+      );
 
       final (statusCode, message) = await service.removeTrackFromPlaylist(
         playlistId: 'playlist_001',
@@ -257,9 +276,11 @@ void main() {
     });
 
     test('returns 403 when not owner', () async {
-      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async =>
-          jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(
+        () => mockClient.delete(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => jsonResponse({'message': 'Not enough permissions'}, 403),
+      );
 
       final (statusCode, _) = await service.removeTrackFromPlaylist(
         playlistId: 'p1',
@@ -274,12 +295,16 @@ void main() {
 
   group('reorderTrack', () {
     test('returns 200 on success', () async {
-      when(() => mockClient.patch(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          )).thenAnswer((_) async =>
-          jsonResponse({'message': 'Track order updated successfully'}, 200));
+      when(
+        () => mockClient.patch(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            jsonResponse({'message': 'Track order updated successfully'}, 200),
+      );
 
       final (statusCode, message) = await service.reorderTrack(
         playlistId: 'playlist_001',
@@ -293,12 +318,15 @@ void main() {
     });
 
     test('returns 403 when not owner', () async {
-      when(() => mockClient.patch(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          )).thenAnswer((_) async =>
-          jsonResponse({'message': 'Not enough permissions'}, 403));
+      when(
+        () => mockClient.patch(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer(
+        (_) async => jsonResponse({'message': 'Not enough permissions'}, 403),
+      );
 
       final (statusCode, _) = await service.reorderTrack(
         playlistId: 'p1',
@@ -312,15 +340,18 @@ void main() {
 
     test('sends correct body', () async {
       String? capturedBody;
-      when(() => mockClient.patch(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          )).thenAnswer((invocation) async {
+      when(
+        () => mockClient.patch(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((invocation) async {
         capturedBody =
             invocation.namedArguments[const Symbol('body')] as String?;
-        return jsonResponse(
-            {'message': 'Track order updated successfully'}, 200);
+        return jsonResponse({
+          'message': 'Track order updated successfully',
+        }, 200);
       });
 
       await service.reorderTrack(
@@ -342,62 +373,80 @@ void main() {
 
   group('deletePlaylist', () {
     test('returns 200 and deleted:true on success', () async {
-      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => jsonResponse({
-                'message': 'Deleted successfully',
-                'data': {'deleted': true},
-              }, 200));
+      when(
+        () => mockClient.delete(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => jsonResponse({
+          'message': 'Deleted successfully',
+          'data': {'deleted': true},
+        }, 200),
+      );
 
-      final (statusCode, deleted) =
-          await service.deletePlaylist(playlistId: 'playlist_001');
+      final (statusCode, deleted) = await service.deletePlaylist(
+        playlistId: 'playlist_001',
+      );
 
       expect(statusCode, 200);
       expect(deleted, isTrue);
     });
 
     test('returns 200 and deleted:false when backend omits flag', () async {
-      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async =>
-          jsonResponse({'message': 'Deleted successfully', 'data': {}}, 200));
+      when(
+        () => mockClient.delete(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            jsonResponse({'message': 'Deleted successfully', 'data': {}}, 200),
+      );
 
-      final (statusCode, deleted) =
-          await service.deletePlaylist(playlistId: 'playlist_001');
+      final (statusCode, deleted) = await service.deletePlaylist(
+        playlistId: 'playlist_001',
+      );
 
       expect(statusCode, 200);
       expect(deleted, isFalse);
     });
 
     test('returns 403 when not owner', () async {
-      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => jsonResponse(
-              {'message': 'Not enough permissions to access this resource'},
-              403));
+      when(
+        () => mockClient.delete(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async => jsonResponse({
+          'message': 'Not enough permissions to access this resource',
+        }, 403),
+      );
 
-      final (statusCode, deleted) =
-          await service.deletePlaylist(playlistId: 'p_other');
+      final (statusCode, deleted) = await service.deletePlaylist(
+        playlistId: 'p_other',
+      );
 
       expect(statusCode, 403);
       expect(deleted, isFalse);
     });
 
     test('returns 404 when playlist not found', () async {
-      when(() => mockClient.delete(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => jsonResponse(
-              {'message': 'Property not found or not updated'}, 404));
+      when(
+        () => mockClient.delete(any(), headers: any(named: 'headers')),
+      ).thenAnswer(
+        (_) async =>
+            jsonResponse({'message': 'Property not found or not updated'}, 404),
+      );
 
-      final (statusCode, deleted) =
-          await service.deletePlaylist(playlistId: 'nonexistent');
+      final (statusCode, deleted) = await service.deletePlaylist(
+        playlistId: 'nonexistent',
+      );
 
       expect(statusCode, 404);
       expect(deleted, isFalse);
     });
 
     test('returns 401 when token missing', () async {
-      when(() => mockStorage.read(key: 'access_token'))
-          .thenAnswer((_) async => null);
+      when(
+        () => mockStorage.read(key: 'access_token'),
+      ).thenAnswer((_) async => null);
 
-      final (statusCode, deleted) =
-          await service.deletePlaylist(playlistId: 'p1');
+      final (statusCode, deleted) = await service.deletePlaylist(
+        playlistId: 'p1',
+      );
 
       expect(statusCode, 401);
       expect(deleted, isFalse);
@@ -432,11 +481,14 @@ void main() {
 
       final responseBody = {
         'message': 'Playlists retrieved successfully',
-        'data': {'playlist': [playlistJson]},
+        'data': {
+          'playlist': [playlistJson],
+        },
       };
 
-      when(() => mockClient.get(any(), headers: any(named: 'headers')))
-          .thenAnswer((_) async => jsonResponse(responseBody, 200));
+      when(
+        () => mockClient.get(any(), headers: any(named: 'headers')),
+      ).thenAnswer((_) async => jsonResponse(responseBody, 200));
 
       final (statusCode, playlist) = await service.getPlaylistWithTracks(
         playlistId: 'p1',

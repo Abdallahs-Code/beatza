@@ -28,7 +28,8 @@ class UserProfileService {
 
   // Public base path used for GET profile lookups (no auth required by backend).
   // PATCH operations (updateUserProfile, updateProfileImages) use _servicePath (authenticated).
-  String get _publicServicePath => "${_apiServices.baseUrl}/api/public/profile/v1";
+  String get _publicServicePath =>
+      "${_apiServices.baseUrl}/api/public/profile/v1";
 
   String _extractErrorMessage(Map<String, dynamic> data, String defaultMsg) {
     String msg = data["message"] ?? defaultMsg;

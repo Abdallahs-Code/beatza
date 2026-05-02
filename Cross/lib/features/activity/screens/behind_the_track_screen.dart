@@ -6,12 +6,11 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/activity/models/track_stats_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
-
-const _kBg = Color(0xFF111111);
-const _kSurface = Color(0xFF1C1C1C);
-const _kOrange = Color(0xFFFF5500);
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class BehindTheTrackScreen extends StatefulWidget {
   final String trackId;
@@ -40,8 +39,12 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   final _engagementApi = EngagementApiService();
 
   PlaybackTrackModel? _track;
+  TrackStatsModel? _trackStats;
   bool _loading = true;
   String? _error;
+
+  // Leaderboard toggle state
+  bool _showTopFans = true; // true = Top, false = First
 
   // ── Exact same like pattern as _ExpandedEngagementBarState ──
   bool _isLiked = false;
@@ -59,6 +62,9 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   bool _isReposted = false;
   String? _currentUserId;
+
+  // First reposter fetched from the public reposts API
+  EngagementUser? _firstReposter;
 
   bool get _isCurrentlyPlaying {
     final svc = PlaybackStreamingEngineService.shared;
@@ -81,23 +87,47 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   }
 
   Future<void> _loadTrack() async {
+    debugPrint('━━━ [_loadTrack] START ━━━');
+    debugPrint('[_loadTrack] Loading track: ${widget.trackId}');
+    
     try {
+      debugPrint('[_loadTrack] Fetching track data...');
       final track = await _trackApi.getSingleTrackById(widget.trackId);
+      debugPrint('[_loadTrack] Track loaded: ${track.title}');
+      
+      debugPrint('[_loadTrack] Fetching track stats...');
+      final stats = await _trackApi.getTrackStats(widget.trackId);
+      debugPrint('[_loadTrack] Stats loaded - topFans: ${stats.topFans.length}, firstFans: ${stats.firstFans.length}');
+      
       if (mounted) {
         setState(() {
           _track = track;
+          _trackStats = stats;
           _likeCount = track.numLikes;
           _commentCount = track.numComments;
           _repostCount = track.numReposts;
           _loading = false;
         });
-        _checkLikeStatus();
-        _checkRepostStatus();
-        _fetchOwnerProfile();
-        final uid = await AuthApiService().getStoredUserId();
-        if (mounted) setState(() => _currentUserId = uid);
+        debugPrint('[_loadTrack] State updated successfully');
       }
-    } catch (e) {
+      
+      _checkLikeStatus();
+      _checkRepostStatus();
+      _fetchFirstReposter();
+      _fetchOwnerProfile();
+      final uid = await AuthApiService().getStoredUserId();
+      if (mounted) {
+        setState(() => _currentUserId = uid);
+        debugPrint('[_loadTrack] Current user ID: $uid');
+      }
+      
+      debugPrint('━━━ [_loadTrack] END ━━━');
+    } catch (e, stackTrace) {
+      debugPrint('━━━ [_loadTrack] ERROR ━━━');
+      debugPrint('[_loadTrack] ❌ Error loading track: $e');
+      debugPrint('[_loadTrack] Stack trace: $stackTrace');
+      debugPrint('━━━ [_loadTrack] END ━━━');
+      
       if (mounted) {
         setState(() {
           _error = e.toString();
@@ -113,7 +143,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
-      final profile = await UserProfileService().getUserProfile(ownerId, token);
+      final profileFuture = UserProfileService().getUserProfile(ownerId, token);
+      final followFuture = ProfileNavigator.checkIsFollowing(ownerId);
+      final profile = await profileFuture;
+      final isFollowed = await followFuture;
       if (!mounted) return;
       setState(() {
         _ownerDisplayName = profile.displayName.trim().isEmpty
@@ -122,11 +155,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         _ownerAvatarUrl = profile.profileImgLink.trim().isEmpty
             ? null
             : profile.profileImgLink.trim();
-        _ownerCity =
-            profile.city.trim().isEmpty ? null : profile.city.trim();
-        _ownerCountry =
-            profile.country.trim().isEmpty ? null : profile.country.trim();
-        _ownerIsFollowed = profile.isFollowed;
+        _ownerCity = profile.city.trim().isEmpty ? null : profile.city.trim();
+        _ownerCountry = profile.country.trim().isEmpty
+            ? null
+            : profile.country.trim();
+        _ownerIsFollowed = isFollowed;
       });
     } catch (_) {}
   }
@@ -146,10 +179,28 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Future<void> _checkRepostStatus() async {
     try {
-      final result = await _engagementApi.getTrackRepostStatus(trackId: widget.trackId);
+      final result = await _engagementApi.getTrackRepostStatus(
+        trackId: widget.trackId,
+      );
       if (!mounted) return;
       if (result.$1 == 200 && result.$2 is RepostStatus) {
         setState(() => _isReposted = (result.$2 as RepostStatus).reposted);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fetchFirstReposter() async {
+    try {
+      final result = await _engagementApi.getTrackReposters(
+        trackId: widget.trackId,
+        limit: 1,
+      );
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is List) {
+        final list = result.$2 as List<EngagementUser>;
+        if (list.isNotEmpty) {
+          setState(() => _firstReposter = list.first);
+        }
       }
     } catch (_) {}
   }
@@ -245,10 +296,6 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     await ProfileNavigator.push(context, ownerId);
   }
 
-  Future<void> _navigateToActor() async {
-    await ProfileNavigator.push(context, widget.actorUserId);
-  }
-
   Future<void> _toggleOwnerFollow() async {
     if (_isOwnerFollowLoading) return;
     final wasFollowing = _ownerIsFollowed;
@@ -257,17 +304,21 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       _isOwnerFollowLoading = true;
     });
     final result = wasFollowing
-        ? await SocialApiService().unfollowUser(targetUserId: widget.trackOwnerId)
-        : await SocialApiService().followUser(targetUserId: widget.trackOwnerId);
+        ? await SocialApiService().unfollowUser(
+            targetUserId: widget.trackOwnerId,
+          )
+        : await SocialApiService().followUser(
+            targetUserId: widget.trackOwnerId,
+          );
     if (!mounted) return;
     if (result.$1 < 200 || result.$1 >= 300) {
       setState(() {
         _ownerIsFollowed = wasFollowing;
         _isOwnerFollowLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.$2.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.$2.toString())));
       return;
     }
     setState(() => _isOwnerFollowLoading = false);
@@ -296,7 +347,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TrackOptionsSheet(track: track),
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        variant: TrackOptionsVariant.behindTrack,
+      ),
     );
     if (!mounted) return;
     _checkLikeStatus();
@@ -314,32 +368,40 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _kBg,
+      backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        backgroundColor: _kBg,
+        backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.whiteSmoke,
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           _track?.title ?? '',
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                  color: _kOrange, strokeWidth: 2))
+                color: AppColors.primaryOrange,
+                strokeWidth: 2,
+              ),
+            )
           : _error != null
-              ? _buildError()
-              : _buildBody(),
+          ? _buildError()
+          : _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
@@ -348,21 +410,24 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              color: Colors.white38, size: 42),
+          Icon(Icons.error_outline_rounded, color: AppColors.white54, size: 42),
           const SizedBox(height: 16),
-          Text(_error!,
-              textAlign: TextAlign.center,
-              style:
-                  const TextStyle(color: Colors.white54, fontSize: 14)),
+          Text(
+            _error!,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.white54, fontSize: 14),
+          ),
           const SizedBox(height: 20),
           TextButton(
             onPressed: _loadTrack,
-            child: const Text('Try again',
-                style: TextStyle(
-                    color: _kOrange,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Try again',
+              style: TextStyle(
+                color: AppColors.primaryOrange,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -371,23 +436,31 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Widget _buildBody() {
     final track = _track!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTrackCard(track),
-          _buildActorRow(),
-          _buildActionRow(),
-          if (track.tags.isNotEmpty) _buildTags(track.tags),
-          const Divider(color: Color(0xFF2A2A2A), height: 1),
-          const SizedBox(height: 16),
-          _buildArtistCard(track),
-          const SizedBox(height: 24),
-          _buildFanLeaderboard(),
-          const SizedBox(height: 24),
-          _buildInPlaylists(),
-        ],
+    return RefreshIndicator(
+      color: AppColors.primaryOrange,
+      onRefresh: () async {
+        debugPrint('[BehindTheTrack] Pull-to-refresh triggered');
+        await _loadTrack();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTrackCard(track),
+            _buildActorRow(),
+            _buildActionRow(),
+            if (track.tags.isNotEmpty) _buildTags(track.tags),
+            Divider(color: AppColors.containerMid, height: 1),
+            const SizedBox(height: 16),
+            _buildArtistCard(track),
+            const SizedBox(height: 24),
+            _buildFanLeaderboard(),
+            const SizedBox(height: 24),
+            _buildInPlaylists(),
+          ],
+        ),
       ),
     );
   }
@@ -399,33 +472,90 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         spacing: 8,
         runSpacing: 8,
         children: tags
-            .map((tag) => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1C1C1C),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '# $tag',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 13),
-                  ),
-                ))
+            .map(
+              (tag) => Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '# $tag',
+                  style: TextStyle(color: AppColors.white70, fontSize: 13),
+                ),
+              ),
+            )
             .toList(),
       ),
     );
   }
 
   Widget _buildFanLeaderboard() {
-    // Hardcoded visual — no API yet
-    final fans = [
-      ('Ahmed Mekawy', '29 plays', null),
-      ('joshy b', '22 plays', null),
-      ('Fizza Shiekh', '16 plays', null),
-      ('Zenza86', '15 plays', null),
-      ('Sachin Kumar', '14 plays', null),
-    ];
+    final stats = _trackStats;
+    if (stats == null) return const SizedBox.shrink();
+
+    if (stats.isStatsPrivate) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Fan leaderboard',
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.white54,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.white54,
+                    size: 28,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'The track owner has disabled the fan leaderboard for this track.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.white70,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final fans = _showTopFans ? stats.topFans : stats.firstFans;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -433,100 +563,218 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         children: [
           Row(
             children: [
-              const Text('Fan leaderboard',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700)),
+              Text(
+                'Fan leaderboard',
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(width: 6),
-              const Icon(Icons.info_outline_rounded,
-                  color: Colors.white38, size: 16),
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.white54,
+                size: 16,
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: _kSurface,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               children: [
-                // Top / First toggle (visual only)
+                // Top / First toggle
                 Padding(
                   padding: const EdgeInsets.all(6),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF333333),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text('Top',
+                        child: GestureDetector(
+                          onTap: () {
+                            debugPrint('[_buildFanLeaderboard] Toggle tapped: switching to Top');
+                            setState(() => _showTopFans = true);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _showTopFans
+                                  ? AppColors.inputFill
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Top',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600)),
+                                color: _showTopFans
+                                    ? AppColors.whiteSmoke
+                                    : AppColors.white54,
+                                fontSize: 14,
+                                fontWeight: _showTopFans
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          alignment: Alignment.center,
-                          child: const Text('First',
+                        child: GestureDetector(
+                          onTap: () {
+                            debugPrint('[_buildFanLeaderboard] Toggle tapped: switching to First');
+                            setState(() => _showTopFans = false);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: !_showTopFans
+                                  ? AppColors.inputFill
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'First',
                               style: TextStyle(
-                                  color: Colors.white54, fontSize: 14)),
+                                color: !_showTopFans
+                                    ? AppColors.whiteSmoke
+                                    : AppColors.white54,
+                                fontSize: 14,
+                                fontWeight: !_showTopFans
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text('Fans who have played this track the most.',
-                      style:
-                          TextStyle(color: Colors.white54, fontSize: 13)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    _showTopFans
+                        ? 'Fans who have played this track the most.'
+                        : 'Fans who played this track in the first week.',
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
+                  ),
                 ),
-                ...fans.asMap().entries.map((e) {
-                  final idx = e.key;
-                  final (name, plays, _) = e.value;
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-                    child: Row(
+                if (fans.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    child: Column(
                       children: [
-                        SizedBox(
-                          width: 24,
-                          child: Text('${idx + 1}.',
-                              style: const TextStyle(
-                                  color: Colors.white54, fontSize: 14)),
+                        Icon(
+                          Icons.people_outline_rounded,
+                          color: AppColors.white54,
+                          size: 28,
                         ),
-                        const SizedBox(width: 10),
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: const Color(0xFF444444),
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : '?',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700),
-                          ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _showTopFans ? 'No top fans yet' : 'No early fans yet',
+                          style: TextStyle(color: AppColors.white70, fontSize: 14, fontWeight: FontWeight.w500),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(name,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 14)),
+                        const SizedBox(height: 4),
+                        Text(
+                          _showTopFans
+                              ? 'Listen to this track to be the first to appear here.'
+                              : 'No one has played this track in its first week yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.white54, fontSize: 12, height: 1.4),
                         ),
-                        Text(plays,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 13)),
                       ],
                     ),
-                  );
-                }),
+                  )
+                else
+                  ...fans.asMap().entries.map((e) {
+                    final idx = e.key;
+                    final fan = e.value;
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            child: Text(
+                              '${idx + 1}.',
+                              style:  TextStyle(
+                                color: AppColors.white54,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: ClipOval(
+                              child: fan.profileImg.isNotEmpty
+                                  ? Image.network(
+                                      fan.profileImg,
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, e) => Container(
+                                        width: 36,
+                                        height: 36,
+                                        color: AppColors.tileDark5,
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          fan.displayName.isNotEmpty
+                                              ? fan.displayName[0].toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            color: AppColors.whiteSmoke,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 36,
+                                      height: 36,
+                                      color: AppColors.tileDark5,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        fan.displayName.isNotEmpty
+                                            ? fan.displayName[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          color: AppColors.whiteSmoke,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              fan.displayName,
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${fan.totalNumberOfPlay} plays',
+                            style: TextStyle(
+                              color: AppColors.white54,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 const SizedBox(height: 8),
               ],
             ),
@@ -540,7 +788,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     // Hardcoded visual — no API yet
     final playlists = [
       ('Personal Faves XX !', 'MUSIC AFiCi...'),
-      ('Tracks 🔥🔥🔥', 'Hossam Moh'),
+      ('Tracks 🔥🔥', 'Hossam Moh'),
       ('Saveme', 'User 578913'),
     ];
     return Padding(
@@ -548,11 +796,14 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('In Playlists',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700)),
+          Text(
+            'In Playlists',
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             height: 140,
@@ -571,26 +822,36 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                         width: 110,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: _kSurface,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         alignment: Alignment.center,
-                        child: const Icon(Icons.queue_music_rounded,
-                            color: Color(0xFF444444), size: 36),
+                        child: Icon(
+                          Icons.queue_music_rounded,
+                          color: AppColors.tileDark5,
+                          size: 36,
+                        ),
                       ),
                       const SizedBox(height: 6),
-                      Text(name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600)),
-                      Text(owner,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 12)),
+                      Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        owner,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -626,15 +887,19 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(track.title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700)),
+                Text(
+                  track.title,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(_ownerDisplayName ?? track.artistName,
-                    style: const TextStyle(
-                        color: Color(0xFF999999), fontSize: 14)),
+                Text(
+                  _ownerDisplayName ?? track.artistName,
+                  style: TextStyle(color: AppColors.greyMuted, fontSize: 14),
+                ),
                 const SizedBox(height: 8),
                 _buildStats(track),
               ],
@@ -649,10 +914,13 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     return Container(
       width: 100,
       height: 100,
-      color: _kSurface,
+      color: AppColors.surface,
       alignment: Alignment.center,
-      child: const Icon(Icons.graphic_eq_rounded,
-          color: Color(0xFF444444), size: 36),
+      child: Icon(
+        Icons.graphic_eq_rounded,
+        color: AppColors.tileDark5,
+        size: 36,
+      ),
     );
   }
 
@@ -662,48 +930,53 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     if (track.duration != null) parts.add(_fmtDuration(track.duration!));
     if (track.releaseDate != null) parts.add(_fmtDate(track.releaseDate!));
     if (parts.isEmpty) return const SizedBox.shrink();
-    return Text(parts.join(' · '),
-        style: const TextStyle(color: Color(0xFF777777), fontSize: 12));
+    return Text(
+      parts.join(' · '),
+      style: TextStyle(color: AppColors.greyMid, fontSize: 12),
+    );
   }
 
   Widget _buildActorRow() {
-    final isLike = widget.activityType == 'track_liked';
+    final reposter = _firstReposter;
+    if (reposter == null) return const SizedBox.shrink();
+
+    final avatarUrl = reposter.avatarUrl ?? '';
     return InkWell(
-      onTap: _navigateToActor,
+      onTap: () => ProfileNavigator.push(context, reposter.userId),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Row(
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: const Color(0xFF2A2A2A),
-              backgroundImage: widget.actorAvatarUrl.isNotEmpty
-                  ? NetworkImage(widget.actorAvatarUrl)
-                  : null,
-              child: widget.actorAvatarUrl.isEmpty
+              backgroundColor: AppColors.containerMid,
+              backgroundImage:
+                  avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+              child: avatarUrl.isEmpty
                   ? Text(
-                      widget.actorName.isNotEmpty
-                          ? widget.actorName[0].toUpperCase()
+                      reposter.displayName.isNotEmpty
+                          ? reposter.displayName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
             const SizedBox(width: 10),
             RichText(
               text: TextSpan(
-                style: const TextStyle(
-                    color: Color(0xFFAAAAAA), fontSize: 14),
+                style: TextStyle(color: AppColors.greyIcon, fontSize: 14),
                 children: [
-                  TextSpan(text: isLike ? 'Liked by ' : 'Reposted by '),
+                  const TextSpan(text: 'Reposted by '),
                   TextSpan(
-                    text: widget.actorName,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600),
+                    text: reposter.displayName,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -729,15 +1002,16 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   _isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  color: _isLiked ? Colors.orange : Colors.white70,
+                  color: _isLiked ? Colors.orange : AppColors.white70,
                   size: 22,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   '$_likeCount',
                   style: TextStyle(
-                      color: _isLiked ? Colors.orange : Colors.white70,
-                      fontSize: 14),
+                    color: _isLiked ? Colors.orange : AppColors.white70,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
@@ -749,12 +1023,16 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                const Icon(Icons.chat_bubble_outline_rounded,
-                    color: Colors.white70, size: 22),
+                Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: AppColors.white70,
+                  size: 22,
+                ),
                 const SizedBox(width: 5),
-                Text('$_commentCount',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 14)),
+                Text(
+                  '$_commentCount',
+                  style: TextStyle(color: AppColors.white70, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -765,13 +1043,23 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                Icon(Icons.repeat_rounded,
-                    color: _isReposted ? _kOrange : Colors.white70, size: 22),
+                Icon(
+                  Icons.repeat_rounded,
+                  color: _isReposted
+                      ? AppColors.primaryOrange
+                      : AppColors.white70,
+                  size: 22,
+                ),
                 const SizedBox(width: 5),
-                Text('$_repostCount',
-                    style: TextStyle(
-                        color: _isReposted ? _kOrange : Colors.white70,
-                        fontSize: 14)),
+                Text(
+                  '$_repostCount',
+                  style: TextStyle(
+                    color: _isReposted
+                        ? AppColors.primaryOrange
+                        : AppColors.white70,
+                    fontSize: 14,
+                  ),
+                ),
               ],
             ),
           ),
@@ -779,8 +1067,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
           GestureDetector(
             onTap: _openTrackOptions,
             behavior: HitTestBehavior.opaque,
-            child: const Icon(Icons.more_horiz_rounded,
-                color: Colors.white70, size: 22),
+            child: Icon(
+              Icons.more_horiz_rounded,
+              color: AppColors.white70,
+              size: 22,
+            ),
           ),
           const Spacer(),
           // Play
@@ -789,8 +1080,8 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             child: Container(
               width: 52,
               height: 52,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: AppColors.whiteSmoke,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -810,9 +1101,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Widget _buildArtistCard(PlaybackTrackModel track) {
     final displayName = _ownerDisplayName ?? track.artistName;
-    final location = [_ownerCity, _ownerCountry]
-        .whereType<String>()
-        .join(', ');
+    final location = [_ownerCity, _ownerCountry].whereType<String>().join(', ');
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -821,7 +1110,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             onTap: _navigateToArtist,
             child: CircleAvatar(
               radius: 26,
-              backgroundColor: const Color(0xFF2A2A2A),
+              backgroundColor: AppColors.containerMid,
               backgroundImage: _ownerAvatarUrl != null
                   ? NetworkImage(_ownerAvatarUrl!)
                   : null,
@@ -830,10 +1119,11 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                       displayName.isNotEmpty
                           ? displayName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )
                   : null,
             ),
@@ -845,15 +1135,19 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(displayName,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600)),
+                  Text(
+                    displayName,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   if (location.isNotEmpty)
-                    Text(location,
-                        style: const TextStyle(
-                            color: Color(0xFF888888), fontSize: 13)),
+                    Text(
+                      location,
+                      style: TextStyle(color: AppColors.greyMid2, fontSize: 13),
+                    ),
                 ],
               ),
             ),
@@ -867,23 +1161,27 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: _ownerIsFollowed
-                      ? const Color(0xFF2A2A2A)
-                      : _kOrange,
+                      ? AppColors.containerMid
+                      : AppColors.primaryOrange,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 alignment: Alignment.center,
                 child: _isOwnerFollowLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
+                          color: AppColors.whiteSmoke,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : Text(
                         _ownerIsFollowed ? 'Following' : 'Follow',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
               ),
             ),
@@ -907,8 +1205,18 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   String _fmtDate(DateTime dt) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }

@@ -1,8 +1,8 @@
-
 import 'dart:io';
 
 import 'package:cross_team5/features/user_profile_social_identity/screens/your_uploads_spotlight_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 import '../../premium_subscription/services/payment_service.dart';
 import '../models/spotlight_models.dart';
@@ -51,7 +51,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
   void _showAmplifyProModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -73,20 +73,20 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: AppColors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.flash_on, color: Color(0xFFD47AFA), size: 20),
+                  Icon(Icons.flash_on, color: AppColors.flashPurple, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'AMPLIFY',
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: AppColors.white54,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.2,
@@ -95,20 +95,20 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Reach more\nlisteners.',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
                   height: 1.1,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'With Artist Pro, you can get your tracks analyzed and recommended to the right listeners without limits.',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   fontSize: 16,
                   height: 1.4,
                 ),
@@ -116,7 +116,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               const SizedBox(height: 32),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                   children: [
                     const TextSpan(text: 'EGP 164.99/month. Cancel anytime.\n'),
                     WidgetSpan(
@@ -127,7 +127,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                              const ProRestrictionsScreen(),
+                                  const ProRestrictionsScreen(),
                             ),
                           );
                         },
@@ -149,16 +149,16 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                 height: 52,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white24, width: 1.5),
+                    side: BorderSide(color: AppColors.white24, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   onPressed: () {},
-                  child: const Text(
+                  child: Text(
                     'Subscribe now',
                     style: TextStyle(
-                      color: Colors.white38,
+                      color: AppColors.white54,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -169,10 +169,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Maybe later',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.white70,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -189,22 +189,22 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leadingWidth: 80,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
+          child: Text(
             'Cancel',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Edit Spotlight',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -215,10 +215,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             onPressed: () {
               Navigator.pop(context, currentItems);
             },
-            child: const Text(
+            child: Text(
               'Save',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -234,24 +234,24 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: AppColors.surfaceMid,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Tracks added here will not be saved.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Upgrade and pin up to 5 tracks on your profile.',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: AppColors.white54, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
                 ValueListenableBuilder<SubscriptionState>(
@@ -263,7 +263,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                       child: const Text(
                         'GET ARTIST PRO',
                         style: TextStyle(
-                          color: Color(0xFFFF5500),
+                          color: AppColors.primaryOrange,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -271,7 +271,8 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                       ),
                     );
                   },
-                ),              ],
+                ),
+              ],
             ),
           ),
 
@@ -280,10 +281,10 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Pinned items',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -293,7 +294,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
                   currentItems.isEmpty
                       ? 'Pinned items will show up here'
                       : '${currentItems.length}/5 pinned items',
-                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
                 ),
               ],
             ),
@@ -303,103 +304,100 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
             child: currentItems.isEmpty
                 ? const SizedBox.shrink()
                 : ReorderableListView.builder(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              itemCount: currentItems.length,
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = currentItems.removeAt(oldIndex);
-                  currentItems.insert(newIndex, item);
-                });
-              },
-              itemBuilder: (context, index) {
-                final item = currentItems[index];
-                return Container(
-                  key: ValueKey(item.id),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child:
-                      item.imageUrl != null &&
-                          item.imageUrl!.isNotEmpty
-                          ? (item.imageUrl!.startsWith('http')
-                          ? Image.network(
-                        item.imageUrl!,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                      )
-                          : Image.file(
-                        File(item.imageUrl!),
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                      ))
-                          : Container(
-                        width: 48,
-                        height: 48,
-                        color: Colors.grey[800],
-                        child: const Icon(
-                          Icons.music_note,
-                          color: Colors.white,
+                    itemCount: currentItems.length,
+                    onReorder: (oldIndex, newIndex) {
+                      setState(() {
+                        if (newIndex > oldIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = currentItems.removeAt(oldIndex);
+                        currentItems.insert(newIndex, item);
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final item = currentItems[index];
+                      return Container(
+                        key: ValueKey(item.id),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.container,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                    ),
-                    title: Text(
-                      item.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      item.subtitle,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 13,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle_outline,
-                            color: Colors.redAccent,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              currentItems.removeAt(index);
-                            });
-                          },
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child:
+                                item.imageUrl != null &&
+                                    item.imageUrl!.isNotEmpty
+                                ? (item.imageUrl!.startsWith('http')
+                                      ? Image.network(
+                                          item.imageUrl!,
+                                          width: 48,
+                                          height: 48,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(item.imageUrl!),
+                                          width: 48,
+                                          height: 48,
+                                          fit: BoxFit.cover,
+                                        ))
+                                : Container(
+                                    width: 48,
+                                    height: 48,
+                                    color: Colors.grey[800],
+                                    child: Icon(
+                                      Icons.music_note,
+                                      color: AppColors.whiteSmoke,
+                                    ),
+                                  ),
+                          ),
+                          title: Text(
+                            item.title,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            item.subtitle,
+                            style: TextStyle(
+                              color: AppColors.white54,
+                              fontSize: 13,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove_circle_outline,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    currentItems.removeAt(index);
+                                  });
+                                },
+                              ),
+                              Icon(Icons.drag_handle, color: AppColors.white54),
+                            ],
+                          ),
                         ),
-                        const Icon(
-                          Icons.drag_handle,
-                          color: Colors.white38,
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
 
           Padding(
@@ -410,7 +408,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
               child: ElevatedButton(
                 onPressed: _addMoreItems,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.whiteSmoke,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -438,12 +436,12 @@ class ProRestrictionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: AppColors.whiteSmoke),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -452,28 +450,28 @@ class ProRestrictionsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Restrictions apply',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Subscription may be managed and cancelled at any time in the App Store Account Settings after purchase. All prices include applicable local sales taxes. Beatza Artist Pro Terms of Use & Privacy Policy',
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.white70,
                 fontSize: 16,
                 height: 1.5,
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Artist Pro',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -510,8 +508,8 @@ class ProRestrictionsScreen extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white24,
+        style: TextStyle(
+          color: AppColors.white24,
           fontSize: 16,
           fontWeight: FontWeight.w500,
           decoration: TextDecoration.underline,
@@ -527,9 +525,9 @@ class ArtistTermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         centerTitle: true,
         title: const Text(
@@ -553,7 +551,7 @@ class ArtistTermsScreen extends StatelessWidget {
             const Text(
               'Terms of Use for Artist Subscriptions',
               style: TextStyle(
-                color: Color(0xFF1B64D1),
+                color: AppColors.primaryBlue,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -622,16 +620,15 @@ class ArtistTermsScreen extends StatelessWidget {
   }
 }
 
-
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         title: const Text(
           'Privacy Policy',

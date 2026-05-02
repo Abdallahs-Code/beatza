@@ -52,8 +52,8 @@ class SearchResultTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -63,10 +63,7 @@ class SearchResultTile extends StatelessWidget {
                   if (subtitle != null && subtitle!.isNotEmpty)
                     Text(
                       subtitle!,
-                      style: const TextStyle(
-                        color: AppColors.white54,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.white54, fontSize: 13),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -78,11 +75,7 @@ class SearchResultTile extends StatelessWidget {
             if (type == 'user')
               _buildFollowChip()
             else
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.white54,
-                size: 20,
-              ),
+              Icon(Icons.chevron_right, color: AppColors.white54, size: 20),
           ],
         ),
       ),
@@ -98,8 +91,9 @@ class SearchResultTile extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: AppColors.cardDark,
-        borderRadius:
-            isUser ? BorderRadius.circular(size / 2) : BorderRadius.circular(6),
+        borderRadius: isUser
+            ? BorderRadius.circular(size / 2)
+            : BorderRadius.circular(6),
       ),
       child: Icon(
         isUser ? Icons.person : Icons.music_note,
@@ -111,14 +105,15 @@ class SearchResultTile extends StatelessWidget {
     if (imageUrl == null || imageUrl!.isEmpty) return placeholder;
 
     return ClipRRect(
-      borderRadius:
-          isUser ? BorderRadius.circular(size / 2) : BorderRadius.circular(6),
+      borderRadius: isUser
+          ? BorderRadius.circular(size / 2)
+          : BorderRadius.circular(6),
       child: Image.network(
         imageUrl!,
         width: size,
         height: size,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => placeholder,
+        errorBuilder: (_, _, _) => placeholder,
       ),
     );
   }
@@ -127,12 +122,12 @@ class SearchResultTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white54),
+        border: Border.all(color: AppColors.white54),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Text(
+      child: Text(
         'Follow',
-        style: TextStyle(color: Colors.white, fontSize: 12),
+        style: TextStyle(color: AppColors.whiteSmoke, fontSize: 12),
       ),
     );
   }

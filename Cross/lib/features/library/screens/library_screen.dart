@@ -1,4 +1,4 @@
-﻿// Dart imports
+// Dart imports
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
@@ -29,7 +29,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final AuthApiService _authApiService = AuthApiService();
   final UserProfileService _userProfileService = UserProfileService();
   final LibraryHistoryApiService _historyApiService =
-  LibraryHistoryApiService();
+      LibraryHistoryApiService();
 
   late Future<UserProfileModel?> _profileFuture;
 
@@ -44,7 +44,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       subtitle: 'Abdessamad Hamidallah',
       metadata: '0 · 1 track',
       imageUrl:
-      'https://res.cloudinary.com/dr1sqiouu/image/upload/v1775770962/audio/file_owxgue.jpg',
+          'https://res.cloudinary.com/dr1sqiouu/image/upload/v1775770962/audio/file_owxgue.jpg',
     ),
     RecentlyPlayedMockItem(
       type: RecentlyPlayedMockItemType.profile,
@@ -121,7 +121,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (userId == null || userId.trim().isEmpty) return;
       if (!context.mounted) return;
       await ProfileNavigator.push(context, userId);
-      if (mounted) setState(() => _profileFuture = _loadUserProfile());
+      if (mounted) {
+        setState(() {
+          _profileFuture = _loadUserProfile();
+        });
+      }
+        
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -133,13 +138,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _openListeningHistoryPage() async {
     final List<PlaybackTrackModel>? updatedTracks =
-    await Navigator.push<List<PlaybackTrackModel>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ListeningHistoryScreen(initialTracks: _historyTracks),
-      ),
-    );
+        await Navigator.push<List<PlaybackTrackModel>>(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ListeningHistoryScreen(initialTracks: _historyTracks),
+          ),
+        );
 
     if (updatedTracks != null && mounted) {
       setState(() {
@@ -176,7 +181,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-        const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
+            const RecentlyPlayedScreen(items: _mockRecentlyPlayedItems),
       ),
     );
   }
@@ -188,7 +193,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: _LibraryEmptyStateCard(
           title: 'No recently played items yet',
           subtitle:
-          'Profiles and playlists you interact with will show up here.',
+              'Profiles and playlists you interact with will show up here.',
         ),
       );
     }
@@ -201,10 +206,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           children: _mockRecentlyPlayedItems
               .map(
                 (item) => Padding(
-              padding: const EdgeInsets.only(right: 18),
-              child: RecentlyPlayedPreviewCard(item: item),
-            ),
-          )
+                  padding: const EdgeInsets.only(right: 18),
+                  child: RecentlyPlayedPreviewCard(item: item),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -242,7 +247,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Failed to load listening history.',
                 style: TextStyle(
                   color: AppColors.whiteSmoke,
@@ -250,7 +255,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Please try again.',
                 style: TextStyle(color: AppColors.white60, height: 1.45),
               ),
@@ -332,7 +337,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                     child: const LibraryMenuItem(title: AppText.playlists),
                   ),
-                  const LibraryMenuItem(title: AppText.albums),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/albums');
+                    },
+                    child: const LibraryMenuItem(title: AppText.albums),
+                  ),
                   InkWell(
                     onTap: _openFollowingScreen,
                     child: const LibraryMenuItem(title: AppText.following),
@@ -372,7 +382,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const OfflineDownloadsScreen(),
+                              builder: (context) =>
+                                  const OfflineDownloadsScreen(),
                             ),
                           );
                         },
@@ -402,7 +413,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                   const SizedBox(height: 14),
                   _buildHistoryPreviewSection(),
-
                 ],
               ),
             ),
@@ -426,22 +436,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.10),
-                          ),
+                          border: Border.all(color: AppColors.white10),
                         ),
                         child: CircleAvatar(
                           radius: 20,
-                          backgroundColor: Colors.white.withValues(alpha: 0.08),
+                          backgroundColor: AppColors.white10,
                           backgroundImage: imageUrl.isNotEmpty
                               ? NetworkImage(imageUrl)
                               : null,
                           child: imageUrl.isEmpty
-                              ? const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 22,
-                          )
+                              ? Icon(
+                                  Icons.person,
+                                  color: AppColors.whiteSmoke,
+                                  size: 22,
+                                )
                               : null,
                         ),
                       ),
@@ -514,7 +522,7 @@ class _HistoryTrackPlaceholder extends StatelessWidget {
         Container(
           width: 24,
           height: 24,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.cardDark,
             shape: BoxShape.circle,
           ),
@@ -548,7 +556,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
               color: AppColors.tileDark,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.history_rounded,
               color: AppColors.white60,
               size: 28,
@@ -561,7 +569,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.whiteSmoke,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -570,7 +578,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.white60,
                     fontSize: 14,
                     height: 1.4,

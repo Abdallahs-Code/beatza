@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
 import '../services/audio_upload_service.dart';
@@ -109,7 +110,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showProUpgradeModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: AppColors.backgroundDark2,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -170,13 +171,13 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         onTap: () => Navigator.pop(context),
                         child: Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Colors.white24,
+                          decoration: BoxDecoration(
+                            color: AppColors.white24,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                             size: 20,
                           ),
                         ),
@@ -198,17 +199,21 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF5500),
+                              color: AppColors.primaryOrange,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
-                              children: const [
-                                Icon(Icons.star, color: Colors.white, size: 12),
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  color: AppColors.whiteSmoke,
+                                  size: 12,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'ARTIST PRO',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.whiteSmoke,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -226,10 +231,10 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                               color: Colors.blueAccent,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: Text(
                               'FOR ARTISTS',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -238,22 +243,25 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Unlock artist tools\n& unlimited\nuploads.',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           fontSize: 34,
                           fontWeight: FontWeight.w900,
                           height: 1.1,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Not available on mobile. Cancel anytime.',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         'Restrictions apply.',
                         style: TextStyle(
                           color: Colors.blueAccent,
@@ -266,16 +274,22 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         height: 56,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
+                            backgroundColor: AppColors.whiteSmoke,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
                           onPressed: () {
                             Navigator.pop(context);
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const PremiumSubscriptionScreen(),
+                              ),
+                            );
                           },
-                          child: const Text(
+                          child: Text(
                             'View Plans',
                             style: TextStyle(
                               color: Colors.black,
@@ -290,12 +304,18 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         child: TextButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const PremiumSubscriptionScreen(),
+                              ),
+                            );
                           },
-                          child: const Text(
+                          child: Text(
                             'See all plans',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.whiteSmoke,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -316,7 +336,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showInsightsInfoModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.chineseBlack,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -341,7 +361,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                           width: 40,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: Colors.white38,
+                            color: AppColors.white54,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -364,10 +384,10 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                               ),
                             ),
                             const SizedBox(height: 32),
-                            const Text(
+                            Text(
                               'All Platform Insights',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                                 fontSize: 32,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.5,
@@ -375,16 +395,16 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                             ),
                             const SizedBox(height: 24),
                             RichText(
-                              text: const TextSpan(
+                              text: TextSpan(
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.whiteSmoke,
                                   fontSize: 16,
                                   height: 1.5,
                                 ),
                                 children: [
                                   TextSpan(
                                     text:
-                                    'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
+                                        'Your All Platforms Insights only shows Spotify and Apple Music data for tracks you\'ve released using ',
                                   ),
                                   TextSpan(
                                     text: 'Beatza Distribution.',
@@ -396,19 +416,19 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            const Text(
+                            Text(
                               'If you\'ve distributed songs through other services, those streams won\'t appear here—so your totals may differ from what you see on other platforms. If you want to migrate previously released tracks to Beatza, simply follow these instructions.',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                                 fontSize: 16,
                                 height: 1.5,
                               ),
                             ),
                             const SizedBox(height: 24),
-                            const Text(
+                            Text(
                               'Once a track is released through Beatza, its data will appear in your All Platforms Insights within 24–48 hours.',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.whiteSmoke,
                                 fontSize: 16,
                                 height: 1.5,
                               ),
@@ -430,16 +450,19 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white, width: 1.5),
+                        side: BorderSide(
+                          color: AppColors.whiteSmoke,
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        backgroundColor: const Color(0xFF121212),
+                        backgroundColor: AppColors.chineseBlack,
                       ),
-                      child: const Text(
+                      child: Text(
                         'Close',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -458,7 +481,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   void _showFilterDropdown(BuildContext context) async {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
-    Overlay.of(context).context.findRenderObject() as RenderBox;
+        Overlay.of(context).context.findRenderObject() as RenderBox;
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -473,7 +496,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
     final result = await showMenu<String>(
       context: context,
       position: position,
-      color: const Color(0xFF2A2A2A),
+      color: AppColors.containerMid,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       items: _filterOptions.map((String choice) {
         return PopupMenuItem<String>(
@@ -483,14 +506,14 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             children: [
               Text(
                 choice,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               if (_selectedFilter == choice)
-                const Icon(Icons.check, color: Colors.white, size: 20),
+                Icon(Icons.check, color: AppColors.whiteSmoke, size: 20),
             ],
           ),
         );
@@ -507,22 +530,22 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Your insights',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -563,7 +586,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     else if (_activeTab == InsightTab.allPlatforms)
                       _buildAllPlatformsPromo()
                     else if (_activeTab == InsightTab.fans)
-                        _buildFansTabWrapper(),
+                      _buildFansTabWrapper(),
                   ],
                 ),
               );
@@ -605,7 +628,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               Text(
                 title,
                 style: TextStyle(
-                  color: isActive ? Colors.white : Colors.white54,
+                  color: isActive ? AppColors.whiteSmoke : AppColors.white54,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -613,28 +636,31 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               if (isNew) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF5500).withValues(alpha: 0.8),
+                    color: AppColors.primaryOrange.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
+                  child: Text(
                     'NEW',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
-              ]
+              ],
             ],
           ),
           const SizedBox(height: 8),
           Container(
             height: 2,
             width: isNew ? title.length * 8.5 + 30 : title.length * 8.5,
-            color: isActive ? Colors.white : Colors.transparent,
+            color: isActive ? AppColors.whiteSmoke : Colors.transparent,
           ),
         ],
       ),
@@ -667,7 +693,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             child: Container(
               height: 260,
               width: double.infinity,
-              color: const Color(0xFF1A1A1A),
+              color: AppColors.container,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -696,27 +722,34 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.people_outline, color: Colors.white, size: 50),
+                        Icon(
+                          Icons.people_outline,
+                          color: AppColors.whiteSmoke,
+                          size: 50,
+                        ),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'Waiting for data...',
-                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: AppColors.white70,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
           ),
         ),
         const SizedBox(height: 24),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Keep building engagement\nto see your top fans',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 32,
               fontWeight: FontWeight.w900,
               height: 1.1,
@@ -725,12 +758,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Share your tracks and encourage listeners to play, like, comment, repost, or download. Once you build enough activity over 30 days, you\'ll see your most engaged fans here.',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 16,
               height: 1.5,
             ),
@@ -746,17 +779,19 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const UploadTrackScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const UploadTrackScreen(),
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.whiteSmoke,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Upload',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -772,16 +807,16 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             child: OutlinedButton(
               onPressed: () {},
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.white, width: 1.5),
+                side: BorderSide(color: AppColors.whiteSmoke, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
                 backgroundColor: Colors.transparent,
               ),
-              child: const Text(
+              child: Text(
                 'Monetize eligible tracks',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -790,12 +825,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           ),
         ),
         const SizedBox(height: 48),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Reasons why you might not be\nseeing fans.',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 24,
               fontWeight: FontWeight.w900,
               height: 1.2,
@@ -823,6 +858,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
       ],
     );
   }
+
   Widget _buildFilterDropdown() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -839,7 +875,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2A),
+                    color: AppColors.containerMid,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -847,16 +883,16 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     children: [
                       Text(
                         _selectedFilter,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(
+                      Icon(
                         Icons.keyboard_arrow_down,
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         size: 18,
                       ),
                     ],
@@ -869,6 +905,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
       ),
     );
   }
+
   Widget _buildFansLockedContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -882,21 +919,21 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               height: 180,
               width: 180,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
+                color: AppColors.surfaceMid,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.people_alt_outlined,
-                color: Colors.white24,
+                color: AppColors.white24,
                 size: 80,
               ),
             ),
           ),
           const SizedBox(height: 40),
-          const Text(
+          Text(
             'Unlock Top Fans with\nArtist Pro',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 30,
               fontWeight: FontWeight.w900,
               height: 1.1,
@@ -904,9 +941,13 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Discover who your biggest fans are, what tracks they listen to the most, and connect with them directly.',
-            style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
+              fontSize: 16,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 32),
           SizedBox(
@@ -914,15 +955,20 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PremiumSubscriptionScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.whiteSmoke,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Upgrade to Artist Pro',
                 style: TextStyle(
                   color: Colors.black,
@@ -947,9 +993,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
+              border: Border.all(color: AppColors.whiteSmoke, width: 2),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: AppColors.whiteSmoke, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -958,8 +1004,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                     height: 1.3,
@@ -968,8 +1014,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                 const SizedBox(height: 8),
                 Text(
                   description,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 15,
                     height: 1.4,
                     fontWeight: FontWeight.w500,
@@ -999,16 +1045,14 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                   child: SizedBox(
                     height: 180,
                     width: double.infinity,
-                    child: CustomPaint(
-                      painter: OrangeMixerPainter(),
-                    ),
+                    child: CustomPaint(painter: OrangeMixerPainter()),
                   ),
                 ),
                 const SizedBox(height: 30),
-                const Text(
+                Text(
                   'Get unmatched insights\ninto your listeners that\nyou won\'t find anywhere\nelse.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 30,
                     fontWeight: FontWeight.w900,
                     height: 1.1,
@@ -1016,19 +1060,19 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Beatza is the only platform that lets you easily identify and connect with your top fans based on their listening and engagement habits.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 16,
                     height: 1.5,
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'To get started, all it takes is an upload.',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 16,
                     height: 1.5,
                   ),
@@ -1045,16 +1089,16 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white, width: 1.5),
+                      side: BorderSide(color: AppColors.whiteSmoke, width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
                       backgroundColor: Colors.transparent,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Upload',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.whiteSmoke,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1070,12 +1114,12 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   }
 
   Widget _buildSoundCloudView(
-      List<TrackModel> tracks,
-      int plays,
-      int likes,
-      int comments,
-      int reposts,
-      ) {
+    List<TrackModel> tracks,
+    int plays,
+    int likes,
+    int comments,
+    int reposts,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1108,18 +1152,18 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           children: [
             TextSpan(
               text: '${_getHeadlineText(count)}\n',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 32,
                 fontWeight: FontWeight.w900,
                 height: 1.1,
                 letterSpacing: -0.5,
               ),
             ),
-            const TextSpan(
+            TextSpan(
               text: '(0%)',
               style: TextStyle(
-                color: Colors.white54,
+                color: AppColors.white54,
                 fontSize: 32,
                 fontWeight: FontWeight.w900,
                 height: 1.1,
@@ -1160,17 +1204,21 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isActive ? Colors.white : const Color(0xFF2A2A2A),
+          color: isActive ? AppColors.whiteSmoke : AppColors.containerMid,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
-            Icon(icon, color: isActive ? Colors.black : Colors.white, size: 16),
+            Icon(
+              icon,
+              color: isActive ? Colors.black : AppColors.whiteSmoke,
+              size: 16,
+            ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isActive ? Colors.black : Colors.white,
+                color: isActive ? Colors.black : AppColors.whiteSmoke,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
               ),
@@ -1189,15 +1237,15 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         children: [
           Text(
             _getDateRangeText(),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 13,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text(
+          Text(
             'Data updates every 24 hours',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: AppColors.white54, fontSize: 12),
           ),
         ],
       ),
@@ -1207,11 +1255,11 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
   Widget _buildEmptyChartArea() {
     return Column(
       children: [
-        const Text(
+        Text(
           'Looks like there is no activity for the selected\ntimeframe',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 16,
             fontWeight: FontWeight.bold,
             height: 1.3,
@@ -1219,22 +1267,22 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
         ),
         const SizedBox(height: 16),
         if (_selectedFilter == 'All time')
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Text(
               'Distribute more of your Beatza tracks to reach\nnew listeners. Your data will appear here once your\nrelease is live.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white54,
+                color: AppColors.white54,
                 fontSize: 14,
                 height: 1.4,
               ),
             ),
           )
         else
-          const Text(
+          Text(
             'Try selecting another timeframe.',
-            style: TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(color: AppColors.white54, fontSize: 14),
           ),
         const SizedBox(height: 24),
         GestureDetector(
@@ -1243,8 +1291,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             decoration: BoxDecoration(
               color: _selectedFilter == 'All time'
-                  ? const Color(0xFF2A2A2A)
-                  : Colors.white,
+                  ? AppColors.containerMid
+                  : AppColors.whiteSmoke,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -1252,7 +1300,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: _selectedFilter == 'All time'
-                    ? Colors.white
+                    ? AppColors.whiteSmoke
                     : Colors.black,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -1273,10 +1321,10 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Top tracks',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1288,9 +1336,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     builder: (context) => const TopTracksScreen(),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'See all',
-                  style: TextStyle(color: Colors.white54, fontSize: 13),
+                  style: TextStyle(color: AppColors.white54, fontSize: 13),
                 ),
               ),
             ],
@@ -1301,16 +1349,16 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             _selectedFilter,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ),
         const SizedBox(height: 16),
         if (tracks.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'No tracks available',
-              style: TextStyle(color: Colors.white54),
+              style: TextStyle(color: AppColors.white54),
             ),
           )
         else
@@ -1325,23 +1373,23 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  color: AppColors.surfaceMid,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: t.coverImagePath != null && t.coverImagePath!.isNotEmpty
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.file(
-                    File(t.coverImagePath!),
-                    fit: BoxFit.cover,
-                  ),
-                )
-                    : const Icon(Icons.music_note, color: Colors.white24),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.file(
+                          File(t.coverImagePath!),
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Icon(Icons.music_note, color: AppColors.white24),
               ),
               title: Text(
                 t.title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1354,15 +1402,15 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     _selectedStat == 'plays'
                         ? Icons.play_arrow_outlined
                         : (_selectedStat == 'likes'
-                        ? Icons.favorite
-                        : Icons.chat_bubble_outline),
-                    color: Colors.white54,
+                              ? Icons.favorite
+                              : Icons.chat_bubble_outline),
+                    color: AppColors.white54,
                     size: 16,
                   ),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     '0',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -1381,21 +1429,21 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Top listeners',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Row(
-                children: const [
-                  Icon(Icons.lock_outline, color: Colors.white54, size: 14),
+                children: [
+                  Icon(Icons.lock_outline, color: AppColors.white54, size: 14),
                   SizedBox(width: 4),
                   Text(
                     'See all',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -1407,7 +1455,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             _selectedFilter,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ),
         const SizedBox(height: 16),
@@ -1433,21 +1481,21 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Top locations',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Row(
-                children: const [
-                  Icon(Icons.lock_outline, color: Colors.white54, size: 14),
+                children: [
+                  Icon(Icons.lock_outline, color: AppColors.white54, size: 14),
                   SizedBox(width: 4),
                   Text(
                     'See all',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -1459,7 +1507,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             _selectedFilter,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ),
         const SizedBox(height: 16),
@@ -1467,7 +1515,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           height: 200,
           width: double.infinity,
           margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: const Icon(Icons.public, color: Colors.white10, size: 180),
+          child: Icon(Icons.public, color: AppColors.white10, size: 180),
         ),
         const SizedBox(height: 16),
         _buildPlaceholderItem(circular: false),
@@ -1488,21 +1536,21 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'On Beatza',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Row(
-                children: const [
-                  Icon(Icons.lock_outline, color: Colors.white54, size: 14),
+                children: [
+                  Icon(Icons.lock_outline, color: AppColors.white54, size: 14),
                   SizedBox(width: 4),
                   Text(
                     'See all',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
                   ),
                 ],
               ),
@@ -1524,8 +1572,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     _onSoundCloudTabs[index],
                     style: TextStyle(
                       color: isActive
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? AppColors.whiteSmoke
+                          : AppColors.white54,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1540,7 +1588,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             _selectedFilter,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: AppColors.white54, fontSize: 13),
           ),
         ),
         const SizedBox(height: 16),
@@ -1570,7 +1618,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white10,
+              color: AppColors.white10,
               shape: circular ? BoxShape.circle : BoxShape.rectangle,
               borderRadius: circular ? null : BorderRadius.circular(4),
             ),
@@ -1579,9 +1627,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(width: 120, height: 10, color: Colors.white10),
+              Container(width: 120, height: 10, color: AppColors.white10),
               const SizedBox(height: 10),
-              Container(width: 180, height: 10, color: Colors.white10),
+              Container(width: 180, height: 10, color: AppColors.white10),
             ],
           ),
         ],
@@ -1594,7 +1642,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -1602,8 +1650,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
                 fontSize: 15,
                 height: 1.4,
               ),
@@ -1612,7 +1660,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           const SizedBox(width: 16),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.whiteSmoke,
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
@@ -1620,7 +1668,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             onPressed: _showProUpgradeModal,
-            child: const Text(
+            child: Text(
               'Upgrade to Artist Pro',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
@@ -1642,9 +1690,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               _buildFilterDropdown(),
               GestureDetector(
                 onTap: _showInsightsInfoModal,
-                child: const Icon(
+                child: Icon(
                   Icons.help_outline,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   size: 22,
                 ),
               ),
@@ -1659,10 +1707,10 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             ),
           ),
           const SizedBox(height: 40),
-          const Text(
+          Text(
             'Unlock key performance\nand audience insights\nacross multiple platforms\nfor your music',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.whiteSmoke,
               fontSize: 30,
               fontWeight: FontWeight.w900,
               height: 1.1,
@@ -1670,14 +1718,22 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Access audience and performance insights for your distributed tracks from Spotify, Apple Music, and Beatza all from one dashboard.',
-            style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
+              fontSize: 16,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Upgrade your account, upload and distribute your track to get started.',
-            style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
+              fontSize: 16,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 32),
           SizedBox(
@@ -1686,16 +1742,16 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
             child: OutlinedButton(
               onPressed: _showProUpgradeModal,
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.white, width: 1.5),
+                side: BorderSide(color: AppColors.whiteSmoke, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
                 backgroundColor: Colors.transparent,
               ),
-              child: const Text(
+              child: Text(
                 'Upgrade to Artist Pro',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1714,22 +1770,22 @@ class TopTracksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.backgroundDark3,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Your insights',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -1739,12 +1795,12 @@ class TopTracksScreen extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               'Top tracks on Beatza',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
@@ -1758,10 +1814,10 @@ class TopTracksScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 _buildSmallDropdown('All time'),
                 const Spacer(),
-                const Text(
+                Text(
                   '2016 - Present',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1769,11 +1825,11 @@ class TopTracksScreen extends StatelessWidget {
               ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               '1 track',
-              style: TextStyle(color: Colors.white54, fontSize: 12),
+              style: TextStyle(color: AppColors.white54, fontSize: 12),
             ),
           ),
           Expanded(
@@ -1781,10 +1837,10 @@ class TopTracksScreen extends StatelessWidget {
               valueListenable: AudioUploadService.globalMockTracksNotifier,
               builder: (context, tracks, child) {
                 if (tracks.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No tracks found',
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(color: AppColors.white54),
                     ),
                   );
                 }
@@ -1801,44 +1857,41 @@ class TopTracksScreen extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E),
+                          color: AppColors.surfaceMid,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child:
-                        track.coverImagePath != null &&
-                            track.coverImagePath!.isNotEmpty
+                            track.coverImagePath != null &&
+                                track.coverImagePath!.isNotEmpty
                             ? ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: Image.file(
-                            File(track.coverImagePath!),
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                            : const Icon(
-                          Icons.music_note,
-                          color: Colors.white24,
-                        ),
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.file(
+                                  File(track.coverImagePath!),
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Icon(Icons.music_note, color: AppColors.white24),
                       ),
                       title: Text(
                         track.title,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       subtitle: Row(
-                        children: const [
+                        children: [
                           Icon(
                             Icons.play_arrow_outlined,
-                            color: Colors.white54,
+                            color: AppColors.white54,
                             size: 16,
                           ),
                           SizedBox(width: 4),
                           Text(
                             '0',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: AppColors.white54,
                               fontSize: 14,
                             ),
                           ),
@@ -1859,21 +1912,25 @@ class TopTracksScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
+        color: AppColors.containerMid,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
         children: [
           Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
+          Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.whiteSmoke,
+            size: 16,
+          ),
         ],
       ),
     );
@@ -1884,7 +1941,7 @@ class WaveformGraphicPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final borderPaint = Paint()
-      ..color = const Color(0xFFD47AFA).withValues(alpha: 0.5)
+      ..color = AppColors.flashPurple.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
@@ -1893,7 +1950,7 @@ class WaveformGraphicPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final dotPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColors.whiteSmoke
       ..style = PaintingStyle.fill;
 
     canvas.save();
@@ -1936,7 +1993,7 @@ class WaveformGraphicPainter extends CustomPainter {
     canvas.restore();
     final wirePaint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFFD47AFA), Color(0xFF4A90E2)],
+        colors: [AppColors.flashPurple, Color(0xFF4A90E2)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
@@ -1973,13 +2030,13 @@ class OrangeMixerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final orangePaint = Paint()
-      ..color = const Color(0xFFFF5500)
+      ..color = AppColors.primaryOrange
       ..style = PaintingStyle.fill;
     final whitePaint = Paint()
-      ..color = Colors.white
+      ..color = AppColors.whiteSmoke
       ..style = PaintingStyle.fill;
     final borderPaint = Paint()
-      ..color = const Color(0xFFFF5500)
+      ..color = AppColors.primaryOrange
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.save();

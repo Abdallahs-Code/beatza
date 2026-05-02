@@ -13,7 +13,6 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
 
-
 class LibraryHeader extends StatelessWidget {
   const LibraryHeader({super.key});
 
@@ -32,12 +31,17 @@ class LibraryHeader extends StatelessWidget {
                   if (!isPro) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const PremiumSubscriptionScreen(),
+                      ),
                     );
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.chipPink, AppColors.inferno],
@@ -46,7 +50,7 @@ class LibraryHeader extends StatelessWidget {
                   ),
                   child: Text(
                     isPro ? 'Artist Pro' : 'Get Artist Pro',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.whiteSmoke,
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -55,8 +59,9 @@ class LibraryHeader extends StatelessWidget {
                 ),
               );
             },
-          ),          const Spacer(),
-          const Text(
+          ),
+          const Spacer(),
+          Text(
             AppText.libraryTitle,
             style: TextStyle(
               color: AppColors.whiteSmoke,
@@ -75,7 +80,7 @@ class LibraryHeader extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
             },
-            child: const Icon(
+            child: Icon(
               Icons.settings_outlined,
               color: AppColors.whiteSmoke,
               size: 28,
@@ -87,6 +92,7 @@ class LibraryHeader extends StatelessWidget {
     );
   }
 }
+
 class LibraryMenuItem extends StatelessWidget {
   final String title;
 
@@ -101,10 +107,10 @@ class LibraryMenuItem extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(color: AppColors.whiteSmoke, fontSize: 18),
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 18),
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.white60, size: 28),
+          Icon(Icons.chevron_right, color: AppColors.white60, size: 28),
         ],
       ),
     );
@@ -127,7 +133,7 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final Widget action = Text(
       actionText,
-      style: const TextStyle(
+      style: TextStyle(
         color: AppColors.white60,
         fontSize: 14,
         fontWeight: FontWeight.w600,
@@ -141,7 +147,7 @@ class SectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.whiteSmoke,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -217,7 +223,7 @@ class TrackPlaceholder extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        const Icon(Icons.more_horiz, color: AppColors.white60),
+        Icon(Icons.more_horiz, color: AppColors.white60),
       ],
     );
   }
@@ -271,7 +277,7 @@ class RecentlyPlayedPreviewCard extends StatelessWidget {
                   item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.whiteSmoke,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -294,14 +300,14 @@ class RecentlyPlayedPreviewCard extends StatelessWidget {
             item.subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.white60, fontSize: 14),
+            style: TextStyle(color: AppColors.white60, fontSize: 14),
           ),
           const SizedBox(height: 4),
           Text(
             item.metadata,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.white60, fontSize: 14),
+            style: TextStyle(color: AppColors.white60, fontSize: 14),
           ),
         ],
       ),
@@ -340,7 +346,7 @@ class RecentlyPlayedListTile extends StatelessWidget {
                         item.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.whiteSmoke,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -363,10 +369,7 @@ class RecentlyPlayedListTile extends StatelessWidget {
                   item.subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.white60,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: AppColors.white60, fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -384,7 +387,7 @@ class RecentlyPlayedListTile extends StatelessWidget {
                         item.metadata,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.white60,
                           fontSize: 16,
                         ),
@@ -453,10 +456,7 @@ class HistoryTrackTile extends StatelessWidget {
                       track.artistName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.white60,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: AppColors.white60, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -476,7 +476,7 @@ class HistoryTrackTile extends StatelessWidget {
                             bottomMeta,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.white60,
                               fontSize: 15,
                             ),
@@ -490,7 +490,7 @@ class HistoryTrackTile extends StatelessWidget {
             ),
             IconButton(
               onPressed: null,
-              icon: const Icon(
+              icon: Icon(
                 Icons.more_horiz_rounded,
                 color: AppColors.white60,
                 size: 28,
@@ -508,6 +508,9 @@ class HistoryTrackTile extends StatelessWidget {
     }
 
     if (_isPreview) {
+      if (track.mobileProPreview) {
+        return 'Pro preview · ${track.effectivePreviewDuration.inSeconds} sec · Upgrade to listen full';
+      }
       return 'Preview only · ${track.effectivePreviewDuration.inSeconds} sec';
     }
 
@@ -601,7 +604,7 @@ class ImportCard extends StatelessWidget {
             const Text('💎', style: TextStyle(fontSize: 22)),
             const SizedBox(width: 10),
             const SizedBox(width: 2),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -665,7 +668,7 @@ class MiniPlayer extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.whiteSmoke,
               shape: BoxShape.circle,
             ),
@@ -677,7 +680,7 @@ class MiniPlayer extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           const SizedBox(width: 2),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -715,7 +718,7 @@ class MiniPlayer extends StatelessWidget {
             size: 30,
           ),
           const SizedBox(width: 12),
-          const Icon(
+          Icon(
             Icons.favorite_border_rounded,
             color: AppColors.whiteSmoke,
             size: 30,

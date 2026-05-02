@@ -22,9 +22,7 @@ class FollowersSocialGraphRoutes {
       final args =
           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-      return followers_screen.FollowersScreen(
-        userId: args['userId'] as String,
-      );
+      return followers_screen.FollowersScreen(userId: args['userId'] as String);
     },
     following: (context) {
       final args =
@@ -37,8 +35,7 @@ class FollowersSocialGraphRoutes {
         initialTabIndex: (args['tabIndex'] ?? 0) as int,
       );
     },
-    blockedUsers: (context) =>
-        const blocked_users_screen.BlockedUsersScreen(),
+    blockedUsers: (context) => const blocked_users_screen.BlockedUsersScreen(),
     trueFriends: (context) {
       final args =
           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

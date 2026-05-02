@@ -16,7 +16,7 @@ class ActivityNotificationsSocketService {
   Future<void> connect({
     required String token,
     required void Function(ActivityNotificationModel notification)
-        onNotification,
+    onNotification,
     void Function()? onReconnect,
   }) async {
     if (_socket != null && _currentToken == token) {

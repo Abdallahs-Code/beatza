@@ -9,6 +9,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class EngagementUserTile extends StatelessWidget {
   final EngagementUser user;
@@ -34,8 +35,8 @@ class EngagementUserTile extends StatelessWidget {
                 user.displayName.isNotEmpty
                     ? user.displayName[0].toUpperCase()
                     : '?',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -46,8 +47,8 @@ class EngagementUserTile extends StatelessWidget {
       // ── Name + follower count ────────────────
       title: Text(
         user.displayName,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
           fontWeight: FontWeight.w600,
           fontSize: 14,
         ),

@@ -6,6 +6,7 @@ import 'package:cross_team5/features/library/services/library_history_api_servic
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class YourLikesScreen extends StatefulWidget {
   const YourLikesScreen({super.key});
@@ -78,19 +79,22 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(
         backgroundColor: AppColors.pureBlack,
-        title: const Text(
+        title: Text(
           'Your likes',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.whiteSmoke,
             fontWeight: FontWeight.w700,
             fontSize: 20,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppColors.whiteSmoke),
         actions: _likedTracks.isNotEmpty
             ? [
                 IconButton(
-                  icon: const Icon(Icons.shuffle_rounded, color: Colors.white),
+                  icon: Icon(
+                    Icons.shuffle_rounded,
+                    color: AppColors.whiteSmoke,
+                  ),
                   onPressed: () {
                     final shuffled = List<PlaybackTrackModel>.from(_likedTracks)
                       ..shuffle();
@@ -102,9 +106,9 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.play_circle_outline_rounded,
-                    color: Colors.white,
+                    color: AppColors.whiteSmoke,
                     size: 30,
                   ),
                   onPressed: () {
@@ -120,6 +124,7 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
             : null,
       ),
       body: _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
     );
   }
 
@@ -137,19 +142,19 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.white54, size: 48),
+              Icon(Icons.error_outline, color: AppColors.white54, size: 48),
               const SizedBox(height: 16),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppColors.white54),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadLikedTracks,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.whiteSmoke,
                 ),
                 child: const Text('Retry'),
               ),
@@ -160,30 +165,30 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
     }
 
     if (_likedTracks.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.favorite_border_rounded,
-                color: Colors.white38,
+                color: AppColors.white54,
                 size: 64,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'No liked tracks yet',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'Like a track and it will show up here.',
-                style: TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppColors.white54),
                 textAlign: TextAlign.center,
               ),
             ],

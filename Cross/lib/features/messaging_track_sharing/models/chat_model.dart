@@ -46,7 +46,8 @@ class LastMessageModel {
       id: json['_id']?.toString() ?? '',
       senderId: json['senderId']?.toString() ?? '',
       content: json['content']?.toString() ?? '',
-      seenBy: (json['seenBy'] as List<dynamic>?)
+      seenBy:
+          (json['seenBy'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
@@ -79,8 +80,7 @@ class ChatModel {
   bool isUnread(String currentUserId) {
     final lm = lastMessage;
     if (lm == null) return false;
-    return lm.senderId != currentUserId &&
-        !lm.seenBy.contains(currentUserId);
+    return lm.senderId != currentUserId && !lm.seenBy.contains(currentUserId);
   }
 
   ChatModel copyWith({LastMessageModel? lastMessage}) {
@@ -102,7 +102,10 @@ class ChatModel {
     String id = '';
     for (final key in ['chat', 'chatId', '_id', 'id']) {
       final v = json[key]?.toString() ?? '';
-      if (v.isNotEmpty) { id = v; break; }
+      if (v.isNotEmpty) {
+        id = v;
+        break;
+      }
     }
 
     // Participants come as full user objects — extract their _id strings
@@ -113,7 +116,11 @@ class ChatModel {
         if (p is String && p.isNotEmpty) {
           participants.add(p);
         } else if (p is Map) {
-          final pid = p['_id']?.toString() ?? p['id']?.toString() ?? p['userId']?.toString() ?? '';
+          final pid =
+              p['_id']?.toString() ??
+              p['id']?.toString() ??
+              p['userId']?.toString() ??
+              '';
           if (pid.isNotEmpty) participants.add(pid);
         }
       }

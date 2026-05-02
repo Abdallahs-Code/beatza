@@ -1,5 +1,6 @@
 // Dart imports
 import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class AnimatedStatWidget extends StatelessWidget {
   final String label;
@@ -36,10 +37,10 @@ class AnimatedStatWidget extends StatelessWidget {
           builder: (context, val, child) {
             return Text(
               _formatNumber(val),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
               ),
             );
           },
@@ -47,9 +48,9 @@ class AnimatedStatWidget extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
-            color: Color(0xFF71717A),
+            color: AppColors.greyZinc,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,
           ),

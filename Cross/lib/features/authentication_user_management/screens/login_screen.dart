@@ -69,10 +69,10 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _buildQrPollingDialog(
-      BuildContext context,
-      AuthApiService authApi,
-      String initialQrData,
-      ) {
+    BuildContext context,
+    AuthApiService authApi,
+    String initialQrData,
+  ) {
     String currentQrData = initialQrData;
     bool isLoading = false;
     String pollingStatus = 'waiting';
@@ -97,20 +97,17 @@ class LoginScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Scan to Login',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.whiteSmoke,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (pollingStatus == 'waiting')
                           IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              color: Colors.white70,
-                            ),
+                            icon: Icon(Icons.close, color: AppColors.white70),
                             onPressed: () => Navigator.pop(context),
                           ),
                       ],
@@ -120,20 +117,23 @@ class LoginScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.whiteSmoke,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: QrImageView(
                           data: currentQrData,
                           version: QrVersions.auto,
                           size: 200,
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppColors.whiteSmoke,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Open Beatza on your phone and scan this code',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.white70,
+                          fontSize: 14,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ] else ...[
@@ -170,8 +170,8 @@ class LoginScreen extends StatelessWidget {
                           const SizedBox(width: 12),
                           Text(
                             _getStatusMessage(pollingStatus),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 16,
                             ),
                           ),
@@ -180,8 +180,8 @@ class LoginScreen extends StatelessWidget {
                     else
                       Text(
                         _getStatusMessage(pollingStatus),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
                           fontSize: 16,
                         ),
                         textAlign: TextAlign.center,
@@ -192,51 +192,51 @@ class LoginScreen extends StatelessWidget {
                         onPressed: isLoading
                             ? null
                             : () async {
-                          setDialogState(() => isLoading = true);
-                          try {
-                            final newToken = await authApi
-                                .getQrCodeToken();
+                                setDialogState(() => isLoading = true);
+                                try {
+                                  final newToken = await authApi
+                                      .getQrCodeToken();
 
-                            if (!dialogContext.mounted) return;
+                                  if (!dialogContext.mounted) return;
 
-                            setDialogState(() {
-                              currentQrData = newToken;
-                              isLoading = false;
-                            });
-                            pollingService?.stopPolling();
-                            _startPolling(
-                              dialogContext,
-                              authApi,
-                              newToken,
-                              setDialogState,
-                                  (service) => pollingService = service,
-                                  () => pollingStatus,
-                                  (status) => setDialogState(
-                                    () => pollingStatus = status,
-                              ),
-                            );
-                          } catch (e) {
-                            setDialogState(() => isLoading = false);
-                            if (!dialogContext.mounted) {
-                              return;
-                            }
-                            ScaffoldMessenger.of(
-                              dialogContext,
-                            ).showSnackBar(
-                              SnackBar(
-                                content: Text("Refresh failed: $e"),
-                              ),
-                            );
-                          }
-                        },
+                                  setDialogState(() {
+                                    currentQrData = newToken;
+                                    isLoading = false;
+                                  });
+                                  pollingService?.stopPolling();
+                                  _startPolling(
+                                    dialogContext,
+                                    authApi,
+                                    newToken,
+                                    setDialogState,
+                                    (service) => pollingService = service,
+                                    () => pollingStatus,
+                                    (status) => setDialogState(
+                                      () => pollingStatus = status,
+                                    ),
+                                  );
+                                } catch (e) {
+                                  setDialogState(() => isLoading = false);
+                                  if (!dialogContext.mounted) {
+                                    return;
+                                  }
+                                  ScaffoldMessenger.of(
+                                    dialogContext,
+                                  ).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Refresh failed: $e"),
+                                    ),
+                                  );
+                                }
+                              },
                         icon: isLoading
                             ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Icon(Icons.refresh, size: 16),
                         label: Text(
                           isLoading ? 'Refreshing...' : 'Refresh QR Code',
@@ -271,8 +271,8 @@ class LoginScreen extends StatelessWidget {
                               Navigator.pop(context);
                             },
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white70,
-                              side: const BorderSide(color: Colors.white38),
+                              foregroundColor: AppColors.white70,
+                              side: BorderSide(color: AppColors.white54),
                             ),
                             child: const Text('Cancel'),
                           ),
@@ -295,23 +295,23 @@ class LoginScreen extends StatelessWidget {
         context,
         authApi,
         currentQrData,
-            (newState) {},
-            (service) => pollingService = service,
-            () => pollingStatus,
-            (newStatus) {},
+        (newState) {},
+        (service) => pollingService = service,
+        () => pollingStatus,
+        (newStatus) {},
       );
     });
   }
 
   void _startPolling(
-      BuildContext context,
-      AuthApiService authApi,
-      String qrData,
-      void Function(void Function()) setStateFn,
-      void Function(QrPollingService) onServiceReady,
-      String Function() getStatusFn,
-      void Function(String) onStatusChange,
-      ) {
+    BuildContext context,
+    AuthApiService authApi,
+    String qrData,
+    void Function(void Function()) setStateFn,
+    void Function(QrPollingService) onServiceReady,
+    String Function() getStatusFn,
+    void Function(String) onStatusChange,
+  ) {
     final pollingService = QrPollingService(
       authApi: authApi,
       pollInterval: const Duration(seconds: 5),
@@ -322,64 +322,64 @@ class LoginScreen extends StatelessWidget {
 
     pollingService
         .startPolling(
-      qrData: qrData,
-      onStatusUpdate: (status) {
-        if (getStatusFn() != status) {
-          onStatusChange(status);
-        }
-      },
-      onError: (error) {
-        setStateFn(() {
-          onStatusChange('error');
-        });
+          qrData: qrData,
+          onStatusUpdate: (status) {
+            if (getStatusFn() != status) {
+              onStatusChange(status);
+            }
+          },
+          onError: (error) {
+            setStateFn(() {
+              onStatusChange('error');
+            });
 
-        if (!context.mounted) {
-          return;
-        }
+            if (!context.mounted) {
+              return;
+            }
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
-      },
-    )
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
+          },
+        )
         .then((result) {
-      if (!context.mounted) {
-        return;
-      }
+          if (!context.mounted) {
+            return;
+          }
 
-      if (result['status'] == 'success') {
-        _handleDesktopLoginSuccess(context, result);
-      }
-    })
+          if (result['status'] == 'success') {
+            _handleDesktopLoginSuccess(context, result);
+          }
+        })
         .catchError((error) {
-      if (!context.mounted) {
-        return;
-      }
+          if (!context.mounted) {
+            return;
+          }
 
-      if (error is TimeoutException) {
-        setStateFn(() {
-          onStatusChange('timeout');
+          if (error is TimeoutException) {
+            setStateFn(() {
+              onStatusChange('timeout');
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Session expired. Please scan a new QR code.'),
+              ),
+            );
+          } else {
+            setStateFn(() {
+              onStatusChange('error');
+            });
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
+          }
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Session expired. Please scan a new QR code.'),
-          ),
-        );
-      } else {
-        setStateFn(() {
-          onStatusChange('error');
-        });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Connection error: $error')));
-      }
-    });
   }
 
   Future<void> _handleDesktopLoginSuccess(
-      BuildContext context,
-      Map<String, dynamic> userData,
-      ) async {
+    BuildContext context,
+    Map<String, dynamic> userData,
+  ) async {
     try {
       final authApi = AuthApiService();
       final data = userData['data'];
@@ -411,11 +411,10 @@ class LoginScreen extends StatelessWidget {
       Navigator.pushNamedAndRemoveUntil(
         context,
         HomeRoutes.home,
-            (route) => false,
+        (route) => false,
         arguments: {'loginMethod': 'qr_desktop'},
       );
     } catch (e) {
-
       if (!context.mounted) {
         return;
       }
@@ -463,30 +462,33 @@ class LoginScreen extends StatelessWidget {
                   );
                 },
                 alignment: Alignment.centerLeft,
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: AppColors.whiteSmoke,
+                ),
               ),
               const SizedBox(height: 40),
-              const Text(
+              Text(
                 AppText.signInOrCreateAccount,
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                 ),
               ),
               const SizedBox(height: 20),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white70,
+                    color: AppColors.white70,
                     height: 1.4,
                   ),
                   children: [
                     const TextSpan(text: AppText.termsAgreementStart),
                     TextSpan(
                       text: AppText.termsOfUse,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.blueHyperlink,
                         decoration: TextDecoration.underline,
                       ),
@@ -500,7 +502,7 @@ class LoginScreen extends StatelessWidget {
                     const TextSpan(text: AppText.andAcknowledge),
                     TextSpan(
                       text: AppText.privacyPolicy,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.blueHyperlink,
                         decoration: TextDecoration.underline,
                       ),
@@ -523,7 +525,7 @@ class LoginScreen extends StatelessWidget {
                 child: ElevatedButton(
                 key: const Key('test_login_google_btn'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.whiteSmoke,
                     foregroundColor: Colors.black87,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -552,14 +554,13 @@ class LoginScreen extends StatelessWidget {
                       final refreshToken = uri.queryParameters["refreshToken"];
                       final pendingToken = uri.queryParameters["pendingToken"];
                       final incompleteToken =
-                      uri.queryParameters["incompleteToken"];
+                          uri.queryParameters["incompleteToken"];
                       final displayName = uri.queryParameters["displayName"];
 
                       if (accessToken != null &&
                           accessToken.isNotEmpty &&
                           refreshToken != null &&
                           refreshToken.isNotEmpty) {
-
                         await authApiService.saveTokens(
                           accessToken: accessToken,
                           refreshToken: refreshToken,
@@ -567,7 +568,8 @@ class LoginScreen extends StatelessWidget {
 
                         await authApiService.refreshToken();
 
-                        await PaymentService.subscriptionSuccessNotifier.refresh();
+                        await PaymentService.subscriptionSuccessNotifier
+                            .refresh();
 
                         if (!context.mounted) {
                           return;
@@ -581,7 +583,6 @@ class LoginScreen extends StatelessWidget {
                       }
 
                       if (pendingToken != null && pendingToken.isNotEmpty) {
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -594,7 +595,6 @@ class LoginScreen extends StatelessWidget {
 
                       if (incompleteToken != null &&
                           incompleteToken.isNotEmpty) {
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -616,7 +616,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                       );
                     } catch (e) {
-
                       if (!context.mounted) {
                         return;
                       }
@@ -661,10 +660,10 @@ class LoginScreen extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 AppText.orWithEmail,
                 textAlign: TextAlign.left,
-                style: TextStyle(fontSize: 14, color: Colors.white70),
+                style: TextStyle(fontSize: 14, color: AppColors.white70),
               ),
               GestureDetector(
                 key: const Key('test_login_email_field'),
@@ -691,7 +690,7 @@ class LoginScreen extends StatelessWidget {
               RichText(
                 text: TextSpan(
                   text: AppText.needHelp,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.blueHyperlink,
                     fontSize: 14,
                     decoration: TextDecoration.underline,

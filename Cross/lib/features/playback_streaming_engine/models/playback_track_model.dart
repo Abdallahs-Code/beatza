@@ -1,8 +1,27 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
+
 enum PlaybackAccessState { playable, preview, blocked }
 
 enum PlaybackSourceType { network, deviceFile }
+
+class TrackGeoBlocking {
+  final String? mode;
+  final List<String> regions;
+  final List<String> countries;
+
+  const TrackGeoBlocking({this.mode, this.regions = const [], this.countries = const []});
+
+  factory TrackGeoBlocking.fromJson(Map<String, dynamic> json) {
+    final String raw = (json['mode'] ?? '').toString().trim();
+    return TrackGeoBlocking(
+      mode: raw.isEmpty ? null : raw,
+      regions: (json['regions'] as List<dynamic>? ?? []).map((r) => r.toString()).toList(),
+      countries: (json['countries'] as List<dynamic>? ?? []).map((c) => c.toString()).toList(),
+    );
+  }
+}
 
 class PlaybackTrackModel {
   final String id;
@@ -41,6 +60,17 @@ class PlaybackTrackModel {
   /// Precomputed normalized waveform values from 0.0 to 1.0
   final List<double> waveformPeaks;
 
+  // V2 API fields
+  final bool isLikedByUser;
+  final bool isRepostedByUser;
+  final bool isAvailableForUser;
+  final TrackGeoBlocking? geoBlocking;
+
+  /// When true, only Pro subscribers can play the full track. Non-Pro
+  /// listeners are restricted to a 30-second preview (enforced by the
+  /// playback engine via `accessState == preview`).
+  final bool mobileProPreview;
+
   const PlaybackTrackModel({
     required this.id,
     required this.title,
@@ -71,6 +101,11 @@ class PlaybackTrackModel {
     this.enableAppPlayback = true,
     this.artistId,
     this.waveformPeaks = const [],
+    this.isLikedByUser = false,
+    this.isRepostedByUser = false,
+    this.isAvailableForUser = true,
+    this.geoBlocking,
+    this.mobileProPreview = false,
   });
 
   bool get isLocalFile {
@@ -140,6 +175,40 @@ class PlaybackTrackModel {
         ? true
         : permissions['enableAppPlayback'] == true;
 
+    // V2 fields
+    final bool isAvailableForUser = json['isAvailableForUser'] != false;
+    final bool isLikedByUser = json['isLikedByUser'] == true;
+    final bool isRepostedByUser = json['isRepostedByUser'] == true;
+    final TrackGeoBlocking? geoBlocking =
+        json['geoBlocking'] is Map<String, dynamic>
+            ? TrackGeoBlocking.fromJson(json['geoBlocking'] as Map<String, dynamic>)
+            : null;
+
+    // mobileProPreview can come back as a plain bool or wrapped in
+    // `{ mobileProPreview: bool }` (matches how it's sent on upload).
+    final dynamic mobileProPreviewRaw = json['mobileProPreview'];
+    final bool mobileProPreview = mobileProPreviewRaw is bool
+        ? mobileProPreviewRaw
+        : (mobileProPreviewRaw is Map<String, dynamic> &&
+                  mobileProPreviewRaw['mobileProPreview'] == true);
+
+    final bool effectivelyPlayable = canPlay && isAvailableForUser;
+
+    // Pro-gating: if the artist marked this track as Pro-only and the
+    // current listener is not a Pro subscriber, drop them to a 30-second
+    // preview. The engine already enforces the cutoff for any track in
+    // PlaybackAccessState.preview.
+    final bool isProListener =
+        PaymentService.subscriptionSuccessNotifier.value.isPro;
+    final bool gateToPreview =
+        effectivelyPlayable && mobileProPreview && !isProListener;
+
+    final PlaybackAccessState resolvedAccessState = effectivelyPlayable
+        ? (gateToPreview
+              ? PlaybackAccessState.preview
+              : PlaybackAccessState.playable)
+        : PlaybackAccessState.blocked;
+
     final String? audioUrl =
         _nullableString(audio['audioLink']) ??
         _nullableString(json['audio_url']) ??
@@ -151,8 +220,9 @@ class PlaybackTrackModel {
 
     // ── ID resolution: API returns 'trackId' on list/single endpoints
     //    and '_id' on liked/posted list endpoints. Accept both.
-    final String resolvedId =
-        (json['trackId'] ?? json['_id'] ?? '').toString().trim();
+    final String resolvedId = (json['trackId'] ?? json['_id'] ?? '')
+        .toString()
+        .trim();
 
     // ── Artist ID: API now uses 'posterId' — add as first candidate.
     final String? resolvedArtistId =
@@ -187,10 +257,13 @@ class PlaybackTrackModel {
       artworkUrl:
           _nullableString(json['image_url']) ??
           _nullableString(image['imgLink']),
-      accessState: canPlay
-          ? PlaybackAccessState.playable
-          : PlaybackAccessState.blocked,
-      blockedReason: canPlay ? null : 'Playback is disabled for this track.',
+      accessState: resolvedAccessState,
+      previewDuration: gateToPreview ? const Duration(seconds: 30) : null,
+      blockedReason: effectivelyPlayable
+          ? null
+          : (!isAvailableForUser
+              ? 'This track is not available in your region.'
+              : 'Playback is disabled for this track.'),
       permalink: _nullableString(basicInfo['permalink']),
       genre: _nullableString(basicInfo['genre']),
       tags: tags,
@@ -211,6 +284,11 @@ class PlaybackTrackModel {
       enableAppPlayback: canPlay,
       artistId: resolvedArtistId,
       waveformPeaks: const [],
+      isLikedByUser: isLikedByUser,
+      isRepostedByUser: isRepostedByUser,
+      isAvailableForUser: isAvailableForUser,
+      geoBlocking: geoBlocking,
+      mobileProPreview: mobileProPreview,
     );
   }
 
@@ -244,6 +322,11 @@ class PlaybackTrackModel {
     bool? enableAppPlayback,
     String? artistId,
     List<double>? waveformPeaks,
+    bool? isLikedByUser,
+    bool? isRepostedByUser,
+    bool? isAvailableForUser,
+    TrackGeoBlocking? geoBlocking,
+    bool? mobileProPreview,
   }) {
     return PlaybackTrackModel(
       id: id ?? this.id,
@@ -275,6 +358,11 @@ class PlaybackTrackModel {
       artistId: artistId ?? this.artistId,
       enableAppPlayback: enableAppPlayback ?? this.enableAppPlayback,
       waveformPeaks: waveformPeaks ?? this.waveformPeaks,
+      isLikedByUser: isLikedByUser ?? this.isLikedByUser,
+      isRepostedByUser: isRepostedByUser ?? this.isRepostedByUser,
+      isAvailableForUser: isAvailableForUser ?? this.isAvailableForUser,
+      geoBlocking: geoBlocking ?? this.geoBlocking,
+      mobileProPreview: mobileProPreview ?? this.mobileProPreview,
     );
   }
 

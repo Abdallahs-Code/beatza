@@ -1,16 +1,19 @@
 // Flutter imports
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 
 // Package imports
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/library/services/account_settings_api_service.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
+import '../../premium_subscription/services/payment_service.dart';
 
 // Your connectivity service
 import 'package:cross_team5/core/services/connectivity_service.dart';
-
-import '../../premium_subscription/services/payment_service.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,6 +25,8 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final AuthApiService authApiService = AuthApiService();
+  final AccountSettingsApiService accountSettingsApiService =
+      AccountSettingsApiService();
 
   bool _isChecking = true;
   bool _hasInternet = true;
@@ -37,8 +42,10 @@ class _SplashScreenState extends State<SplashScreen> {
       _isChecking = true;
     });
 
-    final bool hasInternet = await ConnectivityService.instance.hasInternetConnection();
-    final bool isPro = PaymentService.subscriptionSuccessNotifier.isPro;    if (!mounted) return;
+    final bool hasInternet = await ConnectivityService.instance
+        .hasInternetConnection();
+    final bool isPro = PaymentService.subscriptionSuccessNotifier.isPro;
+    if (!mounted) return;
     if (!hasInternet && !isPro) {
       setState(() {
         _isChecking = false;
@@ -52,6 +59,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> checkLoginStatus(bool hasInternet) async {
     bool isLoggedIn = false;
+
+    // Get token for API settings fetch
+    final accessToken = await _storage.read(key: 'access_token');
     final tokenTime = await _storage.read(key: 'token_time');
 
     if (tokenTime != null) {
@@ -63,6 +73,24 @@ class _SplashScreenState extends State<SplashScreen> {
         if (hasInternet) {
           try {
             await authApiService.refreshToken();
+
+            // ── SYNC THEME FROM API ────────────────────────────────────────
+            if (accessToken != null && mounted) {
+              try {
+                // Your API returns AccountSettings with a `theme` String property
+                final settings = await accountSettingsApiService.getSettings(
+                  accessToken,
+                );
+                await Provider.of<ThemeService>(
+                  context,
+                  listen: false,
+                ).syncThemeFromApi(settings.theme);
+              } catch (e) {
+                // Non-blocking: app continues with locally saved or default theme
+                debugPrint('⚠️ Failed to sync theme from settings API: $e');
+              }
+            }
+            // ───────────────────────────────────────────────────────────────
           } catch (_) {
             isLoggedIn = false;
             await authApiService.logout();
@@ -81,51 +109,65 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacementNamed(context, AuthenticationRoutes.welcome);
     }
   }
+
   @override
   Widget build(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+    final isDark = themeService.isDarkMode;
+
+    // ── Theme-aware assets and colors ─────────────────────────────────────
+    final logoAsset = isDark
+        ? "assets/images/whitelogo.png"
+        : "assets/images/blacklogo.png";
+
+    final scaffoldBg = isDark ? Colors.black : AppColors.whiteSmoke;
+    final subTextColor = isDark ? AppColors.white70 : Colors.black54;
+    final errorColor = isDark ? Colors.redAccent : Colors.red;
+    final retryButtonBg = isDark
+        ? AppColors.whiteSmoke
+        : AppColors.primaryOrange;
+    final retryButtonFg = isDark ? Colors.black : AppColors.whiteSmoke;
+    final loaderColor = isDark ? AppColors.whiteSmoke : AppColors.primaryOrange;
+    // ─────────────────────────────────────────────────────────────────────
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: scaffoldBg,
       body: Center(
         child: _isChecking
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset("assets/images/whitelogo.png", width: 175),
+                  Image.asset(logoAsset, width: 175),
                   const SizedBox(height: 20),
-                  const CircularProgressIndicator(color: Colors.white),
+                  CircularProgressIndicator(color: loaderColor),
                 ],
               )
             : !_hasInternet
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset("assets/images/whitelogo.png", width: 175),
+                  Image.asset(logoAsset, width: 175),
                   const SizedBox(height: 20),
-
-                  const Text(
+                  Text(
                     "No Internet Connection",
                     style: TextStyle(
-                      color: Colors.redAccent,
+                      color: errorColor,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
-                  const Text(
+                  Text(
                     "Please connect to the internet and try again",
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                    style: TextStyle(color: subTextColor, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
-
                   const SizedBox(height: 20),
-
                   ElevatedButton(
                     onPressed: _startApp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: retryButtonBg,
+                      foregroundColor: retryButtonFg,
                     ),
                     child: const Text("Retry"),
                   ),

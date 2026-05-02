@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
 
 class ProDisabledSwitch extends StatelessWidget {
   final VoidCallback onTap;
@@ -14,7 +15,7 @@ class ProDisabledSwitch extends StatelessWidget {
         height: 30,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
+          color: AppColors.containerMid,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Align(

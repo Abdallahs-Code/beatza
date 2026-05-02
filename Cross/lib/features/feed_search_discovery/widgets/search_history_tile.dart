@@ -42,20 +42,14 @@ class SearchHistoryTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
+                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 15),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (subtitle != null && subtitle!.isNotEmpty)
                     Text(
                       subtitle!,
-                      style: const TextStyle(
-                        color: AppColors.white54,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.white54, fontSize: 13),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -63,7 +57,7 @@ class SearchHistoryTile extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: AppColors.white54, size: 18),
+              icon: Icon(Icons.close, color: AppColors.white54, size: 18),
               onPressed: onDelete,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -83,8 +77,9 @@ class SearchHistoryTile extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: AppColors.cardDark,
-        borderRadius:
-            isUser ? BorderRadius.circular(25) : BorderRadius.circular(6),
+        borderRadius: isUser
+            ? BorderRadius.circular(25)
+            : BorderRadius.circular(6),
       ),
       child: Icon(
         isUser ? Icons.person : Icons.music_note,
@@ -96,14 +91,15 @@ class SearchHistoryTile extends StatelessWidget {
     if (imageUrl == null || imageUrl!.isEmpty) return placeholder;
 
     return ClipRRect(
-      borderRadius:
-          isUser ? BorderRadius.circular(25) : BorderRadius.circular(6),
+      borderRadius: isUser
+          ? BorderRadius.circular(25)
+          : BorderRadius.circular(6),
       child: Image.network(
         imageUrl!,
         width: size,
         height: size,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => placeholder,
+        errorBuilder: (_, _, _) => placeholder,
       ),
     );
   }

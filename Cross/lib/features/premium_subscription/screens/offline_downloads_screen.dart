@@ -15,7 +15,10 @@ class OfflineDownloadsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureBlack,
         elevation: 0,
-        title: const Text('Downloads', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Downloads',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: ValueListenableBuilder<List<PlaybackTrackModel>>(
@@ -25,12 +28,20 @@ class OfflineDownloadsScreen extends StatelessWidget {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.download_for_offline, color: AppColors.white54, size: 80),
+                children: [
+                  Icon(
+                    Icons.download_for_offline,
+                    color: AppColors.white54,
+                    size: 80,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     'No downloaded tracks yet.',
-                    style: TextStyle(color: AppColors.whiteSmoke, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 8),
                   Text(

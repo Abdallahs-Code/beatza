@@ -10,6 +10,8 @@ import 'package:cross_team5/features/playback_streaming_engine/services/playback
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
 import 'package:cross_team5/core/navigation/notification_navigation_service.dart';
+import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
+import 'package:cross_team5/features/activity/services/push_notification_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
@@ -26,7 +28,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, RouteAware {
   final PublicTracksPagingService _publicTracksPagingService =
       PublicTracksPagingService.shared;
   final PublicTracksApiService _quickPicksApiService = PublicTracksApiService();
@@ -41,10 +44,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ActivityNotificationsController.shared.initialize();
     ActivityNotificationsController.shared.reconnectIfNeeded();
     MessagingNotificationService.shared.initialize();
-    _publicTracksPagingService.loadInitial(limit: 20);
+    _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
     _loadQuickPickTracks();
     _loadDisplayName();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // handleInitialFcmMessage must be called from a widget after runApp —
+      // calling getInitialMessage() before runApp returns null on Android.
+      await PushNotificationService.shared.handleInitialFcmMessage();
       NotificationNavigationService.shared.executePendingIfAny();
     });
   }
@@ -53,13 +59,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeDependencies() {
     super.didChangeDependencies();
     ActivityNotificationsController.shared.reconnectIfNeeded();
+    final route = ModalRoute.of(context);
+    if (route != null) appRouteObserver.subscribe(this, route);
   }
 
   @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _quickPicksApiService.dispose();
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
   }
 
   Future<void> _loadDisplayName() async {
@@ -96,7 +110,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('This track does not have a playable audio source yet.'),
+          content: Text(
+            'This track does not have a playable audio source yet.',
+          ),
         ),
       );
       return;
@@ -117,12 +133,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _handleUpload(BuildContext context) async {
     final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
-    final int currentUploads = AudioUploadService.globalMockTracksNotifier.value.length;
+    final int currentUploads =
+        AudioUploadService.globalMockTracksNotifier.value.length;
 
     if (!isPro && currentUploads >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Free tier limited to 3 uploads. Please upgrade to Pro.'),
+          content: Text(
+            'Free tier limited to 3 uploads. Please upgrade to Pro.',
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -156,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         backgroundColor: AppColors.homeBackground,
         elevation: 0,
         leadingWidth: 140,
-        title: const Text(
+        title: Text(
           'Home',
           style: TextStyle(
             color: AppColors.whiteSmoke,
@@ -179,19 +198,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             borderRadius: BorderRadius.circular(20),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
+                color: AppColors.surfaceMid,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white24, width: 1),
+                border: Border.all(color: AppColors.white24, width: 1),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bar_chart, color: Colors.white, size: 16),
-                  SizedBox(width: 6),
+                  Icon(Icons.bar_chart, color: AppColors.whiteSmoke, size: 16),
+                  const SizedBox(width: 6),
                   Text(
                     'Artist Studio',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -203,7 +222,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
+            icon: Icon(
+              Icons.cloud_upload_outlined,
+              color: AppColors.whiteSmoke,
+            ),
             onPressed: () => _handleUpload(context),
           ),
           AnimatedBuilder(
@@ -213,9 +235,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 icon: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.chat_bubble_outline_rounded,
-                      color: Colors.white,
+                      color: AppColors.whiteSmoke,
                     ),
                     if (ActivityNotificationsController.shared.unreadCount > 0)
                       Positioned(
@@ -232,12 +254,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             minHeight: 16,
                           ),
                           child: Text(
-                            ActivityNotificationsController.shared.unreadCount > 9
+                            ActivityNotificationsController.shared.unreadCount >
+                                    9
                                 ? '9+'
-                                : ActivityNotificationsController.shared.unreadCount
-                                .toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
+                                : ActivityNotificationsController
+                                      .shared
+                                      .unreadCount
+                                      .toString(),
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -249,9 +274,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ActivityScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const ActivityScreen()),
                   );
                 },
               );
@@ -303,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         return _HomePublicTracksSection(
                           tracks: _publicTracksPagingService.tracks,
                           isLoading:
-                          _publicTracksPagingService.isInitialLoading,
+                              _publicTracksPagingService.isInitialLoading,
                           errorMessage: _publicTracksPagingService.errorMessage,
                           ensureNextTrackAvailable: _publicTracksPagingService
                               .ensureNextTrackAvailableForPlayer,
@@ -328,9 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     ),
                     const SizedBox(height: 26),
-                    SectionHeader(
-                      title: 'Mixed for ${_displayName ?? 'You'}',
-                    ),
+                    SectionHeader(title: 'Mixed for ${_displayName ?? 'You'}'),
                     const SizedBox(height: 14),
                     const HorizontalMixSection(),
                     const SizedBox(height: 26),
@@ -421,10 +442,10 @@ class _HomePublicTracksSection extends StatelessWidget {
   });
 
   Future<void> _handleTrackTap(
-      BuildContext context,
-      PlaybackTrackModel track,
-      int index,
-      ) async {
+    BuildContext context,
+    PlaybackTrackModel track,
+    int index,
+  ) async {
     if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -522,9 +543,13 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? accessLabel = _isBlocked
-        ? 'Not available'
+        ? (track.isAvailableForUser
+            ? 'Not available'
+            : 'Not available in your region')
         : _isPreview
-        ? 'Preview · ${track.effectivePreviewDuration.inSeconds}s'
+        ? (track.mobileProPreview
+            ? 'Pro · ${track.effectivePreviewDuration.inSeconds}s preview'
+            : 'Preview · ${track.effectivePreviewDuration.inSeconds}s')
         : null;
 
     return SizedBox(
@@ -550,26 +575,26 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: (track.artworkUrl ?? '').trim().isEmpty
-                          ? const Center(
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: AppColors.white54,
-                          size: 42,
-                        ),
-                      )
+                          ? Center(
+                              child: Icon(
+                                Icons.image_outlined,
+                                color: AppColors.white54,
+                                size: 42,
+                              ),
+                            )
                           : Image.network(
-                        track.artworkUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) {
-                          return const Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              color: AppColors.white54,
-                              size: 42,
+                              track.artworkUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) {
+                                return Center(
+                                  child: Icon(
+                                    Icons.image_outlined,
+                                    color: AppColors.white54,
+                                    size: 42,
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                     if (accessLabel != null)
                       Positioned(
@@ -584,14 +609,16 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                             color: _isBlocked
                                 ? Colors.black.withValues(alpha: 0.78)
                                 : AppColors.brilliantOrange.withValues(
-                              alpha: 0.92,
-                            ),
+                                    alpha: 0.92,
+                                  ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             accessLabel,
                             style: TextStyle(
-                              color: _isBlocked ? Colors.white70 : Colors.black,
+                              color: _isBlocked
+                                  ? AppColors.white70
+                                  : Colors.black,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -620,7 +647,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                       : track.artistName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.white54,
                     fontSize: 13,
                     height: 1.3,
@@ -698,7 +725,7 @@ class _HomeTracksMessageCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.whiteSmoke,
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -707,7 +734,7 @@ class _HomeTracksMessageCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.white60,
               fontSize: 13,
               height: 1.4,
@@ -732,12 +759,24 @@ class _QuickPickTracksSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String title0 = tracks.isNotEmpty ? tracks[0].title : AppText.trackTitle;
-    final String sub0 = tracks.isNotEmpty ? tracks[0].artistName : AppText.artistName;
-    final String title1 = tracks.length > 1 ? tracks[1].title : AppText.anotherTrack;
-    final String sub1 = tracks.length > 1 ? tracks[1].artistName : AppText.anotherArtist;
-    final String title2 = tracks.length > 2 ? tracks[2].title : AppText.longTrackTitle;
-    final String sub2 = tracks.length > 2 ? tracks[2].artistName : AppText.trackSubtitle;
+    final String title0 = tracks.isNotEmpty
+        ? tracks[0].title
+        : AppText.trackTitle;
+    final String sub0 = tracks.isNotEmpty
+        ? tracks[0].artistName
+        : AppText.artistName;
+    final String title1 = tracks.length > 1
+        ? tracks[1].title
+        : AppText.anotherTrack;
+    final String sub1 = tracks.length > 1
+        ? tracks[1].artistName
+        : AppText.anotherArtist;
+    final String title2 = tracks.length > 2
+        ? tracks[2].title
+        : AppText.longTrackTitle;
+    final String sub2 = tracks.length > 2
+        ? tracks[2].artistName
+        : AppText.trackSubtitle;
 
     return Column(
       children: [
@@ -747,7 +786,9 @@ class _QuickPickTracksSection extends StatelessWidget {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: tracks.isNotEmpty ? () => onTap?.call(tracks[0], 0) : null,
+                  onTap: tracks.isNotEmpty
+                      ? () => onTap?.call(tracks[0], 0)
+                      : null,
                   child: MiniTrackCard(
                     title: title0,
                     subtitle: sub0,
@@ -758,7 +799,9 @@ class _QuickPickTracksSection extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: GestureDetector(
-                  onTap: tracks.length > 1 ? () => onTap?.call(tracks[1], 1) : null,
+                  onTap: tracks.length > 1
+                      ? () => onTap?.call(tracks[1], 1)
+                      : null,
                   child: MiniTrackCard(
                     title: title1,
                     subtitle: sub1,

@@ -56,7 +56,7 @@ class PlaybackDebugTrackTile extends StatelessWidget {
           height: 52,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [AppColors.tileDark, AppColors.tileDark4],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -68,7 +68,7 @@ class PlaybackDebugTrackTile extends StatelessWidget {
           track.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.whiteSmoke,
             fontSize: 15,
             fontWeight: FontWeight.w700,
@@ -83,7 +83,7 @@ class PlaybackDebugTrackTile extends StatelessWidget {
                 track.artistName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.white60, fontSize: 13),
+                style: TextStyle(color: AppColors.white60, fontSize: 13),
               ),
               const SizedBox(height: 4),
               Text(
@@ -99,7 +99,7 @@ class PlaybackDebugTrackTile extends StatelessWidget {
         ),
         trailing: IconButton(
           onPressed: onPlayTap,
-          icon: const Icon(
+          icon: Icon(
             Icons.play_arrow_rounded,
             color: AppColors.whiteSmoke,
             size: 30,

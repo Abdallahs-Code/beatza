@@ -20,7 +20,8 @@ class NotificationNavigationService {
   /// ready (cold start), the action is queued and executed once
   /// [executePendingIfAny] is called (from HomeScreen).
   Future<void> handleActivityNotification(
-      ActivityNotificationModel notification) async {
+    ActivityNotificationModel notification,
+  ) async {
     final nav = appNavigatorKey.currentState;
     if (nav == null) {
       _pendingNotification = notification;
@@ -64,7 +65,9 @@ class NotificationNavigationService {
   }
 
   Future<void> _navigateActivity(
-      NavigatorState nav, ActivityNotificationModel n) async {
+    NavigatorState nav,
+    ActivityNotificationModel n,
+  ) async {
     final resolvedTrackId = (n.target.trackId?.isNotEmpty == true)
         ? n.target.trackId!
         : n.target.targetId;
@@ -76,18 +79,23 @@ class NotificationNavigationService {
       case 'track_liked':
       case 'track_reposted':
       case 'new_track':
-        final trackOwnerId =
-            n.activityType == 'new_track' ? n.actor.userId : n.to;
-        unawaited(nav.push(MaterialPageRoute(
-          builder: (_) => BehindTheTrackScreen(
-            trackId: resolvedTrackId,
-            actorName: n.actor.displayName,
-            actorAvatarUrl: n.actor.avatarUrl,
-            actorUserId: n.actor.userId,
-            activityType: n.activityType,
-            trackOwnerId: trackOwnerId,
+        final trackOwnerId = n.activityType == 'new_track'
+            ? n.actor.userId
+            : n.to;
+        unawaited(
+          nav.push(
+            MaterialPageRoute(
+              builder: (_) => BehindTheTrackScreen(
+                trackId: resolvedTrackId,
+                actorName: n.actor.displayName,
+                actorAvatarUrl: n.actor.avatarUrl,
+                actorUserId: n.actor.userId,
+                activityType: n.activityType,
+                trackOwnerId: trackOwnerId,
+              ),
+            ),
           ),
-        )));
+        );
 
       case 'track_commented':
       case 'user_mentioned':
@@ -108,8 +116,12 @@ class NotificationNavigationService {
     }
   }
 
-  void _navigateChat(NavigatorState nav, String chatId, String receiverName,
-      String receiverPhotoUrl) {
+  void _navigateChat(
+    NavigatorState nav,
+    String chatId,
+    String receiverName,
+    String receiverPhotoUrl,
+  ) {
     nav.pushNamed(
       MessagingTrackSharingRoutes.chatRoute,
       arguments: {

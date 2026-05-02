@@ -1,91 +1,44 @@
 // Widget: FeedCard
 // Full-screen TikTok-style feed card for a single feed item.
 //
-// Behaviour (matches SoundCloud screenshots in module_8_screens.pdf):
+// Behaviour:
 //   - Displays track cover image full-screen with blurred background
-//   - "Tap to preview" overlay shown until audio starts
-//   - Mute/unmute button on top of image (starts MUTED)
-//   - Auto-plays audio when this card becomes active (isCurrent == true)
-//   - Auto-stops audio when no longer current
-//   - Tapping the play button (▶) navigates to the mini player card via
-//     PlaybackStreamingEngineService.shared.playTrack(fullTrack) —
-//     the feed screen must fetch full track details first (see FeedScreen)
-//   - Right-side action column: ❤️ likes, 💬 comments, ➕ add-to-queue
-//   - Bottom: poster avatar + name, "Following" chip, track title
-//
-// Integration notes:
-//   - Like button wired to EngagementApiService.toggleTrackLike (optimistic UI)
-//   - Comment icon navigates to EngagementSocialInteractionsRoutes.comments
-//   - Add (➕) navigates to EngagementSocialInteractionsRoutes.likers with
-//     initialTab: 1 (reposts) — TODO: wire to "add to playlist" when Module 7
-//     playlist routes are available; for now opens reposts tab as placeholder.
-//
-// CLAUDE CODE TODO (engagement wiring):
-//   1. Import EngagementApiService and call toggleTrackLike(trackId) on heart tap
-//   2. Optimistic: flip _isLiked, adjust _likeCount, revert on failure + snackbar
-//   3. Comment icon: Navigator.pushNamed(context,
-//        EngagementSocialInteractionsRoutes.comments,
-//        arguments: {
-//          'trackId': widget.itemId,
-//          'trackTitle': widget.displayName,
-//          'trackArtist': widget.actorName,
-//          'trackThumbnailUrl': widget.imgLink,
-//          'currentPositionSeconds': 0,
-//        })
-//   4. Like count tap: Navigator.pushNamed(context,
-//        EngagementSocialInteractionsRoutes.likers,
-//        arguments: {'trackId': widget.itemId, 'initialTab': 0})
+//   - "Tap to preview" overlay shown until user taps it
+//   - Mute/unmute button: track audio plays locally (no mini-player) only when
+//     unmuted AND isCurrent AND user has tapped the preview overlay
+//   - Tapping ▶ stops local audio and delegates to global PlaybackService
+//     (mini player appears — this is the correct existing behaviour)
+//   - ⋯ options button (top-right) opens the same options sheet as the
+//     global track card (showTrackOptionsSheet from global_playback_overlay)
+//   - Right-side: ❤️ likes (persisted via checkTrackLikeStatus on init),
+//     💬 comments (count refreshed after CommentsScreen closes), ➕ playlist
+//   - Like state: checked against API on init so it persists across nav
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions_routes.dart';
+import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 
 class FeedCard extends StatefulWidget {
-  /// The feed item ID (used for engagement calls).
   final String itemId;
-
-  /// Whether this card is the currently visible card in the PageView.
   final bool isCurrent;
-
-  /// Global mute state shared across all cards (ValueNotifier).
   final ValueNotifier<bool> isMuted;
-
-  /// URL of the audio stream — null if not yet fetched.
   final String? audioUrl;
-
-  /// Cover image URL.
   final String? imgLink;
-
-  /// Track title / display name.
   final String displayName;
-
-  /// The person who posted (actor display name).
   final String actorName;
-
-  /// Actor user ID — used to navigate to their profile.
   final String actorId;
-
-  /// Whether the current user follows this actor.
+  final String? permalink;
   final bool isFollowing;
-
-  /// Initial like count.
   final int likeCount;
-
-  /// Initial comment count.
   final int commentCount;
-
-  /// Whether the current user has liked this item.
   final bool isLiked;
-
-  /// Whether this item is a repost.
   final bool isRepost;
-
-  /// Called when the user taps the ▶ play button.
-  /// The feed screen fetches full track details and hands them to the player.
   final VoidCallback onPlayTap;
-
-  /// Called when the user taps the poster avatar/name → profile screen.
   final VoidCallback onActorTap;
 
   const FeedCard({
@@ -98,6 +51,7 @@ class FeedCard extends StatefulWidget {
     required this.displayName,
     required this.actorName,
     required this.actorId,
+    this.permalink,
     required this.isFollowing,
     required this.likeCount,
     required this.commentCount,
@@ -115,25 +69,80 @@ class _FeedCardState extends State<FeedCard> {
   bool _hasStartedPreview = false;
 
   final EngagementApiService _engagementService = EngagementApiService();
+  final AudioPlayer _localPlayer = AudioPlayer();
 
-  // Optimistic like state
+  // Optimistic like state — refreshed from API on init
   late bool _isLiked;
   late int _likeCount;
+
+  // Comment count — refreshed after CommentsScreen closes
+  late int _commentCount;
 
   @override
   void initState() {
     super.initState();
     _isLiked = widget.isLiked;
     _likeCount = widget.likeCount;
+    _commentCount = widget.commentCount;
+    _localPlayer.setReleaseMode(ReleaseMode.stop);
+    widget.isMuted.addListener(_onMuteChanged);
+    _checkLikeStatus();
+    _fetchCommentCount();
   }
 
   @override
   void didUpdateWidget(FeedCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!widget.isCurrent && oldWidget.isCurrent) {
-      // Card scrolled away — reset preview state
       setState(() => _hasStartedPreview = false);
+      _stopLocalAudio();
     }
+  }
+
+  @override
+  void dispose() {
+    widget.isMuted.removeListener(_onMuteChanged);
+    _localPlayer.dispose();
+    super.dispose();
+  }
+
+  // ── Local audio (feed preview, no mini-player) ─────────────────────────────
+
+  void _onMuteChanged() {
+    if (!widget.isMuted.value &&
+        widget.isCurrent &&
+        widget.audioUrl != null &&
+        _hasStartedPreview) {
+      _startLocalAudio();
+    } else {
+      _stopLocalAudio();
+    }
+  }
+
+  Future<void> _startLocalAudio() async {
+    if (widget.audioUrl == null || widget.audioUrl!.isEmpty) return;
+    try {
+      await _localPlayer.play(UrlSource(widget.audioUrl!));
+    } catch (_) {}
+  }
+
+  Future<void> _stopLocalAudio() async {
+    try {
+      await _localPlayer.stop();
+    } catch (_) {}
+  }
+
+  // ── Like status (persisted across navigation) ──────────────────────────────
+
+  Future<void> _checkLikeStatus() async {
+    try {
+      final (code, data) = await _engagementService.checkTrackLikeStatus(
+        trackId: widget.itemId,
+      );
+      if (code == 200 && data is Map && mounted) {
+        setState(() => _isLiked = data['liked'] as bool? ?? _isLiked);
+      }
+    } catch (_) {}
   }
 
   void _toggleLike() {
@@ -143,24 +152,38 @@ class _FeedCardState extends State<FeedCard> {
       _isLiked = !_isLiked;
       _likeCount += _isLiked ? 1 : -1;
     });
-    _engagementService
-        .toggleTrackLike(trackId: widget.itemId)
-        .then((result) {
-      final (code, _) = result;
-      if (code != 200 && mounted) {
+    _engagementService.toggleTrackLike(trackId: widget.itemId).then((result) {
+      final (code, data) = result;
+      if (code == 200 && data is Map && mounted) {
+        setState(() {
+          _isLiked = data['liked'] as bool? ?? _isLiked;
+          _likeCount = data['numOfLikes'] as int? ?? _likeCount;
+        });
+      } else if (code != 200 && mounted) {
         setState(() {
           _isLiked = prevLiked;
           _likeCount = prevCount;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update like')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to update like')));
       }
     });
   }
 
-  void _openComments(BuildContext context) {
-    Navigator.pushNamed(
+  // ── Comment count ──────────────────────────────────────────────────────────
+
+  Future<void> _fetchCommentCount() async {
+    try {
+      final count = await _engagementService.getTrackCommentCount(
+        widget.itemId,
+      );
+      if (mounted) setState(() => _commentCount = count);
+    } catch (_) {}
+  }
+
+  Future<void> _openComments(BuildContext context) async {
+    await Navigator.pushNamed(
       context,
       EngagementSocialInteractionsRoutes.comments,
       arguments: {
@@ -171,6 +194,7 @@ class _FeedCardState extends State<FeedCard> {
         'currentPositionSeconds': 0,
       },
     );
+    if (mounted) _fetchCommentCount();
   }
 
   void _openLikers(BuildContext context) {
@@ -181,6 +205,46 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
+  // ── Track options sheet — feed variant ────────────────────────────────────
+
+  void _openOptions(BuildContext context) {
+    debugPrint('[FeedCard._openOptions] itemId="${widget.itemId}"  permalink="${widget.permalink}"  actorId="${widget.actorId}"');
+    final track = PlaybackTrackModel(
+      id: widget.itemId,
+      title: widget.displayName,
+      artistName: widget.actorName,
+      audioUrl: widget.audioUrl,
+      artworkUrl: widget.imgLink,
+      artistId: widget.actorId.isNotEmpty ? widget.actorId : null,
+      permalink: widget.permalink,
+    );
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        variant: TrackOptionsVariant.feedTrack,
+        onBehindThisTrack: () =>
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BehindTheTrackScreen(
+                  trackId: track.id,
+                  actorName: track.artistName,
+                  actorAvatarUrl: track.artworkUrl ?? '',
+                  actorUserId: track.artistId ?? '',
+                  activityType: 'new_track',
+                  trackOwnerId: track.artistId ?? '',
+                ),
+              ),
+            ),
+      ),
+    );
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
   String _formatCount(int count) {
     if (count >= 1000000) {
       return '${(count / 1000000).toStringAsFixed(1)}M';
@@ -189,6 +253,8 @@ class _FeedCardState extends State<FeedCard> {
     }
     return count.toString();
   }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -205,15 +271,32 @@ class _FeedCardState extends State<FeedCard> {
         if (widget.isCurrent && !_hasStartedPreview)
           _buildTapToPreviewOverlay(),
 
-        // ── Mute/unmute button (top center of image area) ──────────────────
+        // ── Mute/unmute button ─────────────────────────────────────────────
         if (widget.isCurrent) _buildMuteButton(),
 
-        // ── Right-side action column ────────────────────────────────────────
+        // ── Options button (top right, below tab bar) ──────────────────────
         Positioned(
+          top: MediaQuery.of(context).padding.top + 52,
           right: 12,
-          bottom: 140,
-          child: _buildActionColumn(context),
+          child: GestureDetector(
+            onTap: () => _openOptions(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Colors.black38,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.more_horiz,
+                color: AppColors.whiteSmoke,
+                size: 22,
+              ),
+            ),
+          ),
         ),
+
+        // ── Right-side action column ────────────────────────────────────────
+        Positioned(right: 12, bottom: 140, child: _buildActionColumn(context)),
 
         // ── Bottom info bar ─────────────────────────────────────────────────
         Positioned(
@@ -231,8 +314,7 @@ class _FeedCardState extends State<FeedCard> {
       return Image.network(
         widget.imgLink!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: AppColors.surfaceDark),
+        errorBuilder: (ctx, e, st) => Container(color: AppColors.surfaceDark),
       );
     }
     return Container(color: AppColors.surfaceDark);
@@ -248,7 +330,7 @@ class _FeedCardState extends State<FeedCard> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -259,12 +341,12 @@ class _FeedCardState extends State<FeedCard> {
               ? Image.network(
                   widget.imgLink!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (ctx, e, st) =>
                       Container(color: AppColors.cardDark),
                 )
               : Container(
                   color: AppColors.cardDark,
-                  child: const Icon(
+                  child: Icon(
                     Icons.music_note,
                     size: 64,
                     color: AppColors.white54,
@@ -279,23 +361,25 @@ class _FeedCardState extends State<FeedCard> {
     return GestureDetector(
       onTap: () {
         setState(() => _hasStartedPreview = true);
-        // Audio auto-play is handled by the parent FeedScreen via isCurrent
-        // The parent listens to page changes and triggers playback accordingly
+        // Start local audio immediately if already unmuted
+        if (!widget.isMuted.value && widget.audioUrl != null) {
+          _startLocalAudio();
+        }
       },
       child: Center(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 32),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.45),
+            color: Colors.black.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const AspectRatio(
+          child: AspectRatio(
             aspectRatio: 1,
             child: Center(
               child: Text(
                 'Tap to preview',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteSmoke,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -309,7 +393,6 @@ class _FeedCardState extends State<FeedCard> {
 
   Widget _buildMuteButton() {
     return Positioned(
-      // Positioned over the center of the cover art, near bottom of image
       top: MediaQuery.of(context).size.height * 0.42,
       left: MediaQuery.of(context).size.width / 2 - 24,
       child: ValueListenableBuilder<bool>(
@@ -319,13 +402,13 @@ class _FeedCardState extends State<FeedCard> {
             onTap: () => widget.isMuted.value = !muted,
             child: Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.black54,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 22,
               ),
             ),
@@ -346,7 +429,7 @@ class _FeedCardState extends State<FeedCard> {
             children: [
               Icon(
                 _isLiked ? Icons.favorite : Icons.favorite_border,
-                color: _isLiked ? Colors.orange : Colors.white,
+                color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
                 size: 32,
               ),
               const SizedBox(height: 4),
@@ -354,7 +437,7 @@ class _FeedCardState extends State<FeedCard> {
                 onTap: () => _openLikers(context),
                 child: Text(
                   _formatCount(_likeCount),
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
                 ),
               ),
             ],
@@ -367,45 +450,46 @@ class _FeedCardState extends State<FeedCard> {
           onTap: () => _openComments(context),
           child: Column(
             children: [
-              const Icon(
+              Icon(
                 Icons.chat_bubble_outline_rounded,
-                color: Colors.white,
+                color: AppColors.whiteSmoke,
                 size: 30,
               ),
               const SizedBox(height: 4),
               Text(
-                _formatCount(widget.commentCount),
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                _formatCount(_commentCount),
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
 
-        // ── Add to playlist / repost ───────────────────────────────
+        // ── Add to playlist ────────────────────────────────────────
         GestureDetector(
-          // CLAUDE CODE TODO: wire to "add to playlist" sheet from Module 7
-          // For now, show a repost bottom sheet or a snackbar placeholder
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Add to playlist coming soon')),
             );
           },
-          child: const Column(
+          child: Column(
             children: [
-              Icon(Icons.playlist_add, color: Colors.white, size: 30),
+              Icon(Icons.playlist_add, color: AppColors.whiteSmoke, size: 30),
             ],
           ),
         ),
         const SizedBox(height: 24),
 
-        // ── Play button → navigate to full player ──────────────────
+        // ── Play button → stops local audio, opens global mini-player ──
         GestureDetector(
-          onTap: widget.onPlayTap,
+          onTap: () {
+            _stopLocalAudio();
+            widget.onPlayTap();
+          },
           child: Container(
             padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -433,11 +517,10 @@ class _FeedCardState extends State<FeedCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Track title
           Text(
             widget.displayName,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
@@ -446,26 +529,20 @@ class _FeedCardState extends State<FeedCard> {
           ),
           const SizedBox(height: 8),
 
-          // Actor row
           GestureDetector(
             onTap: widget.onActorTap,
             child: Row(
               children: [
-                // Avatar placeholder
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: AppColors.tileDark,
-                  child: const Icon(
-                    Icons.person,
-                    size: 16,
-                    color: AppColors.white54,
-                  ),
+                  child: Icon(Icons.person, size: 16, color: AppColors.white54),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   widget.actorName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -473,29 +550,30 @@ class _FeedCardState extends State<FeedCard> {
                 const SizedBox(width: 8),
                 if (widget.isFollowing)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white54),
+                      border: Border.all(color: AppColors.white54),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Following',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
 
                 if (widget.isRepost) ...[
                   const SizedBox(width: 8),
-                  const Icon(
-                    Icons.repeat,
-                    color: Colors.white70,
-                    size: 14,
-                  ),
+                  Icon(Icons.repeat, color: AppColors.white70, size: 14),
                   const SizedBox(width: 2),
-                  const Text(
+                  Text(
                     'Repost',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: AppColors.white70, fontSize: 12),
                   ),
                 ],
               ],

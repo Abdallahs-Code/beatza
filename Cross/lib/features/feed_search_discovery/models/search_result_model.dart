@@ -1,5 +1,5 @@
 // Model: SearchResultModel
-// Shape from GET /api/feed/v1/search
+// Shape from GET /api/public/feed/v1/search
 // Response:
 // {
 //   "counts": { "tracks": 0, "users": 0, "playlists": 0, "albums": 0 },
@@ -58,8 +58,9 @@ class SearchResultModel {
         json['counts'] as Map<String, dynamic>? ?? {},
       ),
       results: (json['results'] as List<dynamic>? ?? [])
-          .map((item) =>
-              SearchResultItem.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => SearchResultItem.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
     );
   }
