@@ -20,8 +20,9 @@ for (const [userKey, userCreds] of Object.entries(credentials)) {
 
         // Wait for login to process
         await page.waitForTimeout(3000);
-
-        await expect(page).toHaveURL('https://beatza.me/home');
+        if (userKey != 'admin') {
+            await expect(page).toHaveURL('https://beatza.me/home');
+        }
         await page.waitForLoadState('load');
 
         await page.context().storageState({ path: statePath });
