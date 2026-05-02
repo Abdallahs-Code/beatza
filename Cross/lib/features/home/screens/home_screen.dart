@@ -16,7 +16,6 @@ import 'package:cross_team5/features/activity/controllers/activity_notifications
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 import 'package:cross_team5/features/feed_search_discovery/services/feed_search_api_service.dart';
-import 'package:cross_team5/features/feed_search_discovery/models/trending_item_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
 
 import '../../premium_subscription/screens/premium_subscription.dart';
@@ -870,22 +869,12 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
   }
 
   Future<void> _loadTrending() async {
-    final (statusCode, data) = await _service.getTrendingTracks(limit: 20);
+    final (code, data) = await _service.getPublicTracks(limit: 100);
     if (!mounted) return;
 
-    if (statusCode == 200 && data is List) {
-      final ids = TrendingItemModel.listFromJson(data);
-      final results = await Future.wait(
-        ids.map((item) => _service.getTrackById(item.id)),
-      );
-
-      final tracks = <Map<String, dynamic>>[];
-      for (final (code, trackData) in results) {
-        if (code == 200 && trackData is Map<String, dynamic>) {
-          tracks.add(trackData);
-        }
-      }
-
+    if (code == 200 && data is Map<String, dynamic>) {
+      final rawList = data['tracks'] as List<dynamic>? ?? [];
+      final tracks = rawList.whereType<Map<String, dynamic>>().toList();
       if (mounted) setState(() { _tracks = tracks; _loading = false; });
     } else {
       if (mounted) setState(() { _error = 'Failed to load'; _loading = false; });
@@ -978,28 +967,42 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
                       ),
                     ),
                   )
-                : Column(
-                    children: filtered.take(5).map((t) {
-                      final basicInfo =
-                          t['basicInfo'] as Map<String, dynamic>? ?? {};
-                      final image =
-                          t['image'] as Map<String, dynamic>? ?? {};
-                      final artists =
-                          (basicInfo['mainArtists'] as List<dynamic>? ?? [])
-                              .map((e) => e.toString())
-                              .join(', ');
-                      final track = PlaybackTrackModel.fromApiJson(t);
-                      return _TrendingTrackRow(
-                        imageUrl: image['imgLink']?.toString(),
-                        title: basicInfo['title']?.toString() ?? 'Unknown',
-                        subtitle: artists.isNotEmpty
-                            ? artists
-                            : 'Unknown Artist',
-                        onTap: () => _onTrackTap(t),
-                        onMoreTap: () =>
-                            showTrackOptionsSheet(context, track),
-                      );
-                    }).toList(),
+                : SizedBox(
+                    height: 216,
+                    child: PageView.builder(
+                      key: ValueKey(_selectedGenre ?? 'all'),
+                      itemCount: (filtered.length / 3).ceil(),
+                      itemBuilder: (context, pageIndex) {
+                        final start = pageIndex * 3;
+                        final pageTracks =
+                            filtered.skip(start).take(3).toList();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: pageTracks.map((t) {
+                            final basicInfo =
+                                t['basicInfo'] as Map<String, dynamic>? ?? {};
+                            final image =
+                                t['image'] as Map<String, dynamic>? ?? {};
+                            final artists =
+                                (basicInfo['mainArtists'] as List<dynamic>? ??
+                                        [])
+                                    .map((e) => e.toString())
+                                    .join(', ');
+                            final track = PlaybackTrackModel.fromApiJson(t);
+                            return _TrendingTrackRow(
+                              imageUrl: image['imgLink']?.toString(),
+                              title: basicInfo['title']?.toString() ?? 'Unknown',
+                              subtitle: artists.isNotEmpty
+                                  ? artists
+                                  : 'Unknown Artist',
+                              onTap: () => _onTrackTap(t),
+                              onMoreTap: () =>
+                                  showTrackOptionsSheet(context, track),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   ),
           ),
         ),
