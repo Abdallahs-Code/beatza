@@ -1,11 +1,17 @@
 class TrackStatsModel {
   final List<FanData> topFans;
   final List<FanData> firstFans;
+  final bool isStatsPrivate;
 
   TrackStatsModel({
     required this.topFans,
     required this.firstFans,
+    this.isStatsPrivate = false,
   });
+
+  factory TrackStatsModel.private() {
+    return TrackStatsModel(topFans: [], firstFans: [], isStatsPrivate: true);
+  }
 
   factory TrackStatsModel.fromJson(Map<String, dynamic> json) {
     final topFansJson = json['topFans'] as List<dynamic>? ?? [];

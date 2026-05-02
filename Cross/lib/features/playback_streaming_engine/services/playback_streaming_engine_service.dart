@@ -71,6 +71,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _storage = const FlutterSecureStorage(),
       _httpClient = http.Client() {
     _bindPlayerStreams();
+    _bindSubscriptionListener();
   }
 
   PlaybackStreamingEngineService({
@@ -81,6 +82,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
        _storage = storage ?? const FlutterSecureStorage(),
        _httpClient = httpClient ?? http.Client() {
     _bindPlayerStreams();
+    _bindSubscriptionListener();
   }
 
   PlaybackStateModel get state => _state;
@@ -534,6 +536,72 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     });
   }
 
+  // Re-evaluate gating on the current track and queue whenever the listener's
+  // Pro status flips. Without this, a Pro user who cancels mid-session keeps
+  // playing the full track because the cached models were locked at parse time.
+  void _bindSubscriptionListener() {
+    PaymentService.subscriptionSuccessNotifier.addListener(
+      _onSubscriptionChanged,
+    );
+  }
+
+  PlaybackTrackModel _reapplyAccessState(PlaybackTrackModel track) {
+    final bool effectivelyPlayable =
+        track.enableAppPlayback && track.isAvailableForUser;
+    final bool isProListener =
+        PaymentService.subscriptionSuccessNotifier.value.isPro;
+    final bool gateToPreview =
+        effectivelyPlayable && track.mobileProPreview && !isProListener;
+    final PlaybackAccessState resolved = effectivelyPlayable
+        ? (gateToPreview
+              ? PlaybackAccessState.preview
+              : PlaybackAccessState.playable)
+        : PlaybackAccessState.blocked;
+
+    if (resolved == track.accessState) return track;
+    return track.copyWith(
+      accessState: resolved,
+      previewDuration: gateToPreview ? const Duration(seconds: 30) : null,
+    );
+  }
+
+  void _onSubscriptionChanged() {
+    if (_activeQueue.isNotEmpty) {
+      _activeQueue = _activeQueue.map(_reapplyAccessState).toList();
+    }
+
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) return;
+
+    final PlaybackTrackModel updated = _reapplyAccessState(currentTrack);
+    if (identical(updated, currentTrack)) return;
+
+    if (updated.accessState == PlaybackAccessState.preview) {
+      // Downgrade: enforce the 30s cap on the in-progress track.
+      final Duration limit = updated.effectivePreviewDuration;
+      if (_state.currentPosition >= limit) {
+        _previewLimitReached = true;
+        unawaited(_audioPlayerClient.pause());
+        unawaited(_audioPlayerClient.seek(Duration.zero));
+        _updateState(
+          _state.copyWith(
+            currentTrack: updated,
+            status: PlaybackStatus.previewEnded,
+            currentPosition: limit,
+            message: 'Preview finished. Unlock the full track to keep listening.',
+          ),
+        );
+      } else {
+        _updateState(_state.copyWith(currentTrack: updated));
+      }
+    } else {
+      // Upgrade or unchanged status: clear preview latch so the engine
+      // resumes treating the track as fully playable.
+      _previewLimitReached = false;
+      _updateState(_state.copyWith(currentTrack: updated));
+    }
+  }
+
   void _handlePlayerStateChanged(PlayerState playerState) {
     // During a track transition suppress all audio-player events — playTrack()
     // owns state until it either confirms playback or hands off to a newer call.
@@ -680,10 +748,23 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   // Sends the V2 play-count request for [trackId] using the accumulated
   // listen duration. Guards against double-reporting the same session.
   void _finalizeListenCount(String trackId) {
-    if (trackId.isEmpty) return;
-    if (_lastListenCountReportedTrackId == trackId) return;
-    if (_maxListenedSeconds <= 0) return;
+    if (trackId.isEmpty) {
+      debugPrint('[ListenCount] ⏭️ skip — empty trackId');
+      return;
+    }
+    if (_lastListenCountReportedTrackId == trackId) {
+      debugPrint('[ListenCount] ⏭️ skip — already reported for $trackId');
+      return;
+    }
+    if (_maxListenedSeconds <= 0) {
+      debugPrint('[ListenCount] ⏭️ skip — _maxListenedSeconds=0 for $trackId');
+      return;
+    }
 
+    debugPrint(
+      '[ListenCount] 📤 finalizing trackId=$trackId, '
+      'listenedDuration=${_maxListenedSeconds}s, sessionId=$_currentListenSessionId',
+    );
     _lastListenCountReportedTrackId = trackId;
     _sendListenCountRequest(
       trackId: trackId,
@@ -743,9 +824,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }) async {
     try {
       final String? accessToken = await _storage.read(key: 'access_token');
-      if (accessToken == null || accessToken.trim().isEmpty) return;
-      await _httpClient.patch(
-        Uri.parse('${ApiServices().baseUrl}/api/tracks/v2/listen'),
+      if (accessToken == null || accessToken.trim().isEmpty) {
+        debugPrint('[ListenCount] ❌ no access token — skipping');
+        return;
+      }
+      final url = '${ApiServices().baseUrl}/api/tracks/v2/listen';
+      debugPrint(
+        '[ListenCount] PATCH $url body={trackId:$trackId, '
+        'listenedDuration:$listenedDuration, sessionIdPlay:$sessionId}',
+      );
+      final response = await _httpClient.patch(
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -757,7 +846,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
           'sessionIdPlay': sessionId,
         }),
       );
-    } catch (_) {}
+      debugPrint(
+        '[ListenCount] ← ${response.statusCode} body=${response.body}',
+      );
+    } catch (error) {
+      debugPrint('[ListenCount] ❌ network error: $error');
+    }
   }
 
   void toggleShuffle() {

@@ -268,7 +268,9 @@ class _MiniPlayerCard extends StatelessWidget {
                         isAdPlaying
                             ? '$adRemainingSeconds s remaining'
                             : isBlocked
-                            ? 'Not available'
+                            ? (track.isAvailableForUser
+                                ? 'Not available'
+                                : 'Not available in your region')
                             : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -516,6 +518,45 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                       ),
                                     ),
                                   ),
+                                  if (track.mobileProPreview &&
+                                      track.accessState ==
+                                          PlaybackAccessState.preview) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.proBadgePurple
+                                            .withValues(alpha: 0.22),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: AppColors.proBadgePurple,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.lock_outline_rounded,
+                                            color: AppColors.proBadgePurple,
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Pro preview · ${track.effectivePreviewDuration.inSeconds}s · Upgrade for full track',
+                                            style: TextStyle(
+                                              color: AppColors.whiteSmoke,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -818,7 +859,9 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
                 ),
                 SizedBox(width: 8),
                 Text(
-                  'Not available',
+                  (_globalPlayer.state.currentTrack?.isAvailableForUser ?? true)
+                      ? 'Not available'
+                      : 'Not available in your region',
                   style: TextStyle(
                     color: AppColors.white54,
                     fontSize: 15,
@@ -3147,18 +3190,12 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
     final artistId = widget.track.artistId;
     if (artistId == null || artistId.isEmpty) return;
     try {
-      final token = await AuthApiService().getStoredAccessToken();
-      if (token == null || !mounted) return;
       final userId = await AuthApiService().getStoredUserId();
-      final profile = await UserProfileService().getUserProfile(
-        artistId,
-        token,
-      );
       if (!mounted) return;
-      setState(() {
-        _currentUserId = userId;
-        _isFollowing = profile.isFollowed;
-      });
+      setState(() => _currentUserId = userId);
+      final isFollowing = await ProfileNavigator.checkIsFollowing(artistId);
+      if (!mounted) return;
+      setState(() => _isFollowing = isFollowing);
     } catch (_) {}
   }
 

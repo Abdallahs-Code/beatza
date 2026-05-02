@@ -507,6 +507,9 @@ class HistoryTrackTile extends StatelessWidget {
     }
 
     if (_isPreview) {
+      if (track.mobileProPreview) {
+        return 'Pro preview · ${track.effectivePreviewDuration.inSeconds} sec · Upgrade to listen full';
+      }
       return 'Preview only · ${track.effectivePreviewDuration.inSeconds} sec';
     }
 

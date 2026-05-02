@@ -37,6 +37,19 @@ class PlaybackTrackApiService {
     );
 
     debugPrint('[PlaybackTrackApiService] GET $url → ${response.statusCode}');
+    if (response.statusCode == 403) {
+      debugPrint('[PlaybackTrackApiService] ⚠️ 403 for $trackId — returning blocked track');
+      return [
+        PlaybackTrackModel(
+          id: trackId,
+          title: 'Restricted Track',
+          artistName: '',
+          accessState: PlaybackAccessState.blocked,
+          isAvailableForUser: false,
+          blockedReason: 'This track is not available in your region.',
+        ),
+      ];
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       debugPrint('[PlaybackTrackApiService] ❌ body: ${response.body}');
       throw Exception(
@@ -112,6 +125,11 @@ class PlaybackTrackApiService {
     debugPrint('[getTrackStats] Response Headers: ${response.headers}');
     debugPrint('[getTrackStats] Response Body Length: ${response.body.length}');
     
+    if (response.statusCode == 403) {
+      debugPrint('[getTrackStats] ⚠️ Track stats are private — returning empty private model');
+      return TrackStatsModel.private();
+    }
+
     if (response.statusCode < 200 || response.statusCode >= 300) {
       debugPrint('[getTrackStats] ❌ ERROR: Failed to fetch stats');
       debugPrint('[getTrackStats] Error Body: ${response.body}');
@@ -156,8 +174,18 @@ class PlaybackTrackApiService {
     debugPrint('[getTrackStats] ✅ SUCCESS: Parsing TrackStatsModel');
     final stats = TrackStatsModel.fromJson(data);
     debugPrint('[getTrackStats] ✅ Parsed - topFans: ${stats.topFans.length}, firstFans: ${stats.firstFans.length}');
+
+    // Help diagnose privacy-vs-empty: server returned 200 but lists are empty.
+    // This commonly means every fan in this track has `showFirstTopFan = false`.
+    if (stats.topFans.isEmpty && stats.firstFans.isEmpty) {
+      debugPrint(
+        '[getTrackStats] ⚠️ Lists are empty (server returned 200, NOT private). '
+        'Most likely every fan has showFirstTopFan=false, OR no listens have '
+        'been registered yet. Track owner has NOT disabled stats.',
+      );
+    }
     debugPrint('━━━ [getTrackStats] END ━━━');
-    
+
     return stats;
   }
 

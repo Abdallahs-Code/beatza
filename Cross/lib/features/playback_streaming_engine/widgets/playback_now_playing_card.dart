@@ -173,7 +173,7 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
             children: [
               _StatusChip(label: _buildStatusLabel(widget.state.status)),
               if (track != null)
-                _StatusChip(label: _buildAccessLabel(track.accessState)),
+                _StatusChip(label: _buildAccessLabel(track)),
               if (widget.state.message != null &&
                   widget.state.message!.trim().isNotEmpty)
                 _StatusChip(label: widget.state.message!, highlighted: true),
@@ -316,10 +316,11 @@ class _PlaybackNowPlayingCardState extends State<PlaybackNowPlayingCard> {
     };
   }
 
-  String _buildAccessLabel(PlaybackAccessState accessState) {
-    return switch (accessState) {
+  String _buildAccessLabel(PlaybackTrackModel track) {
+    return switch (track.accessState) {
       PlaybackAccessState.playable => 'Full track',
-      PlaybackAccessState.preview => 'Preview only',
+      PlaybackAccessState.preview =>
+        track.mobileProPreview ? 'Pro preview' : 'Preview only',
       PlaybackAccessState.blocked => 'Not playable',
     };
   }

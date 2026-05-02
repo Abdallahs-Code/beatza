@@ -143,7 +143,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     try {
       final token = await AuthApiService().getStoredAccessToken();
       if (token == null || !mounted) return;
-      final profile = await UserProfileService().getUserProfile(ownerId, token);
+      final profileFuture = UserProfileService().getUserProfile(ownerId, token);
+      final followFuture = ProfileNavigator.checkIsFollowing(ownerId);
+      final profile = await profileFuture;
+      final isFollowed = await followFuture;
       if (!mounted) return;
       setState(() {
         _ownerDisplayName = profile.displayName.trim().isEmpty
@@ -156,7 +159,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
         _ownerCountry = profile.country.trim().isEmpty
             ? null
             : profile.country.trim();
-        _ownerIsFollowed = profile.isFollowed;
+        _ownerIsFollowed = isFollowed;
       });
     } catch (_) {}
   }
@@ -433,23 +436,31 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   Widget _buildBody() {
     final track = _track!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTrackCard(track),
-          _buildActorRow(),
-          _buildActionRow(),
-          if (track.tags.isNotEmpty) _buildTags(track.tags),
-          Divider(color: AppColors.containerMid, height: 1),
-          const SizedBox(height: 16),
-          _buildArtistCard(track),
-          const SizedBox(height: 24),
-          _buildFanLeaderboard(),
-          const SizedBox(height: 24),
-          _buildInPlaylists(),
-        ],
+    return RefreshIndicator(
+      color: AppColors.primaryOrange,
+      onRefresh: () async {
+        debugPrint('[BehindTheTrack] Pull-to-refresh triggered');
+        await _loadTrack();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTrackCard(track),
+            _buildActorRow(),
+            _buildActionRow(),
+            if (track.tags.isNotEmpty) _buildTags(track.tags),
+            Divider(color: AppColors.containerMid, height: 1),
+            const SizedBox(height: 16),
+            _buildArtistCard(track),
+            const SizedBox(height: 24),
+            _buildFanLeaderboard(),
+            const SizedBox(height: 24),
+            _buildInPlaylists(),
+          ],
+        ),
       ),
     );
   }
@@ -483,30 +494,67 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   }
 
   Widget _buildFanLeaderboard() {
-    debugPrint('━━━ [_buildFanLeaderboard] START ━━━');
-
     final stats = _trackStats;
-    debugPrint('[_buildFanLeaderboard] _trackStats is null: ${stats == null}');
+    if (stats == null) return const SizedBox.shrink();
 
-    if (stats == null) {
-      debugPrint('[_buildFanLeaderboard] ⚠️ No stats available - returning empty widget');
-      debugPrint('━━━ [_buildFanLeaderboard] END (no stats) ━━━');
-      return const SizedBox.shrink();
+    if (stats.isStatsPrivate) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Fan leaderboard',
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.white54,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.white54,
+                    size: 28,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'The track owner has disabled the fan leaderboard for this track.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.white70,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     final fans = _showTopFans ? stats.topFans : stats.firstFans;
-    debugPrint('[_buildFanLeaderboard] Showing: ${_showTopFans ? "Top Fans" : "First Fans"}');
-    debugPrint('[_buildFanLeaderboard] Fan count: ${fans.length}');
-
-    if (fans.isEmpty) {
-      debugPrint('[_buildFanLeaderboard] ⚠️ No fans in this category');
-      debugPrint('[_buildFanLeaderboard] topFans total: ${stats.topFans.length}');
-      debugPrint('[_buildFanLeaderboard] firstFans total: ${stats.firstFans.length}');
-    } else {
-      debugPrint('[_buildFanLeaderboard] First fan: ${fans.first.displayName} (${fans.first.totalNumberOfPlay} plays)');
-    }
-
-    debugPrint('━━━ [_buildFanLeaderboard] END ━━━');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -618,21 +666,26 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 ),
                 if (fans.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                     child: Column(
                       children: [
-                         Text(
-                          'No fans yet',
-                          style: TextStyle(color: AppColors.white54, fontSize: 14),
+                        Icon(
+                          Icons.people_outline_rounded,
+                          color: AppColors.white54,
+                          size: 28,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
-                          'Total topFans: ${stats.topFans.length}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          _showTopFans ? 'No top fans yet' : 'No early fans yet',
+                          style: TextStyle(color: AppColors.white70, fontSize: 14, fontWeight: FontWeight.w500),
                         ),
+                        const SizedBox(height: 4),
                         Text(
-                          'Total firstFans: ${stats.firstFans.length}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          _showTopFans
+                              ? 'Listen to this track to be the first to appear here.'
+                              : 'No one has played this track in its first week yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.white54, fontSize: 12, height: 1.4),
                         ),
                       ],
                     ),
@@ -641,7 +694,6 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   ...fans.asMap().entries.map((e) {
                     final idx = e.key;
                     final fan = e.value;
-                    debugPrint('[_buildFanLeaderboard] Rendering fan #$idx: ${fan.displayName} - ${fan.totalNumberOfPlay} plays');
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
                       child: Row(
@@ -667,7 +719,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                                       width: 36,
                                       height: 36,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
+                                      errorBuilder: (_, __, e) => Container(
                                         width: 36,
                                         height: 36,
                                         color: AppColors.tileDark5,
