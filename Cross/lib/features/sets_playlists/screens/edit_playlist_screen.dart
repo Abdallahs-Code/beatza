@@ -138,41 +138,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
     }
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) newIndex--;
-    final track = _tracks[oldIndex];
-    setState(() {
-      _tracks.removeAt(oldIndex);
-      _tracks.insert(newIndex, track);
-    });
-    _service.reorderTrack(
-      playlistId: widget.playlist.id,
-      trackId: track.id,
-      oldPosition: oldIndex,
-      newPosition: newIndex,
-    );
-  }
-
-  Future<void> _removeTrack(PlaylistTrack track) async {
-    final index = _tracks.indexOf(track);
-    setState(() => _tracks.remove(track));
-
-    final (code, _) = await _service.removeTrackFromPlaylist(
-      playlistId: widget.playlist.id,
-      trackId: track.id,
-    );
-
-    if (!mounted) return;
-    if (code != 200) {
-      setState(() => _tracks.insert(index, track));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Failed to remove track'),
-            backgroundColor: Colors.red),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
