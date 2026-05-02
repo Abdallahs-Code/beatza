@@ -1,6 +1,7 @@
 // Screen: EditPlaylistScreen
-// Allows the owner to update playlist metadata (API #3).
-// Supports title, description, genre, type (public/private), image.
+// Two tabs: Tracks (drag-to-reorder, remove) and Details (metadata form).
+// Reordering and removal persist immediately via the API.
+// Save button in AppBar applies only to the Details form fields.
 
 import 'dart:io';
 
@@ -10,23 +11,33 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
+import 'package:cross_team5/features/sets_playlists/widgets/playlist_track_tile.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlaylistModel playlist;
+  final List<PlaylistTrack> tracks;
 
-  const EditPlaylistScreen({super.key, required this.playlist});
+  const EditPlaylistScreen({
+    super.key,
+    required this.playlist,
+    this.tracks = const [],
+  });
 
   @override
   State<EditPlaylistScreen> createState() => _EditPlaylistScreenState();
 }
 
-class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
+class _EditPlaylistScreenState extends State<EditPlaylistScreen>
+    with SingleTickerProviderStateMixin {
   final PlaylistApiService _service = PlaylistApiService();
   final _formKey = GlobalKey<FormState>();
+  late final TabController _tabController;
 
   late final TextEditingController _titleController;
   late final TextEditingController _descController;
   late final TextEditingController _genreController;
+
+  late List<PlaylistTrack> _tracks;
 
   bool _isPrivate = false;
   bool _isSaving = false;
@@ -35,6 +46,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tracks = List.from(widget.tracks);
+
     final p = widget.playlist;
     _titleController = TextEditingController(text: p.title);
     _descController = TextEditingController(text: p.description);
@@ -44,6 +58,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _titleController.dispose();
     _descController.dispose();
     _genreController.dispose();
@@ -52,10 +67,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
@@ -71,11 +84,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       title: _titleController.text.trim(),
       description: _descController.text.trim(),
       genre: _genreController.text.trim(),
-      type: _isPrivate ? 'private' : 'public',
+      isPrivate: _isPrivate,
       imagePath: _pickedImage?.path,
     );
-
-    debugPrint("PUT /api/playlists/v1/${widget.playlist.id} -> $statusCode");
 
     if (!mounted) return;
     setState(() => _isSaving = false);
@@ -92,6 +103,41 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     }
   }
 
+  void _onReorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex--;
+    final track = _tracks[oldIndex];
+    setState(() {
+      _tracks.removeAt(oldIndex);
+      _tracks.insert(newIndex, track);
+    });
+    _service.reorderTrack(
+      playlistId: widget.playlist.id,
+      trackId: track.id,
+      oldPosition: oldIndex,
+      newPosition: newIndex,
+    );
+  }
+
+  Future<void> _removeTrack(PlaylistTrack track) async {
+    final index = _tracks.indexOf(track);
+    setState(() => _tracks.remove(track));
+
+    final (code, _) = await _service.removeTrackFromPlaylist(
+      playlistId: widget.playlist.id,
+      trackId: track.id,
+    );
+
+    if (!mounted) return;
+    if (code != 200) {
+      setState(() => _tracks.insert(index, track));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Failed to remove track'),
+            backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,15 +146,13 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
         backgroundColor: AppColors.pureBlack,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.close, color: AppColors.whiteSmoke),
+          icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Edit Playlist',
-          style: TextStyle(
-            color: AppColors.whiteSmoke,
-            fontWeight: FontWeight.w700,
-          ),
+          style:
+              TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
         ),
         actions: [
           TextButton(
@@ -118,9 +162,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.crusta,
-                    ),
+                        strokeWidth: 2, color: AppColors.crusta),
                   )
                 : const Text(
                     'Save',
@@ -131,134 +173,172 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   ),
           ),
         ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            // Image picker
-            Center(
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: _pickedImage != null
-                          ? Image.file(
-                              _pickedImage!,
-                              width: 160,
-                              height: 160,
-                              fit: BoxFit.cover,
-                            )
-                          : (widget.playlist.image?.imgLink.isNotEmpty == true
-                                ? Image.network(
-                                    widget.playlist.image!.imgLink,
-                                    width: 160,
-                                    height: 160,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) =>
-                                        _placeholderArt(),
-                                  )
-                                : _placeholderArt()),
-                    ),
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.crusta,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: AppColors.whiteSmoke,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton(
-                onPressed: _pickImage,
-                child: const Text(
-                  'Change Image',
-                  style: TextStyle(color: AppColors.crusta),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Title
-            _buildLabel('Title *'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _titleController,
-              style: TextStyle(color: AppColors.whiteSmoke),
-              decoration: _inputDecoration('Playlist title'),
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Title is required' : null,
-            ),
-            const SizedBox(height: 20),
-
-            // Description
-            _buildLabel('Description'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _descController,
-              style: TextStyle(color: AppColors.whiteSmoke),
-              decoration: _inputDecoration('Optional description'),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 20),
-
-            // Genre
-            _buildLabel('Genre'),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _genreController,
-              style: TextStyle(color: AppColors.whiteSmoke),
-              decoration: _inputDecoration('e.g. Electronic, Hip-Hop'),
-            ),
-            const SizedBox(height: 24),
-
-            // Privacy toggle
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Private playlist',
-                      style: TextStyle(
-                        color: AppColors.whiteSmoke,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Only you can see this playlist',
-                      style: TextStyle(color: AppColors.white54, fontSize: 12),
-                    ),
-                  ],
-                ),
-                Switch(
-                  value: _isPrivate,
-                  onChanged: (v) => setState(() => _isPrivate = v),
-                  activeThumbColor: AppColors.crusta,
-                ),
-              ],
-            ),
-            const SizedBox(height: 40),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppColors.crusta,
+          unselectedLabelColor: Colors.white54,
+          indicatorColor: AppColors.crusta,
+          tabs: const [
+            Tab(text: 'Tracks'),
+            Tab(text: 'Details'),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildTracksTab(),
+          _buildDetailsTab(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTracksTab() {
+    if (_tracks.isEmpty) {
+      return const Center(
+        child: Text(
+          'No tracks yet.\nAdd music from the playlist screen.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white54, fontSize: 14),
+        ),
+      );
+    }
+
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _tracks.length,
+      itemBuilder: (context, index) {
+        final track = _tracks[index];
+        return Padding(
+          key: ValueKey(track.id),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+          child: PlaylistTrackTile(
+            track: track,
+            showDragHandle: true,
+            onRemove: () => _removeTrack(track),
+          ),
+        );
+      },
+      onReorder: _onReorder,
+      proxyDecorator: (child, index, animation) => Material(
+        color: Colors.transparent,
+        elevation: 4,
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildDetailsTab() {
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          // Image picker
+          Center(
+            child: GestureDetector(
+              onTap: _pickImage,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _pickedImage != null
+                        ? Image.file(_pickedImage!,
+                            width: 160, height: 160, fit: BoxFit.cover)
+                        : (widget.playlist.image?.imgLink.isNotEmpty == true
+                            ? Image.network(
+                                widget.playlist.image!.imgLink,
+                                width: 160,
+                                height: 160,
+                                fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, st) =>
+                                    _placeholderArt(),
+                              )
+                            : _placeholderArt()),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.crusta,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(Icons.camera_alt,
+                          color: Colors.white, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: _pickImage,
+              child: const Text('Change Image',
+                  style: TextStyle(color: AppColors.crusta)),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          _buildLabel('Title *'),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _titleController,
+            style: const TextStyle(color: Colors.white),
+            decoration: _inputDecoration('Playlist title'),
+            validator: (v) =>
+                v == null || v.trim().isEmpty ? 'Title is required' : null,
+          ),
+          const SizedBox(height: 20),
+
+          _buildLabel('Description'),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _descController,
+            style: const TextStyle(color: Colors.white),
+            decoration: _inputDecoration('Optional description'),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 20),
+
+          _buildLabel('Genre'),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _genreController,
+            style: const TextStyle(color: Colors.white),
+            decoration: _inputDecoration('e.g. Electronic, Hip-Hop'),
+          ),
+          const SizedBox(height: 24),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Private playlist',
+                      style:
+                          TextStyle(color: Colors.white, fontSize: 15)),
+                  SizedBox(height: 2),
+                  Text('Only you can see this playlist',
+                      style: TextStyle(
+                          color: Colors.white54, fontSize: 12)),
+                ],
+              ),
+              Switch(
+                value: _isPrivate,
+                onChanged: (v) => setState(() => _isPrivate = v),
+                activeThumbColor: AppColors.crusta,
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
@@ -266,8 +346,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: TextStyle(
-        color: AppColors.white70,
+      style: const TextStyle(
+        color: Colors.white70,
         fontSize: 13,
         fontWeight: FontWeight.w600,
       ),
@@ -277,7 +357,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: AppColors.white54),
+      hintStyle: const TextStyle(color: Colors.white38),
       filled: true,
       fillColor: AppColors.cardDark,
       border: OutlineInputBorder(
@@ -286,7 +366,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: AppColors.crusta),
+        borderSide: const BorderSide(color: AppColors.crusta),
       ),
     );
   }
@@ -296,7 +376,8 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       width: 160,
       height: 160,
       color: AppColors.cardDark,
-      child: Icon(Icons.queue_music, color: AppColors.white24, size: 60),
+      child:
+          const Icon(Icons.queue_music, color: Colors.white24, size: 60),
     );
   }
 }

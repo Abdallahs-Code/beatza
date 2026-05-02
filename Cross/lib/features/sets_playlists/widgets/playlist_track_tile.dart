@@ -1,6 +1,7 @@
 // Widget: PlaylistTrackTile
-// Displays a single track inside the PlaylistDetailScreen.
-// Supports drag handle (for reordering) and remove action (for owner).
+// Displays a single track inside PlaylistDetailScreen or EditPlaylistScreen.
+// showOptions → ⋮ button opens a sheet with "Add to playlist" / "Remove from playlist".
+// showDragHandle → drag handle for the reorderable list in EditPlaylistScreen.
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -9,14 +10,18 @@ import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 class PlaylistTrackTile extends StatelessWidget {
   final PlaylistTrack track;
   final bool showDragHandle;
+  final bool showOptions;
   final VoidCallback? onRemove;
+  final VoidCallback? onAddToPlaylist;
   final VoidCallback? onTap;
 
   const PlaylistTrackTile({
     super.key,
     required this.track,
     this.showDragHandle = false,
+    this.showOptions = false,
     this.onRemove,
+    this.onAddToPlaylist,
     this.onTap,
   });
 
@@ -24,6 +29,116 @@ class PlaylistTrackTile extends StatelessWidget {
     final m = seconds ~/ 60;
     final s = seconds % 60;
     return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  void _showTrackOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 4),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            // Track header
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: track.imageUrl != null &&
+                            track.imageUrl!.isNotEmpty
+                        ? Image.network(
+                            track.imageUrl!,
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, st) =>
+                                _placeholder(44),
+                          )
+                        : _placeholder(44),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          track.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          track.displayArtist,
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(color: AppColors.borderDark, height: 1),
+            if (onAddToPlaylist != null)
+              ListTile(
+                leading: const Icon(Icons.playlist_add, color: Colors.white),
+                title: const Text(
+                  'Add to playlist',
+                  style: TextStyle(color: Colors.white, fontSize: 15),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  onAddToPlaylist!();
+                },
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20),
+                dense: true,
+              ),
+            if (onRemove != null)
+              ListTile(
+                leading: const Icon(Icons.remove_circle_outline,
+                    color: Colors.red),
+                title: const Text(
+                  'Remove from playlist',
+                  style: TextStyle(color: Colors.red, fontSize: 15),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetCtx);
+                  onRemove!();
+                },
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20),
+                dense: true,
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -38,18 +153,13 @@ class PlaylistTrackTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            // Drag handle
             if (showDragHandle)
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(right: 10),
-                child: Icon(
-                  Icons.drag_handle,
-                  color: AppColors.white54,
-                  size: 20,
-                ),
+                child: Icon(Icons.drag_handle,
+                    color: Colors.white38, size: 20),
               ),
 
-            // Track thumbnail
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: track.imageUrl != null && track.imageUrl!.isNotEmpty
@@ -58,21 +168,20 @@ class PlaylistTrackTile extends StatelessWidget {
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _placeholder(),
+                      errorBuilder: (ctx, err, st) => _placeholder(48),
                     )
-                  : _placeholder(),
+                  : _placeholder(48),
             ),
             const SizedBox(width: 12),
 
-            // Title + artist
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     track.title,
-                    style: TextStyle(
-                      color: AppColors.whiteSmoke,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -82,7 +191,8 @@ class PlaylistTrackTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     track.displayArtist,
-                    style: TextStyle(color: AppColors.white54, fontSize: 12),
+                    style:
+                        const TextStyle(color: Colors.white54, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -90,20 +200,25 @@ class PlaylistTrackTile extends StatelessWidget {
               ),
             ),
 
-            // Duration
             Text(
               _formatDuration(track.durationInSeconds),
-              style: TextStyle(color: AppColors.white54, fontSize: 12),
+              style:
+                  const TextStyle(color: Colors.white38, fontSize: 12),
             ),
 
-            // Remove button (owner only)
-            if (onRemove != null)
+            // ⋮ options button (detail view) OR inline remove button (edit view)
+            if (showOptions)
               IconButton(
-                icon: const Icon(
-                  Icons.remove_circle_outline,
-                  color: Colors.red,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.more_vert,
+                    color: Colors.white38, size: 20),
+                onPressed: () => _showTrackOptions(context),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32),
+              )
+            else if (onRemove != null)
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline,
+                    color: Colors.red, size: 20),
                 onPressed: onRemove,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32),
@@ -114,12 +229,12 @@ class PlaylistTrackTile extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder([double size = 48]) {
     return Container(
-      width: 48,
-      height: 48,
+      width: size,
+      height: size,
       color: AppColors.tileDark,
-      child: Icon(Icons.music_note, color: AppColors.white24, size: 20),
+      child: const Icon(Icons.music_note, color: Colors.white24, size: 20),
     );
   }
 }

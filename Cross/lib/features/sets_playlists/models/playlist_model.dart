@@ -1,10 +1,9 @@
 // Model: PlaylistModel
 // Represents a playlist returned from the backend API.
-// Supports both full playlist responses (with tracks) and list responses (without tracks).
 //
 // API response shape (full — with tracks):
 //   _id, artistId, title, description, genre, listOfTracks[], additionalTags[],
-//   permalink, type, numOfLikes, numOfReposts, playlistType, playlistLengthInSeconds,
+//   permalink, isPrivate, numOfLikes, numOfReposts, playlistType, playlistLengthInSeconds,
 //   likedUser[], isLiked, isReposted, image{imgLink, publicId},
 //   createdAt, updatedAt, totalTracks, totalPages, page, tracks[]
 //
@@ -83,9 +82,9 @@ class PlaylistTrack {
       mainArtists: artists,
       audioLink: audio?['audioLink']?.toString(),
       imageUrl: image?['imgLink']?.toString(),
-      durationInSeconds: json['durationInSeconds'] as int? ?? 0,
-      numOfPlays: json['numOfPlays'] as int? ?? 0,
-      numOfLikes: json['numOfLikes'] as int? ?? 0,
+      durationInSeconds: (json['durationInSeconds'] as num?)?.toInt() ?? 0,
+      numOfPlays: (json['numOfPlays'] as num?)?.toInt() ?? 0,
+      numOfLikes: (json['numOfLikes'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       isReposted: json['isReposted'] as bool? ?? false,
     );
@@ -101,7 +100,7 @@ class PlaylistModel {
   final List<String> listOfTracks;
   final List<String> additionalTags;
   final String permalink;
-  final String type; // 'public' | 'private'
+  final bool isPrivate;
   final int numOfLikes;
   final int numOfReposts;
   final String playlistType; // 'playlist' | 'album'
@@ -128,7 +127,7 @@ class PlaylistModel {
     required this.listOfTracks,
     required this.additionalTags,
     required this.permalink,
-    required this.type,
+    required this.isPrivate,
     required this.numOfLikes,
     required this.numOfReposts,
     required this.playlistType,
@@ -145,12 +144,22 @@ class PlaylistModel {
     this.tracks = const [],
   });
 
-  bool get isPrivate => type == 'private';
   bool get isAlbum => playlistType == 'album';
+
+  int get trackCount => totalTracks ?? listOfTracks.length;
 
   factory PlaylistModel.fromJson(Map<String, dynamic> json) {
     final imageJson = json['image'] as Map<String, dynamic>?;
     final tracksRaw = json['tracks'] as List<dynamic>? ?? [];
+
+    // API returns isPrivate: boolean directly.
+    // Some responses may use type: 'private'/'public' as fallback.
+    bool parseIsPrivate() {
+      final direct = json['isPrivate'];
+      if (direct is bool) return direct;
+      final type = json['type']?.toString() ?? '';
+      return type == 'private';
+    }
 
     return PlaylistModel(
       id: json['_id']?.toString() ?? '',
@@ -165,14 +174,12 @@ class PlaylistModel {
           .map((e) => e.toString())
           .toList(),
       permalink: json['permalink']?.toString() ?? '',
-      // Some endpoints return `isPrivate` boolean instead of `type` string.
-      type:
-          json['type']?.toString() ??
-          (json['isPrivate'] == true ? 'private' : 'public'),
-      numOfLikes: json['numOfLikes'] as int? ?? 0,
-      numOfReposts: json['numOfReposts'] as int? ?? 0,
+      isPrivate: parseIsPrivate(),
+      numOfLikes: (json['numOfLikes'] as num?)?.toInt() ?? 0,
+      numOfReposts: (json['numOfReposts'] as num?)?.toInt() ?? 0,
       playlistType: json['playlistType']?.toString() ?? 'playlist',
-      playlistLengthInSeconds: json['playlistLengthInSeconds'] as int? ?? 0,
+      playlistLengthInSeconds:
+          (json['playlistLengthInSeconds'] as num?)?.toInt() ?? 0,
       likedUser: (json['likedUser'] as List<dynamic>? ?? [])
           .map((e) => e.toString())
           .toList(),
@@ -181,9 +188,9 @@ class PlaylistModel {
       image: imageJson != null ? PlaylistImage.fromJson(imageJson) : null,
       createdAt: json['createdAt']?.toString() ?? '',
       updatedAt: json['updatedAt']?.toString() ?? '',
-      totalTracks: json['totalTracks'] as int?,
-      totalPages: json['totalPages'] as int?,
-      page: json['page'] as int?,
+      totalTracks: (json['totalTracks'] as num?)?.toInt(),
+      totalPages: (json['totalPages'] as num?)?.toInt(),
+      page: (json['page'] as num?)?.toInt(),
       tracks: tracksRaw
           .map((t) => PlaylistTrack.fromJson(t as Map<String, dynamic>))
           .toList(),
