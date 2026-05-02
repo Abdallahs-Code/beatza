@@ -72,7 +72,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Beatza',
       navigatorKey: appNavigatorKey,
-      navigatorObservers: [appOverlayRouteObserver],
+      navigatorObservers: [appOverlayRouteObserver, appRouteObserver],
       debugShowCheckedModeBanner: false,
 
       // ── Theme Configuration ────────────────────────────────────────────────

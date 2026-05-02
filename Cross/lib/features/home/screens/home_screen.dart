@@ -10,6 +10,7 @@ import 'package:cross_team5/features/playback_streaming_engine/services/playback
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
 import 'package:cross_team5/core/navigation/notification_navigation_service.dart';
+import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/features/activity/services/push_notification_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
@@ -27,7 +28,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, RouteAware {
   final PublicTracksPagingService _publicTracksPagingService =
       PublicTracksPagingService.shared;
   final PublicTracksApiService _quickPicksApiService = PublicTracksApiService();
@@ -42,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ActivityNotificationsController.shared.initialize();
     ActivityNotificationsController.shared.reconnectIfNeeded();
     MessagingNotificationService.shared.initialize();
-    _publicTracksPagingService.loadInitial(limit: 20);
+    _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
     _loadQuickPickTracks();
     _loadDisplayName();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -57,13 +59,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeDependencies() {
     super.didChangeDependencies();
     ActivityNotificationsController.shared.reconnectIfNeeded();
+    final route = ModalRoute.of(context);
+    if (route != null) appRouteObserver.subscribe(this, route);
   }
 
   @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _quickPicksApiService.dispose();
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
   }
 
   Future<void> _loadDisplayName() async {
@@ -532,7 +542,9 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? accessLabel = _isBlocked
-        ? 'Not available'
+        ? (track.isAvailableForUser
+            ? 'Not available'
+            : 'Not available in your region')
         : _isPreview
         ? 'Preview · ${track.effectivePreviewDuration.inSeconds}s'
         : null;

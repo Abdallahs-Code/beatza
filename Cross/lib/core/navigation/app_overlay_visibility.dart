@@ -161,3 +161,6 @@ bool _isMiniPlayerHiddenRoute(String? routeName) {
 
 final AppOverlayRouteObserver appOverlayRouteObserver =
     AppOverlayRouteObserver();
+
+final RouteObserver<ModalRoute<void>> appRouteObserver =
+    RouteObserver<ModalRoute<void>>();

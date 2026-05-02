@@ -268,7 +268,9 @@ class _MiniPlayerCard extends StatelessWidget {
                         isAdPlaying
                             ? '$adRemainingSeconds s remaining'
                             : isBlocked
-                            ? 'Not available'
+                            ? (track.isAvailableForUser
+                                ? 'Not available'
+                                : 'Not available in your region')
                             : track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -818,7 +820,9 @@ class _ExpandedPlaybackButtonsState extends State<_ExpandedPlaybackButtons> {
                 ),
                 SizedBox(width: 8),
                 Text(
-                  'Not available',
+                  (_globalPlayer.state.currentTrack?.isAvailableForUser ?? true)
+                      ? 'Not available'
+                      : 'Not available in your region',
                   style: TextStyle(
                     color: AppColors.white54,
                     fontSize: 15,
