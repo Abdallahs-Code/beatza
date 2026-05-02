@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import '../services/payment_service.dart';
 import '../widgets/payment_checkout_sheet.dart';
@@ -202,6 +204,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     if (_isLoadingPlans) {
       return Scaffold(
         backgroundColor: AppColors.pureBlack,

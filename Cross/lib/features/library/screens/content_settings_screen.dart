@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/models/content_settings_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/library/services/content_settings_api_service.dart';
 
 class ContentSettingsScreen extends StatefulWidget {
@@ -222,6 +224,7 @@ class _ContentSettingsScreenState extends State<ContentSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(

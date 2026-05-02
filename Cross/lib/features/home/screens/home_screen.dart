@@ -14,6 +14,8 @@ import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/features/activity/services/push_notification_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 import 'package:cross_team5/features/feed_search_discovery/services/feed_search_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
@@ -170,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       appBar: AppBar(

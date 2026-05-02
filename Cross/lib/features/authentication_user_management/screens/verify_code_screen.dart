@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
@@ -164,6 +166,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     // final displayedEmail =
     //     (widget.email != null && widget.email!.trim().isNotEmpty)
     //         ? widget.email!.trim()

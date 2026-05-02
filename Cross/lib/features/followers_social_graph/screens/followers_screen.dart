@@ -8,6 +8,8 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class FollowersScreen extends StatefulWidget {
@@ -312,6 +314,7 @@ class _FollowersScreenState extends State<FollowersScreen> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Followers'),

@@ -4,6 +4,8 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/widgets/user_tile.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class TrueFriendsScreen extends StatefulWidget {
@@ -214,6 +216,7 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your true friends'),

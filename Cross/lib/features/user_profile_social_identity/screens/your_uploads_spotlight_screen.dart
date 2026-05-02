@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../models/spotlight_models.dart';
 
 class YourUploadsSpotlightScreen extends StatefulWidget {
@@ -185,6 +187,7 @@ class _YourUploadsSpotlightScreenState
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return DefaultTabController(
       length: 3,
       child: Scaffold(

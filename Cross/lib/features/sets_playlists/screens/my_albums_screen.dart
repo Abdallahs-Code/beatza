@@ -4,6 +4,8 @@ import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/album_detail_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_card.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class MyAlbumsScreen extends StatefulWidget {
@@ -73,6 +75,7 @@ class _MyAlbumsScreenState extends State<MyAlbumsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(

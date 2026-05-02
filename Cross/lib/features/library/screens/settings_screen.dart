@@ -7,6 +7,8 @@ import 'package:cross_team5/features/library/screens/privacy_settings_screen.dar
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../../premium_subscription/services/payment_service.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -272,6 +274,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(
