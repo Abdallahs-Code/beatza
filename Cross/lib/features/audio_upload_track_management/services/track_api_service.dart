@@ -15,7 +15,7 @@ class TrackApiService {
 
   late final String _authBase1;
   late final String _authBase2;
-  late final String _publicV2V2Base;
+  late final String _publicV2Base;
   late final String _playbackBase;
 
   TrackApiService({
