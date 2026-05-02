@@ -8,6 +8,7 @@ import 'package:cross_team5/features/activity/models/activity_notification_model
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
@@ -48,33 +49,6 @@ ActivityNotificationModel? _parseFromData(Map<String, dynamic> data) {
   }
 
   return null;
-}
-
-// Extracts chat-notification info from an FCM RemoteMessage if it is a
-// message-type push (backend sends `chatId` in `data`, with the receiver
-// display name baked into the notification title and the photo URL into the
-// notification image).
-({String chatId, String receiverName, String receiverPhotoUrl})?
-    _parseChatFromMessage(RemoteMessage message) {
-  final chatId = message.data['chatId'] as String?;
-  if (chatId == null || chatId.isEmpty) return null;
-
-  // Backend title format: "${displayName} Sent you a Message"
-  const suffix = ' Sent you a Message';
-  final title = message.notification?.title ?? '';
-  final receiverName = title.endsWith(suffix)
-      ? title.substring(0, title.length - suffix.length)
-      : title;
-
-  final receiverPhotoUrl = message.notification?.android?.imageUrl ??
-      message.notification?.apple?.imageUrl ??
-      '';
-
-  return (
-    chatId: chatId,
-    receiverName: receiverName,
-    receiverPhotoUrl: receiverPhotoUrl,
-  );
 }
 
 String _buildBody(ActivityNotificationModel n) {
@@ -120,6 +94,10 @@ String _buildActivityPayload(ActivityNotificationModel n) {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+
+  debugPrint(
+    '[FCM bg] title="${message.notification?.title}" data=${message.data}',
+  );
 
   if (message.notification != null) return;
 
@@ -213,24 +191,15 @@ class PushNotificationService {
 
       // Foreground FCM message → show via local notification.
       FirebaseMessaging.onMessage.listen((message) {
+        debugPrint(
+          '[FCM fg] title="${message.notification?.title}" data=${message.data}',
+        );
         final notification = _parseFromData(message.data);
         if (notification != null) show(notification);
       });
 
       // App was in BACKGROUND → user tapped the system FCM notification.
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        // Chat-message notifications first.
-        final chat = _parseChatFromMessage(message);
-        if (chat != null) {
-          unawaited(
-            NotificationNavigationService.shared.handleChatNotification(
-              chatId: chat.chatId,
-              receiverName: chat.receiverName,
-              receiverPhotoUrl: chat.receiverPhotoUrl,
-            ),
-          );
-          return;
-        }
         final notification = _parseFromData(message.data);
         if (notification != null) {
           unawaited(
@@ -281,16 +250,6 @@ class PushNotificationService {
     try {
       final initial = await FirebaseMessaging.instance.getInitialMessage();
       if (initial == null) return;
-      // Chat-message notifications first (cold start from a chat push).
-      final chat = _parseChatFromMessage(initial);
-      if (chat != null) {
-        await NotificationNavigationService.shared.handleChatNotification(
-          chatId: chat.chatId,
-          receiverName: chat.receiverName,
-          receiverPhotoUrl: chat.receiverPhotoUrl,
-        );
-        return;
-      }
       final notification = _parseFromData(initial.data);
       if (notification != null) {
         await NotificationNavigationService.shared.handleActivityNotification(
