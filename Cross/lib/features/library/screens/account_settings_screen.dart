@@ -619,7 +619,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brilliantOrange,
-                        disabledBackgroundColor: const Color(0xFF3A2A1A),
+                        disabledBackgroundColor: AppColors.datePickerDisabledBg,
                         foregroundColor: AppColors.whiteSmoke,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),

@@ -26,7 +26,7 @@ class EngagementUserTile extends StatelessWidget {
       // ── Avatar ──────────────────────────────
       leading: CircleAvatar(
         radius: 24,
-        backgroundColor: Colors.grey[800],
+        backgroundColor: AppColors.tileDark,
         backgroundImage: user.avatarUrl != null
             ? NetworkImage(user.avatarUrl!)
             : null,
@@ -57,11 +57,11 @@ class EngagementUserTile extends StatelessWidget {
       ),
       subtitle: Text(
         _formatFollowerCount(user.followersCount),
-        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+        style: TextStyle(color: AppColors.white54, fontSize: 12),
       ),
 
       // ── Chevron ──────────────────────────────
-      trailing: Icon(Icons.chevron_right, color: Colors.grey[600], size: 20),
+      trailing: Icon(Icons.chevron_right, color: AppColors.white54, size: 20),
     );
   }
 

@@ -246,7 +246,7 @@ void _showUploadMenuBottomSheet(BuildContext context, bool isPro) {
                         content: Text(
                           'Free tier limited to 3 uploads. Please upgrade to Pro.',
                         ),
-                        backgroundColor: Colors.orange,
+                        backgroundColor: AppColors.primaryOrange,
                       ),
                     );
                     nav.push(
@@ -392,7 +392,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet> {
                           borderSide: BorderSide(color: AppColors.white54),
                         ),
                         focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
+                          borderSide: BorderSide(color: AppColors.blueAccent),
                         ),
                         contentPadding: const EdgeInsets.only(bottom: 8),
                       ),

@@ -101,16 +101,16 @@ class ArtistTermsScreen extends StatelessWidget {
         backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Terms of Use',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.pureBlack,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: AppColors.pureBlack),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -154,10 +154,10 @@ class ArtistTermsScreen extends StatelessWidget {
 
             const SizedBox(height: 40),
             const Divider(),
-            const Text(
+            Text(
               'Last Amended: January 19, 2026',
               style: TextStyle(
-                color: Colors.grey,
+                color: AppColors.greyMuted,
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
               ),
@@ -174,8 +174,8 @@ class ArtistTermsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.black,
+        style:  TextStyle(
+          color: AppColors.pureBlack,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
@@ -186,7 +186,7 @@ class ArtistTermsScreen extends StatelessWidget {
   Widget _buildSectionBody(String text) {
     return Text(
       text,
-      style: const TextStyle(color: Colors.black87, fontSize: 15, height: 1.6),
+      style: TextStyle(color: AppColors.pureBlack, fontSize: 15, height: 1.6),
     );
   }
 }
@@ -201,20 +201,20 @@ class PrivacyPolicyScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.whiteSmoke,
         elevation: 1,
-        title: const Text(
+        title:  Text(
           'Privacy Policy',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.pureBlack,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: AppColors.pureBlack),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: const SingleChildScrollView(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +222,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             Text(
               'Privacy Policy',
               style: TextStyle(
-                color: Colors.black,
+                color: AppColors.pureBlack,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -231,7 +231,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             Text(
               'Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Artist Subscriptions. We ensure that all data processing is compliant with global privacy standards.',
               style: TextStyle(
-                color: Colors.black87,
+                color: AppColors.pureBlack,
                 fontSize: 15,
                 height: 1.6,
               ),

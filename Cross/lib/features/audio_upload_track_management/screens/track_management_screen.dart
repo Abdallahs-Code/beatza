@@ -124,7 +124,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.$2.toString()),
-          backgroundColor: Colors.red[800],
+          backgroundColor: AppColors.deepRed,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -174,16 +174,16 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
         ),
         content: Text(
           'Delete "${track.title}"? This cannot be undone.',
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: AppColors.greyMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: AppColors.greyMuted)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('Delete', style: TextStyle(color: AppColors.deepRed)),
           ),
         ],
       ),
@@ -212,7 +212,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.$2.toString()),
-          backgroundColor: Colors.red[800],
+          backgroundColor: AppColors.deepRed,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -261,12 +261,12 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.orange))
+          ? Center(child: CircularProgressIndicator(color: AppColors.primaryOrange))
           : _errorMessage != null
           ? _errorState()
           : RefreshIndicator(
               onRefresh: _loadTracks,
-              color: Colors.orange,
+              color: AppColors.primaryOrange,
               backgroundColor: AppColors.container,
               child: _tracks.isEmpty ? _emptyState() : _trackList(),
             ),
@@ -286,7 +286,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: CircularProgressIndicator(
-                      color: Colors.orange,
+                      color: AppColors.primaryOrange,
                       strokeWidth: 2,
                     ),
                   ),
@@ -294,9 +294,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
               : Center(
                   child: TextButton(
                     onPressed: _loadMore,
-                    child: const Text(
+                    child: Text(
                       'Load more',
-                      style: TextStyle(color: Colors.orange),
+                      style: TextStyle(color: AppColors.primaryOrange),
                     ),
                   ),
                 );
@@ -398,7 +398,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                        color: Colors.orange,
+                        color: AppColors.primaryOrange,
                         strokeWidth: 2,
                       ),
                     )
@@ -427,13 +427,13 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                   if (v == 'delete') _deleteTrack(track);
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                        Icon(Icons.delete_outline, color: AppColors.deepRed, size: 18),
                         SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: Colors.red)),
+                        Text('Delete', style: TextStyle(color: AppColors.deepRed)),
                       ],
                     ),
                   ),
@@ -453,11 +453,11 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off, color: Colors.grey[700], size: 60),
+            Icon(Icons.cloud_off, color: AppColors.greyMedium, size: 60),
             const SizedBox(height: 16),
             Text(
               _errorMessage!,
-              style: TextStyle(color: Colors.grey[400]),
+              style: TextStyle(color: AppColors.white54),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -466,7 +466,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.primaryOrange,
                 foregroundColor: AppColors.whiteSmoke,
               ),
             ),
@@ -481,11 +481,11 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_upload_outlined, color: Colors.grey[700], size: 60),
+          Icon(Icons.cloud_upload_outlined, color: AppColors.greyMedium, size: 60),
           const SizedBox(height: 16),
           Text(
             'No tracks yet',
-            style: TextStyle(color: Colors.grey[500], fontSize: 16),
+            style: TextStyle(color: AppColors.greyMuted, fontSize: 16),
           ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
@@ -494,7 +494,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
             icon: const Icon(Icons.cloud_upload_outlined),
             label: const Text('Upload first track'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: AppColors.primaryOrange,
               foregroundColor: AppColors.whiteSmoke,
             ),
           ),

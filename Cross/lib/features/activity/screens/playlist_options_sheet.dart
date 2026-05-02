@@ -309,7 +309,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                   _OptionTile(
                     icon: Icons.delete_outline,
                     label: 'Delete playlist',
-                    color: Colors.red,
+                    color: AppColors.deepRed,
                     onTap: () {
                       Navigator.of(context, rootNavigator: true).pop();
                       widget.onDelete?.call();

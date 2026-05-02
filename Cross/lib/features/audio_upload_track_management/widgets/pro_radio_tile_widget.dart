@@ -48,7 +48,7 @@ class ProRadioTile extends StatelessWidget {
                 ),
               ),
               child: selected
-                  ? const Icon(Icons.check, color: Colors.black, size: 14)
+                  ? Icon(Icons.check, color: AppColors.pureBlack, size: 14)
                   : null,
             ),
           ],

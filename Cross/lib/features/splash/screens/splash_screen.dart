@@ -120,13 +120,13 @@ class _SplashScreenState extends State<SplashScreen> {
         ? "assets/images/whitelogo.png"
         : "assets/images/blacklogo.png";
 
-    final scaffoldBg = isDark ? Colors.black : AppColors.whiteSmoke;
-    final subTextColor = isDark ? AppColors.white70 : Colors.black54;
-    final errorColor = isDark ? Colors.redAccent : Colors.red;
+    final scaffoldBg = isDark ? AppColors.pureBlack : AppColors.whiteSmoke;
+    final subTextColor = isDark ? AppColors.white70 : AppColors.black54;
+    final errorColor = AppColors.anger;
     final retryButtonBg = isDark
         ? AppColors.whiteSmoke
         : AppColors.primaryOrange;
-    final retryButtonFg = isDark ? Colors.black : AppColors.whiteSmoke;
+    final retryButtonFg = isDark ? AppColors.pureBlack : AppColors.whiteSmoke;
     final loaderColor = isDark ? AppColors.whiteSmoke : AppColors.primaryOrange;
     // ─────────────────────────────────────────────────────────────────────
 

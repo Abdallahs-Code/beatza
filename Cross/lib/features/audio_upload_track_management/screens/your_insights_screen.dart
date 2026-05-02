@@ -131,8 +131,8 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                     Container(
                       height: 350,
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.black,
+                      decoration: BoxDecoration(
+                        color: AppColors.pureBlack,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(24),
                         ),
@@ -144,14 +144,14 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                         height: 250,
                         width: 220,
                         decoration: BoxDecoration(
-                          color: Colors.orange,
+                          color: AppColors.primaryOrange,
                           border: Border.all(
-                            color: Colors.orangeAccent,
+                            color: AppColors.primaryOrangeAccent,
                             width: 4,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withValues(alpha: 0.5),
+                              color: AppColors.primaryOrange.withValues(alpha: 0.5),
                               blurRadius: 40,
                             ),
                           ],
@@ -292,7 +292,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                           child: Text(
                             'View Plans',
                             style: TextStyle(
-                              color: Colors.black,
+                              color: AppColors.pureBlack,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -710,9 +710,9 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withValues(alpha: 0.8),
+                            AppColors.pureBlack.withValues(alpha: 0.8),
                             Colors.transparent,
-                            Colors.black.withValues(alpha: 0.9),
+                            AppColors.pureBlack.withValues(alpha: 0.9),
                           ],
                         ),
                       ),
@@ -786,7 +786,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.whiteSmoke,
-                foregroundColor: Colors.black,
+                foregroundColor: AppColors.pureBlack,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -971,7 +971,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               child: Text(
                 'Upgrade to Artist Pro',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: AppColors.pureBlack,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1211,14 +1211,14 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           children: [
             Icon(
               icon,
-              color: isActive ? Colors.black : AppColors.whiteSmoke,
+              color: isActive ? AppColors.pureBlack : AppColors.whiteSmoke,
               size: 16,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isActive ? Colors.black : AppColors.whiteSmoke,
+                color: isActive ? AppColors.pureBlack : AppColors.whiteSmoke,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
               ),
@@ -1301,7 +1301,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
               style: TextStyle(
                 color: _selectedFilter == 'All time'
                     ? AppColors.whiteSmoke
-                    : Colors.black,
+                    : AppColors.pureBlack,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -1661,7 +1661,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.whiteSmoke,
-              foregroundColor: Colors.black,
+              foregroundColor: AppColors.pureBlack,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -1946,7 +1946,7 @@ class WaveformGraphicPainter extends CustomPainter {
       ..strokeWidth = 2;
 
     final fillPaint = Paint()
-      ..color = const Color(0xFF2A0055)
+      ..color = AppColors.insightsChartFill
       ..style = PaintingStyle.fill;
 
     final dotPaint = Paint()
@@ -1992,8 +1992,8 @@ class WaveformGraphicPainter extends CustomPainter {
     );
     canvas.restore();
     final wirePaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [AppColors.flashPurple, Color(0xFF4A90E2)],
+      ..shader = LinearGradient(
+        colors: [AppColors.flashPurple, AppColors.studioActionBlue],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
@@ -2072,7 +2072,7 @@ class OrangeMixerPainter extends CustomPainter {
       const Offset(42, 145),
       6,
       Paint()
-        ..color = Colors.black
+        ..color = AppColors.pureBlack
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
@@ -2080,7 +2080,7 @@ class OrangeMixerPainter extends CustomPainter {
       const Offset(54, 145),
       6,
       Paint()
-        ..color = Colors.black
+        ..color = AppColors.pureBlack
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );

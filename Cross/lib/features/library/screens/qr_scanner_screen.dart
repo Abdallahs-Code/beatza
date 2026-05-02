@@ -71,7 +71,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           if (_isProcessing)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withValues(alpha: 0.7),
+                color: AppColors.pureBlack.withValues(alpha: 0.7),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -80,15 +80,15 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                       if (_status == 'approving')
                         CircularProgressIndicator(color: AppColors.whiteSmoke)
                       else if (_status == 'success')
-                        const Icon(
+                        Icon(
                           Icons.check_circle,
-                          color: Colors.green,
+                          color: AppColors.successGreen,
                           size: 80,
                         )
                       else if (_status == 'error')
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
-                          color: Colors.red,
+                          color: AppColors.anger,
                           size: 80,
                         ),
 
@@ -125,7 +125,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                           onPressed: _resetScanner,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.whiteSmoke,
-                            foregroundColor: Colors.black,
+                            foregroundColor: AppColors.pureBlack,
                           ),
                           child: const Text('Try Again'),
                         ),
@@ -167,19 +167,19 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         if (mounted) {
           Navigator.pop(context); // Return to Library screen
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Desktop login approved! ✓'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
+            SnackBar(
+              content: const Text('Desktop login approved! ✓'),
+              backgroundColor: AppColors.successGreen,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
       } else if (mounted) {
         setState(() => _status = 'error');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to approve. Please try again.'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Failed to approve. Please try again.'),
+            backgroundColor: AppColors.anger,
           ),
         );
       }
@@ -189,7 +189,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Connection error: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.anger,
           ),
         );
       }

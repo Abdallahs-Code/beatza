@@ -33,7 +33,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
         'Discover and connect with your biggest fans',
         'Unlimited distribution to all major streaming and social platforms',
       ],
-      'gradient': const [AppColors.premiumPurple, Colors.black],
+      'gradient': [AppColors.premiumPurple, AppColors.pureBlack],
     },
     {
       'id': 'pro_yearly',
@@ -49,7 +49,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
         'Discover and connect with your biggest fans',
         'Unlimited distribution to all major streaming and social platforms',
       ],
-      'gradient': const [AppColors.premiumDarkPink, Colors.black],
+      'gradient': [AppColors.premiumDarkPink, AppColors.pureBlack],
     },
     {
       'id': 'artist_monthly',
@@ -65,7 +65,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
         'Discover and connect with your biggest fans',
         '3 replaceable tracks without losing stats per month',
       ],
-      'gradient': const [AppColors.premiumDarkPurple, Colors.black],
+      'gradient': [AppColors.premiumDarkPurple, AppColors.pureBlack],
     },
     {
       'id': 'artist_yearly',
@@ -81,7 +81,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
         'Discover and connect with your biggest fans',
         '3 replaceable tracks without losing stats per month',
       ],
-      'gradient': const [AppColors.premiumDarkBlue, Colors.black],
+      'gradient': [AppColors.premiumDarkBlue, AppColors.pureBlack],
     },
   ];
 
@@ -204,7 +204,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
   Widget build(BuildContext context) {
     if (_isLoadingPlans) {
       return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.pureBlack,
         body: Center(
           child: CircularProgressIndicator(color: AppColors.whiteSmoke),
         ),
@@ -213,7 +213,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
     if (_mergedPlans.isEmpty) {
       return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.pureBlack,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -234,10 +234,10 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
     final currentGradient = _mergedPlans.isNotEmpty
         ? _mergedPlans[_currentPage]['gradient']
-        : const [Colors.black, Colors.black];
+        : [AppColors.pureBlack, AppColors.pureBlack];
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.pureBlack,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -336,7 +336,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: AppColors.pureBlack.withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -502,8 +502,8 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.whiteSmoke,
-                    foregroundColor: Colors.black,
-                    disabledBackgroundColor: const Color(0xFF424242),
+                    foregroundColor: AppColors.pureBlack,
+                    disabledBackgroundColor: AppColors.genericDisabledButtonBg,
                     disabledForegroundColor: AppColors.white54,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -557,7 +557,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
   Widget _buildPromoAndFaqSection() {
     return Container(
-      color: Colors.black,
+      color: AppColors.pureBlack,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

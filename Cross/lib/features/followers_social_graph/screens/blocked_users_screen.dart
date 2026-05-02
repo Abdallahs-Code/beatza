@@ -134,7 +134,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Blocked Users'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.pureBlack,
         foregroundColor: AppColors.whiteSmoke,
       ),
       body: Stack(

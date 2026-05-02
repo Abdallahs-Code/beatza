@@ -35,8 +35,8 @@ class ProfileHeaderWidget extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.08),
-                  Colors.black.withValues(alpha: 0.65),
+                  AppColors.pureBlack.withValues(alpha: 0.08),
+                  AppColors.pureBlack.withValues(alpha: 0.65),
                 ],
               ),
             ),
@@ -61,7 +61,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                 border: Border.all(color: AppColors.homeBackground, width: 5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
+                    color: AppColors.pureBlack.withValues(alpha: 0.25),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),

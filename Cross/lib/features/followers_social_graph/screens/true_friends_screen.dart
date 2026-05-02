@@ -198,7 +198,7 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
               Navigator.pop(context);
               _blockUser(follower.userId);
             },
-            child: const Text('Block', style: TextStyle(color: Colors.red)),
+            child: Text('Block', style: TextStyle(color: AppColors.deepRed)),
           ),
         ],
       ),
@@ -217,7 +217,7 @@ class _TrueFriendsScreenState extends State<TrueFriendsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your true friends'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.pureBlack,
         foregroundColor: AppColors.whiteSmoke,
       ),
       body: RefreshIndicator(

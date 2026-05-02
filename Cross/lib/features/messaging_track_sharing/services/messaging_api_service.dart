@@ -12,7 +12,6 @@ class MessagingApiService {
   final http.Client _client;
   final AuthApiService _authApiService;
   late final String _msgBase;
-  late final String _tracksBase;
   late final String _tracksV2Base;
 
   MessagingApiService({
@@ -23,7 +22,6 @@ class MessagingApiService {
        _client = client ?? http.Client(),
        _authApiService = authApiService ?? AuthApiService() {
     _msgBase = '${_apiServices.baseUrl}/api/messages/v1';
-    _tracksBase = '${_apiServices.baseUrl}/api/tracks/v1';
     _tracksV2Base = '${_apiServices.baseUrl}/api/tracks/v2';
   }
 

@@ -48,13 +48,13 @@ class UserTile extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
           decoration: BoxDecoration(
-            color: Colors.red.shade100,
+            color: AppColors.destructiveDisabledBg,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             'Blocked',
             style: TextStyle(
-              color: Colors.red.shade800,
+              color: AppColors.deepRed,
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
@@ -68,15 +68,15 @@ class UserTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
           decoration: BoxDecoration(
-            color: follower.isFollowing ? Colors.grey.shade300 : Colors.orange,
+            color: follower.isFollowing ? AppColors.containerMid : AppColors.primaryOrange,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             follower.isFollowing ? 'Following' : 'Follow',
             style: TextStyle(
               color: follower.isFollowing
-                  ? Colors.black87
-                  : AppColors.whiteSmoke,
+                  ? AppColors.whiteSmoke
+                  : AppColors.pureBlack,
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
@@ -183,7 +183,7 @@ class UserTile extends StatelessWidget {
                       '${follower.trackCount} tracks',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: AppColors.greyMuted,
                       ),
                     ),
                   ],

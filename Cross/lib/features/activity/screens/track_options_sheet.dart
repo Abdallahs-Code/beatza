@@ -455,7 +455,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   label: _isLiked ? 'Liked' : 'Like',
-                  color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
+                  color: _isLiked ? AppColors.primaryOrange : AppColors.whiteSmoke,
                   onTap: _toggleLike,
                 ),
                 if (_hasEditTrack)
@@ -506,7 +506,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   _OptionTile(
                     icon: Icons.repeat_rounded,
                     label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                    color: _isReposted ? Colors.orange : AppColors.whiteSmoke,
+                    color: _isReposted ? AppColors.primaryOrange : AppColors.whiteSmoke,
                     onTap: _openRepost,
                   ),
 
@@ -572,7 +572,7 @@ class _TrackHeaderCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Colors.blueGrey.shade500.withValues(alpha: 0.95),
-            Colors.grey.shade400.withValues(alpha: 0.9),
+            AppColors.greyMuted.withValues(alpha: 0.9),
           ],
         ),
       ),
@@ -613,15 +613,15 @@ class _TrackHeaderCard extends StatelessWidget {
                               track.artworkUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
+                                  Icon(
                                     Icons.album_rounded,
-                                    color: Colors.black54,
+                                    color: AppColors.white54,
                                     size: 34,
                                   ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.album_rounded,
-                              color: Colors.black54,
+                              color: AppColors.white54,
                               size: 34,
                             ),
                     ),
@@ -804,13 +804,13 @@ class _OptionTile extends StatelessWidget {
 class _VinylPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final basePaint = Paint()..color = Colors.black;
+    final basePaint = Paint()..color = AppColors.pureBlack;
     final ringPaint = Paint()
       ..color = AppColors.whiteSmoke.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final centerPaint = Paint()
-      ..color = Colors.grey.shade800
+      ..color = AppColors.tileDark
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width * 0.45, size.height / 2);

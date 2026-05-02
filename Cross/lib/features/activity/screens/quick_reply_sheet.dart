@@ -434,21 +434,21 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
           'Delete comment',
           style: TextStyle(color: AppColors.whiteSmoke),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to delete this comment?',
-          style: TextStyle(color: Colors.grey),
+          style: TextStyle(color: AppColors.greyMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: AppColors.greyMuted)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteComment(comment);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('Delete', style: TextStyle(color: AppColors.deepRed)),
           ),
         ],
       ),
@@ -739,7 +739,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A4BB8),
+                          color: AppColors.timestampPillBg,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -860,7 +860,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
               _replyingTo = null;
               _inputController.clear();
             }),
-            child: const Icon(Icons.close, color: Colors.grey, size: 16),
+            child: Icon(Icons.close, color: AppColors.greyMuted, size: 16),
           ),
         ],
       ),

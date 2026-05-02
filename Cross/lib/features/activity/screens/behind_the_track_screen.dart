@@ -1002,14 +1002,14 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                   _isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  color: _isLiked ? Colors.orange : AppColors.white70,
+                  color: _isLiked ? AppColors.primaryOrange : AppColors.white70,
                   size: 22,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   '$_likeCount',
                   style: TextStyle(
-                    color: _isLiked ? Colors.orange : AppColors.white70,
+                    color: _isLiked ? AppColors.primaryOrange : AppColors.white70,
                     fontSize: 14,
                   ),
                 ),
@@ -1089,7 +1089,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 _isCurrentlyPlaying
                     ? Icons.pause_rounded
                     : Icons.play_arrow_rounded,
-                color: Colors.black,
+                color: AppColors.pureBlack,
                 size: 30,
               ),
             ),

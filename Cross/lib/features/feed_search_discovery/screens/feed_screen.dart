@@ -163,7 +163,7 @@ class _FeedScreenState extends State<FeedScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.pureBlack,
       extendBodyBehindAppBar: true,
       appBar: _buildTabBar(),
       body: TabBarView(
@@ -208,8 +208,8 @@ class _FeedScreenState extends State<FeedScreen>
 
   Widget _buildDiscoverTab() {
     if (_discoverLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
 
@@ -268,8 +268,8 @@ class _FeedScreenState extends State<FeedScreen>
 
   Widget _buildFollowingTab() {
     if (_feedLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
 
@@ -348,7 +348,7 @@ class _FeedScreenState extends State<FeedScreen>
           const SizedBox(height: 16),
           TextButton(
             onPressed: onRetry,
-            child: const Text('Retry', style: TextStyle(color: Colors.orange)),
+            child: Text('Retry', style: TextStyle(color: AppColors.primaryOrange)),
           ),
         ],
       ),

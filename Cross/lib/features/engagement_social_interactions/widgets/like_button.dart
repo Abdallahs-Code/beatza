@@ -56,7 +56,7 @@ class LikeButton extends StatelessWidget {
             child: Icon(
               isLiked ? Icons.favorite : Icons.favorite_border,
               key: ValueKey(isLiked),
-              color: isLiked ? Colors.orange : Colors.grey[400],
+              color: isLiked ? AppColors.primaryOrange : AppColors.white54,
               size: iconSize,
             ),
           ),
@@ -71,7 +71,7 @@ class LikeButton extends StatelessWidget {
             child: Text(
               _formatCount(likeCount),
               style: TextStyle(
-                color: isLiked ? AppColors.whiteSmoke : Colors.grey[400],
+                color: isLiked ? AppColors.whiteSmoke : AppColors.white54,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

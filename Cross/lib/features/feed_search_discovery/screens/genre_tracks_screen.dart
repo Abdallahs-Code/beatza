@@ -1,6 +1,6 @@
 // Screen: GenreTracksScreen
 // Shows a list of public tracks filtered by a specific genre.
-// Fetches up to 15 tracks from GET /api/public/tracks/v1/ and filters
+// Fetches up to 30 tracks from GET /api/tracks/v2/ and filters
 // client-side by basicInfo.genre matching the selected genre.
 
 import 'package:flutter/material.dart';
@@ -97,7 +97,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
   Widget _buildBody() {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
 
@@ -112,7 +112,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen> {
               onPressed: _loadTracks,
               child: const Text(
                 'Retry',
-                style: TextStyle(color: Colors.orange),
+                style: TextStyle(color: AppColors.primaryOrange),
               ),
             ),
           ],

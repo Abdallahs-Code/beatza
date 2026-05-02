@@ -183,7 +183,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
             child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.deepRed),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete'),
           ),
@@ -206,7 +206,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to delete playlist. Please try again.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     }
@@ -234,7 +234,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _onCreatePlaylist,
-        backgroundColor: _atFreeLimit ? Colors.grey : AppColors.crusta,
+        backgroundColor: _atFreeLimit ? AppColors.greyMuted : AppColors.crusta,
         child: Icon(Icons.add, color: AppColors.whiteSmoke),
       ),
       body: _buildBody(),

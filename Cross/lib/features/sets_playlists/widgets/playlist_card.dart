@@ -162,13 +162,13 @@ class PlaylistCard extends StatelessWidget {
             ),
           ),
         if (onMenuDelete != null)
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
-                Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                SizedBox(width: 8),
-                Text('Delete', style: TextStyle(color: Colors.red)),
+                Icon(Icons.delete_outline, color: AppColors.deepRed, size: 18),
+                const SizedBox(width: 8),
+                Text('Delete', style: TextStyle(color: AppColors.deepRed)),
               ],
             ),
           ),

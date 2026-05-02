@@ -64,7 +64,7 @@ class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
 
         return Positioned.fill(
           child: Material(
-            color: Colors.black.withValues(alpha: 0.88),
+            color: AppColors.pureBlack.withValues(alpha: 0.88),
             child: SafeArea(
               child: Center(
                 child: Padding(
@@ -101,7 +101,7 @@ class _GlobalConnectivityOverlayState extends State<GlobalConnectivityOverlay> {
                         onPressed: _isRetrying ? null : _retry,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.whiteSmoke,
-                          foregroundColor: Colors.black,
+                          foregroundColor: AppColors.pureBlack,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                             vertical: 12,

@@ -316,7 +316,7 @@ class _FollowingScreenState extends State<FollowingScreen>
               Navigator.pop(context);
               _blockUser(follower.userId);
             },
-            child: const Text('Block', style: TextStyle(color: Colors.red)),
+            child: Text('Block', style: TextStyle(color: AppColors.deepRed)),
           ),
         ],
       ),
@@ -342,7 +342,7 @@ class _FollowingScreenState extends State<FollowingScreen>
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade900,
+            color: AppColors.trueFriendsBg,
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -531,13 +531,13 @@ class _FollowingScreenState extends State<FollowingScreen>
             onPressed: _goBackToProfile,
           ),
           title: const Text('Following'),
-          backgroundColor: Colors.black,
+          backgroundColor: AppColors.pureBlack,
           foregroundColor: AppColors.whiteSmoke,
           bottom: TabBar(
             controller: _tabController,
-            labelColor: Colors.orange,
+            labelColor: AppColors.primaryOrange,
             unselectedLabelColor: AppColors.white70,
-            indicatorColor: Colors.orange,
+            indicatorColor: AppColors.primaryOrange,
             tabs: const [
               Tab(text: 'Following'),
               Tab(text: 'Suggested'),

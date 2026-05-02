@@ -69,7 +69,7 @@ class CommentTile extends StatelessWidget {
           // ── Avatar ────────────────────────────
           CircleAvatar(
             radius: 18,
-            backgroundColor: Colors.grey[800],
+            backgroundColor: AppColors.tileDark,
             backgroundImage: comment.avatarUrl != null
                 ? NetworkImage(comment.avatarUrl!)
                 : null,
@@ -143,7 +143,7 @@ class CommentTile extends StatelessWidget {
                     // Relative age
                     Text(
                       _formatAge(comment.createdAt),
-                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                      style: TextStyle(color: AppColors.greyMuted, fontSize: 11),
                     ),
                   ],
                 ),
@@ -154,7 +154,7 @@ class CommentTile extends StatelessWidget {
                 Text(
                   comment.content,
                   style: TextStyle(
-                    color: Colors.grey[200],
+                    color: AppColors.whiteSmoke,
                     fontSize: 13,
                     height: 1.4,
                   ),
@@ -171,7 +171,7 @@ class CommentTile extends StatelessWidget {
                         child: Text(
                           'Reply',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: AppColors.white54,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -185,7 +185,7 @@ class CommentTile extends StatelessWidget {
                       onTap: () => _showOptionsMenu(context),
                       child: Icon(
                         Icons.more_horiz,
-                        color: Colors.grey[500],
+                        color: AppColors.greyMuted,
                         size: 18,
                       ),
                     ),
@@ -208,8 +208,8 @@ class CommentTile extends StatelessWidget {
                                   : Icons.favorite_border,
                               key: ValueKey(comment.isLikedByUser),
                               color: comment.isLikedByUser
-                                  ? Colors.orange
-                                  : Colors.grey[500],
+                                  ? AppColors.primaryOrange
+                                  : AppColors.greyMuted,
                               size: 16,
                             ),
                           ),
@@ -218,7 +218,7 @@ class CommentTile extends StatelessWidget {
                             Text(
                               comment.numLikes.toString(),
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.white54,
                                 fontSize: 12,
                               ),
                             ),
@@ -259,7 +259,7 @@ class CommentTile extends StatelessWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[700],
+                color: AppColors.greyMedium,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -316,10 +316,10 @@ class CommentTile extends StatelessWidget {
             // ── Own comment: Delete ───────────────
             if (isOwn)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text(
+                leading: Icon(Icons.delete_outline, color: AppColors.deepRed),
+                title: Text(
                   'Delete comment',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: AppColors.deepRed),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -367,8 +367,8 @@ class CommentTile extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.block_outlined, color: Colors.red),
-                title: const Text('Block', style: TextStyle(color: Colors.red)),
+                leading: Icon(Icons.block_outlined, color: AppColors.deepRed),
+                title: Text('Block', style: TextStyle(color: AppColors.deepRed)),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _confirmBlock(context);
@@ -397,10 +397,10 @@ class CommentTile extends StatelessWidget {
               'Block user?',
               style: TextStyle(color: AppColors.whiteSmoke),
             ),
-            content: const Text(
+            content: Text(
               'This user will no longer be able to follow or interact with '
               'you, and you will not see notifications from them.',
-              style: TextStyle(color: Colors.grey, height: 1.4),
+              style: TextStyle(color: AppColors.greyMuted, height: 1.4),
             ),
             actions: [
               TextButton(
@@ -415,7 +415,7 @@ class CommentTile extends StatelessWidget {
                 child: const Text(
                   'BLOCK',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: AppColors.primaryOrange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

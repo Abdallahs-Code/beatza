@@ -236,7 +236,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.grey[800],
+                      color: AppColors.tileDark,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child:
@@ -431,9 +431,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Track updated!'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('Track updated!'),
+          backgroundColor: AppColors.successGreen,
         ),
       );
     }
@@ -740,11 +740,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             icon: Icons.camera_alt_outlined,
             bgColor: AppColors.instagramPink,
           ),
-          const _SheetAction(
+          _SheetAction(
             label: 'Snapchat',
             icon: Icons.circle,
             bgColor: AppColors.snapchatYellow,
-            iconColor: Colors.black,
+            iconColor: AppColors.pureBlack,
           ),
           const _SheetAction(label: 'X', icon: Icons.close),
           const _SheetAction(
@@ -944,7 +944,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: const Key('test_user_profile_screen'),
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.pureBlack,
       body: FutureBuilder<void>(
         future: _initialContextFuture,
         builder: (context, initSnapshot) {
@@ -1344,7 +1344,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                           fit: BoxFit.cover,
                                         ))
                                 : Container(
-                                    color: Colors.grey[800],
+                                    color: AppColors.tileDark,
                                     child: Icon(
                                       Icons.music_note,
                                       color: AppColors.whiteSmoke,
@@ -1363,7 +1363,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                                 },
                                 child: CircleAvatar(
                                   radius: 12,
-                                  backgroundColor: Colors.black54,
+                                  backgroundColor: AppColors.black54,
                                   child: Icon(
                                     Icons.close,
                                     size: 14,
@@ -1399,7 +1399,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
       slivers: [
         SliverAppBar(
           pinned: true,
-          backgroundColor: Colors.black,
+          backgroundColor: AppColors.pureBlack,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           expandedHeight: 190,
@@ -1423,7 +1423,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                           )
                         : _AutoBannerFromAvatar(widget.profile.profileImgLink),
                   ),
-                  Container(color: Colors.black.withValues(alpha: 0.18)),
+                  Container(color: AppColors.pureBlack.withValues(alpha: 0.18)),
                   Positioned(
                     top: topPadding + 10,
                     left: 16,
@@ -1493,8 +1493,8 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                           Container(
                             width: 104,
                             height: 104,
-                            decoration: const BoxDecoration(
-                              color: Colors.black,
+                            decoration: BoxDecoration(
+                              color: AppColors.pureBlack,
                               shape: BoxShape.circle,
                             ),
                             alignment: Alignment.center,
@@ -1774,9 +1774,9 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             ),
                             child: IconButton(
                               onPressed: () {},
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.play_arrow,
-                                color: Colors.black,
+                                color: AppColors.pureBlack,
                                 size: 34,
                               ),
                             ),
@@ -1849,15 +1849,15 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               TextSpan(
                                 text: '$_completedStepsCount OF 5 ',
                                 style: TextStyle(
-                                  color: Color(0xFFFF6A00),
+                                  color: AppColors.progressOrange,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const TextSpan(
+                              TextSpan(
                                 text: 'COMPLETE',
                                 style: TextStyle(
-                                  color: Color(0xFFD0D0D0),
+                                  color: AppColors.greyLight,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -1979,7 +1979,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                color: Colors.orange,
+                                color: AppColors.primaryOrange,
                                 strokeWidth: 2,
                               ),
                             ),
@@ -2022,7 +2022,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               track.title,
                               style: TextStyle(
                                 color: isFetching
-                                    ? Colors.orange
+                                    ? AppColors.primaryOrange
                                     : AppColors.whiteSmoke,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -2032,18 +2032,18 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             subtitle: Text(
                               track.displayArtist,
                               style: TextStyle(
-                                color: Colors.grey[500],
+                                color: AppColors.greyMuted,
                                 fontSize: 12,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             trailing: isFetching
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
-                                      color: Colors.orange,
+                                      color: AppColors.primaryOrange,
                                       strokeWidth: 2,
                                     ),
                                   )
@@ -2213,13 +2213,13 @@ class _CompleteProfileCard extends StatelessWidget {
                 ? Container(
                     width: 34,
                     height: 34,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF49D17D),
+                    decoration: BoxDecoration(
+                      color: AppColors.completedGreen,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check,
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       size: 22,
                     ),
                   )
@@ -2252,7 +2252,7 @@ class _CompleteProfileCard extends StatelessWidget {
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Color(0xFFB8B8B8),
+              color: AppColors.greyLight,
               fontSize: 13,
               height: 1.5,
             ),
@@ -2618,11 +2618,11 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
                     children: [
                       Expanded(child: _TrackRow(track: track)),
                       if (isFetching)
-                        const SizedBox(
+                        SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                            color: Colors.orange,
+                            color: AppColors.primaryOrange,
                             strokeWidth: 2,
                           ),
                         ),
@@ -2735,7 +2735,7 @@ class _ProfileLikeTrackPlaceholder extends StatelessWidget {
           width: 58,
           height: 58,
           decoration: BoxDecoration(
-            color: const Color(0xFF1D1D1D),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(8),
           ),
         ),
@@ -2748,7 +2748,7 @@ class _ProfileLikeTrackPlaceholder extends StatelessWidget {
                 height: 14,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D1D1D),
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -2757,7 +2757,7 @@ class _ProfileLikeTrackPlaceholder extends StatelessWidget {
                 height: 13,
                 width: 140,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D1D1D),
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -2766,7 +2766,7 @@ class _ProfileLikeTrackPlaceholder extends StatelessWidget {
                 height: 12,
                 width: 90,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D1D1D),
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -2875,7 +2875,7 @@ class _SquareImage extends StatelessWidget {
       width: 58,
       height: 58,
       decoration: BoxDecoration(
-        color: const Color(0xFF1D1D1D),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(4),
       ),
       child: ClipRRect(
@@ -2949,13 +2949,13 @@ class _AutoBannerFromAvatar extends StatelessWidget {
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
         if (imageUrl.trim().isNotEmpty)
-          Container(color: Colors.black.withValues(alpha: 0.4)),
+          Container(color: AppColors.pureBlack.withValues(alpha: 0.4)),
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black54, Colors.black],
+              colors: [Colors.transparent, AppColors.black54, AppColors.pureBlack],
             ),
           ),
         ),
@@ -3007,7 +3007,7 @@ class _PrivateProfileView extends StatelessWidget {
                   ),
                   Container(
                     height: 260,
-                    color: Colors.black.withValues(alpha: 0.18),
+                    color: AppColors.pureBlack.withValues(alpha: 0.18),
                   ),
                   Positioned(
                     top: topPadding + 10,

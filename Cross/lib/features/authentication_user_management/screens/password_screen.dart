@@ -63,7 +63,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(result.$2.toString()),
-        backgroundColor: result.$1 == 200 ? Colors.green : AppColors.anger,
+        backgroundColor: result.$1 == 200 ? AppColors.successGreen : AppColors.anger,
       ),
     );
 
@@ -90,7 +90,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(result.$2.toString()),
-        backgroundColor: result.$1 == 200 ? Colors.green : AppColors.anger,
+        backgroundColor: result.$1 == 200 ? AppColors.successGreen : AppColors.anger,
       ),
     );
   }

@@ -131,7 +131,7 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
 
@@ -153,7 +153,7 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
               ElevatedButton(
                 onPressed: _loadLikedTracks,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: AppColors.primaryOrange,
                   foregroundColor: AppColors.whiteSmoke,
                 ),
                 child: const Text('Retry'),

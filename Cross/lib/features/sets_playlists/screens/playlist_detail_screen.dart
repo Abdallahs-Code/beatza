@@ -172,7 +172,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         _tracks.insert(oldIndex, movedTrack);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: AppColors.deepRed),
       );
     }
   }
@@ -200,7 +200,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     if (statusCode != 200) {
       setState(() => _tracks.insert(index, track));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: AppColors.deepRed),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -231,21 +231,21 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You do not have permission to delete this playlist.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     } else if (statusCode == 404) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Playlist not found.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to delete playlist. Please try again.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     }
@@ -269,7 +269,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: destructive ? Colors.red : AppColors.crusta,
+              backgroundColor: destructive ? AppColors.deepRed : AppColors.crusta,
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(destructive ? 'Delete' : 'Confirm'),
