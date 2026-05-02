@@ -13,6 +13,8 @@
 //                                                  → getTrackByPermalink
 //   GET  /api/tracks/v2/permalink/{profileLink}/{permalink}
 //                                                  → getTrackByPermalinkV2
+//   GET  /api/tracks/v2/permalink/{profileLink}/{permalink}
+//                                                  → getTrackByPermalinkV2
 //   GET  /api/public/tracks/v2/{id}               → getTrackById (for details)
 //
 // Service pattern: constructor injection, returns Future<(int, dynamic)>.
