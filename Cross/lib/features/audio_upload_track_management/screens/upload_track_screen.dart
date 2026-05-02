@@ -15,6 +15,113 @@ import 'package:cross_team5/features/audio_upload_track_management/screens/your_
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 
+// ── Geo-blocking data ────────────────────────────────────────────────────────
+
+const _kGeoRegions = [
+  'Africa', 'Antarctica', 'Asia', 'Europe',
+  'NorthAmerica', 'Oceania', 'SouthAmerica',
+];
+
+const _kGeoDisplayNames = <String, String>{
+  'NorthAmerica': 'North America',
+  'SouthAmerica': 'South America',
+  'CongoDemocraticRepublic': 'DR Congo',
+  'CongoRepublic': 'Republic of Congo',
+  'BurkinaFaso': 'Burkina Faso',
+  'CaboVerde': 'Cabo Verde',
+  'CentralAfricanRepublic': 'Central African Republic',
+  'KoreaNorth': 'North Korea',
+  'KoreaSouth': 'South Korea',
+  'CostaRica': 'Costa Rica',
+  'CzechRepublic': 'Czech Republic',
+  'ElSalvador': 'El Salvador',
+  'EquatorialGuinea': 'Equatorial Guinea',
+  'GuineaBissau': 'Guinea-Bissau',
+  'MarshallIslands': 'Marshall Islands',
+  'NewZealand': 'New Zealand',
+  'NorthMacedonia': 'North Macedonia',
+  'PapuaNewGuinea': 'Papua New Guinea',
+  'SaintKittsAndNevis': 'Saint Kitts & Nevis',
+  'SaintLucia': 'Saint Lucia',
+  'SaintVincentAndTheGrenadines': 'Saint Vincent & the Grenadines',
+  'SanMarino': 'San Marino',
+  'SaoTomeAndPrincipe': 'São Tomé & Príncipe',
+  'SaudiArabia': 'Saudi Arabia',
+  'SierraLeone': 'Sierra Leone',
+  'SolomonIslands': 'Solomon Islands',
+  'SouthAfrica': 'South Africa',
+  'SouthSudan': 'South Sudan',
+  'SriLanka': 'Sri Lanka',
+  'TimorLeste': 'Timor-Leste',
+  'TrinidadAndTobago': 'Trinidad & Tobago',
+  'UnitedArabEmirates': 'United Arab Emirates',
+  'UnitedKingdom': 'United Kingdom',
+  'UnitedStates': 'United States',
+  'VaticanCity': 'Vatican City',
+  'AntiguaAndBarbuda': 'Antigua & Barbuda',
+  'BosniaAndHerzegovina': 'Bosnia & Herzegovina',
+  'DominicanRepublic': 'Dominican Republic',
+  'Ivory Coast': 'Ivory Coast',
+};
+
+const _kRegionCountries = <String, List<String>>{
+  'Africa': [
+    'Algeria', 'Angola', 'Benin', 'Botswana', 'BurkinaFaso', 'Burundi',
+    'CaboVerde', 'Cameroon', 'CentralAfricanRepublic', 'Chad', 'Comoros',
+    'CongoDemocraticRepublic', 'CongoRepublic', 'Djibouti', 'Egypt',
+    'EquatorialGuinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia',
+    'Ghana', 'Guinea', 'GuineaBissau', 'Ivory Coast', 'Kenya', 'Lesotho',
+    'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania',
+    'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria',
+    'Rwanda', 'SaoTomeAndPrincipe', 'Senegal', 'Seychelles', 'SierraLeone',
+    'Somalia', 'SouthAfrica', 'SouthSudan', 'Sudan', 'Tanzania', 'Togo',
+    'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+  ],
+  'Antarctica': [],
+  'Asia': [
+    'Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan',
+    'Brunei', 'Cambodia', 'China', 'Cyprus', 'Georgia', 'India', 'Indonesia',
+    'Iran', 'Iraq', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan',
+    'Laos', 'Lebanon', 'Malaysia', 'Maldives', 'Mongolia', 'Myanmar', 'Nepal',
+    'KoreaNorth', 'Oman', 'Pakistan', 'Palestine', 'Philippines', 'Qatar',
+    'Russia', 'SaudiArabia', 'Singapore', 'KoreaSouth', 'SriLanka', 'Syria',
+    'Taiwan', 'Tajikistan', 'Thailand', 'TimorLeste', 'Turkey', 'Turkmenistan',
+    'UnitedArabEmirates', 'Uzbekistan', 'Vietnam', 'Yemen',
+  ],
+  'Europe': [
+    'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'BosniaAndHerzegovina',
+    'Bulgaria', 'Croatia', 'Cyprus', 'CzechRepublic', 'Denmark', 'Estonia',
+    'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland',
+    'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Liechtenstein', 'Lithuania',
+    'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands',
+    'NorthMacedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia',
+    'SanMarino', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden',
+    'Switzerland', 'Ukraine', 'UnitedKingdom', 'VaticanCity',
+  ],
+  'NorthAmerica': [
+    'AntiguaAndBarbuda', 'Bahamas', 'Barbados', 'Belize', 'Canada', 'CostaRica',
+    'Cuba', 'Dominica', 'DominicanRepublic', 'ElSalvador', 'Grenada', 'Guatemala',
+    'Haiti', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama',
+    'SaintKittsAndNevis', 'SaintLucia', 'SaintVincentAndTheGrenadines',
+    'TrinidadAndTobago', 'UnitedStates',
+  ],
+  'Oceania': [
+    'Australia', 'Fiji', 'Kiribati', 'MarshallIslands', 'Micronesia', 'Nauru',
+    'NewZealand', 'Palau', 'PapuaNewGuinea', 'Samoa', 'SolomonIslands', 'Tonga',
+    'Tuvalu', 'Vanuatu',
+  ],
+  'SouthAmerica': [
+    'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Guyana',
+    'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela',
+  ],
+};
+
+String _displayGeoName(String key) =>
+    _kGeoDisplayNames[key] ??
+    key.replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (_) => ' ');
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 class DashedRectPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
@@ -77,11 +184,18 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   final _captionController = TextEditingController();
   final _tagsController = TextEditingController();
   final _artistInputController = TextEditingController();
+  final _recordLabelController = TextEditingController();
+  final _publisherController = TextEditingController();
+  final _isrcController = TextEditingController();
+  final _pLineController = TextEditingController();
   final List<String> _artists = [];
 
   int _currentTabIndex = 0;
   bool _isSaving = false;
+  bool _isDeleting = false;
   bool _isInit = false;
+  List<String> _selectedRegions = [];
+  List<String> _selectedCountries = [];
 
   String _privacy = 'public';
   final DateTime _scheduleDate = DateTime.now().add(const Duration(days: 1));
@@ -96,6 +210,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   bool _enableAppPlayback = true;
   String _availability = 'worldwide';
   String _licensing = 'all_rights';
+  bool _mobileProPreview = false;
 
   int get _uploadStepsCompleted {
     final bool inEditMode =
@@ -125,12 +240,52 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       } else if (args is Track) {
         _editingServerTrack = args;
         _selectedFileName = args.title;
+
+        // basic info
         _titleController.text = args.title;
         _genreController.text = args.genre;
         _descriptionController.text = args.description;
+        _captionController.text = args.caption;
         _tagsController.text = args.tags.join(', ');
         _privacy = args.isPrivate ? 'unlisted' : 'public';
         if (args.mainArtists.isNotEmpty) _artists.addAll(args.mainArtists);
+
+        // permissions
+        _enableDirectDownloads = args.enableDirectDownload;
+        _offlineListening = args.offlineListening;
+        _includeInRssFeed = args.includeInRssFeed;
+        _displayEmbedCode = args.displayedEmbedCode;
+        _enableAppPlayback = args.enableAppPlayback;
+
+        // license
+        _licensing = args.licenseType == 'creativeCommons'
+            ? 'creative_commons'
+            : 'all_rights';
+
+        // geo-blocking
+        _availability = args.geoBlockingMode;
+        _selectedRegions = List.from(args.geoBlockingRegions);
+        _selectedCountries = List.from(args.geoBlockingCountries);
+
+        // advanced
+        _containsExplicitContent = args.explicitContent;
+        _recordLabelController.text = args.recordLabel ?? '';
+        _publisherController.text = args.publisher ?? '';
+        _isrcController.text = args.isrc ?? '';
+        _pLineController.text = args.pLine ?? '';
+
+        // mobileProPreview
+        _mobileProPreview = args.mobileProPreview;
+
+        // release date
+        if (args.releaseDate.isNotEmpty) {
+          final parsed = DateTime.tryParse(args.releaseDate);
+          if (parsed != null) {
+            _releaseDate = parsed;
+            _enableReleaseDate = true;
+          }
+        }
+
         _uploadComplete = true;
       } else if (args is TrackModel) {
         _editingTrack = args;
@@ -162,6 +317,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     _captionController.dispose();
     _tagsController.dispose();
     _artistInputController.dispose();
+    _recordLabelController.dispose();
+    _publisherController.dispose();
+    _isrcController.dispose();
+    _pLineController.dispose();
     super.dispose();
   }
 
@@ -232,8 +391,12 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
   Future<void> _updateServerTrack() async {
     final track = _editingServerTrack!;
+    if (track.id.trim().isEmpty) {
+      _showErrorSnack('Cannot update: track ID is missing.');
+      return;
+    }
     if (_titleController.text.trim().isEmpty) {
-      _snack('Please enter a track title', isError: true);
+      _showErrorSnack('Please enter a track title');
       return;
     }
 
@@ -264,26 +427,51 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       caption: _captionController.text.trim().isNotEmpty
           ? _captionController.text.trim()
           : null,
+      enableDirectDownload: _enableDirectDownloads,
+      offlineListening: _offlineListening,
+      includeInRssFeed: _includeInRssFeed,
+      displayedEmbedCode: _displayEmbedCode,
+      enableAppPlayback: _enableAppPlayback,
+      licensing: _licensing,
+      containsExplicit: _containsExplicitContent,
+      releaseDate: _enableReleaseDate ? _releaseDate.toIso8601String() : null,
+      recordLabel: _recordLabelController.text.trim().isNotEmpty
+          ? _recordLabelController.text.trim()
+          : null,
+      publisher: _publisherController.text.trim().isNotEmpty
+          ? _publisherController.text.trim()
+          : null,
+      isrc: _isrcController.text.trim().isNotEmpty
+          ? _isrcController.text.trim()
+          : null,
+      pLine: _pLineController.text.trim().isNotEmpty
+          ? _pLineController.text.trim()
+          : null,
+      availability: _availability,
+      geoBlockingRegions: _selectedRegions,
+      geoBlockingCountries: _selectedCountries,
     );
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
+      // Update mobileProPreview via its dedicated endpoint
+      await _trackApiService.updateMobileProPreview(
+        trackId: track.id,
+        mobileProPreview: _mobileProPreview,
+      );
+      if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Track updated successfully'),
-          backgroundColor: AppColors.containerMid,
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showSuccessSnack(
+        'Track Updated',
+        subtitle: _titleController.text.trim(),
       );
     } else {
-      _snack(
+      _showErrorSnack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
             : 'Update failed. Please try again.',
-        isError: true,
       );
     }
   }
@@ -291,11 +479,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   Future<void> _uploadNewTrack() async {
     if (_selectedFile == null || !_uploadComplete) return;
     if (_titleController.text.trim().isEmpty) {
-      _snack('Please enter a track title', isError: true);
+      _showErrorSnack('Please enter a track title');
+      return;
+    }
+    if (_artists.isEmpty) {
+      _showErrorSnack('Please add at least one artist');
       return;
     }
     if (_selectedFile!.path == null) {
-      _snack('Audio file path is unavailable', isError: true);
+      _showErrorSnack('Audio file path is unavailable');
       return;
     }
 
@@ -316,19 +508,45 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         RegExp(r'[^a-z0-9]+'),
         '-',
       ),
-      mainArtists: _artists,
+      artists: _artists,
       genre: _genreController.text.trim(),
       tags: tags,
       description: _descriptionController.text.trim(),
-      isPrivate: _privacy == 'unlisted',
+      privacy: _privacy == 'unlisted',
       caption: _captionController.text.trim(),
+      enableDirectDownload: _enableDirectDownloads,
+      offlineListening: _offlineListening,
+      includeInRssFeed: _includeInRssFeed,
+      displayedEmbedCode: _displayEmbedCode,
+      enableAppPlayback: _enableAppPlayback,
+      licensing: _licensing,
+      containsExplicit: _containsExplicitContent,
+      releaseDate: _enableReleaseDate ? _releaseDate.toIso8601String() : null,
+      recordLabel: _recordLabelController.text.trim().isNotEmpty
+          ? _recordLabelController.text.trim()
+          : null,
+      publisher: _publisherController.text.trim().isNotEmpty
+          ? _publisherController.text.trim()
+          : null,
+      isrc: _isrcController.text.trim().isNotEmpty
+          ? _isrcController.text.trim()
+          : null,
+      pLine: _pLineController.text.trim().isNotEmpty
+          ? _pLineController.text.trim()
+          : null,
+      availability: _availability,
+      geoBlockingRegions: _selectedRegions,
+      geoBlockingCountries: _selectedCountries,
+      mobileProPreview: _mobileProPreview,
     );
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (result.$1 == 201) {
-      final resultData = result.$2 as Map<String, dynamic>?;
+      final resultData = result.$2 is Map<String, dynamic>
+          ? result.$2 as Map<String, dynamic>
+          : null;
       final serverId = resultData?['trackId'] as String?;
 
       await _audioService.saveTrackData(_selectedFile!, {
@@ -426,11 +644,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ),
       );
     } else {
-      _snack(
+      _showErrorSnack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
             : 'Upload failed. Please try again.',
-        isError: true,
       );
     }
   }
@@ -438,14 +655,11 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   Future<void> _updateExistingTrack() async {
     final track = _editingTrack!;
     if (_titleController.text.trim().isEmpty) {
-      _snack('Please enter a track title', isError: true);
+      _showErrorSnack('Please enter a track title');
       return;
     }
     if (track.serverId == null || track.serverId!.trim().isEmpty) {
-      _snack(
-        'Cannot update: server ID not available for this track.',
-        isError: true,
-      );
+      _showErrorSnack('Cannot update: server ID not available for this track.');
       return;
     }
 
@@ -473,12 +687,43 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       caption: _captionController.text.trim().isNotEmpty
           ? _captionController.text.trim()
           : null,
+      enableDirectDownload: _enableDirectDownloads,
+      offlineListening: _offlineListening,
+      includeInRssFeed: _includeInRssFeed,
+      displayedEmbedCode: _displayEmbedCode,
+      enableAppPlayback: _enableAppPlayback,
+      licensing: _licensing,
+      containsExplicit: _containsExplicitContent,
+      releaseDate: _enableReleaseDate ? _releaseDate.toIso8601String() : null,
+      recordLabel: _recordLabelController.text.trim().isNotEmpty
+          ? _recordLabelController.text.trim()
+          : null,
+      publisher: _publisherController.text.trim().isNotEmpty
+          ? _publisherController.text.trim()
+          : null,
+      isrc: _isrcController.text.trim().isNotEmpty
+          ? _isrcController.text.trim()
+          : null,
+      pLine: _pLineController.text.trim().isNotEmpty
+          ? _pLineController.text.trim()
+          : null,
+      availability: _availability,
+      geoBlockingRegions: _selectedRegions,
+      geoBlockingCountries: _selectedCountries,
     );
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
+      // Update mobileProPreview via its dedicated endpoint
+      if (track.serverId != null) {
+        await _trackApiService.updateMobileProPreview(
+          trackId: track.serverId!,
+          mobileProPreview: _mobileProPreview,
+        );
+      }
+      if (!mounted) return;
       final updated = track.copyWith(
         title: _titleController.text.trim(),
         genre: _genreController.text.trim(),
@@ -500,19 +745,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Track updated successfully'),
-          backgroundColor: AppColors.containerMid,
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showSuccessSnack(
+        'Track Updated',
+        subtitle: _titleController.text.trim(),
       );
     } else {
-      _snack(
+      _showErrorSnack(
         result.$2.toString().isNotEmpty
             ? result.$2.toString()
             : 'Update failed. Please try again.',
-        isError: true,
       );
     }
   }
@@ -537,13 +778,75 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     );
   }
 
-  void _snack(String msg, {bool isError = false}) {
+  void _showSuccessSnack(String title, {String? subtitle}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.red[800] : AppColors.containerMid,
+        backgroundColor: AppColors.containerMid,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+        elevation: 10,
+        duration: const Duration(seconds: 4),
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: AppColors.primaryOrange, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (subtitle != null && subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: AppColors.white70, fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF3B1111),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+        elevation: 10,
+        duration: const Duration(seconds: 5),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 13),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1189,6 +1492,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       children: [
         _inputField(
           'Record label',
+          controller: _recordLabelController,
           hint: 'Add your record label if applicable',
         ),
         const SizedBox(height: 24),
@@ -1227,9 +1531,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ),
         Divider(color: AppColors.white24, height: 24),
         const SizedBox(height: 8),
-        _inputField('Publisher ⓘ', hint: 'Add your publisher if you have one'),
+        _inputField('Publisher ⓘ', controller: _publisherController, hint: 'Add your publisher if you have one'),
         const SizedBox(height: 24),
-        _inputField('ISRC ⓘ', hint: 'e.g. USABC2312345'),
+        _inputField('ISRC ⓘ', controller: _isrcController, hint: 'e.g. USABC2312345'),
         const SizedBox(height: 24),
         Text(
           'Content warning',
@@ -1269,7 +1573,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         ),
         Divider(color: AppColors.white24, height: 24),
         const SizedBox(height: 8),
-        _inputField('P line ⓘ', hint: 'e.g. 2024 [Owner Name]'),
+        _inputField('P line ⓘ', controller: _pLineController, hint: 'e.g. 2024 [Owner Name]'),
       ],
     );
   }
@@ -1430,6 +1734,59 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               ? () => setState(() => _availability = 'blocked')
               : _showProModal,
           isPro: isPro,
+        ),
+        if (isPro && _availability != 'worldwide') ...[
+          const SizedBox(height: 12),
+          _buildGeoSelector(),
+        ],
+        const SizedBox(height: 16),
+        // ── Mobile Pro Preview ────────────────────────────────────────────
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Mobile Pro Preview',
+              style: TextStyle(color: AppColors.white70, fontSize: 14),
+            ),
+            if (!isPro)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B2F2F),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.orangeAccent, size: 12),
+                    SizedBox(width: 4),
+                    Text(
+                      'Unlock with Artist Pro',
+                      style: TextStyle(
+                        color: Colors.orangeAccent,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: isPro ? null : _showProModal,
+          child: AbsorbPointer(
+            absorbing: !isPro,
+            child: _switchTile(
+              'Enable mobile pro preview',
+              'Allow a mobile preview of this track for Pro listeners.',
+              _mobileProPreview,
+              (v) {
+                if (isPro) setState(() => _mobileProPreview = v);
+              },
+              disabled: !isPro,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Text(
@@ -1668,18 +2025,167 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     );
   }
 
+  void _showGeoBlockingPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.container,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.4,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, controller) => _GeoBlockingSheet(
+          initialRegions: Set.from(_selectedRegions),
+          initialCountries: Set.from(_selectedCountries),
+          scrollController: controller,
+          onSave: (regions, countries) => setState(() {
+            _selectedRegions = regions.toList();
+            _selectedCountries = countries.toList();
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeoSelector() {
+    final hasSelections =
+        _selectedRegions.isNotEmpty || _selectedCountries.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasSelections) ...[
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              ..._selectedRegions.map((r) => _geoChip(r, isRegion: true)),
+              ..._selectedCountries.map((c) => _geoChip(c, isRegion: false)),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _showGeoBlockingPicker,
+            icon: Icon(
+              Icons.add_location_alt_outlined,
+              color: AppColors.white54,
+              size: 16,
+            ),
+            label: Text(
+              'Add continent or country',
+              style: TextStyle(color: AppColors.white54, fontSize: 13),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.white24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _geoChip(String key, {required bool isRegion}) {
+    return Chip(
+      label: Text(
+        _displayGeoName(key),
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor:
+          isRegion ? AppColors.primaryOrange : AppColors.whiteSmoke,
+      deleteIcon: const Icon(Icons.close, size: 14, color: Colors.black54),
+      onDeleted: () => setState(() {
+        if (isRegion) {
+          _selectedRegions.remove(key);
+        } else {
+          _selectedCountries.remove(key);
+        }
+      }),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide.none,
+      ),
+    );
+  }
+
+  Future<void> _deleteTrack() async {
+    final trackId = _editingServerTrack?.id ?? _editingTrack?.serverId;
+    if (trackId == null || trackId.trim().isEmpty) {
+      _showErrorSnack('Cannot delete: track ID is missing.');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.containerMid,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Delete Track',
+          style: TextStyle(color: AppColors.whiteSmoke, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${_titleController.text.trim()}"? This cannot be undone.',
+          style: TextStyle(color: AppColors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: TextStyle(color: AppColors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF6B6B))),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    final result = await _trackApiService.deleteTrack(trackId: trackId);
+    if (!mounted) return;
+    setState(() => _isDeleting = false);
+
+    if (result.$1 == 200) {
+      Navigator.pop(context);
+      _showSuccessSnack('Track Deleted', subtitle: _titleController.text.trim());
+    } else {
+      _showErrorSnack(
+        result.$2.toString().isNotEmpty
+            ? result.$2.toString()
+            : 'Delete failed. Please try again.',
+      );
+    }
+  }
+
   Widget _buildSaveButton() {
+    final isEditing = _editingTrack != null || _editingServerTrack != null;
     final ready =
-        _editingTrack != null ||
-        _editingServerTrack != null ||
-        (_selectedFile != null && _uploadComplete);
+        isEditing || (_selectedFile != null && _uploadComplete);
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            onPressed: (ready && !_isSaving) ? _saveTrack : null,
+            onPressed: (ready && !_isSaving && !_isDeleting) ? _saveTrack : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: ready ? AppColors.whiteSmoke : AppColors.white10,
               disabledBackgroundColor: _isSaving
@@ -1709,6 +2215,39 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   ),
           ),
         ),
+        if (isEditing) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: (_isSaving || _isDeleting) ? null : _deleteTrack,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFFF6B6B)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: _isDeleting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFF6B6B),
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                'Delete Track',
+                style: TextStyle(
+                  color: _isSaving ? AppColors.white54 : const Color(0xFFFF6B6B),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         Text(
           'Confirm your sounds comply with our Terms.',
@@ -1732,6 +2271,292 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Geo-blocking picker ───────────────────────────────────────────────────────
+
+class _GeoItem {
+  final String key;
+  final String display;
+  final bool isRegion;
+  const _GeoItem({
+    required this.key,
+    required this.display,
+    required this.isRegion,
+  });
+}
+
+class _GeoBlockingSheet extends StatefulWidget {
+  final Set<String> initialRegions;
+  final Set<String> initialCountries;
+  final ScrollController scrollController;
+  final void Function(Set<String> regions, Set<String> countries) onSave;
+
+  const _GeoBlockingSheet({
+    required this.initialRegions,
+    required this.initialCountries,
+    required this.scrollController,
+    required this.onSave,
+  });
+
+  @override
+  State<_GeoBlockingSheet> createState() => _GeoBlockingSheetState();
+}
+
+class _GeoBlockingSheetState extends State<_GeoBlockingSheet> {
+  late Set<String> _regions;
+  late Set<String> _countries;
+  final _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _regions = Set.from(widget.initialRegions);
+    _countries = Set.from(widget.initialCountries);
+    _search.addListener(
+      () => setState(() => _query = _search.text.toLowerCase().trim()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  List<_GeoItem> _buildItems() {
+    final items = <_GeoItem>[];
+    for (final region in _kGeoRegions) {
+      final regionDisplay = _displayGeoName(region);
+      final countries = _kRegionCountries[region] ?? [];
+      final regionMatches =
+          _query.isEmpty || regionDisplay.toLowerCase().contains(_query);
+      final matchingCountries = regionMatches
+          ? countries
+          : countries
+              .where(
+                (c) => _displayGeoName(c).toLowerCase().contains(_query),
+              )
+              .toList();
+
+      if (!regionMatches && matchingCountries.isEmpty) continue;
+
+      items.add(
+        _GeoItem(key: region, display: regionDisplay, isRegion: true),
+      );
+      for (final country in matchingCountries) {
+        items.add(
+          _GeoItem(
+            key: country,
+            display: _displayGeoName(country),
+            isRegion: false,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _buildItems();
+    final selectedCount = _regions.length + _countries.length;
+
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 12, bottom: 4),
+          width: 36,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppColors.white24,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Text(
+                'Regions & Countries',
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  widget.onSave(_regions, _countries);
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  selectedCount > 0 ? 'Done ($selectedCount)' : 'Done',
+                  style: TextStyle(
+                    color: AppColors.primaryOrange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: TextField(
+            controller: _search,
+            style: TextStyle(color: AppColors.whiteSmoke, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Add continent or country',
+              hintStyle: TextStyle(color: AppColors.white54, fontSize: 14),
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.white54,
+                size: 20,
+              ),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: AppColors.white54,
+                        size: 18,
+                      ),
+                      onPressed: _search.clear,
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppColors.white10,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Expanded(
+          child: items.isEmpty
+              ? Center(
+                  child: Text(
+                    'No results',
+                    style: TextStyle(color: AppColors.white54),
+                  ),
+                )
+              : ListView.builder(
+                  controller: widget.scrollController,
+                  itemCount: items.length,
+                  itemBuilder: (_, i) {
+                    final item = items[i];
+                    final sel = item.isRegion
+                        ? _regions.contains(item.key)
+                        : _countries.contains(item.key);
+                    return ListTile(
+                      contentPadding: EdgeInsets.only(
+                        left: item.isRegion ? 16 : 36,
+                        right: 16,
+                      ),
+                      leading: item.isRegion
+                          ? Icon(
+                              Icons.public,
+                              color: sel
+                                  ? AppColors.primaryOrange
+                                  : AppColors.white54,
+                              size: 18,
+                            )
+                          : null,
+                      title: Text(
+                        item.display,
+                        style: TextStyle(
+                          color: sel
+                              ? AppColors.primaryOrange
+                              : AppColors.whiteSmoke,
+                          fontSize: item.isRegion ? 15 : 14,
+                          fontWeight: item.isRegion
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      trailing: sel
+                          ? Icon(
+                              Icons.check,
+                              color: AppColors.primaryOrange,
+                              size: 18,
+                            )
+                          : null,
+                      tileColor:
+                          sel ? AppColors.white10 : Colors.transparent,
+                      onTap: () => setState(() {
+                        if (item.isRegion) {
+                          if (sel) {
+                            _regions.remove(item.key);
+                          } else {
+                            _regions.add(item.key);
+                          }
+                        } else {
+                          if (sel) {
+                            _countries.remove(item.key);
+                          } else {
+                            _countries.add(item.key);
+                          }
+                        }
+                      }),
+                    );
+                  },
+                ),
+        ),
+        if (selectedCount > 0)
+          Container(
+            constraints: const BoxConstraints(maxHeight: 56),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.white12)),
+            ),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                ..._regions.map((r) => _chip(r, isRegion: true)),
+                ..._countries.map((c) => _chip(c, isRegion: false)),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _chip(String key, {required bool isRegion}) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Chip(
+        label: Text(
+          _displayGeoName(key),
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor:
+            isRegion ? AppColors.primaryOrange : AppColors.whiteSmoke,
+        deleteIcon: const Icon(Icons.close, size: 14, color: Colors.black54),
+        onDeleted: () => setState(() {
+          if (isRegion) {
+            _regions.remove(key);
+          } else {
+            _countries.remove(key);
+          }
+        }),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide.none,
+        ),
+      ),
     );
   }
 }
