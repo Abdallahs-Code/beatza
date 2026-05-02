@@ -232,7 +232,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[700],
+                  color: AppColors.greyMedium,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -277,7 +277,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                               child: Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.orange,
+                                  color: AppColors.primaryOrange,
                                 ),
                               ),
                             )
@@ -292,26 +292,26 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Add a caption (optional)',
-                                hintStyle: TextStyle(color: Colors.grey[600]),
+                                hintStyle: TextStyle(color: AppColors.white54),
                                 counterStyle: TextStyle(
-                                  color: Colors.grey[600],
+                                  color: AppColors.white54,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey[800]!,
+                                    color: AppColors.borderDark,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey[800]!,
+                                    color: AppColors.borderDark,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: const BorderSide(
-                                    color: Colors.orange,
+                                    color: AppColors.primaryOrange,
                                   ),
                                 ),
                                 filled: true,
@@ -365,7 +365,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                                 Text(
                                   widget.artist,
                                   style: TextStyle(
-                                    color: Colors.grey[400],
+                                    color: AppColors.white54,
                                     fontSize: 12,
                                   ),
                                   maxLines: 1,
@@ -387,16 +387,16 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                         onPressed: _isLoading ? null : _handleAction,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _alreadyReposted
-                              ? Colors.grey[800]
+                              ? AppColors.containerMid
                               : AppColors.whiteSmoke,
                           foregroundColor: _alreadyReposted
                               ? AppColors.whiteSmoke
-                              : Colors.black,
+                              : AppColors.pureBlack,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          disabledBackgroundColor: Colors.grey[700],
+                          disabledBackgroundColor: AppColors.containerMid,
                         ),
                         child: _isLoading
                             ? SizedBox(
@@ -430,8 +430,8 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
     return Container(
       width: 50,
       height: 50,
-      color: Colors.grey[800],
-      child: const Icon(Icons.music_note, color: Colors.grey, size: 24),
+      color: AppColors.tileDark,
+      child: Icon(Icons.music_note, color: AppColors.greyMuted, size: 24),
     );
   }
 }

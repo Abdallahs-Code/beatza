@@ -250,8 +250,8 @@ class AppColors {
 
   static Color get black54 => _isDark
       ? Colors
-            .black54 // home_widgets feed text overlay, feed_card secondary text, payment_checkout_sheet barrier
-      : Colors.white54;
+            .white54 // home_widgets feed text overlay, feed_card secondary text, payment_checkout_sheet barrier
+      : Colors.black54;
 
   // ── GREY TEXT / ICON PALETTE ──────────────────────────────────────────────
   static Color get silver => _isDark
@@ -262,9 +262,9 @@ class AppColors {
 
   static Color get greyZinc => _isDark
       ? const Color(
-          0xFF71717A,
+          0xFF9A9A9A,
         ) // profile_header_widget icon, animated_stat_widget placeholder
-      : Colors.grey[700]!;
+      : Colors.grey[600]!;
 
   static Color get greyMedium => _isDark
       ? const Color(
@@ -273,7 +273,7 @@ class AppColors {
       : Colors.grey[600]!;
 
   static Color get greyDark => _isDark
-      ? const Color(0xFF6E6E6E) // edit_profile_screen disabled text
+      ? const Color(0xFF808080) // edit_profile_screen disabled text
       : Colors.grey[500]!;
 
   static Color get greyEnabled => _isDark
@@ -293,13 +293,13 @@ class AppColors {
   // Specific grey values used in activity / quick-reply UI
   static Color get greyDark3 => _isDark
       ? const Color(
-          0xFF555555,
+          0xFF888888,
         ) // quick_reply_options_menu icon, activity_screen icon bg
-      : Colors.grey[700]!;
+      : Colors.grey[600]!;
 
   static Color get greyDark4 => _isDark
-      ? const Color(0xFF666666) // quick_reply_sheet divider grey
-      : Colors.grey[600]!;
+      ? const Color(0xFF888888) // quick_reply_sheet divider grey
+      : Colors.grey[500]!;
 
   static Color get greyMid => _isDark
       ? const Color(
@@ -509,6 +509,86 @@ class AppColors {
   static const Color vibeTrapEnd = Color(0xFF1A237E);
   static const Color vibeWorldMusicStart = Color(0xFF00695C);
   static const Color vibeWorldMusicEnd = Color(0xFF004D40);
+
+  // ── STATUS / FUNCTIONAL CONTAINERS ───────────────────────────────────────
+  static Color get errorContainerDark => _isDark
+      ? const Color(0xFF3B1111) // upload_track_screen error snackbar
+      : const Color(0xFFFFEBEE);
+
+  static Color get successContainerDark => _isDark
+      ? const Color(0xFF0F3B21) // upload_track_screen success state
+      : const Color(0xFFE8F5E9);
+
+  static Color get uploadProgressBg => _isDark
+      ? const Color(0xFF2A1B38) // upload_track_screen progress circle
+      : const Color(0xFFEDE7F6);
+
+  static Color get proFeatureBadgeBg => _isDark
+      ? const Color(0xFF3B2F2F) // upload_track_screen pro feature badge
+      : const Color(0xFFFFF3E0);
+
+  static Color get blockBannerBg => _isDark
+      ? const Color(0xFF161616) // chat_screen blocked user banner
+      : const Color(0xFFF5F5F5);
+
+  static Color get artistStudioGradientStart => _isDark
+      ? const Color(0xFF381E4B) // artist_studio_screen header gradient
+      : const Color(0xFFEDE7F6);
+
+  static Color get destructiveDisabledBg => _isDark
+      ? const Color(0xFF5C1F1F) // settings_screen delete account (disabled)
+      : const Color(0xFFFFCDD2);
+
+  static Color get datePickerDisabledBg => _isDark
+      ? const Color(0xFF3A2A1A) // account_settings_screen date picker (disabled)
+      : const Color(0xFFFFF8F0);
+
+  static Color get genericDisabledButtonBg => _isDark
+      ? const Color(0xFF424242) // premium_subscription generic disabled button
+      : const Color(0xFFE0E0E0);
+
+  static const Color insightsChartFill =
+      Color(0xFF2A0055); // your_insights_screen chart painter fill
+
+  // ── VALIDATION / ERROR / STATUS ACCENTS ───────────────────────────────────
+  static const Color errorRed =
+      Color(0xFFFF6B6B); // upload_track_screen validation error icon/text
+  static const Color errorSoft =
+      Color(0xFFE57373); // upload_track_screen soft error label
+  static const Color removeRed =
+      Color(0xFFE53935); // playback remove-from-queue button
+
+  // ── PROGRESS / COMPLETION ACCENTS ─────────────────────────────────────────
+  static const Color datepickerGreen =
+      Color(0xFF1DB954); // upload_track date picker accent + progress bar fill
+  static const Color completedGreen =
+      Color(0xFF49D17D); // user_profile completion checkmark circle
+  static const Color progressOrange =
+      Color(0xFFFF6A00); // user_profile completion counter text
+
+  // ── UI COMPONENT ACCENTS ──────────────────────────────────────────────────
+  static const Color timestampPillBg =
+      Color(0xFF1A4BB8); // quick_reply_sheet timestamp pill background
+  static Color get trueFriendsBg => _isDark
+      ? const Color(0xFF212121) // followers/following screen "True Friends" promo bg
+      : const Color(0xFFEFEBE6);
+  static const Color welcomeLoginButton =
+      Color(0xFFBBD2FE); // welcome_widgets login button background
+
+  // ── BRAND / INTEGRATION BLUES ─────────────────────────────────────────────
+  static const Color studioActionBlue =
+      Color(0xFF4A90E2); // artist_studio_screen icon + your_insights_screen wire gradient
+
+  // ── WAVEFORM / PAINTER TOKENS ─────────────────────────────────────────────
+  static const Color waveformInactive =
+      Color(0xFFBDBDBD); // playback_now_playing_card + track_options_sheet waveform inactive bars
+  static Color get waveformInactiveDark => _isDark
+      ? const Color(0xFFBDBDBD)
+      : const Color(0xFF9E9E9E);
+
+  // ── UPLOAD / STUDIO ACCENTS ───────────────────────────────────────────────
+  static const Color uploadGlowPurple =
+      Color(0xFF8A2BE2); // your_uploads_screen radial glow + upload progress badge
 
   // ── UTILITY ───────────────────────────────────────────────────────────────
   static const Color transparent = Color(

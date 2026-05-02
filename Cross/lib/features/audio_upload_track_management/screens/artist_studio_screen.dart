@@ -26,11 +26,11 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
       topLabel = 'AMPLIFY';
     } else if (iconType == 'upload') {
       modalIcon = Icons.cloud_upload;
-      iconColor = const Color(0xFF4A90E2);
+      iconColor = AppColors.studioActionBlue;
       topLabel = 'UPLOAD';
     } else {
       modalIcon = Icons.swap_horiz;
-      iconColor = const Color(0xFF4A90E2);
+      iconColor = AppColors.studioActionBlue;
       topLabel = 'REPLACE FILE';
     }
 
@@ -207,7 +207,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF381E4B), AppColors.surfaceMid],
+                    colors: [AppColors.artistStudioGradientStart, AppColors.surfaceMid],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -345,7 +345,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                                 : Container(
                                     width: 56,
                                     height: 56,
-                                    color: Colors.grey[800],
+                                    color: AppColors.tileDark,
                                     child: Icon(
                                       Icons.music_note,
                                       color: AppColors.white54,
@@ -385,9 +385,9 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                               color: AppColors.whiteSmoke,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.play_arrow,
-                              color: Colors.black,
+                              color: AppColors.pureBlack,
                             ),
                           ),
                         ],
@@ -512,7 +512,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 Expanded(
                   child: _CreditCard(
                     icon: Icons.cloud_upload,
-                    iconColor: const Color(0xFF4A90E2),
+                    iconColor: AppColors.studioActionBlue,
                     title: 'Upload time',
                     subtitle: '0/120 mins used',
                     onTap: () => _showProModal(
@@ -526,7 +526,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
                 Expanded(
                   child: _CreditCard(
                     icon: Icons.swap_horiz,
-                    iconColor: const Color(0xFF4A90E2),
+                    iconColor: AppColors.studioActionBlue,
                     title: 'Replace file',
                     subtitle: 'TRY IT',
                     onTap: () => _showProModal(

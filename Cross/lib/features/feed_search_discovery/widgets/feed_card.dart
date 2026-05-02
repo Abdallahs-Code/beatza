@@ -330,7 +330,7 @@ class _FeedCardState extends State<FeedCard> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: AppColors.pureBlack.withValues(alpha: 0.5),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -370,7 +370,7 @@ class _FeedCardState extends State<FeedCard> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 32),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.45),
+            color: AppColors.pureBlack.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(12),
           ),
           child: AspectRatio(
@@ -429,7 +429,7 @@ class _FeedCardState extends State<FeedCard> {
             children: [
               Icon(
                 _isLiked ? Icons.favorite : Icons.favorite_border,
-                color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
+                color: _isLiked ? AppColors.primaryOrange : AppColors.whiteSmoke,
                 size: 32,
               ),
               const SizedBox(height: 4),
@@ -492,9 +492,9 @@ class _FeedCardState extends State<FeedCard> {
               color: AppColors.whiteSmoke,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.play_arrow_rounded,
-              color: Colors.black,
+              color: AppColors.pureBlack,
               size: 26,
             ),
           ),
@@ -506,11 +506,11 @@ class _FeedCardState extends State<FeedCard> {
   Widget _buildBottomInfo(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [Colors.black87, Colors.transparent],
+          colors: [AppColors.pureBlack.withValues(alpha: 0.87), AppColors.transparent],
         ),
       ),
       child: Column(

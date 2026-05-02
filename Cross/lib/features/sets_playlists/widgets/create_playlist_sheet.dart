@@ -75,14 +75,14 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
           content: Text(
             'Free plan limit reached. Upgrade to Pro for unlimited playlists.',
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.primaryOrange,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to create playlist. Please try again.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     }

@@ -210,11 +210,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
     final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
     if (!isPro && _serverTracks.length >= 3) {
       ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(
-          content: Text(
+        SnackBar(
+          content: const Text(
             'Free tier limited to 3 uploads. Please upgrade to Pro.',
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.primaryOrange,
         ),
       );
       Navigator.push(
@@ -273,7 +273,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFF8A2BE2).withValues(alpha: 0.4),
+                              AppColors.uploadGlowPurple.withValues(alpha: 0.4),
                               Colors.transparent,
                             ],
                           ),
@@ -349,7 +349,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                             icon: const Icon(Icons.cloud_upload_outlined),
                             label: const Text('Upload your first track'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
+                              backgroundColor: AppColors.primaryOrange,
                               foregroundColor: AppColors.whiteSmoke,
                             ),
                           ),
@@ -364,9 +364,9 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                               color: AppColors.whiteSmoke,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.play_arrow,
-                              color: Colors.black,
+                              color: AppColors.pureBlack,
                             ),
                           ),
                         ),
@@ -384,17 +384,17 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: AppColors.primaryOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.3),
+                        color: AppColors.primaryOrange.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.warning_amber,
-                          color: Colors.orange,
+                          color: AppColors.primaryOrange,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
@@ -402,17 +402,17 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                           child: Text(
                             'Could not load your tracks.',
                             style: TextStyle(
-                              color: Colors.orange[300],
+                              color: AppColors.primaryOrange,
                               fontSize: 12,
                             ),
                           ),
                         ),
                         TextButton(
                           onPressed: _loadServerTracks,
-                          child: const Text(
+                          child: Text(
                             'Retry',
                             style: TextStyle(
-                              color: Colors.orange,
+                              color: AppColors.primaryOrange,
                               fontSize: 12,
                             ),
                           ),
@@ -432,7 +432,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                        color: Colors.orange,
+                        color: AppColors.primaryOrange,
                         strokeWidth: 2,
                       ),
                     ),
@@ -455,7 +455,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       t.title,
                       style: TextStyle(
                         color: isFetching
-                            ? Colors.orange
+                            ? AppColors.primaryOrange
                             : AppColors.whiteSmoke,
                         fontWeight: FontWeight.bold,
                       ),
@@ -467,7 +467,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                         Text(
                           t.isPrivate ? 'Private' : 'Public',
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: AppColors.greyMuted,
                             fontSize: 12,
                           ),
                         ),
@@ -475,14 +475,14 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                           Text(
                             ' · ',
                             style: TextStyle(
-                              color: Colors.grey[700],
+                              color: AppColors.greyMedium,
                               fontSize: 12,
                             ),
                           ),
                           Text(
                             '${_fmt(t.numPlays)} plays',
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: AppColors.greyMuted,
                               fontSize: 12,
                             ),
                           ),
@@ -490,11 +490,11 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                       ],
                     ),
                     trailing: isFetching
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.orange,
+                              color: AppColors.primaryOrange,
                               strokeWidth: 2,
                             ),
                           )
@@ -518,13 +518,13 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                     children: [
                       Icon(
                         Icons.cloud_upload_outlined,
-                        color: Colors.grey[700],
+                        color: AppColors.greyMedium,
                         size: 60,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No uploads yet',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                        style: TextStyle(color: AppColors.greyMuted, fontSize: 16),
                       ),
                       const SizedBox(height: 12),
                       IconButton(

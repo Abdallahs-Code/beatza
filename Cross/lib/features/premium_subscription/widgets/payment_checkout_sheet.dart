@@ -185,7 +185,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_errorMessage ?? 'Payment failed'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.anger,
           ),
         );
       }
@@ -305,7 +305,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: AppColors.pureBlack,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: _selectedMethod == 'apple_pay'
@@ -349,20 +349,20 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Text(
                     'Pay with ',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Icon(Icons.link, color: Colors.black, size: 24),
+                  Icon(Icons.link, color: AppColors.pureBlack, size: 24),
                   Text(
                     'link',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -388,10 +388,10 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
           ),
           if (_savedCardLast4 != null) ...[
-            const Text(
+            Text(
               'Saved',
               style: TextStyle(
-                color: Colors.black87,
+                color: AppColors.pureBlack,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -417,13 +417,13 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                       width: 40,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: Colors.black87,
+                        color: AppColors.pureBlack,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.circle,
-                          color: Colors.orange,
+                          color: AppColors.primaryOrange,
                           size: 12,
                         ),
                       ),
@@ -431,8 +431,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                     const SizedBox(width: 12),
                     Text(
                       '•••• $_savedCardLast4',
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: AppColors.pureBlack,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -448,10 +448,10 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ),
             const SizedBox(height: 24),
           ],
-          const Text(
+          Text(
             'New payment method',
             style: TextStyle(
-              color: Colors.black87,
+              color: AppColors.pureBlack,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -467,11 +467,11 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               children: [
                 ListTile(
                   onTap: () => setState(() => _isAddingNewCard = true),
-                  leading: const Icon(Icons.credit_card, color: Colors.black),
-                  title: const Text(
+                  leading: Icon(Icons.credit_card, color: AppColors.pureBlack),
+                  title: Text(
                     'New card',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -491,10 +491,10 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                       size: 16,
                     ),
                   ),
-                  title: const Text(
+                  title: Text(
                     'Cash App Pay',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -511,8 +511,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               padding: const EdgeInsets.only(bottom: 12.0),
               child: Text(
                 _errorMessage!,
-                style: const TextStyle(
-                  color: Colors.red,
+                style: TextStyle(
+                  color: AppColors.anger,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -575,21 +575,21 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                   _isAddingNewCard = false;
                   _errorMessage = null;
                 }),
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 8.0, top: 4, bottom: 4),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8.0, top: 4, bottom: 4),
                   child: Icon(
                     Icons.arrow_back_ios,
-                    color: Colors.black87,
+                    color: AppColors.pureBlack,
                     size: 20,
                   ),
                 ),
               ),
-              const Text(
+              Text(
                 'Add card',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: AppColors.pureBlack,
                 ),
               ),
             ],
@@ -628,7 +628,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                     hintStyle: TextStyle(color: Colors.black38),
                   ),
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                  style: TextStyle(color: AppColors.pureBlack, fontSize: 16),
                 ),
                 const Divider(height: 1, color: Colors.black12),
                 Row(
@@ -650,8 +650,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                           hintStyle: TextStyle(color: Colors.black38),
                         ),
                         keyboardType: TextInputType.datetime,
-                        style: const TextStyle(
-                          color: Colors.black,
+                        style: TextStyle(
+                          color: AppColors.pureBlack,
                           fontSize: 16,
                         ),
                       ),
@@ -675,8 +675,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                         ),
                         keyboardType: TextInputType.number,
                         obscureText: true,
-                        style: const TextStyle(
-                          color: Colors.black,
+                        style: TextStyle(
+                          color: AppColors.pureBlack,
                           fontSize: 16,
                         ),
                       ),
@@ -709,9 +709,9 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                 'Country or region',
                 style: TextStyle(fontSize: 11, color: Colors.black54),
               ),
-              subtitle: const Text(
+              subtitle: Text(
                 'Egypt',
-                style: TextStyle(fontSize: 16, color: Colors.black),
+                style: TextStyle(fontSize: 16, color: AppColors.pureBlack),
               ),
               trailing: const Icon(
                 Icons.keyboard_arrow_down,
@@ -730,10 +730,10 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Save my info for faster checkout with Link',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(fontSize: 14, color: AppColors.pureBlack),
                 ),
               ),
             ],
@@ -744,8 +744,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
               padding: const EdgeInsets.only(bottom: 12.0),
               child: Text(
                 _errorMessage!,
-                style: const TextStyle(
-                  color: Colors.red,
+                style: TextStyle(
+                  color: AppColors.anger,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),

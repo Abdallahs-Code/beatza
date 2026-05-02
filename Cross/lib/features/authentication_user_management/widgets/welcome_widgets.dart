@@ -47,13 +47,13 @@ class WelcomeBottomPanel extends StatelessWidget {
           Image.asset("assets/images/blacklogo.png", width: 100),
 
           /// TITLE
-          const Text(
+          Text(
             AppText.welcomeTitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppColors.pureBlack,
             ),
           ),
 
@@ -63,7 +63,7 @@ class WelcomeBottomPanel extends StatelessWidget {
           WelcomeButton(
             text: AppText.createAccount,
             backgroundColor: AppColors.whiteSmoke,
-            textColor: Colors.black,
+            textColor: AppColors.pureBlack,
             onPressed: onCreateAccount,
           ),
 
@@ -72,8 +72,8 @@ class WelcomeBottomPanel extends StatelessWidget {
           /// LOGIN BUTTON
           WelcomeButton(
             text: AppText.login,
-            backgroundColor: const Color.fromRGBO(187, 210, 254, 1),
-            textColor: Colors.black,
+            backgroundColor: AppColors.welcomeLoginButton,
+            textColor: AppColors.pureBlack,
             onPressed: onLogin,
           ),
         ],

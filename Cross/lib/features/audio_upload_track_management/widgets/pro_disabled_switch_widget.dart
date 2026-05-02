@@ -23,8 +23,8 @@ class ProDisabledSwitch extends StatelessWidget {
           child: Container(
             width: 22,
             height: 22,
-            decoration: const BoxDecoration(
-              color: Color(0xFFBDBDBD),
+            decoration: BoxDecoration(
+              color: AppColors.waveformInactive,
               shape: BoxShape.circle,
             ),
           ),

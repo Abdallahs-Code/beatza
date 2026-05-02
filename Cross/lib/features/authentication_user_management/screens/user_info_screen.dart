@@ -544,8 +544,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.greyButton,
                     disabledBackgroundColor: AppColors.greyButton,
-                    foregroundColor: Colors.black,
-                    disabledForegroundColor: Colors.black,
+                    foregroundColor: AppColors.pureBlack,
+                    disabledForegroundColor: AppColors.pureBlack,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
@@ -553,12 +553,12 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     ),
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 22,
                           width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.4,
-                            color: Colors.black,
+                            color: AppColors.pureBlack,
                           ),
                         )
                       : const Text(

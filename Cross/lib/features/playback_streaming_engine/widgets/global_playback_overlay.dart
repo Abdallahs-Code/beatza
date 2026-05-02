@@ -168,8 +168,8 @@ Future<void> _openExpandedPlayer(BuildContext context) async {
       useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: false,
-      backgroundColor: Colors.black,
-      barrierColor: Colors.black.withValues(alpha: 0.70),
+      backgroundColor: AppColors.pureBlack,
+      barrierColor: AppColors.pureBlack.withValues(alpha: 0.70),
       builder: (context) => const _ExpandedPlayerSheet(),
     );
   } finally {
@@ -242,7 +242,7 @@ class _MiniPlayerCard extends StatelessWidget {
                                 : Icons.play_arrow_rounded),
                       color: isAdPlaying || isBlocked
                           ? AppColors.white54
-                          : Colors.black,
+                          : AppColors.pureBlack,
                       size: 26,
                     ),
                   ),
@@ -274,7 +274,7 @@ class _MiniPlayerCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: isBlocked
-                              ? Colors.orange.withValues(alpha: 0.7)
+                              ? AppColors.primaryOrange.withValues(alpha: 0.7)
                               : Colors.white60,
                           fontSize: 12,
                         ),
@@ -346,7 +346,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
         }
 
         return Material(
-          color: Colors.black,
+          color: AppColors.pureBlack,
           child: SafeArea(
             bottom: false,
             child: Column(
@@ -377,10 +377,10 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.black.withValues(alpha: 0.12),
+                                AppColors.pureBlack.withValues(alpha: 0.12),
                                 Colors.transparent,
                                 Colors.transparent,
-                                Colors.black.withValues(alpha: 0.10),
+                                AppColors.pureBlack.withValues(alpha: 0.10),
                               ],
                               stops: const [0.0, 0.16, 0.76, 1.0],
                             ),
@@ -492,7 +492,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.black,
+                                        color: AppColors.pureBlack,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Row(
@@ -536,7 +536,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(
+                                      color: AppColors.pureBlack.withValues(
                                         alpha: 0.42,
                                       ),
                                       shape: BoxShape.circle,
@@ -593,7 +593,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                 ),
                 if (!_isAdPlaying)
                   Container(
-                    color: Colors.black,
+                    color: AppColors.pureBlack,
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
                     child: _ExpandedEngagementBar(
                       track: track,
@@ -1250,7 +1250,7 @@ class _ExpandedVolumeSliderState extends State<_ExpandedVolumeSlider> {
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.20),
+        color: AppColors.pureBlack.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -1363,7 +1363,7 @@ class _ArtworkFallback extends StatelessWidget {
         child: Icon(
           Icons.album_rounded,
           size: 180,
-          color: Colors.black.withValues(alpha: 0.35),
+          color: AppColors.pureBlack.withValues(alpha: 0.35),
         ),
       ),
     );
@@ -1383,8 +1383,8 @@ class _TopCircleButton extends StatelessWidget {
       child: Container(
         width: 44,
         height: 44,
-        decoration: const BoxDecoration(
-          color: Colors.black,
+        decoration: BoxDecoration(
+          color: AppColors.pureBlack,
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: AppColors.whiteSmoke, size: 28),
@@ -1415,8 +1415,8 @@ class _PlayerActionButton extends StatelessWidget {
         child: Container(
           width: isPrimary ? 78 : 56,
           height: isPrimary ? 78 : 56,
-          decoration: const BoxDecoration(
-            color: Colors.black,
+          decoration: BoxDecoration(
+            color: AppColors.pureBlack,
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -1655,15 +1655,15 @@ Future<void> _showShareSheet(
                                   track.artworkUrl!,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(
+                                      Icon(
                                         Icons.album_rounded,
-                                        color: Colors.black54,
+                                        color: AppColors.black54,
                                         size: 34,
                                       ),
                                 )
-                              : const Icon(
+                              : Icon(
                                   Icons.album_rounded,
-                                  color: Colors.black54,
+                                  color: AppColors.black54,
                                   size: 34,
                                 ),
                         ),
@@ -1837,7 +1837,7 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Colors.blueGrey.shade500.withValues(alpha: 0.95),
-            Colors.grey.shade400.withValues(alpha: 0.9),
+            AppColors.greyMuted.withValues(alpha: 0.9),
           ],
         ),
       ),
@@ -1877,15 +1877,15 @@ class _TrackOptionsHeaderCard extends StatelessWidget {
                           ? Image.network(
                               track.artworkUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Icon(
+                              errorBuilder: (_, _, _) => Icon(
                                 Icons.album_rounded,
-                                color: Colors.black54,
+                                color: AppColors.black54,
                                 size: 34,
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.album_rounded,
-                              color: Colors.black54,
+                              color: AppColors.black54,
                               size: 34,
                             ),
                     ),
@@ -1961,13 +1961,13 @@ class _TrackOptionTile extends StatelessWidget {
 class _VinylPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint basePaint = Paint()..color = Colors.black;
+    final Paint basePaint = Paint()..color = AppColors.pureBlack;
     final Paint ringPaint = Paint()
       ..color = AppColors.whiteSmoke.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final Paint centerPaint = Paint()
-      ..color = Colors.grey.shade800
+      ..color = AppColors.tileDark
       ..style = PaintingStyle.fill;
 
     final Offset center = Offset(size.width * 0.45, size.height / 2);
@@ -2063,7 +2063,7 @@ class _MiniLikeButtonState extends State<_MiniLikeButton> {
       constraints: const BoxConstraints(),
       icon: Icon(
         _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-        color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
+        color: _isLiked ? AppColors.primaryOrange : AppColors.whiteSmoke,
         size: 26,
       ),
     );
@@ -2262,7 +2262,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
                 _isLiked
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
+                color: _isLiked ? AppColors.primaryOrange : AppColors.whiteSmoke,
                 size: 26,
               ),
               if (_likeCount > 0) ...[
@@ -2785,7 +2785,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                   label: _isLiked ? 'Liked' : 'Like',
-                  color: _isLiked ? Colors.orange : AppColors.whiteSmoke,
+                  color: _isLiked ? AppColors.primaryOrange : AppColors.whiteSmoke,
                   onTap: _toggleLike,
                 ),
                 _TrackOptionTile(
@@ -2832,7 +2832,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
                 _TrackOptionTile(
                   icon: Icons.repeat_rounded,
                   label: _isReposted ? 'Reposted' : 'Repost on Beatza',
-                  color: _isReposted ? Colors.orange : AppColors.whiteSmoke,
+                  color: _isReposted ? AppColors.primaryOrange : AppColors.whiteSmoke,
                   onTap: _openRepost,
                 ),
                 const SizedBox(height: 10),
@@ -3058,7 +3058,7 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
     return Container(
       height: 42,
       decoration: BoxDecoration(
-        color: Colors.grey.shade700.withValues(alpha: 0.72),
+        color: AppColors.greyMedium.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(26),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -3092,12 +3092,12 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.orange,
+                            color: AppColors.primaryOrange,
                           ),
                         )
                       : const Icon(
                           Icons.arrow_circle_up_rounded,
-                          color: Colors.orange,
+                          color: AppColors.primaryOrange,
                           size: 28,
                         ),
                 );
@@ -3204,7 +3204,7 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
               _isFollowing
                   ? Icons.person_remove_outlined
                   : Icons.person_add_alt_1_outlined,
-              color: _isFollowing ? Colors.orange : AppColors.white70,
+              color: _isFollowing ? AppColors.primaryOrange : AppColors.white70,
               size: 26,
             ),
     );
@@ -3474,7 +3474,7 @@ class _QueueCurrentTrackTile extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
-              color: Colors.grey.shade800,
+              color: AppColors.tileDark,
             ),
             child:
                 track.artworkUrl != null && track.artworkUrl!.trim().isNotEmpty
@@ -3543,7 +3543,7 @@ class _QueueNextTrackTile extends StatelessWidget {
               width: 28,
               height: 28,
               decoration: const BoxDecoration(
-                color: Color(0xFFE53935),
+                color: AppColors.removeRed,
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.remove, color: AppColors.whiteSmoke, size: 18),
@@ -3556,7 +3556,7 @@ class _QueueNextTrackTile extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
-              color: Colors.grey.shade800,
+              color: AppColors.tileDark,
             ),
             child:
                 track.artworkUrl != null && track.artworkUrl!.trim().isNotEmpty

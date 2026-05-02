@@ -39,7 +39,7 @@ class TopHeader extends StatelessWidget {
                       content: Text(
                         'Free tier limited to 3 uploads. Please upgrade to Pro.',
                       ),
-                      backgroundColor: Colors.orange,
+                      backgroundColor: AppColors.primaryOrange,
                     ),
                   );
                   Navigator.push(

@@ -776,7 +776,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.deepRed,
-                      disabledBackgroundColor: const Color(0xFF5C1F1F),
+                      disabledBackgroundColor: AppColors.destructiveDisabledBg,
                       foregroundColor: AppColors.whiteSmoke,
                       elevation: 0,
                       shape: RoundedRectangleBorder(

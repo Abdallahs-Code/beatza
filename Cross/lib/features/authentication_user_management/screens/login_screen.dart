@@ -144,10 +144,10 @@ class LoginScreen extends StatelessWidget {
                             ? Icons.error_outline
                             : Icons.timer_off,
                         color: pollingStatus == 'success'
-                            ? Colors.green
+                            ? AppColors.successGreen
                             : pollingStatus == 'error'
-                            ? Colors.red
-                            : Colors.orange,
+                            ? AppColors.anger
+                            : AppColors.primaryOrange,
                         size: 60,
                       ),
                       const SizedBox(height: 16),
@@ -260,7 +260,7 @@ class LoginScreen extends StatelessWidget {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.orangeQrCode,
-                              foregroundColor: Colors.black,
+                              foregroundColor: AppColors.pureBlack,
                             ),
                             child: const Text('Try Again'),
                           ),

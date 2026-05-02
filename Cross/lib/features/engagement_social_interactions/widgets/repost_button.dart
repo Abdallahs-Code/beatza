@@ -50,7 +50,7 @@ class RepostButton extends StatelessWidget {
             child: Icon(
               Icons.repeat,
               key: ValueKey(isReposted),
-              color: isReposted ? Colors.orange : Colors.grey[400],
+              color: isReposted ? AppColors.primaryOrange : AppColors.white54,
               size: iconSize,
             ),
           ),
@@ -61,7 +61,7 @@ class RepostButton extends StatelessWidget {
             Text(
               _formatCount(repostCount),
               style: TextStyle(
-                color: isReposted ? AppColors.whiteSmoke : Colors.grey[400],
+                color: isReposted ? AppColors.whiteSmoke : AppColors.white54,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),

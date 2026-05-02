@@ -136,7 +136,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     if (statusCode != 200) {
       setState(() => _tracks.insert(index, track));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: AppColors.deepRed),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -165,14 +165,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You do not have permission to delete this album.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to delete album. Please try again.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.deepRed,
         ),
       );
     }
@@ -196,7 +196,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: destructive ? Colors.red : AppColors.crusta,
+              backgroundColor: destructive ? AppColors.deepRed : AppColors.crusta,
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(destructive ? 'Delete' : 'Confirm'),
@@ -356,7 +356,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: AppColors.pureBlack.withValues(alpha: 0.5),
                     blurRadius: 32,
                     offset: const Offset(0, 10),
                   ),

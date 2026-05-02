@@ -129,7 +129,7 @@ class _YourUploadsSpotlightScreenState
                       : Container(
                           width: 52,
                           height: 52,
-                          color: Colors.grey[800],
+                          color: AppColors.tileDark,
                           child: Icon(
                             Icons.music_note,
                             color: AppColors.whiteSmoke,

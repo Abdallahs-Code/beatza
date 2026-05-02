@@ -387,7 +387,7 @@ class _SearchScreenState extends State<SearchScreen>
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
-                child: CircularProgressIndicator(color: Colors.orange),
+                child: CircularProgressIndicator(color: AppColors.primaryOrange),
               ),
             )
           else if (hasSuggestions)
@@ -451,7 +451,7 @@ class _SearchScreenState extends State<SearchScreen>
                 _suggestionsError ?? 'No suggestions found',
                 style: TextStyle(
                   color: _suggestionsError != null
-                      ? Colors.orange
+                      ? AppColors.primaryOrange
                       : AppColors.white54,
                 ),
                 textAlign: TextAlign.center,
@@ -467,7 +467,7 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildResultsState() {
     if (_resultsLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
 
@@ -482,7 +482,7 @@ class _SearchScreenState extends State<SearchScreen>
               onPressed: () => _submitSearch(_activeQuery),
               child: const Text(
                 'Retry',
-                style: TextStyle(color: Colors.orange),
+                style: TextStyle(color: AppColors.primaryOrange),
               ),
             ),
           ],
@@ -504,7 +504,7 @@ class _SearchScreenState extends State<SearchScreen>
         TabBar(
           controller: _tabController,
           isScrollable: true,
-          indicatorColor: Colors.orange,
+          indicatorColor: AppColors.primaryOrange,
           labelColor: AppColors.whiteSmoke,
           unselectedLabelColor: AppColors.white54,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),

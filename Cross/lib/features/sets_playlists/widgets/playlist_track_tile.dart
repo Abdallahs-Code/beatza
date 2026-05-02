@@ -101,7 +101,7 @@ class PlaylistTrackTile extends StatelessWidget {
               IconButton(
                 icon: const Icon(
                   Icons.remove_circle_outline,
-                  color: Colors.red,
+                  color: AppColors.deepRed,
                   size: 20,
                 ),
                 onPressed: onRemove,

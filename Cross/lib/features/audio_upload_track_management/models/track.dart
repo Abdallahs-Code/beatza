@@ -265,7 +265,7 @@ class Track {
         .toList();
   }
 
-  /// GET /api/public/tracks/v1/ (paginated) → nested shape inside data.tracks
+  /// GET /api/tracks/v2/ (paginated) → nested shape inside data.tracks
   static List<Track> listFromPaginatedResponse(Map<String, dynamic> json) {
     final dataObj = json['data'] as Map<String, dynamic>? ?? {};
     final List<dynamic> tracks = dataObj['tracks'] ?? [];

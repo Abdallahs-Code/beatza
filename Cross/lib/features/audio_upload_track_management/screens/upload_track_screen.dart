@@ -827,7 +827,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: const Color(0xFF3B1111),
+        backgroundColor: AppColors.errorContainerDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
@@ -835,7 +835,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         duration: const Duration(seconds: 5),
         content: Row(
           children: [
-            const Icon(Icons.error_outline, color: Color(0xFFFF6B6B), size: 24),
+            const Icon(Icons.error_outline, color: AppColors.errorRed, size: 24),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -890,7 +890,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         itemBuilder: (_, i) => ListTile(
           title: Text(genres[i], style: TextStyle(color: AppColors.whiteSmoke)),
           trailing: _genreController.text == genres[i]
-              ? const Icon(Icons.check, color: Colors.orange)
+              ? const Icon(Icons.check, color: AppColors.primaryOrange)
               : null,
           onTap: () {
             setState(() => _genreController.text = genres[i]);
@@ -914,7 +914,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: ColorScheme.dark(
-            primary: Color(0xFF1DB954),
+            primary: AppColors.datepickerGreen,
             onPrimary: AppColors.whiteSmoke,
             surface: AppColors.surfaceMid,
             onSurface: AppColors.whiteSmoke,
@@ -980,8 +980,8 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   padding: const EdgeInsets.only(right: 16),
                   child: Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2A1B38),
+                    decoration: BoxDecoration(
+                      color: AppColors.uploadProgressBg,
                       shape: BoxShape.circle,
                     ),
                     child: Text(
@@ -1184,9 +1184,9 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(
+                        Icon(
                           Icons.check_circle,
-                          color: Colors.green,
+                          color: AppColors.successGreen,
                           size: 24,
                         ),
                       ],
@@ -1286,7 +1286,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             if (isPro)
               CupertinoSwitch(
                 value: _enableReleaseDate,
-                activeTrackColor: Colors.green,
+                activeTrackColor: AppColors.successGreen,
                 onChanged: (v) => setState(() => _enableReleaseDate = v),
               )
             else
@@ -1347,7 +1347,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       height: 24,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F3B21),
+        color: AppColors.successContainerDark,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Stack(
@@ -1356,7 +1356,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             widthFactor: _uploadProgress / 100,
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1DB954),
+                color: AppColors.datepickerGreen,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -1400,14 +1400,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             text: 'Artists ',
             style: TextStyle(
               color: _artists.isEmpty
-                  ? const Color(0xFFE57373)
+                  ? AppColors.errorSoft
                   : AppColors.white70,
               fontSize: 12,
             ),
             children: const [
               TextSpan(
                 text: '*',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: AppColors.anger),
               ),
             ],
           ),
@@ -1421,15 +1421,15 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                   label: Text(
                     a,
                     style: TextStyle(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   backgroundColor: AppColors.white12,
-                  deleteIcon: const Icon(
+                  deleteIcon: Icon(
                     Icons.close,
-                    color: Colors.black,
+                    color: AppColors.pureBlack,
                     size: 16,
                   ),
                   onDeleted: () => setState(() => _artists.remove(a)),
@@ -1468,7 +1468,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             padding: EdgeInsets.only(top: 8),
             child: Text(
               'Please enter at least one Artist',
-              style: TextStyle(color: Color(0xFFE57373), fontSize: 12),
+              style: TextStyle(color: AppColors.errorSoft, fontSize: 12),
             ),
           ),
         Divider(color: AppColors.white24, height: 24),
@@ -1524,7 +1524,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
             CupertinoSwitch(
               value: _enableReleaseDate,
-              activeTrackColor: Colors.green,
+              activeTrackColor: AppColors.successGreen,
               onChanged: (v) => setState(() => _enableReleaseDate = v),
             ),
           ],
@@ -1548,10 +1548,10 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 Container(
                   padding: const EdgeInsets.all(2),
                   color: AppColors.whiteSmoke,
-                  child: const Text(
+                  child: Text(
                     'E',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1566,7 +1566,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             ),
             CupertinoSwitch(
               value: _containsExplicitContent,
-              activeTrackColor: Colors.green,
+              activeTrackColor: AppColors.successGreen,
               onChanged: (v) => setState(() => _containsExplicitContent = v),
             ),
           ],
@@ -1629,17 +1629,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B2F2F),
+                  color: AppColors.proFeatureBadgeBg,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.star, color: Colors.orangeAccent, size: 12),
+                    Icon(Icons.star, color: AppColors.primaryOrange, size: 12),
                     SizedBox(width: 4),
                     Text(
                       'Unlock with Artist Pro',
                       style: TextStyle(
-                        color: Colors.orangeAccent,
+                        color: AppColors.primaryOrange,
                         fontSize: 10,
                       ),
                     ),
@@ -1693,17 +1693,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B2F2F),
+                  color: AppColors.proFeatureBadgeBg,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.star, color: Colors.orangeAccent, size: 12),
+                    Icon(Icons.star, color: AppColors.primaryOrange, size: 12),
                     SizedBox(width: 4),
                     Text(
                       'Unlock with Artist Pro',
                       style: TextStyle(
-                        color: Colors.orangeAccent,
+                        color: AppColors.primaryOrange,
                         fontSize: 10,
                       ),
                     ),
@@ -1752,17 +1752,17 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B2F2F),
+                  color: AppColors.proFeatureBadgeBg,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.star, color: Colors.orangeAccent, size: 12),
+                    Icon(Icons.star, color: AppColors.primaryOrange, size: 12),
                     SizedBox(width: 4),
                     Text(
                       'Unlock with Artist Pro',
                       style: TextStyle(
-                        color: Colors.orangeAccent,
+                        color: AppColors.primaryOrange,
                         fontSize: 10,
                       ),
                     ),
@@ -1826,7 +1826,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: const Color(0xFF8A2BE2).withValues(alpha: 0.2),
+                color: AppColors.uploadGlowPurple.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.flash_on, color: AppColors.white54, size: 16),
@@ -1965,7 +1965,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                 ),
               ),
               child: sel
-                  ? const Icon(Icons.check, color: Colors.black, size: 14)
+                  ? Icon(Icons.check, color: AppColors.pureBlack, size: 14)
                   : null,
             ),
           ],
@@ -2016,7 +2016,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ),
           CupertinoSwitch(
             value: value,
-            activeTrackColor: Colors.green,
+            activeTrackColor: AppColors.successGreen,
             inactiveTrackColor: AppColors.white24,
             onChanged: disabled ? null : onChange,
           ),
@@ -2099,14 +2099,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
       label: Text(
         _displayGeoName(key),
         style: TextStyle(
-          color: Colors.black,
+          color: AppColors.pureBlack,
           fontSize: 11,
           fontWeight: FontWeight.bold,
         ),
       ),
       backgroundColor:
           isRegion ? AppColors.primaryOrange : AppColors.whiteSmoke,
-      deleteIcon: const Icon(Icons.close, size: 14, color: Colors.black54),
+      deleteIcon: Icon(Icons.close, size: 14, color: AppColors.black54),
       onDeleted: () => setState(() {
         if (isRegion) {
           _selectedRegions.remove(key);
@@ -2150,7 +2150,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF6B6B))),
+            child: const Text('Delete', style: TextStyle(color: AppColors.errorRed)),
           ),
         ],
       ),
@@ -2197,18 +2197,18 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
               ),
             ),
             child: _isSaving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                       strokeWidth: 2,
                     ),
                   )
                 : Text(
                     'Save',
                     style: TextStyle(
-                      color: ready ? Colors.black : AppColors.white54,
+                      color: ready ? AppColors.pureBlack : AppColors.white54,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2223,7 +2223,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
             child: OutlinedButton(
               onPressed: (_isSaving || _isDeleting) ? null : _deleteTrack,
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFFF6B6B)),
+                side: const BorderSide(color: AppColors.errorRed),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -2233,14 +2233,14 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                        color: Color(0xFFFF6B6B),
+                        color: AppColors.errorRed,
                         strokeWidth: 2,
                       ),
                     )
                   : Text(
                 'Delete Track',
                 style: TextStyle(
-                  color: _isSaving ? AppColors.white54 : const Color(0xFFFF6B6B),
+                  color: _isSaving ? AppColors.white54 : AppColors.errorRed,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -2534,15 +2534,15 @@ class _GeoBlockingSheetState extends State<_GeoBlockingSheet> {
       child: Chip(
         label: Text(
           _displayGeoName(key),
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: AppColors.pureBlack,
             fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor:
             isRegion ? AppColors.primaryOrange : AppColors.whiteSmoke,
-        deleteIcon: const Icon(Icons.close, size: 14, color: Colors.black54),
+        deleteIcon: Icon(Icons.close, size: 14, color: AppColors.black54),
         onDeleted: () => setState(() {
           if (isRegion) {
             _regions.remove(key);

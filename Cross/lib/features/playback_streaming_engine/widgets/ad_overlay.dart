@@ -31,7 +31,7 @@ class AdPlayerWidget extends StatelessWidget {
             AdService.skipAfterSeconds - (AdService.totalAdSeconds - remaining);
 
         return Material(
-          color: Colors.black,
+          color: AppColors.pureBlack,
           child: Stack(
             children: [
               // ── Centre content ──────────────────────────────────────────
@@ -140,19 +140,19 @@ class AdPlayerWidget extends StatelessWidget {
             color: AppColors.whiteSmoke.withValues(alpha: 0.92),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Skip Ad',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: AppColors.pureBlack,
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
               ),
-              SizedBox(width: 6),
-              Icon(Icons.skip_next_rounded, color: Colors.black, size: 18),
+              const SizedBox(width: 6),
+              Icon(Icons.skip_next_rounded, color: AppColors.pureBlack, size: 18),
             ],
           ),
         ),
@@ -174,7 +174,7 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.62),
+        color: AppColors.pureBlack.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

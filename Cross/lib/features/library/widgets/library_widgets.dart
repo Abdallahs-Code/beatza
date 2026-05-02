@@ -631,10 +631,10 @@ class ImportCard extends StatelessWidget {
                 color: AppColors.whiteSmoke,
                 borderRadius: BorderRadius.circular(26),
               ),
-              child: const Text(
+              child: Text(
                 AppText.importButton,
                 style: TextStyle(
-                  color: Colors.black,
+                  color: AppColors.pureBlack,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -668,9 +668,9 @@ class MiniPlayer extends StatelessWidget {
               color: AppColors.whiteSmoke,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.play_arrow_rounded,
-              color: Colors.black,
+              color: AppColors.pureBlack,
               size: 34,
             ),
           ),

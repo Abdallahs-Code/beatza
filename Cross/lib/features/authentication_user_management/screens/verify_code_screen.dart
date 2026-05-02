@@ -112,7 +112,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       SnackBar(
         content: Text(result.$2.toString()),
         backgroundColor: (result.$1 >= 200 && result.$1 < 300)
-            ? Colors.green
+            ? AppColors.successGreen
             : AppColors.anger,
       ),
     );
@@ -152,8 +152,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
         ),
         child: Text(
           char,
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: AppColors.pureBlack,
             fontSize: 30,
             fontWeight: FontWeight.w700,
           ),
@@ -266,8 +266,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.greyButton,
                           disabledBackgroundColor: AppColors.greyButton,
-                          foregroundColor: Colors.black,
-                          disabledForegroundColor: Colors.black,
+                          foregroundColor: AppColors.pureBlack,
+                          disabledForegroundColor: AppColors.pureBlack,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -275,12 +275,12 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                           ),
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 22,
                                 width: 22,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.4,
-                                  color: Colors.black,
+                                  color: AppColors.pureBlack,
                                 ),
                               )
                             : Text(

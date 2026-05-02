@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           content: Text(
             'Free tier limited to 3 uploads. Please upgrade to Pro.',
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.primaryOrange,
         ),
       );
       Navigator.push(
@@ -235,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(
-                            color: Colors.orange,
+                            color: AppColors.primaryOrange,
                             shape: BoxShape.circle,
                           ),
                           constraints: const BoxConstraints(
@@ -592,7 +592,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: _isBlocked
-                                ? Colors.black.withValues(alpha: 0.78)
+                                ? AppColors.pureBlack.withValues(alpha: 0.78)
                                 : AppColors.brilliantOrange.withValues(
                                     alpha: 0.92,
                                   ),
@@ -603,7 +603,7 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
                             style: TextStyle(
                               color: _isBlocked
                                   ? AppColors.white70
-                                  : Colors.black,
+                                  : AppColors.pureBlack,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),

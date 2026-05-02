@@ -30,7 +30,7 @@ class QuickReplyOptionsMenu {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[700],
+                color: AppColors.greyMedium,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -77,10 +77,10 @@ class QuickReplyOptionsMenu {
             ),
             if (isOwn)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                leading: Icon(Icons.delete_outline, color: AppColors.deepRed),
                 title: const Text(
                   'Delete comment',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: AppColors.deepRed),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -126,8 +126,8 @@ class QuickReplyOptionsMenu {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.block_outlined, color: Colors.red),
-                title: const Text('Block', style: TextStyle(color: Colors.red)),
+                leading: Icon(Icons.block_outlined, color: AppColors.deepRed),
+                title: Text('Block', style: TextStyle(color: AppColors.deepRed)),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _confirmBlock(context, comment);
@@ -154,10 +154,10 @@ class QuickReplyOptionsMenu {
               'Block user?',
               style: TextStyle(color: AppColors.whiteSmoke),
             ),
-            content: const Text(
+            content: Text(
               'This user will no longer be able to follow or interact with '
               'you, and you will not see notifications from them.',
-              style: TextStyle(color: Colors.grey, height: 1.4),
+              style: TextStyle(color: AppColors.greyMuted, height: 1.4),
             ),
             actions: [
               TextButton(
@@ -172,7 +172,7 @@ class QuickReplyOptionsMenu {
                 child: const Text(
                   'BLOCK',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: AppColors.primaryOrange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

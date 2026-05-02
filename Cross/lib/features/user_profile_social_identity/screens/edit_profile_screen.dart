@@ -266,11 +266,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ListTile(
                 leading: const Icon(
                   Icons.delete_outline,
-                  color: Colors.redAccent,
+                  color: AppColors.anger,
                 ),
                 title: const Text(
                   'Remove Photo',
-                  style: TextStyle(color: Colors.redAccent),
+                  style: TextStyle(color: AppColors.anger),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -301,7 +301,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.anger),
       );
     }
   }
@@ -369,7 +369,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.whiteSmoke,
-                    foregroundColor: Colors.black,
+                    foregroundColor: AppColors.pureBlack,
                   ),
                   child: const Text('Done'),
                 ),
@@ -387,7 +387,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Display name cannot be empty.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.anger,
         ),
       );
       return;
@@ -423,10 +423,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               if (_countryController.text.trim().isNotEmpty)
                 ListTile(
                   onTap: () => Navigator.pop(context, ''),
-                  leading: const Icon(Icons.close, color: Colors.redAccent),
+                  leading: const Icon(Icons.close, color: AppColors.anger),
                   title: const Text(
                     'Clear location',
-                    style: TextStyle(color: Colors.redAccent),
+                    style: TextStyle(color: AppColors.anger),
                   ),
                 ),
               SizedBox(
@@ -490,7 +490,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No cities available for the selected country.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.anger,
         ),
       );
       return;
@@ -564,11 +564,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onTap: () => Navigator.pop(context, ''),
                         leading: const Icon(
                           Icons.close,
-                          color: Colors.redAccent,
+                          color: AppColors.anger,
                         ),
                         title: const Text(
                           'Clear city',
-                          style: TextStyle(color: Colors.redAccent),
+                          style: TextStyle(color: AppColors.anger),
                         ),
                       ),
                     SizedBox(
@@ -764,7 +764,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.whiteSmoke,
-                    foregroundColor: Colors.black,
+                    foregroundColor: AppColors.pureBlack,
                   ),
                   child: const Text('Done'),
                 ),
@@ -793,7 +793,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Display name cannot be empty.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.anger,
         ),
       );
       return;
@@ -870,7 +870,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving profile: $e'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.anger,
         ),
       );
     } finally {
@@ -896,7 +896,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final top = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.pureBlack,
       body: Focus(
         autofocus: true,
         child: Shortcuts(
@@ -925,7 +925,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: [
                 Container(
                   padding: EdgeInsets.only(top: top),
-                  color: Colors.black,
+                  color: AppColors.pureBlack,
                   child: SizedBox(
                     height: 56,
                     child: Row(
@@ -1284,7 +1284,7 @@ class _LinkedProfileRow extends StatelessWidget {
                   onPressed: onDelete,
                   icon: const Icon(
                     Icons.delete_outline,
-                    color: Colors.redAccent,
+                    color: AppColors.anger,
                   ),
                 ),
                 Icon(Icons.chevron_right, color: AppColors.white54),
@@ -1387,7 +1387,7 @@ class _CameraBadge extends StatelessWidget {
         width: small ? 28 : 34,
         height: small ? 28 : 34,
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.65),
+          color: AppColors.pureBlack.withValues(alpha: 0.65),
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.white24),
         ),

@@ -58,7 +58,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(result.$2.toString()),
-        backgroundColor: result.$1 == 200 ? Colors.green : AppColors.anger,
+        backgroundColor: result.$1 == 200 ? AppColors.successGreen : AppColors.anger,
       ),
     );
   }
@@ -135,13 +135,13 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _openGmail,
-                  icon: const Icon(Icons.mail_outline, color: Colors.black),
-                  label: const Text(
+                  icon: Icon(Icons.mail_outline, color: AppColors.pureBlack),
+                  label: Text(
                     "Open Gmail",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: AppColors.pureBlack,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(

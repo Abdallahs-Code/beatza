@@ -569,9 +569,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.pureBlack,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.pureBlack,
         foregroundColor: AppColors.whiteSmoke,
         elevation: 0,
         leading: IconButton(
@@ -606,8 +606,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
           // ── Comments list ──────────────────────
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.orange),
+                ? Center(
+                    child: CircularProgressIndicator(color: AppColors.primaryOrange),
                   )
                 : _errorMessage != null
                 ? _buildErrorState()
@@ -664,7 +664,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 ),
                 Text(
                   widget.trackArtist,
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  style: TextStyle(color: AppColors.white54, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -680,8 +680,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
     return Container(
       width: 44,
       height: 44,
-      color: Colors.grey[800],
-      child: const Icon(Icons.music_note, color: Colors.grey, size: 20),
+      color: AppColors.tileDark,
+      child: Icon(Icons.music_note, color: AppColors.greyMuted, size: 20),
     );
   }
 
@@ -737,7 +737,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     width: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.orange,
+                      color: AppColors.primaryOrange,
                     ),
                   )
                 : GestureDetector(
@@ -748,7 +748,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                           : 'View ${comment.replyCount} '
                                 'repl${comment.replyCount == 1 ? 'y' : 'ies'}',
                       style: TextStyle(
-                        color: Colors.orange,
+                        color: AppColors.primaryOrange,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -794,7 +794,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         }
       }
 
-      items.add(Divider(height: 1, color: Colors.grey[900]));
+      items.add(Divider(height: 1, color: AppColors.borderDark));
     }
 
     // Load more at the bottom.
@@ -806,7 +806,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
               ? const Center(
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.orange,
+                    color: AppColors.primaryOrange,
                   ),
                 )
               : Center(
@@ -814,7 +814,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     onPressed: _loadMore,
                     child: const Text(
                       'Load more',
-                      style: TextStyle(color: Colors.orange),
+                      style: TextStyle(color: AppColors.primaryOrange),
                     ),
                   ),
                 ),
@@ -830,12 +830,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(_errorMessage!, style: TextStyle(color: Colors.grey[400])),
+          Text(_errorMessage!, style: TextStyle(color: AppColors.white54)),
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: _loadComments,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: AppColors.primaryOrange,
               foregroundColor: AppColors.whiteSmoke,
             ),
             child: const Text('Retry'),
@@ -850,12 +850,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, color: Colors.grey[700], size: 48),
+          Icon(Icons.chat_bubble_outline, color: AppColors.greyMedium, size: 48),
           const SizedBox(height: 12),
           Text(
             'No comments yet.\nBe the first to comment!',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+            style: TextStyle(color: AppColors.greyMuted, fontSize: 14),
           ),
         ],
       ),
@@ -871,12 +871,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
         children: [
           Text(
             'Replying to ${_replyingTo!.displayName}',
-            style: TextStyle(color: Colors.orange, fontSize: 12),
+            style: TextStyle(color: AppColors.primaryOrange, fontSize: 12),
           ),
           const Spacer(),
           GestureDetector(
             onTap: () => setState(() => _replyingTo = null),
-            child: const Icon(Icons.close, color: Colors.grey, size: 16),
+            child: Icon(Icons.close, color: AppColors.greyMuted, size: 16),
           ),
         ],
       ),
@@ -902,7 +902,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: Colors.grey[800],
+                    backgroundColor: AppColors.tileDark,
                     backgroundImage: user.avatarUrl?.isNotEmpty == true
                         ? NetworkImage(user.avatarUrl!)
                         : null,
@@ -948,7 +948,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           // Current user avatar
           CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.grey[800],
+            backgroundColor: AppColors.tileDark,
             backgroundImage: _currentUserAvatarUrl != null
                 ? NetworkImage(_currentUserAvatarUrl!)
                 : null,
@@ -980,7 +980,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 hintText: _replyingTo != null
                     ? '@${_replyingTo!.displayName}'
                     : 'Comment at $_formattedPosition',
-                hintStyle: TextStyle(color: Colors.grey[600], fontSize: 13),
+                hintStyle: TextStyle(color: AppColors.white54, fontSize: 13),
                 filled: true,
                 fillColor: AppColors.cardDark2,
                 contentPadding: const EdgeInsets.symmetric(
@@ -1006,10 +1006,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
                     width: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.orange,
+                      color: AppColors.primaryOrange,
                     ),
                   )
-                : const Icon(Icons.send, color: Colors.orange, size: 22),
+                : const Icon(Icons.send, color: AppColors.primaryOrange, size: 22),
           ),
         ],
       ),
@@ -1033,7 +1033,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[700],
+                color: AppColors.greyMedium,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1058,7 +1058,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   style: TextStyle(color: AppColors.whiteSmoke),
                 ),
                 trailing: _sortBy == entry.key
-                    ? const Icon(Icons.check, color: Colors.orange)
+                    ? Icon(Icons.check, color: AppColors.primaryOrange)
                     : null,
                 onTap: () {
                   Navigator.pop(context);
@@ -1086,21 +1086,21 @@ class _CommentsScreenState extends State<CommentsScreen> {
           'Delete comment',
           style: TextStyle(color: AppColors.whiteSmoke),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to delete this comment?',
-          style: TextStyle(color: Colors.grey),
+          style: TextStyle(color: AppColors.greyMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: AppColors.greyMuted)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteComment(comment);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('Delete', style: TextStyle(color: AppColors.deepRed)),
           ),
         ],
       ),

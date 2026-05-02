@@ -87,7 +87,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: AppColors.deepRed),
       );
     }
   }

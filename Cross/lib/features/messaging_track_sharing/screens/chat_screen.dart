@@ -364,7 +364,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red.shade800,
+            backgroundColor: AppColors.deepRed,
           ),
         );
         _inputCtrl.text = content;
@@ -470,7 +470,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red.shade800,
+            backgroundColor: AppColors.deepRed,
           ),
         );
       }
@@ -814,7 +814,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildBlockBanner() {
     return Container(
-      color: const Color(0xFF161616),
+      color: AppColors.blockBannerBg,
       padding: EdgeInsets.only(
         left: 16,
         right: 8,
@@ -854,7 +854,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildBlockedByReceiverBanner() {
     return Container(
-      color: const Color(0xFF161616),
+      color: AppColors.blockBannerBg,
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
@@ -887,7 +887,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildInputBar({double extraBottomPadding = 0.0}) {
     return Container(
-      color: const Color(0xFF161616),
+      color: AppColors.blockBannerBg,
       padding: EdgeInsets.only(
         left: 12,
         right: 12,

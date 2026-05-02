@@ -178,9 +178,9 @@ class _LikersScreenState extends State<LikersScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.pureBlack,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.pureBlack,
         foregroundColor: AppColors.whiteSmoke,
         elevation: 0,
         leading: IconButton(
@@ -189,9 +189,9 @@ class _LikersScreenState extends State<LikersScreen>
         ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.orange,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.orange,
+          labelColor: AppColors.primaryOrange,
+          unselectedLabelColor: AppColors.greyMuted,
+          indicatorColor: AppColors.primaryOrange,
           tabs: const [
             Tab(text: 'Likes'),
             Tab(text: 'Reposts'),
@@ -237,8 +237,8 @@ class _LikersScreenState extends State<LikersScreen>
     required String emptyMessage,
   }) {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.orange),
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
       );
     }
 
@@ -247,12 +247,12 @@ class _LikersScreenState extends State<LikersScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(error, style: TextStyle(color: Colors.grey[400])),
+            Text(error, style: TextStyle(color: AppColors.white54)),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.primaryOrange,
                 foregroundColor: AppColors.whiteSmoke,
               ),
               child: const Text('Retry'),
@@ -266,14 +266,14 @@ class _LikersScreenState extends State<LikersScreen>
       return Center(
         child: Text(
           emptyMessage,
-          style: TextStyle(color: Colors.grey[500], fontSize: 15),
+          style: TextStyle(color: AppColors.greyMuted, fontSize: 15),
         ),
       );
     }
 
     return ListView.separated(
       itemCount: users.length + 1, // +1 for load more button
-      separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey[900]),
+      separatorBuilder: (_, _) => Divider(height: 1, color: AppColors.borderDark),
       itemBuilder: (context, index) {
         if (index == users.length) {
           // Load more button at the bottom
@@ -283,14 +283,14 @@ class _LikersScreenState extends State<LikersScreen>
             child: Center(
               child: isLoadingMore
                   ? const CircularProgressIndicator(
-                      color: Colors.orange,
+                      color: AppColors.primaryOrange,
                       strokeWidth: 2,
                     )
                   : TextButton(
                       onPressed: onLoadMore,
                       child: const Text(
                         'Load more',
-                        style: TextStyle(color: Colors.orange),
+                        style: TextStyle(color: AppColors.primaryOrange),
                       ),
                     ),
             ),
