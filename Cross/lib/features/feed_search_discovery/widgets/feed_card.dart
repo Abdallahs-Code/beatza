@@ -36,6 +36,7 @@ class FeedCard extends StatefulWidget {
   final String actorName;
   final String actorId;
   final String? permalink;
+  final String? actorAvatarUrl;
   final bool isFollowing;
   final int likeCount;
   final int commentCount;
@@ -55,6 +56,7 @@ class FeedCard extends StatefulWidget {
     required this.actorName,
     required this.actorId,
     this.permalink,
+    this.actorAvatarUrl,
     required this.isFollowing,
     required this.likeCount,
     required this.commentCount,
@@ -87,7 +89,9 @@ class _FeedCardState extends State<FeedCard> {
   Duration _previewPosition = Duration.zero;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<void>? _completeSub;
+  StreamSubscription<Duration>? _durationSub;
   bool _isSeeking = false;
+  Duration? _trackDuration;
 
   @override
   void initState() {
@@ -125,6 +129,7 @@ class _FeedCardState extends State<FeedCard> {
     widget.isMuted.removeListener(_onMuteChanged);
     _positionSub?.cancel();
     _completeSub?.cancel();
+    _durationSub?.cancel();
     _localPlayer.dispose();
     super.dispose();
   }
@@ -145,6 +150,14 @@ class _FeedCardState extends State<FeedCard> {
   Future<void> _startLocalAudio() async {
     if (widget.audioUrl == null || widget.audioUrl!.isEmpty) return;
     try {
+      // Subscribe to duration BEFORE play so we never miss the event
+      _durationSub?.cancel();
+      _durationSub = _localPlayer.onDurationChanged.listen((d) {
+        if (mounted && d.inMilliseconds > 0) {
+          setState(() => _trackDuration = d);
+        }
+      });
+
       await _localPlayer.play(UrlSource(widget.audioUrl!));
 
       // Listen to position — loop back to 0 at the 20 s mark
@@ -163,7 +176,10 @@ class _FeedCardState extends State<FeedCard> {
 
   void _onPositionChanged(Duration pos) {
     if (!mounted || _isSeeking) return;
-    if (pos.inSeconds >= 20) {
+    // Only seek-loop for tracks >= 20 s; short tracks loop via onPlayerComplete.
+    final bool longTrack =
+        _trackDuration == null || _trackDuration!.inMilliseconds >= 20000;
+    if (longTrack && pos.inSeconds >= 20) {
       _isSeeking = true;
       setState(() => _previewPosition = Duration.zero);
       _localPlayer.seek(Duration.zero).then((_) => _isSeeking = false);
@@ -177,7 +193,10 @@ class _FeedCardState extends State<FeedCard> {
     _positionSub = null;
     _completeSub?.cancel();
     _completeSub = null;
+    _durationSub?.cancel();
+    _durationSub = null;
     _isSeeking = false;
+    _trackDuration = null;
     if (mounted) setState(() => _previewPosition = Duration.zero);
     try {
       await _localPlayer.stop();
@@ -463,8 +482,13 @@ class _FeedCardState extends State<FeedCard> {
   }
 
   Widget _buildActionColumn(BuildContext context) {
-    final double ringProgress = (_previewPosition.inMilliseconds / 20000.0)
-        .clamp(0.0, 1.0);
+    final int ringCapMs =
+        (_trackDuration != null && _trackDuration!.inMilliseconds < 20000)
+            ? _trackDuration!.inMilliseconds
+            : 20000;
+    final double ringProgress = ringCapMs > 0
+        ? (_previewPosition.inMilliseconds / ringCapMs).clamp(0.0, 1.0)
+        : 0.0;
     final bool showRing = _hasStartedPreview && !widget.isMuted.value;
 
     return Column(
@@ -624,7 +648,14 @@ class _FeedCardState extends State<FeedCard> {
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: AppColors.tileDark,
-                  child: Icon(Icons.person, size: 16, color: AppColors.white54),
+                  backgroundImage: (widget.actorAvatarUrl != null &&
+                          widget.actorAvatarUrl!.isNotEmpty)
+                      ? NetworkImage(widget.actorAvatarUrl!)
+                      : null,
+                  child: (widget.actorAvatarUrl == null ||
+                          widget.actorAvatarUrl!.isEmpty)
+                      ? Icon(Icons.person, size: 16, color: AppColors.white54)
+                      : null,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -635,32 +666,12 @@ class _FeedCardState extends State<FeedCard> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (widget.isFollowing)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.white54),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Following',
-                      style: TextStyle(
-                        color: AppColors.whiteSmoke,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-
                 if (widget.isRepost) ...[
                   const SizedBox(width: 8),
                   Icon(Icons.repeat, color: AppColors.white70, size: 14),
                   const SizedBox(width: 2),
                   Text(
-                    'Repost',
+                    'Reposted by',
                     style: TextStyle(color: AppColors.white70, fontSize: 12),
                   ),
                 ],

@@ -94,9 +94,31 @@ class _FeedScreenState extends State<FeedScreen>
         }
       }
 
+      // Enrich each track with the uploader's display name and avatar
+      final actorResults = await Future.wait(
+        tracks.map((t) {
+          final posterId = t['posterId']?.toString() ?? '';
+          if (posterId.isEmpty) return Future.value((0, null as dynamic));
+          return _service.getUserById(posterId);
+        }),
+      );
+
+      final enriched = <Map<String, dynamic>>[];
+      for (int i = 0; i < tracks.length; i++) {
+        final enrichedTrack = Map<String, dynamic>.from(tracks[i]);
+        final (code, userData) = actorResults[i];
+        if (code == 200 && userData is Map<String, dynamic>) {
+          enrichedTrack['actorDisplayName'] =
+              userData['displayName']?.toString();
+          enrichedTrack['actorAvatarUrl'] =
+              _extractImgUrl(userData['profileImgLink']);
+        }
+        enriched.add(enrichedTrack);
+      }
+
       if (mounted) {
         setState(() {
-          _discoverTracks = tracks;
+          _discoverTracks = enriched;
           _discoverLoading = false;
         });
       }
@@ -148,6 +170,16 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   // ── Playback ───────────────────────────────────────────────────────────────
+
+  // profileImgLink can be a plain String or { imgLink: "..." } depending on the endpoint
+  static String? _extractImgUrl(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) return value.trim();
+    if (value is Map) {
+      final nested = value['imgLink'];
+      if (nested is String && nested.trim().isNotEmpty) return nested.trim();
+    }
+    return null;
+  }
 
   Future<void> _playDiscoverTrack(Map<String, dynamic> trackData) async {
     final track = PlaybackTrackModel.fromApiJson(trackData);
@@ -248,7 +280,9 @@ class _FeedScreenState extends State<FeedScreen>
               ?.toString(),
           imgLink: image['imgLink']?.toString(),
           displayName: basicInfo['title']?.toString() ?? 'Unknown',
-          actorName: artists.isNotEmpty ? artists.first : 'Unknown Artist',
+          actorName: trackData['actorDisplayName']?.toString() ??
+              (artists.isNotEmpty ? artists.first : 'Unknown Artist'),
+          actorAvatarUrl: trackData['actorAvatarUrl']?.toString(),
           actorId: trackData['posterId']?.toString() ?? '',
           permalink: basicInfo['permalink']?.toString(),
           isFollowing: false,
@@ -317,6 +351,7 @@ class _FeedScreenState extends State<FeedScreen>
           imgLink: image['imgLink']?.toString(),
           displayName: basicInfo['title']?.toString() ?? 'Unknown',
           actorName: item.displayName,
+          actorAvatarUrl: item.imgLink,
           actorId: item.actorId,
           permalink: basicInfo['permalink']?.toString(),
           isFollowing: true,
