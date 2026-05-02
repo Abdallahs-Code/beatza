@@ -71,6 +71,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       _storage = const FlutterSecureStorage(),
       _httpClient = http.Client() {
     _bindPlayerStreams();
+    _bindSubscriptionListener();
   }
 
   PlaybackStreamingEngineService({
@@ -81,6 +82,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
        _storage = storage ?? const FlutterSecureStorage(),
        _httpClient = httpClient ?? http.Client() {
     _bindPlayerStreams();
+    _bindSubscriptionListener();
   }
 
   PlaybackStateModel get state => _state;
@@ -532,6 +534,72 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       if (_ignorePlayerStateUpdates) return;
       unawaited(_handlePlaybackCompleted());
     });
+  }
+
+  // Re-evaluate gating on the current track and queue whenever the listener's
+  // Pro status flips. Without this, a Pro user who cancels mid-session keeps
+  // playing the full track because the cached models were locked at parse time.
+  void _bindSubscriptionListener() {
+    PaymentService.subscriptionSuccessNotifier.addListener(
+      _onSubscriptionChanged,
+    );
+  }
+
+  PlaybackTrackModel _reapplyAccessState(PlaybackTrackModel track) {
+    final bool effectivelyPlayable =
+        track.enableAppPlayback && track.isAvailableForUser;
+    final bool isProListener =
+        PaymentService.subscriptionSuccessNotifier.value.isPro;
+    final bool gateToPreview =
+        effectivelyPlayable && track.mobileProPreview && !isProListener;
+    final PlaybackAccessState resolved = effectivelyPlayable
+        ? (gateToPreview
+              ? PlaybackAccessState.preview
+              : PlaybackAccessState.playable)
+        : PlaybackAccessState.blocked;
+
+    if (resolved == track.accessState) return track;
+    return track.copyWith(
+      accessState: resolved,
+      previewDuration: gateToPreview ? const Duration(seconds: 30) : null,
+    );
+  }
+
+  void _onSubscriptionChanged() {
+    if (_activeQueue.isNotEmpty) {
+      _activeQueue = _activeQueue.map(_reapplyAccessState).toList();
+    }
+
+    final PlaybackTrackModel? currentTrack = _state.currentTrack;
+    if (currentTrack == null) return;
+
+    final PlaybackTrackModel updated = _reapplyAccessState(currentTrack);
+    if (identical(updated, currentTrack)) return;
+
+    if (updated.accessState == PlaybackAccessState.preview) {
+      // Downgrade: enforce the 30s cap on the in-progress track.
+      final Duration limit = updated.effectivePreviewDuration;
+      if (_state.currentPosition >= limit) {
+        _previewLimitReached = true;
+        unawaited(_audioPlayerClient.pause());
+        unawaited(_audioPlayerClient.seek(Duration.zero));
+        _updateState(
+          _state.copyWith(
+            currentTrack: updated,
+            status: PlaybackStatus.previewEnded,
+            currentPosition: limit,
+            message: 'Preview finished. Unlock the full track to keep listening.',
+          ),
+        );
+      } else {
+        _updateState(_state.copyWith(currentTrack: updated));
+      }
+    } else {
+      // Upgrade or unchanged status: clear preview latch so the engine
+      // resumes treating the track as fully playable.
+      _previewLimitReached = false;
+      _updateState(_state.copyWith(currentTrack: updated));
+    }
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {

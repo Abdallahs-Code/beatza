@@ -518,6 +518,45 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                                       ),
                                     ),
                                   ),
+                                  if (track.mobileProPreview &&
+                                      track.accessState ==
+                                          PlaybackAccessState.preview) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.proBadgePurple
+                                            .withValues(alpha: 0.22),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: AppColors.proBadgePurple,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.lock_outline_rounded,
+                                            color: AppColors.proBadgePurple,
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Pro preview · ${track.effectivePreviewDuration.inSeconds}s · Upgrade for full track',
+                                            style: TextStyle(
+                                              color: AppColors.whiteSmoke,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

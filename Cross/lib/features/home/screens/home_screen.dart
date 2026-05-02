@@ -546,7 +546,9 @@ class _HomePublicTrackPosterCard extends StatelessWidget {
             ? 'Not available'
             : 'Not available in your region')
         : _isPreview
-        ? 'Preview · ${track.effectivePreviewDuration.inSeconds}s'
+        ? (track.mobileProPreview
+            ? 'Pro · ${track.effectivePreviewDuration.inSeconds}s preview'
+            : 'Preview · ${track.effectivePreviewDuration.inSeconds}s')
         : null;
 
     return SizedBox(

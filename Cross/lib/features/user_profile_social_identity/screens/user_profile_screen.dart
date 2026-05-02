@@ -2827,6 +2827,9 @@ class _TrackRow extends StatelessWidget {
       return '✖ ${track.blockedReason ?? 'Not available'}';
     }
     if (_isPreview) {
+      if (track.mobileProPreview) {
+        return '▶ Pro preview · ${track.effectivePreviewDuration.inSeconds}s · Upgrade for full track';
+      }
       return '▶ Preview only · ${track.effectivePreviewDuration.inSeconds}s';
     }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
+
 enum PlaybackAccessState { playable, preview, blocked }
 
 enum PlaybackSourceType { network, deviceFile }
@@ -64,6 +66,11 @@ class PlaybackTrackModel {
   final bool isAvailableForUser;
   final TrackGeoBlocking? geoBlocking;
 
+  /// When true, only Pro subscribers can play the full track. Non-Pro
+  /// listeners are restricted to a 30-second preview (enforced by the
+  /// playback engine via `accessState == preview`).
+  final bool mobileProPreview;
+
   const PlaybackTrackModel({
     required this.id,
     required this.title,
@@ -98,6 +105,7 @@ class PlaybackTrackModel {
     this.isRepostedByUser = false,
     this.isAvailableForUser = true,
     this.geoBlocking,
+    this.mobileProPreview = false,
   });
 
   bool get isLocalFile {
@@ -176,7 +184,30 @@ class PlaybackTrackModel {
             ? TrackGeoBlocking.fromJson(json['geoBlocking'] as Map<String, dynamic>)
             : null;
 
+    // mobileProPreview can come back as a plain bool or wrapped in
+    // `{ mobileProPreview: bool }` (matches how it's sent on upload).
+    final dynamic mobileProPreviewRaw = json['mobileProPreview'];
+    final bool mobileProPreview = mobileProPreviewRaw is bool
+        ? mobileProPreviewRaw
+        : (mobileProPreviewRaw is Map<String, dynamic> &&
+                  mobileProPreviewRaw['mobileProPreview'] == true);
+
     final bool effectivelyPlayable = canPlay && isAvailableForUser;
+
+    // Pro-gating: if the artist marked this track as Pro-only and the
+    // current listener is not a Pro subscriber, drop them to a 30-second
+    // preview. The engine already enforces the cutoff for any track in
+    // PlaybackAccessState.preview.
+    final bool isProListener =
+        PaymentService.subscriptionSuccessNotifier.value.isPro;
+    final bool gateToPreview =
+        effectivelyPlayable && mobileProPreview && !isProListener;
+
+    final PlaybackAccessState resolvedAccessState = effectivelyPlayable
+        ? (gateToPreview
+              ? PlaybackAccessState.preview
+              : PlaybackAccessState.playable)
+        : PlaybackAccessState.blocked;
 
     final String? audioUrl =
         _nullableString(audio['audioLink']) ??
@@ -226,9 +257,8 @@ class PlaybackTrackModel {
       artworkUrl:
           _nullableString(json['image_url']) ??
           _nullableString(image['imgLink']),
-      accessState: effectivelyPlayable
-          ? PlaybackAccessState.playable
-          : PlaybackAccessState.blocked,
+      accessState: resolvedAccessState,
+      previewDuration: gateToPreview ? const Duration(seconds: 30) : null,
       blockedReason: effectivelyPlayable
           ? null
           : (!isAvailableForUser
@@ -258,6 +288,7 @@ class PlaybackTrackModel {
       isRepostedByUser: isRepostedByUser,
       isAvailableForUser: isAvailableForUser,
       geoBlocking: geoBlocking,
+      mobileProPreview: mobileProPreview,
     );
   }
 
@@ -295,6 +326,7 @@ class PlaybackTrackModel {
     bool? isRepostedByUser,
     bool? isAvailableForUser,
     TrackGeoBlocking? geoBlocking,
+    bool? mobileProPreview,
   }) {
     return PlaybackTrackModel(
       id: id ?? this.id,
@@ -330,6 +362,7 @@ class PlaybackTrackModel {
       isRepostedByUser: isRepostedByUser ?? this.isRepostedByUser,
       isAvailableForUser: isAvailableForUser ?? this.isAvailableForUser,
       geoBlocking: geoBlocking ?? this.geoBlocking,
+      mobileProPreview: mobileProPreview ?? this.mobileProPreview,
     );
   }
 
