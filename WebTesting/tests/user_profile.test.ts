@@ -51,18 +51,18 @@ test.describe("Profile Management(Happy Path)", () => {
         await profilePage.editform.fillBasicInfo("edited name", "edited first", "edited last", "edited bio")
         await profilePage.editform.addNewLink("h.com")
         await profilePage.editform.addNewsupportLink("https://hey.com")
-        await profilePage.editform.fillLocation("edited city", "edited country")
+        await profilePage.editform.setLocation("edited city", "Albania")
         await profilePage.editform.saveChangesBtn.click()
 
         await expect(page.getByRole('heading', { name: 'edited name' })).toBeVisible();
-        await expect(page.getByText('edited city, edited country')).toBeVisible();
+        await expect(page.getByText('edited city, Albania')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Support edited name' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'h.com' })).toBeVisible();
 
         await profilePage.ClickEditBtn()
         await profilePage.editform.fillBasicInfo("notedited name", "notedited first", "notedited last", "notedited bio")
         await profilePage.editform.removeLinks()
-        await profilePage.editform.fillLocation("notedited city", "notedited country")
+        await profilePage.editform.setLocation("notedited city", "Algeria")
 
         await profilePage.editform.saveChangesBtn.click()
     })

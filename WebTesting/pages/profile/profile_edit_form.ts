@@ -1,12 +1,13 @@
 import { Page, Locator, expect } from '@playwright/test';
 export class ProfileEditForm {
+    page: Page
     form: Locator
     displayNameInput: Locator
     profileUrlInput: Locator
     firstNameInput: Locator
     lastNameInput: Locator
     cityInput: Locator
-    countryInput: Locator
+    countrySelect: Locator
     bioInput: Locator
     addlinkBtn: Locator
     supportLinkName: Locator
@@ -20,6 +21,7 @@ export class ProfileEditForm {
 
 
     constructor(page: Page) {
+        this.page = page;
         const profilePage = page;
         this.form = page.getByText('Edit your Profile', { exact: true }).locator('..');
         this.displayNameInput = profilePage.getByTestId("DisplayName-input")
@@ -27,12 +29,12 @@ export class ProfileEditForm {
         this.firstNameInput = profilePage.getByTestId("FirstName-input")
         this.lastNameInput = profilePage.getByTestId("LastName-input")
         this.cityInput = profilePage.getByTestId("City-input")
-        this.countryInput = profilePage.getByTestId("Country-input")
+        this.countrySelect = profilePage.getByTestId("Country-input-dropdown")
         this.bioInput = profilePage.getByPlaceholder('Tell the world a little bit about yourself')
-        this.addlinkBtn = profilePage.getByTestId("AddLink-button-EditForm")
-        this.addSupportLinkBtn = profilePage.getByTestId("AddSupportLink-button-EditForm")
-        this.cancelBtn = profilePage.getByTestId("cancel-button-EditForm")
-        this.saveChangesBtn = profilePage.getByTestId("Save-button-EditForm")
+        this.addlinkBtn = profilePage.getByRole("button", { name: "Add link" })
+        this.addSupportLinkBtn = profilePage.getByRole("button", { name: "Add support link" })
+        this.cancelBtn = profilePage.getByRole("button", { name: "Cancel" })
+        this.saveChangesBtn = profilePage.getByRole("button", { name: "Save changes" })
         this.supportLinkInput = profilePage.getByTestId("SupportLink-input")
         this.supportLinkName = profilePage.getByTestId("supportLinkShortTitle")
         this.linkInput = profilePage.getByTestId("Link-input")
@@ -45,9 +47,10 @@ export class ProfileEditForm {
         await this.lastNameInput.fill(lastName);
         await this.bioInput.fill(bio);
     }
-    async fillLocation(city: string, country: string) {
+    async setLocation(city: string, country: string) {
         await this.cityInput.fill(city);
-        await this.countryInput.fill(country);
+        await this.countrySelect.click();
+        await this.page.locator(`div.ant-select-item-option[title="${country}"]`).click();
     }
     async addNewLink(url: string) {
         await this.addlinkBtn.click();
