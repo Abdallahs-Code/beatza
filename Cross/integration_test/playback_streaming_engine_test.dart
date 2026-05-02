@@ -16,8 +16,6 @@ Future<void> openLibrary(WidgetTester tester) async {
 Future<void> openSection(WidgetTester tester, String sectionTitle) async {
   final header = find.text(sectionTitle);
   expect(header, findsOneWidget);
-  await tester.ensureVisible(header);
-  await tester.pumpAndSettle();
 
   final seeAll = find.text('See All');
   expect(seeAll, findsWidgets);
@@ -26,7 +24,7 @@ Future<void> openSection(WidgetTester tester, String sectionTitle) async {
 }
 
 void main() {
-  group('Library — Recently Played navigation', () {
+  group('Library - Recently Played navigation', () {
     testWidgets('Tapping the Library tab opens the Library screen', (tester) async {
       app.main();
       await openLibrary(tester);
@@ -62,7 +60,7 @@ void main() {
     });
   });
 
-  group('Library — Menu items', () {
+  group('Library - Menu items', () {
     testWidgets('Tapping "Your Likes" navigates off the Library screen', (tester) async {
       app.main();
       await openLibrary(tester);
@@ -78,7 +76,7 @@ void main() {
     });
   });
 
-  group('Library — Recently Played list interaction', () {
+  group('Library - Recently Played list interaction', () {
     testWidgets(
         'Tapping a Recently Played tile (if any) does not crash the app',
         (tester) async {
@@ -92,7 +90,7 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 2));
       }
 
-      // App still has a Scaffold rendered — no crash.
+      // App still has a Scaffold rendered - no crash.
       expect(find.byType(Scaffold), findsWidgets);
     });
 

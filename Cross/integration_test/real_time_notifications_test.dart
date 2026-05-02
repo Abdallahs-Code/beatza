@@ -14,7 +14,7 @@ Future<void> openActivityScreen(WidgetTester tester) async {
 }
 
 void main() {
-  group('Navigation — Notifications Tab', () {
+  group('Navigation - Notifications Tab', () {
     testWidgets('Tapping the chat icon on Home opens Activity on Notifications',
         (tester) async {
       app.main();
@@ -35,7 +35,7 @@ void main() {
 
       final hasList = find.byType(ListView).evaluate().isNotEmpty;
       final hasEmpty =
-          find.textContaining('notifications').evaluate().isNotEmpty;
+          find.textContaining('Notifications').evaluate().isNotEmpty;
       final hasRetry = find.text('Retry').evaluate().isNotEmpty;
       final stillLoading = find
           .byType(CircularProgressIndicator)
@@ -59,7 +59,7 @@ void main() {
     });
   });
 
-  group('Notifications — Filter sheet', () {
+  group('Notifications - Filter sheet', () {
     testWidgets('Tapping the tune icon opens the filter sheet',
         (tester) async {
       app.main();
@@ -90,12 +90,12 @@ void main() {
       await tester.tap(likes);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Sheet closed — we're back on the Activity screen.
+      // Sheet closed - we're back on the Activity screen.
       expect(find.text('Activity'), findsOneWidget);
     });
   });
 
-  group('Notifications — List interaction', () {
+  group('Notifications - List interaction', () {
     testWidgets('Pull-to-refresh on the notifications list does not crash',
         (tester) async {
       app.main();

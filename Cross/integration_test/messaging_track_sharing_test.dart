@@ -18,7 +18,7 @@ Future<void> openMessagesTab(WidgetTester tester) async {
 }
 
 void main() {
-  group('Navigation — Messages Tab', () {
+  group('Navigation - Messages Tab', () {
     testWidgets('Tapping the chat icon on Home opens the Activity screen',
         (tester) async {
       app.main();
@@ -65,7 +65,7 @@ void main() {
     });
   });
 
-  group('Messages Tab — Chat list', () {
+  group('Messages Tab - Chat list', () {
     testWidgets('Opening a chat (if any exist) navigates to the chat screen',
         (tester) async {
       app.main();
@@ -101,7 +101,7 @@ void main() {
     });
   });
 
-  group('Activity — Filter sheet from Messages tab', () {
+  group('Activity - Filter sheet from Messages tab', () {
     testWidgets('Tapping the tune icon opens the filter sheet',
         (tester) async {
       app.main();

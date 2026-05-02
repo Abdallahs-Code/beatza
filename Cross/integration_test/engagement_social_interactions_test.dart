@@ -46,7 +46,7 @@ Future<void> _openMoreSheet(WidgetTester tester) async {
 
 void main() {
   // Liking tracks
-  group('Like — heart icon on expanded player', () {
+  group('Like - heart icon on expanded player', () {
     testWidgets('Engagement bar shows an unfilled heart by default', (tester) async {
       app.main();
       await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -90,7 +90,7 @@ void main() {
   });
 
   // Likers / Reposters list 
-  group('LikersScreen — Likes / Reposts tabs', () {
+  group('LikersScreen - Likes / Reposts tabs', () {
     testWidgets('Opens with Likes and Reposts tabs and a back arrow',
         (tester) async {
       app.main();
@@ -198,8 +198,8 @@ void main() {
     });
   });
 
-  // EngagementUserTile — single liker row
-  group('EngagementUserTile — likers list', () {
+  // EngagementUserTile - single liker row
+  group('EngagementUserTile - likers list', () {
     testWidgets(
       'Likers tab renders user rows with a chevron when populated',
       (tester) async {
@@ -229,7 +229,7 @@ void main() {
         await tester.tap(countText.first, warnIfMissed: false);
         await tester.pumpAndSettle(const Duration(seconds: 3));
 
-        // The Likers tab uses ListTile rows — the chevron is the trailing icon.
+        // The Likers tab uses ListTile rows - the chevron is the trailing icon.
         final chevrons = find.byIcon(Icons.chevron_right);
         // Either there are likers (chevron) or "No likes yet." is shown.
         expect(
@@ -241,8 +241,8 @@ void main() {
     );
   });
 
-  // Comments screen — header, input bar, comment tile, replies
-  group('CommentsScreen — track header + MM:SS input bar', () {
+  // Comments screen - header, input bar, comment tile, replies
+  group('CommentsScreen - track header + MM:SS input bar', () {
     testWidgets('Renders the track title and artist in the header',
         (tester) async {
       app.main();
@@ -278,7 +278,7 @@ void main() {
     );
   });
 
-  group('CommentsScreen — comment tile + reply flow', () {
+  group('CommentsScreen - comment tile + reply flow', () {
     testWidgets(
       'Comment timestamp pills render in MM:SS format when comments exist',
       (tester) async {
@@ -325,7 +325,7 @@ void main() {
   });
 
   // Repost flow
-  group('RepostBottomSheet — opens from More-options sheet', () {
+  group('RepostBottomSheet - opens from More-options sheet', () {
     testWidgets(
       'More-options sheet exposes a "Repost on Beatza" tile',
       (tester) async {
