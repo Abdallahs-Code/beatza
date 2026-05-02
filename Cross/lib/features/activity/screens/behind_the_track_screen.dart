@@ -663,21 +663,26 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                 ),
                 if (fans.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                     child: Column(
                       children: [
-                         Text(
-                          'No fans yet',
-                          style: TextStyle(color: AppColors.white54, fontSize: 14),
+                        Icon(
+                          Icons.people_outline_rounded,
+                          color: AppColors.white54,
+                          size: 28,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
-                          'Total topFans: ${stats.topFans.length}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          _showTopFans ? 'No top fans yet' : 'No early fans yet',
+                          style: TextStyle(color: AppColors.white70, fontSize: 14, fontWeight: FontWeight.w500),
                         ),
+                        const SizedBox(height: 4),
                         Text(
-                          'Total firstFans: ${stats.firstFans.length}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          _showTopFans
+                              ? 'Listen to this track to be the first to appear here.'
+                              : 'No one has played this track in its first week yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.white54, fontSize: 12, height: 1.4),
                         ),
                       ],
                     ),

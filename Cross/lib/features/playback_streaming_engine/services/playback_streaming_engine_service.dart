@@ -680,10 +680,23 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   // Sends the V2 play-count request for [trackId] using the accumulated
   // listen duration. Guards against double-reporting the same session.
   void _finalizeListenCount(String trackId) {
-    if (trackId.isEmpty) return;
-    if (_lastListenCountReportedTrackId == trackId) return;
-    if (_maxListenedSeconds <= 0) return;
+    if (trackId.isEmpty) {
+      debugPrint('[ListenCount] ⏭️ skip — empty trackId');
+      return;
+    }
+    if (_lastListenCountReportedTrackId == trackId) {
+      debugPrint('[ListenCount] ⏭️ skip — already reported for $trackId');
+      return;
+    }
+    if (_maxListenedSeconds <= 0) {
+      debugPrint('[ListenCount] ⏭️ skip — _maxListenedSeconds=0 for $trackId');
+      return;
+    }
 
+    debugPrint(
+      '[ListenCount] 📤 finalizing trackId=$trackId, '
+      'listenedDuration=${_maxListenedSeconds}s, sessionId=$_currentListenSessionId',
+    );
     _lastListenCountReportedTrackId = trackId;
     _sendListenCountRequest(
       trackId: trackId,
@@ -743,9 +756,17 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }) async {
     try {
       final String? accessToken = await _storage.read(key: 'access_token');
-      if (accessToken == null || accessToken.trim().isEmpty) return;
-      await _httpClient.patch(
-        Uri.parse('${ApiServices().baseUrl}/api/tracks/v2/listen'),
+      if (accessToken == null || accessToken.trim().isEmpty) {
+        debugPrint('[ListenCount] ❌ no access token — skipping');
+        return;
+      }
+      final url = '${ApiServices().baseUrl}/api/tracks/v2/listen';
+      debugPrint(
+        '[ListenCount] PATCH $url body={trackId:$trackId, '
+        'listenedDuration:$listenedDuration, sessionIdPlay:$sessionId}',
+      );
+      final response = await _httpClient.patch(
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -757,7 +778,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
           'sessionIdPlay': sessionId,
         }),
       );
-    } catch (_) {}
+      debugPrint(
+        '[ListenCount] ← ${response.statusCode} body=${response.body}',
+      );
+    } catch (error) {
+      debugPrint('[ListenCount] ❌ network error: $error');
+    }
   }
 
   void toggleShuffle() {
