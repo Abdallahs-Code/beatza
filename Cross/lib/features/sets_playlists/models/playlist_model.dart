@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 // Model: PlaylistModel
 // Represents a playlist returned from the backend API.
 //
@@ -208,11 +210,26 @@ class PlaylistModel {
         .toList();
   }
 
-  /// Parses single full playlist response: data.playlist[]  (array with 1 item)
+  /// Parses single full playlist response.
+  /// The API returns data.playlist as either an array [{…}] or a plain
+  /// object {…} depending on the endpoint version — mirrors the frontend's
+  /// Array.isArray check to handle both shapes.
   static PlaylistModel? singleFromResponse(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>? ?? {};
-    final List<dynamic> playlist = data['playlist'] ?? [];
-    if (playlist.isEmpty) return null;
-    return PlaylistModel.fromJson(playlist.first as Map<String, dynamic>);
+    final playlistRaw = data['playlist'];
+
+    debugPrint('[singleFromResponse] playlist field type: ${playlistRaw.runtimeType}');
+    debugPrint('[singleFromResponse] playlist value: $playlistRaw');
+
+    Map<String, dynamic>? playlistJson;
+    if (playlistRaw is List) {
+      if (playlistRaw.isEmpty) return null;
+      playlistJson = playlistRaw.first as Map<String, dynamic>?;
+    } else if (playlistRaw is Map<String, dynamic>) {
+      playlistJson = playlistRaw;
+    }
+
+    if (playlistJson == null) return null;
+    return PlaylistModel.fromJson(playlistJson);
   }
 }

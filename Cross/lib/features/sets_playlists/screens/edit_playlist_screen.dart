@@ -75,7 +75,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    // currentState is null when the Details tab hasn't been rendered yet
+    // (user is on the Tracks tab). Skip validation in that case.
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
@@ -86,6 +88,10 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
       genre: _genreController.text.trim(),
       isPrivate: _isPrivate,
       imagePath: _pickedImage?.path,
+      permalink: widget.playlist.permalink,
+      listOfTracks: _tracks.map((t) => t.id).toList(),
+      additionalTags: widget.playlist.additionalTags,
+      playlistType: widget.playlist.playlistType,
     );
 
     if (!mounted) return;

@@ -55,12 +55,14 @@ class PlaylistApiService {
         },
       );
       debugPrint('GET $uri -> ${response.statusCode}');
+      debugPrint('[getPlaylistWithTracks] body: ${response.body}');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (200, PlaylistModel.singleFromResponse(data));
       }
       return (response.statusCode, null);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[getPlaylistWithTracks] EXCEPTION: $e\n$st');
       return (500, null);
     }
   }
@@ -435,8 +437,7 @@ class PlaylistApiService {
 
   // POST /api/playlists/v1/with-image
   // Multipart payload mirrors the front-end: a single "data" field holding a
-  // JSON-stringified body, plus the "image" file.
-  // NOTE: the server requires listOfTracks to contain >= 1 item.
+  // JSON-stringified body, plus an optional "image" file.
   Future<(int, PlaylistModel?)> createPlaylistWithImage({
     required String title,
     String description = '',
@@ -444,7 +445,7 @@ class PlaylistApiService {
     List<String> listOfTracks = const [],
     String? buyLink,
     String? recordLabel,
-    required String imagePath,
+    String? imagePath,
   }) async {
     try {
       final token = await _getToken();
@@ -455,14 +456,16 @@ class PlaylistApiService {
 
       final url = '$_authBase/with-image';
 
-      final dataPayload = jsonEncode({
+      final payloadMap = <String, dynamic>{
         'title': title,
         'description': description,
         'isPrivate': isPrivate,
         'listOfTracks': listOfTracks,
-        'buyLink': ?buyLink,
-        'recordLabel': ?recordLabel,
-      });
+      };
+      if (buyLink != null) payloadMap['buyLink'] = buyLink;
+      if (recordLabel != null) payloadMap['recordLabel'] = recordLabel;
+
+      final dataPayload = jsonEncode(payloadMap);
 
       debugPrint('[createPlaylistWithImage] POST $url');
       debugPrint('[createPlaylistWithImage] data field: $dataPayload');
@@ -475,7 +478,9 @@ class PlaylistApiService {
         });
 
       request.fields['data'] = dataPayload;
-      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+      if (imagePath != null && imagePath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+      }
 
       debugPrint('[createPlaylistWithImage] fields: ${request.fields}');
       debugPrint('[createPlaylistWithImage] files: ${request.files.map((f) => '${f.field}=${f.filename}').toList()}');
@@ -528,6 +533,8 @@ class PlaylistApiService {
   // ── Update ──────────────────────────────────────────────────────────────────
 
   // PUT /api/playlists/v1/{playlistId}  (multipart)
+  // Mirrors the frontend: all metadata is JSON-stringified under a single
+  // "data" field; image (if any) is a separate "image" file field.
   Future<(int, String)> updatePlaylist({
     required String playlistId,
     String? title,
@@ -539,8 +546,8 @@ class PlaylistApiService {
     String? genre,
     List<String>? tags,
     String? description,
-    String? privacy,
     bool? isPrivate,
+    List<String>? listOfTracks,
     List<String>? audioTracks,
     int? lengthOfReceivedTracks,
     Map<String, dynamic>? licensing,
@@ -552,6 +559,26 @@ class PlaylistApiService {
       final token = await _getToken();
       if (token == null) return (401, 'Unauthorized');
 
+      final jsonPayload = <String, dynamic>{};
+      if (title != null)            jsonPayload['title']            = title;
+      if (permalink != null)        jsonPayload['permalink']        = permalink;
+      if (type != null)             jsonPayload['type']             = type;
+      if (playlistType != null)     jsonPayload['playlistType']     = playlistType;
+      if (releaseDate != null)      jsonPayload['releaseDate']      = releaseDate;
+      if (genre != null)            jsonPayload['genre']            = genre;
+      if (description != null)      jsonPayload['description']      = description;
+      if (isPrivate != null)        jsonPayload['isPrivate']        = isPrivate;
+      if (buyLink != null)          jsonPayload['buyLink']          = buyLink;
+      if (recordLabel != null)      jsonPayload['recordLabel']      = recordLabel;
+      if (additionalTags != null)   jsonPayload['additionalTags']   = additionalTags;
+      if (tags != null)             jsonPayload['tags']             = tags;
+      if (licensing != null)        jsonPayload['licensing']        = licensing;
+      if (lengthOfReceivedTracks != null) {
+        jsonPayload['lengthOfRecievedTracks'] = lengthOfReceivedTracks;
+      }
+      final tracks = listOfTracks ?? audioTracks;
+      if (tracks != null)           jsonPayload['listOfTracks']     = tracks;
+
       final request =
           http.MultipartRequest('PUT', Uri.parse('$_authBase/$playlistId'))
             ..headers.addAll({
@@ -559,41 +586,8 @@ class PlaylistApiService {
               'User-Agent': 'Android',
             });
 
-      void addField(String key, String? value) {
-        if (value != null) request.fields[key] = value;
-      }
+      request.fields['data'] = jsonEncode(jsonPayload);
 
-      addField('title', title);
-      addField('permalink', permalink);
-      addField('type', type);
-      addField('playlistType', playlistType);
-      addField('releaseDate', releaseDate);
-      addField('genre', genre);
-      addField('description', description);
-      addField('Privacy', privacy);
-      if (isPrivate != null) request.fields['isPrivate'] = isPrivate.toString();
-      addField('buyLink', buyLink);
-      addField('recordLabel', recordLabel);
-
-      if (additionalTags != null) {
-        for (final tag in additionalTags) {
-          request.fields['additionalTags'] = tag;
-        }
-      }
-      if (tags != null) {
-        for (final tag in tags) {
-          request.fields['tags'] = tag;
-        }
-      }
-      if (audioTracks != null) {
-        request.fields['audioTracks'] = jsonEncode(audioTracks);
-      }
-      if (lengthOfReceivedTracks != null) {
-        request.fields['lengthOfRecievedTracks'] = '$lengthOfReceivedTracks';
-      }
-      if (licensing != null) {
-        request.fields['licensing'] = jsonEncode(licensing);
-      }
       if (imagePath != null && imagePath.isNotEmpty) {
         request.files.add(
           await http.MultipartFile.fromPath('image', imagePath),
@@ -604,6 +598,7 @@ class PlaylistApiService {
       final response = await http.Response.fromStream(streamed);
 
       debugPrint('PUT $_authBase/$playlistId -> ${response.statusCode}');
+      debugPrint('PUT body: ${response.body}');
 
       final data = jsonDecode(response.body);
       return (
@@ -659,7 +654,7 @@ class PlaylistApiService {
 
   // ── Tracks ──────────────────────────────────────────────────────────────────
 
-  // PATCH /api/playlists/v1/{playlistId}/tracks  (reorder)
+  // PATCH /api/playlists/v1/{playlistId}/tracks/order  (reorder)
   Future<(int, String)> reorderTrack({
     required String playlistId,
     required String trackId,
@@ -671,7 +666,7 @@ class PlaylistApiService {
       if (token == null) return (401, 'Unauthorized');
 
       final response = await _client.patch(
-        Uri.parse('$_authBase/$playlistId/tracks'),
+        Uri.parse('$_authBase/$playlistId/tracks/order'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

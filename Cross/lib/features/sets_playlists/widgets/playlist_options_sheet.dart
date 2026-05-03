@@ -103,9 +103,9 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
   Future<void> _copyPlaylist() async {
     setState(() => _isWorking = true);
 
-    final (code, newPlaylist) = await _service.createPlaylist(
-      playlistName: 'Copy of ${widget.playlist.title}',
-      tracks: widget.playlist.listOfTracks,
+    final (code, newPlaylist) = await _service.createPlaylistWithImage(
+      title: 'Copy of ${widget.playlist.title}',
+      listOfTracks: widget.playlist.listOfTracks,
       isPrivate: widget.playlist.isPrivate,
     );
 

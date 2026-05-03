@@ -43,19 +43,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   bool _isLoading = true;
   String? _error;
 
-  // Pagination
-  int _offset = 0;
-  static const int _limit = 20;
-  bool _hasMore = true;
-  bool _isFetchingMore = false;
-
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _load();
-    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -64,27 +57,17 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 300 &&
-        !_isFetchingMore &&
-        _hasMore) {
-      _fetchMore();
-    }
-  }
-
+  // The API is page-based (returns page/totalPages), not offset-based.
+  // Sending offset=0 causes 400. Match the frontend: no pagination params on load.
   Future<void> _load() async {
     setState(() {
       _isLoading = true;
       _error = null;
-      _offset = 0;
       _tracks = [];
     });
 
     final (code, playlist) = await _service.getPlaylistWithTracks(
       playlistId: widget.playlistId,
-      limit: _limit,
-      offset: 0,
     );
 
     if (!mounted) return;
@@ -93,9 +76,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       setState(() {
         _playlist = playlist;
         _tracks = List.from(playlist.tracks);
-        _hasMore = (_tracks.length >= _limit) &&
-            ((playlist.totalPages ?? 1) > 1);
-        _offset = _tracks.length;
         _isLoading = false;
       });
       _loadCreatorInfo(playlist.artistId);
@@ -108,31 +88,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             : 'Failed to load playlist.';
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _fetchMore() async {
-    if (_isFetchingMore || !_hasMore) return;
-    setState(() => _isFetchingMore = true);
-
-    final (code, playlist) = await _service.getPlaylistWithTracks(
-      playlistId: widget.playlistId,
-      limit: _limit,
-      offset: _offset,
-    );
-
-    if (!mounted) return;
-
-    if (code == 200 && playlist != null) {
-      final newTracks = playlist.tracks;
-      setState(() {
-        _tracks.addAll(newTracks);
-        _offset = _tracks.length;
-        _hasMore = newTracks.length >= _limit;
-        _isFetchingMore = false;
-      });
-    } else {
-      setState(() => _isFetchingMore = false);
     }
   }
 
@@ -307,15 +262,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             SliverToBoxAdapter(child: _buildSuggestionsSection(isNew: true)),
           ] else ...[
             _buildTrackList(),
-            if (_isFetchingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.crusta, strokeWidth: 2)),
-                ),
-              ),
             SliverToBoxAdapter(
                 child: _buildSuggestionsSection(isNew: false)),
           ],
