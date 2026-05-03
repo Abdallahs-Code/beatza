@@ -1,3 +1,5 @@
+// Should be signed in to an account.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cross_team5/main.dart' as app;

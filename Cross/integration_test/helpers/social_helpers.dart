@@ -9,12 +9,21 @@ class SocialHelpers {
     final libraryNav = find.byKey(const Key('test_home_to_library_nav'));
     expect(libraryNav, findsOneWidget);
     await tester.tap(libraryNav);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     final profileBtn = find.byKey(const Key('test_library_to_profile_btn'));
     expect(profileBtn, findsOneWidget);
     await tester.tap(profileBtn);
-    await tester.pumpAndSettle();
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
+    // Now assert the profile screen key is present
+    expect(
+      find.byKey(const Key('test_user_profile_screen')),
+      findsOneWidget,
+    );
   }
 
   /// Tap the followers count text on the profile screen.
