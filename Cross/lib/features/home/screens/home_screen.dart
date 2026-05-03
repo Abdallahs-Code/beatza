@@ -19,6 +19,9 @@ import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 import 'package:cross_team5/features/feed_search_discovery/services/feed_search_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
+import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/screens/playlist_detail_screen.dart';
+import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 
 import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
@@ -41,6 +44,10 @@ class _HomeScreenState extends State<HomeScreen>
   bool _quickPickLoading = true;
   String? _displayName;
 
+  final PlaylistApiService _playlistCatalogService = PlaylistApiService();
+  List<PlaylistModel> _mixedPlaylists = [];
+  bool _mixedPlaylistsLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen>
     _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
     _loadQuickPickTracks();
     _loadDisplayName();
+    _loadMixedPlaylists();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       
       
@@ -78,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didPopNext() {
     _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
+    _loadMixedPlaylists();
   }
 
   Future<void> _loadDisplayName() async {
@@ -91,6 +100,89 @@ class _HomeScreenState extends State<HomeScreen>
         setState(() => _displayName = profile.displayName.trim());
       }
     } catch (_) {}
+  }
+
+  /// Global playlist catalog (across users): auth endpoint when signed in,
+  /// otherwise public guest catalog.
+  Future<void> _loadMixedPlaylists() async {
+    const tag = '[Home Mixed]';
+    debugPrint('$tag _loadMixedPlaylists() start');
+    setState(() => _mixedPlaylistsLoading = true);
+    try {
+      final token = await AuthApiService().getStoredAccessToken();
+      final hasToken = token != null && token.trim().isNotEmpty;
+      debugPrint(
+        '$tag stored access token: ${hasToken ? "present (len=${token.trim().length})" : "absent — using guest catalog"}',
+      );
+      // Beatza catalog API: query.limit must be <= 20 (same constraint as web).
+      final (code, list) = hasToken
+          ? await _playlistCatalogService.getPublicPlaylistsAuth(limit: 20)
+          : await _playlistCatalogService.getPublicPlaylistsGuest(limit: 20);
+      if (!mounted) {
+        debugPrint('$tag not mounted after await, abort');
+        return;
+      }
+      debugPrint(
+        '$tag response: statusCode=$code rawCount=${list.length}',
+      );
+      if (code != 200) {
+        debugPrint('$tag non-200 — UI will show empty row');
+        setState(() {
+          _mixedPlaylists = [];
+          _mixedPlaylistsLoading = false;
+        });
+        return;
+      }
+      if (list.isNotEmpty) {
+        final sample = list.take(5).map((p) {
+          return '"${p.title}" id=${p.id} album=${p.isAlbum} '
+              'private=${p.isPrivate} type=${p.playlistType}';
+        }).join(' | ');
+        debugPrint('$tag first rows (up to 5): $sample');
+      }
+      final albumCount = list.where((p) => p.isAlbum).length;
+      final privateCount = list.where((p) => p.isPrivate).length;
+      debugPrint(
+        '$tag filter: raw=${list.length} '
+        'isAlbum=$albumCount isPrivate=$privateCount '
+        '→ keep !album && !private',
+      );
+      final playlists =
+          list.where((p) => !p.isAlbum && !p.isPrivate).toList();
+      debugPrint(
+        '$tag after filter: ${playlists.length} (empty UI if 0)',
+      );
+      setState(() {
+        _mixedPlaylists = playlists;
+        _mixedPlaylistsLoading = false;
+      });
+    } catch (e, st) {
+      debugPrint('$tag EXCEPTION: $e');
+      debugPrint('$tag STACK: $st');
+      if (mounted) {
+        setState(() {
+          _mixedPlaylists = [];
+          _mixedPlaylistsLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openMixedPlaylist(PlaylistModel playlist) async {
+    final userId = await AuthApiService().getStoredUserId();
+    if (!mounted) return;
+    final isOwner = userId != null &&
+        userId.isNotEmpty &&
+        userId == playlist.artistId;
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlaylistDetailScreen(
+          playlistId: playlist.id,
+          isOwner: isOwner,
+        ),
+      ),
+    );
   }
 
   Future<void> _loadQuickPickTracks() async {
@@ -357,7 +449,11 @@ class _HomeScreenState extends State<HomeScreen>
                     const SizedBox(height: 26),
                     SectionHeader(title: 'Mixed for ${_displayName ?? 'You'}'),
                     const SizedBox(height: 14),
-                    const HorizontalMixSection(),
+                    HorizontalMixSection(
+                      playlists: _mixedPlaylists,
+                      isLoading: _mixedPlaylistsLoading,
+                      onPlaylistTap: _openMixedPlaylist,
+                    ),
                     const SizedBox(height: 26),
                     const SectionHeader(title: AppText.trendingByGenre),
                     const SizedBox(height: 14),

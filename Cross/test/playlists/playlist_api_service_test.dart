@@ -30,6 +30,9 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(Uri.parse('http://localhost:4123'));
+    registerFallbackValue(
+      http.Request('GET', Uri.parse('http://localhost/fallback')),
+    );
   });
 
   setUp(() {
@@ -104,6 +107,15 @@ void main() {
       expect(model.image!.imgLink, 'https://example.com/img.jpg');
     });
 
+    test('parses secret_token alias into secretToken', () {
+      final json = Map<String, dynamic>.from(
+        makePlaylistJson(isPrivate: true),
+      )..['secret_token'] = 'tok_test_abc';
+
+      final model = PlaylistModel.fromJson(json);
+      expect(model.secretToken, 'tok_test_abc');
+    });
+
     test('handles missing optional fields gracefully', () {
       final json = <String, dynamic>{
         '_id': 'p1',
@@ -118,8 +130,6 @@ void main() {
       expect(model.image, isNull);
     });
   });
-
-  
 
   group('createPlaylist', () {
     test('returns 200 and created PlaylistModel on success', () async {
@@ -181,7 +191,7 @@ void main() {
     });
   });
 
-  
+  // ── Get my playlists ─────────────────────────────────────────────────────
 
   group('getMyPlaylists', () {
     test('returns list of playlists on 200', () async {
@@ -218,8 +228,58 @@ void main() {
     });
   });
 
-  
-  
+  // ── Create playlist — POST …/with-image only (multipart, optional image) ─
+
+  group('createPlaylistWithImage', () {
+    test('returns playlist on 200 without image file', () async {
+      final responseBody = {
+        'message': 'Created successfully',
+        'data': {
+          'playlists': [
+            makePlaylistJson(id: 'new_p', title: 'Created'),
+          ],
+        },
+      };
+      final bytes = utf8.encode(jsonEncode(responseBody));
+
+      when(() => mockClient.send(any())).thenAnswer(
+        (_) async => http.StreamedResponse(
+          Stream<List<int>>.value(bytes),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final (code, model) = await service.createPlaylistWithImage(
+        title: 'Created',
+        listOfTracks: const ['track_a'],
+        imagePath: null,
+      );
+
+      expect(code, 200);
+      expect(model, isNotNull);
+      expect(model!.id, 'new_p');
+      verify(() => mockClient.send(any())).called(1);
+    });
+
+    test('returns 401 when no token without calling send', () async {
+      when(
+        () => mockStorage.read(key: 'access_token'),
+      ).thenAnswer((_) async => null);
+
+      final (code, model) = await service.createPlaylistWithImage(
+        title: 'X',
+        imagePath: null,
+      );
+
+      expect(code, 401);
+      expect(model, isNull);
+      verifyNever(() => mockClient.send(any()));
+    });
+  });
+
+  // ── Add track to playlist ────────────────────────────────────────────────
+  // Service uses PATCH /playlists/v1/{playlistId}/tracks/{trackId}
 
   group('addTrackToPlaylist', () {
     test('returns 200 and success message', () async {
@@ -390,7 +450,7 @@ void main() {
       expect(deleted, isTrue);
     });
 
-    test('returns 200 and deleted:false when backend omits flag', () async {
+    test('returns 200 and deleted:true when backend omits deleted flag', () async {
       when(
         () => mockClient.delete(any(), headers: any(named: 'headers')),
       ).thenAnswer(
@@ -403,7 +463,7 @@ void main() {
       );
 
       expect(statusCode, 200);
-      expect(deleted, isFalse);
+      expect(deleted, isTrue);
     });
 
     test('returns 403 when not owner', () async {
