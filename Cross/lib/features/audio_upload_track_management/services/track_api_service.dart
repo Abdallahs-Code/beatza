@@ -461,6 +461,37 @@ class TrackApiService {
   }
 
   // ─────────────────────────────────────────────
+  // Same GET as [getTrackById], but returns raw `data` for [PlaybackTrackModel.fromApiJson]
+  // (matches nested shape used by GET /api/tracks/v2/ list items — same as home feed playback).
+  // ─────────────────────────────────────────────
+  Future<(int, dynamic)> getTrackDataMapById({required String trackId}) async {
+    if (trackId.trim().isEmpty) return (400, 'Invalid track ID');
+    try {
+      final token = await _getToken();
+      final headers = token != null
+          ? _authHeaders(token)
+          : {'Content-Type': 'application/json', 'User-Agent': 'Android'};
+
+      final response = await _client.get(
+        Uri.parse('$_publicV2Base/$trackId'),
+        headers: headers,
+      );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final trackData = data['data'] as Map<String, dynamic>?;
+        if (trackData != null) {
+          return (200, trackData);
+        }
+        return (404, 'Track not found');
+      }
+      return (response.statusCode, data['message'] ?? 'Failed to fetch track');
+    } catch (err) {
+      return (500, 'Network error: $err');
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // Get tracks posted by a user (public — no audioLink)
   // GET /api/public/tracks/v2/posted/{userId}
   //

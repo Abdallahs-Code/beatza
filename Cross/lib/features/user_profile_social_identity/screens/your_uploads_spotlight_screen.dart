@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
+import '../../audio_upload_track_management/models/track.dart' as api_track;
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
+import '../../audio_upload_track_management/services/track_api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:cross_team5/core/services/theme_service.dart';
 import '../models/spotlight_models.dart';
@@ -10,11 +12,13 @@ import '../models/spotlight_models.dart';
 class YourUploadsSpotlightScreen extends StatefulWidget {
   final List<SpotlightItemModel> selectedItems;
   final String artistName;
+  final String userId;
 
   const YourUploadsSpotlightScreen({
     super.key,
     required this.selectedItems,
     required this.artistName,
+    required this.userId,
   });
 
   @override
@@ -26,48 +30,48 @@ class _YourUploadsSpotlightScreenState
     extends State<YourUploadsSpotlightScreen> {
   late List<SpotlightItemModel> localSelected;
 
-  final List<SpotlightItemModel> mockAlbums = [
-    SpotlightItemModel(
-      id: 'a1',
-      title: 'Summer Vibes Album',
-      subtitle: 'ozOo',
-      type: SpotlightType.album,
-      imageUrl:
-          'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=300&auto=format&fit=crop',
-    ),
-    SpotlightItemModel(
-      id: 'a2',
-      title: 'Deep House Mixes',
-      subtitle: 'ozOo',
-      type: SpotlightType.album,
-      imageUrl:
-          'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=300&auto=format&fit=crop',
-    ),
-  ];
-
-  final List<SpotlightItemModel> mockPlaylists = [
-    SpotlightItemModel(
-      id: 'p1',
-      title: 'Top Hits Playlist',
-      subtitle: 'ozOo',
-      type: SpotlightType.playlist,
-      imageUrl:
-          'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=300&auto=format&fit=crop',
-    ),
-    SpotlightItemModel(
-      id: 'p2',
-      title: 'Workout Energy',
-      subtitle: 'ozOo',
-      type: SpotlightType.playlist,
-      imageUrl:
-          'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=300&auto=format&fit=crop',
-    ),
-  ];
+  final TrackApiService _trackApiService = TrackApiService();
+  late Future<(int, dynamic)> _postedTracksFuture;
 
   @override
   void initState() {
     super.initState();
     localSelected = List.from(widget.selectedItems);
+    _postedTracksFuture = _trackApiService.getUserPostedTracks(
+      userId: widget.userId,
+    );
+  }
+
+  /// Posted tracks from API plus public local uploads (deduped by server id / track id).
+  List<SpotlightItemModel> _buildTrackSpotlightItems(List<api_track.Track> apiTracks) {
+    final Set<String> seenIds = {};
+    final List<SpotlightItemModel> out = [];
+
+    for (final t in apiTracks) {
+      final id = t.id.trim();
+      if (id.isEmpty) continue;
+      seenIds.add(id);
+      out.add(SpotlightItemModel.fromPostedTrack(t, widget.artistName));
+    }
+
+    for (final t in AudioUploadService.globalMockTracksNotifier.value) {
+      final String visibility = t.visibility.toString().toLowerCase();
+      if (visibility.contains('private') || visibility.contains('unlisted')) {
+        continue;
+      }
+      final sid = (t.serverId ?? '').trim();
+      if (sid.isNotEmpty && seenIds.contains(sid)) continue;
+      final localId = t.id.trim();
+      if (sid.isEmpty && seenIds.contains(localId)) continue;
+
+      final item = SpotlightItemModel.fromTrack(t, widget.artistName);
+      final dedupeKey = sid.isNotEmpty ? sid : item.id;
+      if (seenIds.contains(dedupeKey)) continue;
+      seenIds.add(dedupeKey);
+      out.add(item);
+    }
+
+    return out;
   }
 
   void _toggleItem(SpotlightItemModel item) {
@@ -188,70 +192,65 @@ class _YourUploadsSpotlightScreenState
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeService>();
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: AppColors.backgroundDark3,
+      appBar: AppBar(
         backgroundColor: AppColors.backgroundDark3,
-        appBar: AppBar(
-          backgroundColor: AppColors.backgroundDark3,
-          elevation: 0,
-          leading: const SizedBox.shrink(),
-          leadingWidth: 0,
-          title: Text(
-            'Your Uploads',
-            style: TextStyle(
-              color: AppColors.whiteSmoke,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+        elevation: 0,
+        leading: const SizedBox.shrink(),
+        leadingWidth: 0,
+        title: Text(
+          'Posted tracks',
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, localSelected);
+            },
+            child: Text(
+              'Done',
+              style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
             ),
           ),
-          centerTitle: true,
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, localSelected);
-              },
-              child: Text(
-                'Done',
-                style: TextStyle(color: AppColors.whiteSmoke, fontSize: 16),
+        ],
+      ),
+      body: FutureBuilder<(int, dynamic)>(
+        future: _postedTracksFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryOrange),
+            );
+          }
+          final result = snapshot.data;
+          if (result == null || result.$1 != 200) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  result == null
+                      ? 'Could not load posted tracks.'
+                      : '${result.$2}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.white54, fontSize: 14),
+                ),
               ),
-            ),
-          ],
-          bottom: TabBar(
-            indicatorColor: AppColors.whiteSmoke,
-            labelColor: AppColors.whiteSmoke,
-            unselectedLabelColor: AppColors.white54,
-            indicatorWeight: 2,
-            tabs: [
-              Tab(text: 'Tracks'),
-              Tab(text: 'Albums'),
-              Tab(text: 'Playlists'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            ValueListenableBuilder<List<TrackModel>>(
-              valueListenable: AudioUploadService.globalMockTracksNotifier,
-              builder: (context, tracks, child) {
-                final publicTracks = tracks
-                    .where((t) {
-                      String visibility = t.visibility.toString().toLowerCase();
-                      return !visibility.contains('private') &&
-                          !visibility.contains('unlisted');
-                    })
-                    .map(
-                      (t) => SpotlightItemModel.fromTrack(t, widget.artistName),
-                    )
-                    .toList();
-
-                return _buildList(publicTracks);
-              },
-            ),
-            _buildList(mockAlbums),
-            _buildList(mockPlaylists),
-          ],
-        ),
+            );
+          }
+          final apiTracks = result.$2 as List<api_track.Track>;
+          return ValueListenableBuilder<List<TrackModel>>(
+            valueListenable: AudioUploadService.globalMockTracksNotifier,
+            builder: (context, _, _) {
+              return _buildList(_buildTrackSpotlightItems(apiTracks));
+            },
+          );
+        },
       ),
     );
   }

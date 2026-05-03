@@ -8,6 +8,7 @@ import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/repost_status.dart';
+import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 
 class EngagementApiService {
   final ApiServices _apiServices;
@@ -514,6 +515,93 @@ class EngagementApiService {
     } catch (err) {
       return (500, "Network error: $err");
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // List tracks reposted by a user (public).
+  // GET /api/public/engagement/tracks/v1/users/{userId}/reposted
+  //
+  // Spec: RepostedTracksResponse — { total, offset, limit, tracks[] }
+  // (Beatza Swagger: getUserRepostedTracks / RepostedTrackItemResponseDTO.)
+  // Items may use audio.url + image.url; normalize before Track.fromNestedJson.
+  //
+  // Returns (200, List<Track>) on success.
+  // ─────────────────────────────────────────────
+  Future<(int, dynamic)> getTracksRepostedByUser({
+    required String userId,
+    int offset = 1,
+    int limit = 50,
+  }) async {
+    if (userId.trim().isEmpty) return (400, "Invalid user ID");
+
+    final int safeLimit = limit.clamp(1, 50);
+
+    try {
+      final uri =
+          Uri.parse("$_publicBasePath/tracks/v1/users/$userId/reposted")
+              .replace(
+                queryParameters: {
+                  "offset": offset.toString(),
+                  "limit": safeLimit.toString(),
+                },
+              );
+
+      final response = await _client.get(uri, headers: _publicHeaders);
+      final dynamic decoded = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (decoded is Map<String, dynamic>) {
+          return (200, _tracksFromRepostedTracksResponse(decoded));
+        }
+        return (200, <Track>[]);
+      }
+
+      final String message = decoded is Map
+          ? (decoded["message"]?.toString() ?? "Failed to fetch reposted tracks")
+          : "Failed to fetch reposted tracks";
+      return (response.statusCode, message);
+    } catch (err) {
+      return (500, "Network error: $err");
+    }
+  }
+
+  /// Swagger `RepostedTrackItemResponseDTO` uses `audio.url` / `image.url`;
+  /// [Track.fromNestedJson] expects `audioLink` / `imgLink`.
+  static Map<String, dynamic> _normalizeRepostedTrackItem(
+    Map<String, dynamic> json,
+  ) {
+    final out = Map<String, dynamic>.from(json);
+    if (out["audio"] is Map<String, dynamic>) {
+      final a = Map<String, dynamic>.from(out["audio"]! as Map);
+      final link = a["audioLink"] ?? a["url"];
+      if (link != null) a["audioLink"] = link.toString();
+      out["audio"] = a;
+    }
+    if (out["image"] is Map<String, dynamic>) {
+      final i = Map<String, dynamic>.from(out["image"]! as Map);
+      final img = i["imgLink"] ?? i["url"];
+      if (img != null) i["imgLink"] = img.toString();
+      out["image"] = i;
+    }
+    final id = out["_id"] ?? out["id"];
+    if ((id == null || id.toString().trim().isEmpty) &&
+        out["trackId"] != null) {
+      out["_id"] = out["trackId"].toString();
+    }
+    return out;
+  }
+
+  static List<Track> _tracksFromRepostedTracksResponse(
+    Map<String, dynamic> json,
+  ) {
+    final raw = json["tracks"];
+    if (raw is! List) return [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (m) => Track.fromNestedJson(_normalizeRepostedTrackItem(m)),
+        )
+        .toList();
   }
 
   // ═════════════════════════════════════════════

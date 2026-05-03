@@ -12,11 +12,13 @@ import '../models/spotlight_models.dart';
 class EditSpotlightScreen extends StatefulWidget {
   final List<SpotlightItemModel> initialItems;
   final String artistName;
+  final String userId;
 
   const EditSpotlightScreen({
     super.key,
     required this.initialItems,
     required this.artistName,
+    required this.userId,
   });
 
   @override
@@ -39,6 +41,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
         builder: (context) => YourUploadsSpotlightScreen(
           selectedItems: currentItems,
           artistName: widget.artistName,
+          userId: widget.userId,
         ),
       ),
     );
