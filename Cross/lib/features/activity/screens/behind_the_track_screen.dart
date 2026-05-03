@@ -45,10 +45,10 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   bool _loading = true;
   String? _error;
 
-  // Leaderboard toggle state
-  bool _showTopFans = true; // true = Top, false = First
+  
+  bool _showTopFans = true; 
 
-  // ── Exact same like pattern as _ExpandedEngagementBarState ──
+  
   bool _isLiked = false;
   bool _isLikeLoading = false;
   late int _likeCount = 0;
@@ -65,7 +65,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   bool _isReposted = false;
   String? _currentUserId;
 
-  // First reposter fetched from the public reposts API
+  
   EngagementUser? _firstReposter;
 
   bool get _isCurrentlyPlaying {
@@ -234,7 +234,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     );
   }
 
-  // ── Exact same pattern as _ExpandedEngagementBarState._toggleLike ──
+  
   Future<void> _toggleLike() async {
     if (_isLikeLoading) return;
     final wasLiked = _isLiked;
@@ -265,7 +265,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
     setState(() => _isLikeLoading = false);
   }
 
-  // ── Exact same pattern as _ExpandedEngagementBarState._openCommentsScreen ──
+  
   Future<void> _openComments() async {
     final track = _track;
     await Navigator.of(context, rootNavigator: true).push(
@@ -590,7 +590,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             ),
             child: Column(
               children: [
-                // Top / First toggle
+                
                 Padding(
                   padding: const EdgeInsets.all(6),
                   child: Row(
@@ -722,7 +722,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
                                       width: 36,
                                       height: 36,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, e) => Container(
+                                      errorBuilder: (_, _, e) => Container(
                                         width: 36,
                                         height: 36,
                                         color: AppColors.tileDark5,
@@ -788,7 +788,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
   }
 
   Widget _buildInPlaylists() {
-    // Hardcoded visual — no API yet
+    
     final playlists = [
       ('Personal Faves XX !', 'MUSIC AFiCi...'),
       ('Tracks 🔥🔥', 'Hossam Moh'),
@@ -995,7 +995,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       child: Row(
         children: [
-          // Like — same icon/color logic as global overlay
+          
           GestureDetector(
             onTap: _isLikeLoading ? null : _toggleLike,
             behavior: HitTestBehavior.opaque,
@@ -1020,7 +1020,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             ),
           ),
           const SizedBox(width: 24),
-          // Comment
+          
           GestureDetector(
             onTap: _openComments,
             behavior: HitTestBehavior.opaque,
@@ -1040,7 +1040,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             ),
           ),
           const SizedBox(width: 24),
-          // Repost
+          
           GestureDetector(
             onTap: _openRepostSheet,
             behavior: HitTestBehavior.opaque,
@@ -1077,7 +1077,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
             ),
           ),
           const Spacer(),
-          // Play
+          
           GestureDetector(
             onTap: _playTrack,
             child: Container(

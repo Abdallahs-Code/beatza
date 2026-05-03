@@ -54,21 +54,21 @@ class PlaybackTrackModel {
   final bool displayedEmbedCode;
   final bool enableAppPlayback;
 
-  /// The user ID of the artist/uploader — used to navigate to their profile.
+  
   final String? artistId;
 
-  /// Precomputed normalized waveform values from 0.0 to 1.0
+  
   final List<double> waveformPeaks;
 
-  // V2 API fields
+  
   final bool isLikedByUser;
   final bool isRepostedByUser;
   final bool isAvailableForUser;
   final TrackGeoBlocking? geoBlocking;
 
-  /// When true, only Pro subscribers can play the full track. Non-Pro
-  /// listeners are restricted to a 30-second preview (enforced by the
-  /// playback engine via `accessState == preview`).
+  
+  
+  
   final bool mobileProPreview;
 
   const PlaybackTrackModel({
@@ -175,7 +175,7 @@ class PlaybackTrackModel {
         ? true
         : permissions['enableAppPlayback'] == true;
 
-    // V2 fields
+    
     final bool isAvailableForUser = json['isAvailableForUser'] != false;
     final bool isLikedByUser = json['isLikedByUser'] == true;
     final bool isRepostedByUser = json['isRepostedByUser'] == true;
@@ -184,8 +184,8 @@ class PlaybackTrackModel {
             ? TrackGeoBlocking.fromJson(json['geoBlocking'] as Map<String, dynamic>)
             : null;
 
-    // mobileProPreview can come back as a plain bool or wrapped in
-    // `{ mobileProPreview: bool }` (matches how it's sent on upload).
+    
+    
     final dynamic mobileProPreviewRaw = json['mobileProPreview'];
     final bool mobileProPreview = mobileProPreviewRaw is bool
         ? mobileProPreviewRaw
@@ -194,10 +194,10 @@ class PlaybackTrackModel {
 
     final bool effectivelyPlayable = canPlay && isAvailableForUser;
 
-    // Pro-gating: if the artist marked this track as Pro-only and the
-    // current listener is not a Pro subscriber, drop them to a 30-second
-    // preview. The engine already enforces the cutoff for any track in
-    // PlaybackAccessState.preview.
+    
+    
+    
+    
     final bool isProListener =
         PaymentService.subscriptionSuccessNotifier.value.isPro;
     final bool gateToPreview =
@@ -218,13 +218,13 @@ class PlaybackTrackModel {
         _nullableString(json['file_url']) ??
         _nullableString(json['fileUrl']);
 
-    // ── ID resolution: API returns 'trackId' on list/single endpoints
-    //    and '_id' on liked/posted list endpoints. Accept both.
+    
+    
     final String resolvedId = (json['trackId'] ?? json['_id'] ?? '')
         .toString()
         .trim();
 
-    // ── Artist ID: API now uses 'posterId' — add as first candidate.
+    
     final String? resolvedArtistId =
         _nullableString(json['posterId']) ??
         _nullableString(json['userId']) ??
@@ -233,7 +233,7 @@ class PlaybackTrackModel {
         _nullableString(basicInfo['user_id']) ??
         _nullableString(json['creator']);
 
-    // ── Debug: log resolved IDs so any future mismatch is immediately visible.
+    
     if (resolvedId.isEmpty) {
       debugPrint(
         '[PlaybackTrackModel.fromApiJson] ⚠️ EMPTY id resolved. '

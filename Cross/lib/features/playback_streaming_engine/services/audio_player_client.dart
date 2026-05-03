@@ -45,13 +45,13 @@ class AudioplayersClient implements AudioPlayerClient {
       PlaybackSourceType.deviceFile => DeviceFileSource(track.playbackUrl),
     };
 
-    // 🔥 HARD MUTE BEFORE ANY SOURCE CHANGE (critical)R
+    
     await _audioPlayer.setVolume(0.0);
 
     await _audioPlayer.stop();
     await _audioPlayer.setSource(source);
 
-    // small delay to let internal pipeline stabilize
+    
     await Future<void>.delayed(const Duration(milliseconds: 20));
 
     await _audioPlayer.resume();

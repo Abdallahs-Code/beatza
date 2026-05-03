@@ -1,18 +1,18 @@
-// Widget: FeedCard
-// Full-screen TikTok-style feed card for a single feed item.
-//
-// Behaviour:
-//   - Displays track cover image full-screen with blurred background
-//   - "Tap to preview" overlay shown until user taps it
-//   - Mute/unmute: track audio plays locally for up to 20 s then loops back
-//     to 0:00 — an orange ring around the ▶ button fills over those 20 s
-//   - Tapping ▶ stops local audio and delegates to global PlaybackService
-//   - ⋯ options button opens the same sheet as the global track card
-//   - Right-side: ❤️ likes (persisted via static cache + API on init),
-//     💬 comments (count refreshed only after CommentsScreen closes),
-//     ➕ playlist
-//   - Like state: checked against API on init so it persists across nav;
-//     like count cached statically so it survives card recreation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:async';
 
@@ -71,7 +71,7 @@ class FeedCard extends StatefulWidget {
 }
 
 class _FeedCardState extends State<FeedCard> {
-  // ── Static caches (survive card recreation by PageView) ────────────────────
+  
   static final Map<String, bool> _likedCache = {};
   static final Map<String, int> _likeCountCache = {};
   static final Map<String, int> _commentCountCache = {};
@@ -85,7 +85,7 @@ class _FeedCardState extends State<FeedCard> {
   late int _likeCount;
   late int _commentCount;
 
-  // ── Preview position (drives the orange ring) ──────────────────────────────
+  
   Duration _previewPosition = Duration.zero;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<void>? _completeSub;
@@ -96,7 +96,7 @@ class _FeedCardState extends State<FeedCard> {
   @override
   void initState() {
     super.initState();
-    // Restore from cache if available (prevents stale revert on card recreation)
+    
     _isLiked = _likedCache[widget.itemId] ?? widget.isLiked;
     _likeCount = _likeCountCache[widget.itemId] ?? widget.likeCount;
     _commentCount = _commentCountCache[widget.itemId] ?? widget.commentCount;
@@ -104,21 +104,21 @@ class _FeedCardState extends State<FeedCard> {
     _localPlayer.setReleaseMode(ReleaseMode.stop);
     widget.isMuted.addListener(_onMuteChanged);
     _checkLikeStatus();
-    // Comment count NOT fetched here — widget.commentCount is already correct.
-    // It's only refreshed after the user posts a comment (CommentsScreen closes).
+    
+    
   }
 
   @override
   void didUpdateWidget(FeedCard oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Card becoming non-current: stop preview audio, hide overlay
+    
     if (!widget.isCurrent && oldWidget.isCurrent) {
       setState(() => _hasStartedPreview = false);
       _stopLocalAudio();
     }
 
-    // Card becoming current again: re-verify like state from API
+    
     if (widget.isCurrent && !oldWidget.isCurrent) {
       _checkLikeStatus();
     }
@@ -134,7 +134,7 @@ class _FeedCardState extends State<FeedCard> {
     super.dispose();
   }
 
-  // ── Local audio (feed preview — limited to first 20 s, loops) ─────────────
+  
 
   void _onMuteChanged() {
     if (!widget.isMuted.value &&
@@ -150,7 +150,7 @@ class _FeedCardState extends State<FeedCard> {
   Future<void> _startLocalAudio() async {
     if (widget.audioUrl == null || widget.audioUrl!.isEmpty) return;
     try {
-      // Subscribe to duration BEFORE play so we never miss the event
+      
       _durationSub?.cancel();
       _durationSub = _localPlayer.onDurationChanged.listen((d) {
         if (mounted && d.inMilliseconds > 0) {
@@ -160,11 +160,11 @@ class _FeedCardState extends State<FeedCard> {
 
       await _localPlayer.play(UrlSource(widget.audioUrl!));
 
-      // Listen to position — loop back to 0 at the 20 s mark
+      
       _positionSub?.cancel();
       _positionSub = _localPlayer.onPositionChanged.listen(_onPositionChanged);
 
-      // If the track is shorter than 20 s it will complete; restart it
+      
       _completeSub?.cancel();
       _completeSub = _localPlayer.onPlayerComplete.listen((_) async {
         if (!mounted) return;
@@ -176,7 +176,7 @@ class _FeedCardState extends State<FeedCard> {
 
   void _onPositionChanged(Duration pos) {
     if (!mounted || _isSeeking) return;
-    // Only seek-loop for tracks >= 20 s; short tracks loop via onPlayerComplete.
+    
     final bool longTrack =
         _trackDuration == null || _trackDuration!.inMilliseconds >= 20000;
     if (longTrack && pos.inSeconds >= 20) {
@@ -203,7 +203,7 @@ class _FeedCardState extends State<FeedCard> {
     } catch (_) {}
   }
 
-  // ── Like (persisted across navigation via static cache) ────────────────────
+  
 
   Future<void> _checkLikeStatus() async {
     try {
@@ -212,7 +212,7 @@ class _FeedCardState extends State<FeedCard> {
       );
       if (code == 200 && data is Map && mounted) {
         final liked = data['liked'] as bool? ?? _isLiked;
-        // Some implementations also return numOfLikes here
+        
         final count = data['numOfLikes'] as int?;
         setState(() {
           _isLiked = liked;
@@ -257,8 +257,8 @@ class _FeedCardState extends State<FeedCard> {
     });
   }
 
-  // ── Comment count ──────────────────────────────────────────────────────────
-  // Uses getTrackById so numComments matches what CommentsScreen shows.
+  
+  
 
   Future<void> _fetchCommentCount() async {
     try {
@@ -283,7 +283,7 @@ class _FeedCardState extends State<FeedCard> {
         'trackArtist': widget.actorName,
         'trackThumbnailUrl': widget.imgLink,
         'currentPositionSeconds': 0,
-        'syncWithPlayer': false, // feed preview always stamps at 0:00
+        'syncWithPlayer': false, 
       },
     );
     if (mounted) _fetchCommentCount();
@@ -297,7 +297,7 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
-  // ── Track options sheet — feed variant ────────────────────────────────────
+  
 
   void _openOptions(BuildContext context) {
     debugPrint('[FeedCard._openOptions] itemId="${widget.itemId}"  permalink="${widget.permalink}"  actorId="${widget.actorId}"');
@@ -335,7 +335,7 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  
 
   String _formatCount(int count) {
     if (count >= 1000000) {
@@ -346,7 +346,7 @@ class _FeedCardState extends State<FeedCard> {
     return count.toString();
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
@@ -494,7 +494,7 @@ class _FeedCardState extends State<FeedCard> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ── Options (⋯) — top of the column ───────────────────────
+        
         GestureDetector(
           onTap: () => _openOptions(context),
           child: Container(
@@ -512,7 +512,7 @@ class _FeedCardState extends State<FeedCard> {
         ),
         const SizedBox(height: 20),
 
-        // ── Like ───────────────────────────────────────────────────
+        
         GestureDetector(
           onTap: _toggleLike,
           child: Column(
@@ -535,7 +535,7 @@ class _FeedCardState extends State<FeedCard> {
         ),
         const SizedBox(height: 24),
 
-        // ── Comments ───────────────────────────────────────────────
+        
         GestureDetector(
           onTap: () => _openComments(context),
           child: Column(
@@ -555,7 +555,7 @@ class _FeedCardState extends State<FeedCard> {
         ),
         const SizedBox(height: 24),
 
-        // ── Add to playlist ────────────────────────────────────────
+        
         GestureDetector(
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -570,7 +570,7 @@ class _FeedCardState extends State<FeedCard> {
         ),
         const SizedBox(height: 24),
 
-        // ── Play button with orange 20-s progress ring ─────────────
+        
         GestureDetector(
           onTap: () {
             _stopLocalAudio();
@@ -582,7 +582,7 @@ class _FeedCardState extends State<FeedCard> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Orange ring — fills over 20 s of preview
+                
                 SizedBox(
                   width: 56,
                   height: 56,
@@ -593,7 +593,7 @@ class _FeedCardState extends State<FeedCard> {
                     backgroundColor: Colors.white24,
                   ),
                 ),
-                // Play button
+                
                 Container(
                   width: 42,
                   height: 42,

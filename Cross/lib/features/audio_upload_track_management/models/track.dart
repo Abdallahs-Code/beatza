@@ -1,22 +1,22 @@
-// Model: Track
-// API response model for tracks returned from the backend.
-//
-// Two JSON shapes from the API:
-//
-// SHAPE A — feed/trending (flat):
-//   track_id, title, image_url, main_artist{displayName}, genre,
-//   tags[], privacy, num_of_plays, num_of_likes, num_of_comments,
-//   num_of_reposts, created_at
-//
-// SHAPE B — detail / history / posted / liked (nested):
-//   _id/trackId, basicInfo{title, permalink, mainArtists[], genre, tags[],
-//   description, caption, isPrivate}, audio{audioLink, id},
-//   image{imgLink, publicId}, permissions{…}, license{type, …},
-//   geoBlocking{mode, regions[], countries[]}, numLikes, numPlays,
-//   numReposts, numComments, releaseDate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Track {
-  // ── Core ─────────────────────────────────────────────────────────────────
+  
   final String _id;
   final String _title;
   final String _permalink;
@@ -34,31 +34,31 @@ class Track {
   final int _numComments;
   final String _releaseDate;
 
-  // ── Permissions ──────────────────────────────────────────────────────────
+  
   final bool _enableDirectDownload;
   final bool _offlineListening;
   final bool _includeInRssFeed;
   final bool _displayedEmbedCode;
   final bool _enableAppPlayback;
 
-  // ── License ──────────────────────────────────────────────────────────────
-  // 'allRightsReserved' | 'creativeCommons'
+  
+  
   final String _licenseType;
 
-  // ── Geo-blocking ─────────────────────────────────────────────────────────
-  // mode: 'worldwide' | 'exclusive' | 'blocked'
+  
+  
   final String _geoBlockingMode;
   final List<String> _geoBlockingRegions;
   final List<String> _geoBlockingCountries;
 
-  // ── Advanced ─────────────────────────────────────────────────────────────
+  
   final bool _explicitContent;
   final String? _recordLabel;
   final String? _publisher;
   final String? _isrc;
   final String? _pLine;
 
-  // ── Mobile Pro Preview ───────────────────────────────────────────────────
+  
   final bool _mobileProPreview;
 
   Track(
@@ -110,7 +110,7 @@ class Track {
         _isrc = isrc,
         _pLine = pLine;
 
-  // ── Getters ───────────────────────────────────────────────────────────────
+  
   String get id => _id;
   String get title => _title;
   String get permalink => _permalink;
@@ -134,10 +134,10 @@ class Track {
   bool get displayedEmbedCode => _displayedEmbedCode;
   bool get enableAppPlayback => _enableAppPlayback;
 
-  // 'allRightsReserved' | 'creativeCommons'
+  
   String get licenseType => _licenseType;
 
-  // 'worldwide' | 'exclusive' | 'blocked'
+  
   String get geoBlockingMode => _geoBlockingMode;
   List<String> get geoBlockingRegions => _geoBlockingRegions;
   List<String> get geoBlockingCountries => _geoBlockingCountries;
@@ -178,9 +178,9 @@ class Track {
         mobileProPreview: _mobileProPreview,
       );
 
-  // ─────────────────────────────────────────────
-  // Factory: SHAPE B — nested (history, detail, posted, liked)
-  // ─────────────────────────────────────────────
+  
+  
+  
   factory Track.fromNestedJson(Map<String, dynamic> json) {
     final basicInfo = json['basicInfo'] as Map<String, dynamic>? ?? {};
     final audio = json['audio'] as Map<String, dynamic>?;
@@ -249,9 +249,9 @@ class Track {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Factory: SHAPE A — flat (feed, trending)
-  // ─────────────────────────────────────────────
+  
+  
+  
   factory Track.fromFlatJson(Map<String, dynamic> json) {
     final mainArtist = json['main_artist'] as Map<String, dynamic>?;
     return Track(
@@ -270,15 +270,15 @@ class Track {
       json['num_of_reposts'] as int? ?? 0,
       json['num_of_comments'] as int? ?? 0,
       json['created_at']?.toString() ?? '',
-      // permissions/license/geoBlocking not available in flat shape — defaults apply
+      
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Static list parsers
-  // ─────────────────────────────────────────────
+  
+  
+  
 
-  /// GET /api/feed or /api/trending → flat shape
+  
   static List<Track> listFromFeedResponse(Map<String, dynamic> json) {
     final List<dynamic> data = json['data'] ?? [];
     return data
@@ -286,7 +286,7 @@ class Track {
         .toList();
   }
 
-  /// GET /api/playback/v1/history/tracks → nested shape
+  
   static List<Track> listFromHistoryResponse(Map<String, dynamic> json) {
     final List<dynamic> data = json['data'] ?? [];
     return data
@@ -294,7 +294,7 @@ class Track {
         .toList();
   }
 
-  /// GET /api/tracks/v2/ (paginated) → nested shape inside data.tracks
+  
   static List<Track> listFromPaginatedResponse(Map<String, dynamic> json) {
     final dataObj = json['data'] as Map<String, dynamic>? ?? {};
     final List<dynamic> tracks = dataObj['tracks'] ?? [];
@@ -303,7 +303,7 @@ class Track {
         .toList();
   }
 
-  /// GET /api/public/tracks/v2/posted/{id} or /liked/{id} → nested, no audio
+  
   static List<Track> listFromUserTracksResponse(Map<String, dynamic> json) {
     final List<dynamic> data = json['data'] ?? [];
     return data

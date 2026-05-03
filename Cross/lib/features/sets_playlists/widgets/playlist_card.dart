@@ -1,5 +1,5 @@
-// Widget: PlaylistCard
-// Compact card for displaying a playlist in list/grid views.
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -26,7 +26,7 @@ class PlaylistCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Thumbnail
+            
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
@@ -43,7 +43,7 @@ class PlaylistCard extends StatelessWidget {
                   : _placeholder(),
             ),
             const SizedBox(width: 14),
-            // Info
+            
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),

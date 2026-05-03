@@ -163,7 +163,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         await PaymentService.createSubscription(actualPriceId);
       }
 
-      // إخبار التطبيق والواجهة فوراً بأن المستخدم أصبح Pro (سيستمر في التأكد من الـ API بالخلفية)
+      
       PaymentService.subscriptionSuccessNotifier.setOptimisticPro(
         actualPriceId,
       );

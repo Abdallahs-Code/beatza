@@ -1,12 +1,12 @@
-// Routes: FeedSearchDiscoveryRoutes
-// Module 8 — Feed, Search & Discovery
-//
-// Spread into AppRouter.routes:
-//   ...FeedSearchDiscoveryRoutes.routes
-//
-// Available routes:
-//   /feed    → FeedScreen  (Discover + Following tabs)
-//   /search  → SearchScreen
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 

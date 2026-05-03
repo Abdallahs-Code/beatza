@@ -1,15 +1,17 @@
-// Dart imports
+
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/authentication_user_management/models/user.dart'
     as user_model;
 import 'package:cross_team5/core/services/api_services.dart';
+
+import '../helpers/load_test_env.dart';
 
 class MockHttpClient extends Mock implements http.Client {}
 
@@ -33,7 +35,8 @@ void main() {
     "Male",
   );
 
-  setUpAll(() {
+  setUpAll(() async {
+    await loadTestEnv();
     registerFallbackValue(Uri.parse("https://beatza.me"));
   });
 
@@ -45,6 +48,7 @@ void main() {
       apiServices: FakeApiServices(),
       client: mockClient,
       storage: mockStorage,
+      skipNativeSessionHooks: true,
     );
   });
 
@@ -538,6 +542,205 @@ void main() {
 
       expect(result.$1, 500);
       expect(result.$2.toString(), contains("Network error"));
+    });
+  });
+
+  group("forgotPassword", () {
+    test("returns 400 for invalid email", () async {
+      final result = await authApiService.forgotPassword(email: "not-an-email");
+
+      expect(result.$1, 400);
+      expect(result.$2, "Invalid email format");
+
+      verifyNever(
+        () => mockClient.post(
+          any(),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      );
+    });
+
+    test("posts to forgot-password and returns message on 200", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse("https://beatza.me/api/auth/v1/forgot-password"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            http.Response(jsonEncode({"message": "Reset email sent"}), 200),
+      );
+
+      final result = await authApiService.forgotPassword(
+        email: "reset@example.com",
+      );
+
+      expect(result.$1, 200);
+      expect(result.$2, "Reset email sent");
+    });
+  });
+
+  group("deleteAccount", () {
+    test("returns 401 without access token", () async {
+      when(
+        () => mockStorage.read(key: "access_token"),
+      ).thenAnswer((_) async => null);
+
+      final result = await authApiService.deleteAccount();
+
+      expect(result.$1, 401);
+      expect(result.$2, "No access token found");
+
+      verifyNever(
+        () => mockClient.delete(any(), headers: any(named: "headers")),
+      );
+    });
+  });
+
+  group("getQrCodeToken", () {
+    test("returns qrCode from nested pendingToken on 200", () async {
+      when(
+        () => mockClient.get(
+          Uri.parse("https://beatza.me/api/auth/v1/cross/desktop"),
+          headers: any(named: "headers"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({
+            "pendingToken": {"qrCode": "QR_SECRET"},
+          }),
+          200,
+        ),
+      );
+
+      final qr = await authApiService.getQrCodeToken();
+
+      expect(qr, "QR_SECRET");
+    });
+  });
+
+  group("checkUserExists", () {
+    test("throws on invalid email", () async {
+      expect(
+        () => authApiService.checkUserExists(email: "bad"),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test("returns exists flag from find-email on 200", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse("https://beatza.me/api/auth/v1/find-email"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(
+          jsonEncode({"data": {"exists": true}}),
+          200,
+        ),
+      );
+
+      final exists = await authApiService.checkUserExists(
+        email: "exists@example.com",
+      );
+
+      expect(exists, true);
+
+      verify(
+        () => mockClient.post(
+          Uri.parse("https://beatza.me/api/auth/v1/find-email"),
+          headers: any(named: "headers"),
+          body: jsonEncode({"email": "exists@example.com"}),
+        ),
+      ).called(1);
+    });
+  });
+
+  group("approveQrCode", () {
+    test("returns false when cross/mobile responds non-200", () async {
+      when(
+        () => mockStorage.read(key: "access_token"),
+      ).thenAnswer((_) async => "tok");
+
+      when(
+        () => mockClient.post(
+          Uri.parse("https://beatza.me/api/auth/v1/cross/mobile"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer((_) async => http.Response("{}", 500));
+
+      final ok = await authApiService.approveQrCode("qr-data");
+
+      expect(ok, false);
+    });
+  });
+
+  group("checkQrStatus", () {
+    test("returns waiting when 200 body has no data envelope", () async {
+      when(
+        () => mockClient.post(
+          Uri.parse("https://beatza.me/api/auth/v1/cross/desktop/poll"),
+          headers: any(named: "headers"),
+          body: any(named: "body"),
+        ),
+      ).thenAnswer(
+        (_) async => http.Response(jsonEncode({"message": "Still waiting"}), 200),
+      );
+
+      final map = await authApiService.checkQrStatus("qr-code");
+
+      expect(map["status"], "waiting");
+    });
+  });
+
+  group("resendVerificationEmail", () {
+    test("returns 400 for invalid email", () async {
+      final result = await authApiService.resendVerificationEmail(
+        email: "invalid",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Invalid email format");
+    });
+  });
+
+  group("resendGoogleVerificationCode", () {
+    test("returns 400 when pending token is empty", () async {
+      final result = await authApiService.resendGoogleVerificationCode(
+        pendingToken: "   ",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Pending token is required");
+    });
+  });
+
+  group("verifyGoogleCode", () {
+    test("returns 400 when pending token is empty", () async {
+      final result = await authApiService.verifyGoogleCode(
+        pendingToken: "",
+        code: "123456",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Pending token is required");
+    });
+  });
+
+  group("completeGoogleSignup", () {
+    test("returns 400 when incomplete token is empty", () async {
+      final result = await authApiService.completeGoogleSignup(
+        incompleteToken: "",
+        dateOfBirth: "2000-01-01",
+        gender: "Male",
+      );
+
+      expect(result.$1, 400);
+      expect(result.$2, "Incomplete token is required");
     });
   });
 }

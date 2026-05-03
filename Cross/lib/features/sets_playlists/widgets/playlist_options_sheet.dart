@@ -1,6 +1,6 @@
-// Widget: PlaylistOptionsSheet
-// Bottom sheet showing playlist actions: Edit, Make private/public, Add music,
-// Delete, Copy playlist, Play Next, Play Last, Shuffle play.
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -57,7 +57,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
   }
 
   Future<void> _deletePlaylist() async {
-    Navigator.pop(context); // close sheet first
+    Navigator.pop(context); 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -142,7 +142,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
+            
             Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 4),
               child: Container(
@@ -154,7 +154,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
               ),
             ),
 
-            // Header: thumbnail + title + creator
+            
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -207,7 +207,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                     color: AppColors.crusta, strokeWidth: 2),
               )
             else ...[
-              // Owner-only actions
+              
               if (widget.isOwner) ...[
                 _tile(
                   icon: Icons.edit_outlined,

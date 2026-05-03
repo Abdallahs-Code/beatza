@@ -350,7 +350,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Album art — larger, square, prominent
+          
           Center(
             child: Container(
               width: 240,
@@ -379,7 +379,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Album label chip
+          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -404,7 +404,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Title
+          
           Text(
             a.title,
             style: TextStyle(
@@ -415,7 +415,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           const SizedBox(height: 6),
 
-          // Meta row
+          
           Row(
             children: [
               Container(
@@ -455,7 +455,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
           const SizedBox(height: 16),
 
-          // Stats row
+          
           Row(
             children: [
               Icon(Icons.favorite_border, color: AppColors.white54, size: 18),

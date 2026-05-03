@@ -1,6 +1,6 @@
-// Screen: AddMusicScreen
-// Paginated track list. User selects tracks with checkboxes, taps Save to add
-// them all to the given playlist via PATCH /api/playlists/v1/{id}/tracks/{trackId}.
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -232,7 +232,7 @@ class _AddMusicScreenState extends State<AddMusicScreen> {
 
     return ListView.builder(
       controller: _scrollController,
-      itemCount: _tracks.length + 2, // header + footer
+      itemCount: _tracks.length + 2, 
       itemBuilder: (context, index) {
         if (index == 0) {
           return const Padding(

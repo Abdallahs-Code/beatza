@@ -1,10 +1,10 @@
-// Dart imports
+
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-// Package imports
+
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 
@@ -92,8 +92,8 @@ class SocialApiService {
   }
 
   bool _parseIsFollowing(Map<String, dynamic> map) {
-    // Preferred backend source of truth:
-    // "Does the currently authenticated user follow this listed user?"
+    
+    
     final value =
         map['isFollowed'] ??
         map['is_followed'] ??

@@ -1,4 +1,4 @@
-// Dart imports
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -17,17 +17,15 @@ class ApiException implements Exception {
 }
 
 class UserProfileService {
-  static const bool useMockProfile = false;
+  final ApiServices _apiServices;
+  final http.Client _client;
 
-  final ApiServices _apiServices = ApiServices();
-  String? _servicePath;
+  UserProfileService({ApiServices? apiServices, http.Client? client})
+    : _apiServices = apiServices ?? ApiServices(),
+      _client = client ?? http.Client();
 
-  UserProfileService() {
-    _servicePath = "${_apiServices.baseUrl}/api/profile/v1";
-  }
+  String get _servicePath => "${_apiServices.baseUrl}/api/profile/v1";
 
-  // Public base path used for GET profile lookups (no auth required by backend).
-  // PATCH operations (updateUserProfile, updateProfileImages) use _servicePath (authenticated).
   String get _publicServicePath =>
       "${_apiServices.baseUrl}/api/public/profile/v1";
 
@@ -47,7 +45,7 @@ class UserProfileService {
   Future<UserProfileModel> getUserProfile(String userId, String token) async {
     try {
       final url = "$_publicServicePath/$userId";
-      final response = await http
+      final response = await _client
           .get(
             Uri.parse(url),
             headers: {
@@ -91,9 +89,9 @@ class UserProfileService {
     try {
       final payload = updatedProfile.toUpdatePayload();
 
-      final response = await http
+      final response = await _client
           .patch(
-            Uri.parse(_servicePath!),
+            Uri.parse(_servicePath),
             headers: {
               "Content-Type": "application/json",
               "Accept": "application/json",
@@ -158,7 +156,7 @@ class UserProfileService {
         );
       }
 
-      final streamedResponse = await request.send().timeout(
+      final streamedResponse = await _client.send(request).timeout(
         const Duration(seconds: 45),
       );
       final response = await http.Response.fromStream(streamedResponse);

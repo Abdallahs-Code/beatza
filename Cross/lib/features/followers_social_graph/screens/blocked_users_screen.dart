@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/features/followers_social_graph/services/social_api_service.dart';
@@ -85,8 +85,8 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen>
       if (result.$1 == 200) {
         _blockedUsers = List<Follower>.from(result.$2 as List<Follower>);
 
-        // IMPORTANT:
-        // Mark every user here as blocked so UserTile disables navigation.
+        
+        
         for (final user in _blockedUsers) {
           user.isBlocked = true;
           user.isFollowing = false;

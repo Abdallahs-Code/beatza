@@ -98,14 +98,14 @@ class FanData {
   }
 
   static String _extractProfileImg(Map<String, dynamic> userIdData) {
-    // Check for direct string fields
+    
     final img1 = userIdData['profileImg'];
     final img2 = userIdData['profileImgLink'];
 
     if (img1 is String && img1.trim().isNotEmpty) return img1.trim();
     if (img2 is String && img2.trim().isNotEmpty) return img2.trim();
 
-    // Check if it's an object containing imgLink
+    
     if (img1 is Map) {
       final nested = img1['imgLink'];
       if (nested is String && nested.trim().isNotEmpty) return nested.trim();

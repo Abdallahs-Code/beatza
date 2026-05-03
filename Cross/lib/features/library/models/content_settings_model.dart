@@ -41,8 +41,8 @@ class ContentSettings {
     );
   }
 
-  // Only includes string fields that have a value — the backend rejects empty
-  // strings and invalid URLs, so omitting them lets the server keep its value.
+  
+  
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       'containsExplicitContent': containsExplicitContent,

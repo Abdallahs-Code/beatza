@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
 import 'package:cross_team5/features/followers_social_graph/models/follower.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';

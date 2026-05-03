@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 
@@ -43,10 +43,10 @@ class WelcomeBottomPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          /// LOGO
+          
           Image.asset("assets/images/blacklogo.png", width: 100),
 
-          /// TITLE
+          
           Text(
             AppText.welcomeTitle,
             textAlign: TextAlign.center,
@@ -59,7 +59,7 @@ class WelcomeBottomPanel extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          /// CREATE ACCOUNT BUTTON
+          
           WelcomeButton(
             text: AppText.createAccount,
             backgroundColor: AppColors.whiteSmoke,
@@ -69,7 +69,7 @@ class WelcomeBottomPanel extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          /// LOGIN BUTTON
+          
           WelcomeButton(
             text: AppText.login,
             backgroundColor: AppColors.welcomeLoginButton,

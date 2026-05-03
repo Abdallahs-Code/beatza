@@ -10,7 +10,7 @@ class ChatPersonModel {
   });
 
   factory ChatPersonModel.fromJson(Map<String, dynamic> json) {
-    // photo may be nested under profileImg.imgLink
+    
     String photo = json['photoUrl']?.toString() ?? '';
     if (photo.isEmpty) {
       final profileImg = json['profileImg'];
@@ -60,10 +60,10 @@ class LastMessageModel {
 
 class ChatModel {
   final String id;
-  // Participant user IDs (extracted from participant objects in GET /chats)
+  
   final List<String> participants;
   final LastMessageModel? lastMessage;
-  // HTTP GET /chats uses "receiver"; socket broadcasts use "sender"
+  
   final ChatPersonModel? receiver;
   final ChatPersonModel? sender;
 
@@ -98,7 +98,7 @@ class ChatModel {
     final rawReceiver = json['receiver'];
     final rawSender = json['sender'];
 
-    // API uses "chat" key (GET /chats), fallbacks for socket events and other shapes
+    
     String id = '';
     for (final key in ['chat', 'chatId', '_id', 'id']) {
       final v = json[key]?.toString() ?? '';
@@ -108,7 +108,7 @@ class ChatModel {
       }
     }
 
-    // Participants come as full user objects — extract their _id strings
+    
     final participants = <String>[];
     final rawParticipants = json['participants'];
     if (rawParticipants is List) {

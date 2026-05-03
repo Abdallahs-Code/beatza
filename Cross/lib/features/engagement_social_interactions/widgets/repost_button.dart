@@ -1,19 +1,19 @@
-// Widget: RepostButton
-// Reusable repost icon button with repost count.
-// Used embedded in: Track detail page (Module 4).
-//
-// Design matches SoundCloud:
-//   ↺ 15  →  grey repost icon + grey count  (not reposted)
-//   ↺ 16  →  orange repost icon + white count (reposted)
-//
-// Tapping opens RepostBottomSheet (not a direct toggle).
-// The bottom sheet handles both the initial repost and the
-// un-repost action, so this button never toggles directly.
-//
-// The PARENT screen:
-//   1. Passes isReposted + repostCount
-//   2. Provides onTap → opens RepostBottomSheet via showModalBottomSheet
-//   3. Updates state after sheet is dismissed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -21,7 +21,7 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 class RepostButton extends StatelessWidget {
   final bool isReposted;
   final int repostCount;
-  final VoidCallback onTap; // parent opens RepostBottomSheet
+  final VoidCallback onTap; 
   final double iconSize;
   final bool showCount;
 
@@ -42,7 +42,7 @@ class RepostButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Repost icon ──────────────────────
+          
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             transitionBuilder: (child, animation) =>
@@ -55,7 +55,7 @@ class RepostButton extends StatelessWidget {
             ),
           ),
 
-          // ── Count ────────────────────────────
+          
           if (showCount) ...[
             const SizedBox(width: 4),
             Text(

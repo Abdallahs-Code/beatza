@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'dart:io';
 
-// Package imports
+
 import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
@@ -625,7 +625,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (result != null) {
       setState(() {
-        _cityController.text = result; // '' clears, non-empty sets
+        _cityController.text = result; 
       });
     }
   }

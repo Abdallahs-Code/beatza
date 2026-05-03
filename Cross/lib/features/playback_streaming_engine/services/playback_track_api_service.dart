@@ -11,12 +11,17 @@ import 'package:cross_team5/features/activity/models/track_stats_model.dart';
 class PlaybackTrackApiService {
   final http.Client _client;
   final FlutterSecureStorage _storage;
+  final ApiServices _apiServices;
 
-  PlaybackTrackApiService({http.Client? client, FlutterSecureStorage? storage})
-    : _client = client ?? http.Client(),
-      _storage = storage ?? const FlutterSecureStorage();
+  PlaybackTrackApiService({
+    http.Client? client,
+    FlutterSecureStorage? storage,
+    ApiServices? apiServices,
+  }) : _client = client ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage(),
+       _apiServices = apiServices ?? ApiServices();
 
-  String get _baseUrl => ApiServices().baseUrl;
+  String get _baseUrl => _apiServices.baseUrl;
 
   Future<List<PlaybackTrackModel>> getTracksById(String trackId) async {
     final String? accessToken = await _storage.read(key: 'access_token');
@@ -159,13 +164,13 @@ class PlaybackTrackApiService {
       throw Exception('Response does not contain valid stats data.');
     }
     
-    // Debug topFans
+    
     final topFansJson = data['topFans'] as List<dynamic>? ?? [];
     debugPrint('[getTrackStats] topFans field exists: ${data.containsKey('topFans')}');
     debugPrint('[getTrackStats] topFans Count: ${topFansJson.length}');
     debugPrint('[getTrackStats] topFans Data: $topFansJson');
     
-    // Debug firstFans
+    
     final firstFansJson = data['firstFans'] as List<dynamic>? ?? [];
     debugPrint('[getTrackStats] firstFans field exists: ${data.containsKey('firstFans')}');
     debugPrint('[getTrackStats] firstFans Count: ${firstFansJson.length}');
@@ -175,8 +180,8 @@ class PlaybackTrackApiService {
     final stats = TrackStatsModel.fromJson(data);
     debugPrint('[getTrackStats] ✅ Parsed - topFans: ${stats.topFans.length}, firstFans: ${stats.firstFans.length}');
 
-    // Help diagnose privacy-vs-empty: server returned 200 but lists are empty.
-    // This commonly means every fan in this track has `showFirstTopFan = false`.
+    
+    
     if (stats.topFans.isEmpty && stats.firstFans.isEmpty) {
       debugPrint(
         '[getTrackStats] ⚠️ Lists are empty (server returned 200, NOT private). '

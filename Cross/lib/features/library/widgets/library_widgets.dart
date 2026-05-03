@@ -1,8 +1,8 @@
-// Dart imports
+
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';

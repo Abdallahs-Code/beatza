@@ -1,31 +1,31 @@
-// Widget: CommentTile
-// Displays a single comment (top-level or reply) in CommentsScreen.
-//
-// Design matches SoundCloud comments screen:
-//   [avatar] [username]  [timestamp pill]  [age]
-//            [comment body text                ]
-//            Reply  ⋮                   [♡ numLikes]
-//
-// Options menu (⋮):
-//   ALL comments  → Play from X:XX | Go to profile | Copy
-//   Own comment   → + Delete comment  (gated on onDeleteTap != null)
-//   Other's comment → + Report | Report as spam | Block
-//
-// The timestamp pill is BLUE — SoundCloud's design choice.
-// Tapping it seeks the player (Module 5 integration).
-//
-// Optimistic like pattern:
-//   Parent (CommentsScreen) owns the list and calls setState.
-//   This widget fires onLikeTap — parent handles API + optimistic update.
-//
-// Delete:
-//   onDeleteTap is non-null only when parent has verified ownership
-//   (comment.isOwnComment || comment.userId == _currentUserId).
-//   The confirmation dialog is shown by the parent via _confirmDelete.
-//
-// Block:
-//   Handled inline — shows a confirmation dialog then calls
-//   SocialApiService.blockUser. No parent callback needed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
@@ -35,13 +35,13 @@ import 'package:cross_team5/features/followers_social_graph/services/social_api_
 
 class CommentTile extends StatelessWidget {
   final Comment comment;
-  final bool isReply; // true → slight indent, no "Reply" button
-  final VoidCallback onLikeTap; // optimistic like toggle
-  final VoidCallback onReplyTap; // pre-fills reply input in parent
-  final VoidCallback? onTimestampTap; // seeks player to comment timestamp
+  final bool isReply; 
+  final VoidCallback onLikeTap; 
+  final VoidCallback onReplyTap; 
+  final VoidCallback? onTimestampTap; 
   final VoidCallback?
-  onDeleteTap; // non-null only when parent verified ownership
-  final VoidCallback? onGoToProfileTap; // navigates to commenter's profile
+  onDeleteTap; 
+  final VoidCallback? onGoToProfileTap; 
 
   const CommentTile({
     super.key,
@@ -66,7 +66,7 @@ class CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Avatar ────────────────────────────
+          
           CircleAvatar(
             radius: 18,
             backgroundColor: AppColors.tileDark,
@@ -89,12 +89,12 @@ class CommentTile extends StatelessWidget {
 
           const SizedBox(width: 10),
 
-          // ── Content column ───────────────────
+          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Top row: name + timestamp pill + age ──
+                
                 Row(
                   children: [
                     Flexible(
@@ -112,8 +112,8 @@ class CommentTile extends StatelessWidget {
 
                     const SizedBox(width: 8),
 
-                    // Timestamp pill — shown for all top-level comments
-                    // (including 0:00 from feed), never for replies.
+                    
+                    
                     if (!isReply)
                       GestureDetector(
                         onTap: onTimestampTap,
@@ -139,7 +139,7 @@ class CommentTile extends StatelessWidget {
 
                     const SizedBox(width: 8),
 
-                    // Relative age
+                    
                     Text(
                       _formatAge(comment.createdAt),
                       style: TextStyle(color: AppColors.greyMuted, fontSize: 11),
@@ -149,7 +149,7 @@ class CommentTile extends StatelessWidget {
 
                 const SizedBox(height: 4),
 
-                // ── Comment body ──────────────────
+                
                 Text(
                   comment.content,
                   style: TextStyle(
@@ -161,7 +161,7 @@ class CommentTile extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                // ── Bottom row: Reply + menu + like ──
+                
                 Row(
                   children: [
                     if (!isReply)
@@ -179,7 +179,7 @@ class CommentTile extends StatelessWidget {
 
                     if (!isReply) const SizedBox(width: 12),
 
-                    // ⋮ menu
+                    
                     GestureDetector(
                       onTap: () => _showOptionsMenu(context),
                       child: Icon(
@@ -191,7 +191,7 @@ class CommentTile extends StatelessWidget {
 
                     const Spacer(),
 
-                    // Like button + count
+                    
                     GestureDetector(
                       onTap: onLikeTap,
                       behavior: HitTestBehavior.opaque,
@@ -235,11 +235,11 @@ class CommentTile extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Options menu
-  // ─────────────────────────────────────────────
+  
+  
+  
   void _showOptionsMenu(BuildContext context) {
-    // onDeleteTap != null  →  this is the current user's comment
+    
     final bool isOwn = onDeleteTap != null;
 
     showModalBottomSheet(
@@ -252,7 +252,7 @@ class CommentTile extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
+            
             Container(
               margin: const EdgeInsets.only(top: 10, bottom: 8),
               width: 36,
@@ -263,9 +263,9 @@ class CommentTile extends StatelessWidget {
               ),
             ),
 
-            // ── Common tiles ──────────────────────
+            
 
-            // Play from timestamp — hidden for replies (no timestamp stored).
+            
             if (!isReply)
               ListTile(
                 leading: Icon(
@@ -282,7 +282,7 @@ class CommentTile extends StatelessWidget {
                 },
               ),
 
-            // Go to profile
+            
             if (onGoToProfileTap != null)
               ListTile(
                 leading: Icon(
@@ -299,7 +299,7 @@ class CommentTile extends StatelessWidget {
                 },
               ),
 
-            // Copy text
+            
             ListTile(
               leading: Icon(Icons.copy_outlined, color: AppColors.whiteSmoke),
               title: Text(
@@ -312,7 +312,7 @@ class CommentTile extends StatelessWidget {
               },
             ),
 
-            // ── Own comment: Delete ───────────────
+            
             if (isOwn)
               ListTile(
                 leading: Icon(Icons.delete_outline, color: AppColors.deepRed),
@@ -326,7 +326,7 @@ class CommentTile extends StatelessWidget {
                 },
               ),
 
-            // ── Other user's comment: Report / Block ──
+            
             if (!isOwn && comment.userId.isNotEmpty) ...[
               ListTile(
                 leading: Icon(
@@ -382,10 +382,10 @@ class CommentTile extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Block confirmation dialog + API call.
-  // Matches real SoundCloud's "Block user?" dialog.
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
   Future<void> _confirmBlock(BuildContext context) async {
     final bool confirmed =
         await showDialog<bool>(
@@ -446,10 +446,10 @@ class CommentTile extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Formats ISO createdAt string into relative age.
-  // e.g. "2025-01-15T12:00:00Z" → "16h", "3w", "2mo"
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
   String _formatAge(String createdAt) {
     try {
       final created = DateTime.parse(createdAt);

@@ -1,15 +1,15 @@
-// Screen: FeedScreen
-// Module 8 — Feed, Search & Discovery
-//
-// Two tabs:
-//   • Discover → getTrendingTracks() → fetch each track by ID → FeedCard
-//   • Following → getUserFeed() → fetch each track by ID → FeedCard
-//     (feed items carry actor info; full track data supplies title/audio/art)
-//
-// Audio behaviour (FeedCard handles locally):
-//   - Muted by default, no audio plays
-//   - Tap "Tap to preview" overlay first, then unmuting starts local audio
-//   - Tap ▶ → stops local audio, global mini-player takes over
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/navigation/profile_navigator.dart';
@@ -38,17 +38,17 @@ class _FeedScreenState extends State<FeedScreen>
   late TabController _tabController;
   final FeedSearchApiService _service = FeedSearchApiService();
 
-  // Mute state shared across all FeedCards
+  
   final ValueNotifier<bool> _isMuted = ValueNotifier<bool>(true);
 
-  // ── Discover (trending) tab ────────────────────────────────────────────────
+  
   List<Map<String, dynamic>> _discoverTracks = [];
   bool _discoverLoading = true;
   String? _discoverError;
   final PageController _discoverPageController = PageController();
   int _discoverCurrentPage = 0;
 
-  // ── Following tab — enriched: feed actor info + full track data ────────────
+  
   List<({FeedItemModel item, Map<String, dynamic> track})> _feedItems = [];
   bool _feedLoading = true;
   String? _feedError;
@@ -72,7 +72,7 @@ class _FeedScreenState extends State<FeedScreen>
     super.dispose();
   }
 
-  // ── Data loading ───────────────────────────────────────────────────────────
+  
 
   Future<void> _loadDiscoverTracks() async {
     setState(() {
@@ -96,7 +96,7 @@ class _FeedScreenState extends State<FeedScreen>
         }
       }
 
-      // Enrich each track with the uploader's display name and avatar
+      
       final actorResults = await Future.wait(
         tracks.map((t) {
           final posterId = t['posterId']?.toString() ?? '';
@@ -144,7 +144,7 @@ class _FeedScreenState extends State<FeedScreen>
     if (statusCode == 200 && data is List) {
       final items = FeedItemModel.listFromJson(data);
 
-      // Fetch full track details concurrently for each feed item
+      
       final results = await Future.wait(
         items.map((item) => _service.getTrackById(item.id)),
       );
@@ -171,9 +171,9 @@ class _FeedScreenState extends State<FeedScreen>
     }
   }
 
-  // ── Playback ───────────────────────────────────────────────────────────────
+  
 
-  // profileImgLink can be a plain String or { imgLink: "..." } depending on the endpoint
+  
   static String? _extractImgUrl(dynamic value) {
     if (value is String && value.trim().isNotEmpty) return value.trim();
     if (value is Map) {
@@ -192,7 +192,7 @@ class _FeedScreenState extends State<FeedScreen>
     await ProfileNavigator.push(context, actorId);
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +239,7 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  // ── Discover tab ───────────────────────────────────────────────────────────
+  
 
   Widget _buildDiscoverTab() {
     if (_discoverLoading) {
@@ -301,7 +301,7 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  // ── Following tab ──────────────────────────────────────────────────────────
+  
 
   Widget _buildFollowingTab() {
     if (_feedLoading) {
@@ -369,7 +369,7 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  // ── Shared error state ─────────────────────────────────────────────────────
+  
 
   Widget _buildErrorState(String error, VoidCallback onRetry) {
     return Center(

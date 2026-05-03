@@ -11,22 +11,22 @@ import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 class PlaylistOptionsSheet extends StatefulWidget {
   final PlaylistModel playlist;
 
-  /// True when the current user owns the playlist/album.
+  
   final bool isOwner;
 
-  /// Owner-only: opens the edit playlist screen.
+  
   final VoidCallback? onEdit;
 
-  /// Owner-only: toggles private ↔ public.
+  
   final VoidCallback? onTogglePrivacy;
 
-  /// Owner-only: deletes the playlist.
+  
   final VoidCallback? onDelete;
 
-  /// Non-owner: navigates to the creator's profile.
+  
   final VoidCallback? onGoToProfile;
 
-  /// Non-owner: reposts the playlist.
+  
   final VoidCallback? onRepost;
 
   const PlaylistOptionsSheet({
@@ -52,7 +52,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
   @override
   void initState() {
     super.initState();
-    // Pre-populate before first build so Message button always has a link.
+    
     final rawPermalink = widget.playlist.permalink.trim();
     if (rawPermalink.isNotEmpty) {
       _playlistPermalink = 'playlist::permalink:"$rawPermalink",profilelink:""';
@@ -77,7 +77,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
       } catch (_) {}
     }
 
-    // Update with full profileLink now that we have it
+    
     if (rawPermalink.isNotEmpty && mounted) {
       setState(() => _playlistPermalink = 'playlist::permalink:"$rawPermalink",profilelink:"$profileLink"');
     }
@@ -157,7 +157,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Drag handle
+                
                 Center(
                   child: Container(
                     width: 48,
@@ -170,14 +170,14 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                 ),
                 const SizedBox(height: 14),
 
-                // Playlist header card
+                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: _PlaylistHeaderCard(playlist: widget.playlist),
                 ),
                 const SizedBox(height: 22),
 
-                // ── Send To ────────────────────────────────────────────────
+                
                 if (_recentContacts.isNotEmpty) ...[
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
@@ -215,7 +215,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                   const Divider(color: Colors.white12, height: 1),
                 ],
 
-                // ── Share ──────────────────────────────────────────────────
+                
                 const SizedBox(height: 18),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
@@ -267,7 +267,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
 
-                // ── Options ────────────────────────────────────────────────
+                
                 _OptionTile(
                   icon: Icons.playlist_play_rounded,
                   label: 'Play next',
@@ -285,7 +285,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                 const SizedBox(height: 10),
 
                 if (widget.isOwner) ...[
-                  // Owner-only options
+                  
                   _OptionTile(
                     icon: Icons.edit_outlined,
                     label: 'Edit playlist',
@@ -316,7 +316,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                     },
                   ),
                 ] else ...[
-                  // Non-owner options
+                  
                   _OptionTile(
                     icon: Icons.repeat_rounded,
                     label: 'Repost on Beatza',
@@ -345,7 +345,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
   }
 }
 
-// ── Playlist header card ─────────────────────────────────────────────────────
+
 
 class _PlaylistHeaderCard extends StatelessWidget {
   final PlaylistModel playlist;
@@ -367,7 +367,7 @@ class _PlaylistHeaderCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            // Cover art
+            
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: playlist.image?.imgLink.isNotEmpty == true
@@ -443,7 +443,7 @@ class _PlaylistHeaderCard extends StatelessWidget {
   }
 }
 
-// ── Share action ─────────────────────────────────────────────────────────────
+
 
 class _ShareAction extends StatelessWidget {
   final IconData icon;
@@ -482,7 +482,7 @@ class _ShareAction extends StatelessWidget {
   }
 }
 
-// ── Send-to contact ───────────────────────────────────────────────────────────
+
 
 class _SendToContact extends StatelessWidget {
   final String name;
@@ -546,7 +546,7 @@ class _SendToContact extends StatelessWidget {
   }
 }
 
-// ── Option tile ───────────────────────────────────────────────────────────────
+
 
 class _OptionTile extends StatelessWidget {
   final IconData icon;

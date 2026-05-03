@@ -1,38 +1,38 @@
-// Widget: RepostBottomSheet
-// Modal bottom sheet for reposting a track or playlist.
-//
-// Design matches SoundCloud (Image 12) with one change:
-//   Real app button says "Add caption" → OUR clone says "Repost" (confirmed).
-//
-// Behaviour differences between track and playlist:
-//   Track:    Shows caption text field (optional, max 140 chars).
-//             Fetches existing repost status on open to pre-fill caption.
-//             If already reposted → button says "Remove Repost".
-//             Allows editing the caption via PATCH after reposting.
-//   Playlist: NO caption field. Button is always "Repost" or "Remove Repost".
-//
-// Usage (from parent screen):
-//   showModalBottomSheet(
-//     context: context,
-//     isScrollControlled: true,    ← required to resize above keyboard
-//     backgroundColor: Colors.transparent,
-//     builder: (_) => RepostBottomSheet(
-//       trackId: track.id,         ← pass trackId OR playlistId, not both
-//       trackTitle: track.title,
-//       trackArtist: track.artist,
-//       trackThumbnailUrl: track.thumbnailUrl,
-//       onRepostToggled: (isNowReposted, newCount) {
-//         setState(() {
-//           _isReposted = isNowReposted;
-//           _repostCount = newCount;
-//         });
-//       },
-//     ),
-//   );
-//
-// After dismiss:
-//   The sheet shows a snackbar "Reposted to your profile" on success
-//   (matching Image 2), using the parent's ScaffoldMessenger.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -40,20 +40,20 @@ import 'package:cross_team5/features/engagement_social_interactions/models/repos
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
 
 class RepostBottomSheet extends StatefulWidget {
-  // Pass trackId for tracks, playlistId for playlists. Never both.
+  
   final String? trackId;
   final String? playlistId;
 
-  // Display info shown in the preview card inside the sheet.
+  
   final String title;
   final String artist;
   final String? thumbnailUrl;
 
-  // Current repost state — passed in so sheet knows initial button label.
+  
   final bool isCurrentlyReposted;
   final int currentRepostCount;
 
-  // Callback fired after successful toggle so parent updates its state.
+  
   final void Function(bool isNowReposted, int newCount) onRepostToggled;
 
   const RepostBottomSheet({
@@ -83,10 +83,10 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
   bool _isLoading = false;
   bool _isFetchingStatus = false;
 
-  // True when this is a track (not playlist) — tracks have caption field.
+  
   bool get _isTrack => widget.trackId != null;
 
-  // True after we fetch repost status and confirm user already reposted.
+  
   late bool _alreadyReposted;
 
   @override
@@ -94,7 +94,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
     super.initState();
     _alreadyReposted = widget.isCurrentlyReposted;
 
-    // For tracks only: fetch existing caption to pre-fill the field.
+    
     if (_isTrack && widget.isCurrentlyReposted) {
       _fetchExistingCaption();
     }
@@ -106,10 +106,10 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────
-  // Fetch existing repost status to pre-fill caption.
-  // Only called for tracks where isCurrentlyReposted == true.
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
   Future<void> _fetchExistingCaption() async {
     setState(() => _isFetchingStatus = true);
 
@@ -127,9 +127,9 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
     if (mounted) setState(() => _isFetchingStatus = false);
   }
 
-  // ─────────────────────────────────────────────
-  // Main action: toggle repost or update caption.
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _handleAction() async {
     setState(() => _isLoading = true);
 
@@ -139,8 +139,8 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
     dynamic responseData;
 
     if (_isTrack) {
-      // If already reposted and caption changed → PATCH (update caption).
-      // Otherwise → POST (toggle repost).
+      
+      
       if (_alreadyReposted && caption.isNotEmpty) {
         final patchResult = await _service.updateTrackRepostCaption(
           trackId: widget.trackId!,
@@ -157,7 +157,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
         responseData = postResult.$2;
       }
     } else {
-      // Playlist repost — no caption.
+      
       final result = await _service.togglePlaylistRepost(
         playlistId: widget.playlistId!,
       );
@@ -169,7 +169,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
     setState(() => _isLoading = false);
 
     if (statusCode == 200) {
-      // Parse new state from response.
+      
       bool isNowReposted;
       int newCount;
 
@@ -179,7 +179,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
             responseData['numberOfReposts'] as int? ??
             widget.currentRepostCount;
       } else {
-        // PATCH caption update — repost state unchanged, count unchanged.
+        
         isNowReposted = true;
         newCount = widget.currentRepostCount;
       }
@@ -187,7 +187,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
       widget.onRepostToggled(isNowReposted, newCount);
       Navigator.pop(context);
 
-      // Show snackbar in parent scaffold — matches Image 2.
+      
       final message = isNowReposted
           ? 'Reposted to your profile'
           : 'Repost removed';
@@ -211,7 +211,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // isScrollControlled: true in parent ensures this resizes above keyboard.
+    
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -226,7 +226,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Drag handle ───────────────────
+              
               Container(
                 margin: const EdgeInsets.only(top: 10, bottom: 4),
                 width: 36,
@@ -237,7 +237,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                 ),
               ),
 
-              // ── Header row: × + title ────────
+              
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -269,7 +269,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Caption field (tracks only) ──
+                    
                     if (_isTrack) ...[
                       _isFetchingStatus
                           ? const SizedBox(
@@ -322,7 +322,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                       const SizedBox(height: 12),
                     ],
 
-                    // ── Track/playlist preview card ──
+                    
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -331,7 +331,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                       ),
                       child: Row(
                         children: [
-                          // Thumbnail
+                          
                           ClipRRect(
                             borderRadius: BorderRadius.circular(4),
                             child: widget.thumbnailUrl != null
@@ -346,7 +346,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
                                 : _placeholderThumb(),
                           ),
                           const SizedBox(width: 12),
-                          // Title + artist
+                          
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +380,7 @@ class _RepostBottomSheetState extends State<RepostBottomSheet> {
 
                     const SizedBox(height: 16),
 
-                    // ── Action button ─────────────
+                    
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

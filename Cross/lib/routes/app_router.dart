@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/splash/screens/splash_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/user_profile_social_identity/user_profile_social_identity.dart';

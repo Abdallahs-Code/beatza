@@ -1,7 +1,7 @@
-// Widget: PlaylistTrackTile
-// Displays a single track inside PlaylistDetailScreen or EditPlaylistScreen.
-// showOptions → ⋮ button opens a sheet with "Add to playlist" / "Remove from playlist".
-// showDragHandle → drag handle for the reorderable list in EditPlaylistScreen.
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -54,7 +54,7 @@ class PlaylistTrackTile extends StatelessWidget {
                 ),
               ),
             ),
-            // Track header
+            
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -206,7 +206,7 @@ class PlaylistTrackTile extends StatelessWidget {
                   const TextStyle(color: Colors.white38, fontSize: 12),
             ),
 
-            // ⋮ options button (detail view) OR inline remove button (edit view)
+            
             if (showOptions)
               IconButton(
                 icon: const Icon(Icons.more_vert,
