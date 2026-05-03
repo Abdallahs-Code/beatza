@@ -16,9 +16,9 @@ class NotificationNavigationService {
   ActivityNotificationModel? _pendingNotification;
   ({String chatId, String receiverName, String receiverPhotoUrl})? _pendingChat;
 
-  /// Call when a push notification is tapped. If the navigator is not yet
-  /// ready (cold start), the action is queued and executed once
-  /// [executePendingIfAny] is called (from HomeScreen).
+  
+  
+  
   Future<void> handleActivityNotification(
     ActivityNotificationModel notification,
   ) async {
@@ -47,8 +47,8 @@ class NotificationNavigationService {
     _navigateChat(nav, chatId, receiverName, receiverPhotoUrl);
   }
 
-  /// Called from HomeScreen after the app finishes loading — executes any
-  /// navigation that was queued during a cold start.
+  
+  
   Future<void> executePendingIfAny() async {
     final pending = _pendingNotification;
     final chat = _pendingChat;

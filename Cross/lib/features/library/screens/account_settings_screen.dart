@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/models/account_settings_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/library/services/account_settings_api_service.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
@@ -88,6 +90,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(
@@ -700,20 +703,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           )
                         : null,
                     onTap: () async {
-                      // Close the bottom sheet immediately
+                      
                       Navigator.pop(context);
 
                       if (!selected && _settings != null) {
-                        // 1. Update local state
+                        
                         setState(() {
                           _settings = _settings!.copyWith(theme: opt);
                         });
 
-                        // 2. Save to API
+                        
                         await _patch(_settings!);
 
-                        // 3. Navigate to Splash Screen to fully reload with new theme
-                        // Note: Replace '/' with your actual splash route name if different
+                        
+                        
                         if (mounted) {
                           Navigator.pushNamedAndRemoveUntil(
                             context,

@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'dart:io';
 
-// Package imports
+
 import 'package:cross_team5/features/user_profile_social_identity/models/profile_link_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -627,7 +629,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (result != null) {
       setState(() {
-        _cityController.text = result; // '' clears, non-empty sets
+        _cityController.text = result; 
       });
     }
   }
@@ -901,6 +903,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     final top = MediaQuery.of(context).padding.top;
 
     return Scaffold(

@@ -1,8 +1,8 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/user_profile_social_identity/models/user_profile_model.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {

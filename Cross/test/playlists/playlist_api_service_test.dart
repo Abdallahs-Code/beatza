@@ -1,5 +1,5 @@
-// test/playlists/playlist_api_service_test.dart
-// Unit tests for Module 7 — Sets & Playlists
+
+
 
 import 'dart:convert';
 
@@ -47,7 +47,7 @@ void main() {
     );
   });
 
-  // ── Helper factories ────────────────────────────────────────────────────
+  
 
   Map<String, dynamic> makePlaylistJson({
     String id = 'playlist_001',
@@ -89,7 +89,7 @@ void main() {
     );
   }
 
-  // ── PlaylistModel.fromJson ───────────────────────────────────────────────
+  
 
   group('PlaylistModel.fromJson', () {
     test('parses all fields correctly', () {
@@ -109,7 +109,7 @@ void main() {
         '_id': 'p1',
         'artistId': 'a1',
         'title': 'Min',
-        // all others missing
+        
       };
       final model = PlaylistModel.fromJson(json);
       expect(model.id, 'p1');
@@ -119,7 +119,7 @@ void main() {
     });
   });
 
-  // ── Create playlist ──────────────────────────────────────────────────────
+  
 
   group('createPlaylist', () {
     test('returns 200 and created PlaylistModel on success', () async {
@@ -181,7 +181,7 @@ void main() {
     });
   });
 
-  // ── Get my playlists ─────────────────────────────────────────────────────
+  
 
   group('getMyPlaylists', () {
     test('returns list of playlists on 200', () async {
@@ -218,8 +218,8 @@ void main() {
     });
   });
 
-  // ── Add track to playlist ────────────────────────────────────────────────
-  // Service uses PATCH /playlists/v1/{playlistId}/tracks/{trackId}
+  
+  
 
   group('addTrackToPlaylist', () {
     test('returns 200 and success message', () async {
@@ -256,7 +256,7 @@ void main() {
     });
   });
 
-  // ── Remove track from playlist ───────────────────────────────────────────
+  
 
   group('removeTrackFromPlaylist', () {
     test('returns 200 on success', () async {
@@ -291,7 +291,7 @@ void main() {
     });
   });
 
-  // ── Reorder tracks ───────────────────────────────────────────────────────
+  
 
   group('reorderTrack', () {
     test('returns 200 on success', () async {
@@ -369,7 +369,7 @@ void main() {
     });
   });
 
-  // ── Delete playlist ──────────────────────────────────────────────────────
+  
 
   group('deletePlaylist', () {
     test('returns 200 and deleted:true on success', () async {
@@ -453,7 +453,7 @@ void main() {
     });
   });
 
-  // ── Get playlist with tracks ─────────────────────────────────────────────
+  
 
   group('getPlaylistWithTracks', () {
     test('returns paginated playlist with tracks on 200', () async {

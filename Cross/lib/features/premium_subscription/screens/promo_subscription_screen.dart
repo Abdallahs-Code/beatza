@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import '../services/payment_service.dart';
 import '../widgets/payment_checkout_sheet.dart';
@@ -96,7 +98,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       final apiPlans = await PaymentService.getPlans();
       List<Map<String, dynamic>> tempPlans = [];
 
-      // التكرار فقط لإضافة الخطط التي تم إرجاعها فعلياً من الـ API
+      
       for (var template in _uiPlanTemplates) {
         if (apiPlans.containsKey(template['id'])) {
           final apiData = apiPlans[template['id']];
@@ -110,7 +112,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       }
 
       setState(() {
-        _mergedPlans = tempPlans; // ستحتوي فقط على الخطط القادمة من الباك اند
+        _mergedPlans = tempPlans; 
         _isLoadingPlans = false;
       });
     } catch (e) {
@@ -203,6 +205,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     if (_isLoadingPlans) {
       return Scaffold(
         backgroundColor: AppColors.pureBlack,
@@ -448,7 +451,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
             builder: (context, state, _) {
               final currentPriceId = state.currentPriceId;
 
-              // تحديد مستوى المستخدم (Tier)
+              
               int getTierByPriceId(String? id) {
                 if (id == null || id.isEmpty) return 0;
                 final p = _mergedPlans.firstWhere(

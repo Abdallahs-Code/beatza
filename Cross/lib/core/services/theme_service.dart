@@ -1,4 +1,4 @@
-// core/services/theme_service.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,12 +6,12 @@ class ThemeService extends ChangeNotifier {
   static const String _themeKey = 'user_theme_preference';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  ThemeMode _themeMode = ThemeMode.dark; // Default to dark
+  ThemeMode _themeMode = ThemeMode.dark; 
 
   ThemeMode get themeMode => _themeMode;
   bool get isDarkMode => _themeMode == ThemeMode.dark;
 
-  /// Load saved theme from secure storage
+  
   Future<void> init() async {
     try {
       final savedTheme = await _storage.read(key: _themeKey);
@@ -24,7 +24,7 @@ class ThemeService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Save & apply theme
+  
   Future<void> setTheme(ThemeMode mode) async {
     try {
       final value = mode == ThemeMode.dark ? 'dark' : 'light';
@@ -36,7 +36,7 @@ class ThemeService extends ChangeNotifier {
     }
   }
 
-  /// Sync theme from API response (e.g., "Light", "Dark", "System")
+  
   Future<void> syncThemeFromApi(String? apiTheme) async {
     if (apiTheme == null || apiTheme.trim().isEmpty) return;
 
@@ -44,12 +44,12 @@ class ThemeService extends ChangeNotifier {
     if (normalized == 'light') {
       await setTheme(ThemeMode.light);
     } else {
-      // 'dark', 'system', or unknown → default to dark
+      
       await setTheme(ThemeMode.dark);
     }
   }
 
-  /// Toggle between light/dark
+  
   Future<void> toggleTheme() async {
     await setTheme(isDarkMode ? ThemeMode.light : ThemeMode.dark);
   }

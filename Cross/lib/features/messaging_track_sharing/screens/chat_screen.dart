@@ -12,18 +12,20 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class ChatScreen extends StatefulWidget {
-  // For existing conversations (from messages list)
+  
   final String? chatId;
 
-  // For new conversations (from profile / track share)
+  
   final String? receiverId;
   final String receiverName;
   final String receiverPhotoUrl;
 
-  // Pre-filled message (e.g. track link)
+  
   final String? initialContent;
 
   const ChatScreen({
@@ -77,7 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _currentUserId = await _auth.getStoredUserId();
     final token = await _auth.getStoredAccessToken() ?? '';
 
-    // If opened with only receiverId (e.g. from profile), find or create the chat via API
+    
     if (_chatId == null &&
         widget.receiverId != null &&
         widget.receiverId!.isNotEmpty) {
@@ -180,7 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
       debugPrint(
         '[ChatScreen._loadMessages] _chatId="$_chatId" (empty=${_chatId?.isEmpty}) loadMore=$loadMore',
       );
-      // For load-more, fetch older messages before the oldest we have
+      
       final before = loadMore && _messages.isNotEmpty
           ? _messages.first.id
           : null;
@@ -191,8 +193,8 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (!mounted) return;
 
-      // Issues 4 & 5: extract receiverId from message senderIds.
-      // Any senderId that isn't the current user IS the receiver.
+      
+      
       final allMsgs = loadMore
           ? [...result.messages.reversed, ..._messages]
           : result.messages.reversed.toList();
@@ -270,7 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
     }
-    // Issue 1: mark as read because user is actively viewing this chat
+    
     debugPrint(
       '[ChatScreen._onIncomingMessage] Calling markChatAsRead for $_chatId',
     );
@@ -315,7 +317,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final newChatId = chat.id;
         _chatId = newChatId;
         debugPrint('[ChatScreen._send] New chat created. chatId=$newChatId');
-        // Store receiverId if not already set
+        
         if (_receiverId == null || _receiverId!.isEmpty) {
           _receiverId = chat.receiver?.userId ?? chat.sender?.userId;
         }
@@ -374,11 +376,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Closes the chat and signals to the parent that a refresh is needed
+  
   void _closeChat() {
     Navigator.of(
       context,
-    ).pop(true); // Return true to trigger MessagesTab refresh
+    ).pop(true); 
   }
 
   void _scrollToBottom() {
@@ -574,6 +576,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -620,7 +623,7 @@ class _ChatScreenState extends State<ChatScreen> {
           color: AppColors.whiteSmoke,
           size: 20,
         ),
-        onPressed: _closeChat, // ✅ Use the new method instead of direct pop
+        onPressed: _closeChat, 
       ),
       title: Row(
         children: [
@@ -701,8 +704,8 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         itemCount: _messages.length + (_loadingMore ? 1 : 0),
         itemBuilder: (ctx, i) {
-          // With reverse:true: i=0 = newest (bottom), i=N-1 = oldest (top)
-          // Spinner appears at top (oldest end) when loading more
+          
+          
           if (_loadingMore && i == _messages.length) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
@@ -717,8 +720,8 @@ class _ChatScreenState extends State<ChatScreen> {
           final msg = _messages[_messages.length - 1 - i];
           final isMe = msg.senderId == _currentUserId;
 
-          // Show date separator above the oldest message of each day.
-          // In reversed list, "older" = higher index = earlier in _messages.
+          
+          
           final olderIdx = _messages.length - 2 - i;
           final olderMsg = olderIdx >= 0 ? _messages[olderIdx] : null;
           final showDate =
@@ -989,7 +992,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-// ── Date separator ─────────────────────────────────────────────────────────────
+
 
 class _DateSeparator extends StatelessWidget {
   final DateTime date;
@@ -1034,7 +1037,7 @@ class _DateSeparator extends StatelessWidget {
   }
 }
 
-// ── Message bubble ──────────────────────────────────────────────────────────────
+
 
 class _MessageBubble extends StatelessWidget {
   final MessageModel message;
@@ -1069,14 +1072,14 @@ class _MessageBubble extends StatelessWidget {
                   final raw = message.content.trim().substring(
                     'track::'.length,
                   );
-                  // Current format:  permalink:"<pl>",profilelink:"<profileLink>"
-                  // Legacy format A: <artistId>::<permalink>
-                  // Legacy format B: <permalink>  (no "::")
+                  
+                  
+                  
                   String parsedPermalink = '';
                   String parsedProfileLink = '';
 
                   if (raw.contains('permalink:"')) {
-                    // Current format — parse both fields via regex
+                    
                     final plMatch = RegExp(
                       r'permalink:"([^"]*)"',
                     ).firstMatch(raw);
@@ -1089,7 +1092,7 @@ class _MessageBubble extends StatelessWidget {
                       '[MessageBubble.build] Current format → permalink="$parsedPermalink" profilelink="$parsedProfileLink"',
                     );
                   } else {
-                    // Legacy format — no profilelink embedded
+                    
                     final sepIdx = raw.indexOf('::');
                     parsedPermalink = sepIdx >= 0
                         ? raw.substring(sepIdx + 2)
@@ -1157,11 +1160,11 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-// ── Track card bubble (shared track message) ────────────────────────────────────
+
 
 class _TrackCardBubble extends StatefulWidget {
   final String
-  profileLink; // track owner's profileLink (empty on legacy messages)
+  profileLink; 
   final String permalink;
   final bool isMe;
 
@@ -1234,10 +1237,10 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
     try {
       final api = MessagingApiService();
 
-      // Step 1 — resolve profileLink.
-      // Current format: profileLink is embedded directly in the message payload.
-      // Legacy format:  profileLink is empty — fall back to current user's profileLink
-      //                 (best-effort, will 404 if they don't own the track).
+      
+      
+      
+      
       String resolvedProfileLink = widget.profileLink;
 
       if (resolvedProfileLink.isEmpty) {
@@ -1285,7 +1288,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
         return;
       }
 
-      // Step 2 — call GET /api/public/tracks/v2/permalink/{profileLink}/{permalink}
+      
       debugPrint(
         '[TrackCardBubble._load] calling getTrackByPermalink(profileLink="$resolvedProfileLink", permalink="${widget.permalink}")',
       );
@@ -1327,7 +1330,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   Widget build(BuildContext context) {
     if (!_loaded) return _buildPlaceholder();
 
-    // Couldn't resolve permalink — fall back to plain text bubble
+    
     if (_track == null) {
       return Container(
         constraints: const BoxConstraints(maxWidth: 280),
@@ -1369,7 +1372,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
           padding: const EdgeInsets.all(10),
           child: Row(
             children: [
-              // Album artwork
+              
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: artwork.isNotEmpty
@@ -1384,7 +1387,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
                     : _artworkPlaceholder(),
               ),
               const SizedBox(width: 10),
-              // Title + artist
+              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1416,7 +1419,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
                 ),
               ),
               const SizedBox(width: 4),
-              // Options button
+              
               GestureDetector(
                 onTap: () => _showOptions(context, track),
                 child: Padding(
@@ -1491,7 +1494,7 @@ class _TrackCardBubbleState extends State<_TrackCardBubble> {
   }
 }
 
-// ── Option item ─────────────────────────────────────────────────────────────────
+
 
 class _OptionItem extends StatelessWidget {
   final IconData icon;

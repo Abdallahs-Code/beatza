@@ -1,4 +1,4 @@
-// Dart imports
+
 import "dart:convert";
 import "dart:io";
 
@@ -17,15 +17,18 @@ class AuthApiService {
   final ApiServices _apiServices;
   final http.Client _client;
   final FlutterSecureStorage _storage;
+  final bool _skipNativeSessionHooks;
   late final String _servicePath;
 
   AuthApiService({
     ApiServices? apiServices,
     http.Client? client,
     FlutterSecureStorage? storage,
+    bool skipNativeSessionHooks = false,
   }) : _apiServices = apiServices ?? ApiServices(),
        _client = client ?? http.Client(),
-       _storage = storage ?? const FlutterSecureStorage() {
+       _storage = storage ?? const FlutterSecureStorage(),
+       _skipNativeSessionHooks = skipNativeSessionHooks {
     _servicePath = "${_apiServices.baseUrl}/api/auth/v1";
   }
 
@@ -115,9 +118,11 @@ class AuthApiService {
             await _storage.write(key: 'user_id', value: userId);
           }
 
-          await ActivityNotificationsController.shared.initialize();
-          await MessagingNotificationService.shared.initialize();
-          await PaymentService.subscriptionSuccessNotifier.refresh();
+          if (!_skipNativeSessionHooks) {
+            await ActivityNotificationsController.shared.initialize();
+            await MessagingNotificationService.shared.initialize();
+            await PaymentService.subscriptionSuccessNotifier.refresh();
+          }
 
           return (200, data["message"] ?? "Login successful");
         } else {
@@ -189,11 +194,15 @@ class AuthApiService {
       }
     } catch (_) {
     } finally {
-      ActivityNotificationsController.shared.resetForLogout();
-      MessagingNotificationService.shared.reset();
+      if (!_skipNativeSessionHooks) {
+        ActivityNotificationsController.shared.resetForLogout();
+        MessagingNotificationService.shared.reset();
+      }
       await _clearTokens();
-      await PlaybackStreamingEngineService.shared.clearSessionState();
-      PaymentService.subscriptionSuccessNotifier.reset();
+      if (!_skipNativeSessionHooks) {
+        await PlaybackStreamingEngineService.shared.clearSessionState();
+        PaymentService.subscriptionSuccessNotifier.reset();
+      }
     }
   }
 
@@ -229,8 +238,10 @@ class AuthApiService {
           if (userId != null && userId.trim().isNotEmpty) {
             await _storage.write(key: 'user_id', value: userId);
           }
-          await ActivityNotificationsController.shared.initialize();
-          await MessagingNotificationService.shared.initialize();
+          if (!_skipNativeSessionHooks) {
+            await ActivityNotificationsController.shared.initialize();
+            await MessagingNotificationService.shared.initialize();
+          }
           return (200, "Token refreshed successfully");
         } else {
           return (
@@ -461,11 +472,12 @@ class AuthApiService {
             refreshToken: refreshTokenValue,
           );
 
-          await ActivityNotificationsController.shared.initialize();
-          await MessagingNotificationService.shared.initialize();
-
-          await refreshToken();
-          await PaymentService.subscriptionSuccessNotifier.refresh();
+          if (!_skipNativeSessionHooks) {
+            await ActivityNotificationsController.shared.initialize();
+            await MessagingNotificationService.shared.initialize();
+            await refreshToken();
+            await PaymentService.subscriptionSuccessNotifier.refresh();
+          }
         }
 
         return (200, data["message"] ?? "Authenticated successfully");
@@ -523,11 +535,12 @@ class AuthApiService {
             accessToken: accessToken,
             refreshToken: refreshTokenValue,
           );
-          await ActivityNotificationsController.shared.initialize();
-          await MessagingNotificationService.shared.initialize();
-
-          await refreshToken();
-          await PaymentService.subscriptionSuccessNotifier.refresh();
+          if (!_skipNativeSessionHooks) {
+            await ActivityNotificationsController.shared.initialize();
+            await MessagingNotificationService.shared.initialize();
+            await refreshToken();
+            await PaymentService.subscriptionSuccessNotifier.refresh();
+          }
           return (200, responseData ?? "Authenticated successfully");
         }
 
@@ -569,8 +582,10 @@ class AuthApiService {
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         await _clearTokens();
-        await PlaybackStreamingEngineService.shared.clearSessionState();
-        PaymentService.subscriptionSuccessNotifier.reset();
+        if (!_skipNativeSessionHooks) {
+          await PlaybackStreamingEngineService.shared.clearSessionState();
+          PaymentService.subscriptionSuccessNotifier.reset();
+        }
         return (
           response.statusCode,
           data?["message"] ?? "Account deleted successfully",

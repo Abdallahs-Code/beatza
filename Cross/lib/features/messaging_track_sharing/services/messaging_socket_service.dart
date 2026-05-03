@@ -9,16 +9,16 @@ class MessagingSocketService {
   io.Socket? _socket;
   String? _currentToken;
 
-  // Called when a new message arrives in a chat the user is NOT viewing
+  
   void Function(ChatModel chat)? onMessageNotify;
 
-  // Secondary listener for push notifications (set by MessagingNotificationService)
+  
   void Function(ChatModel chat)? onMessageNotifyPush;
 
-  // Called when a new message arrives in the chat room the user IS viewing
+  
   void Function(ChatModel chat)? onMessageInRoom;
 
-  // Called on socket errors
+  
   void Function(String message)? onError;
 
   bool get isConnected => _socket?.connected ?? false;

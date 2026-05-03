@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/models/notification_settings_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/library/services/notification_settings_api_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -90,6 +92,7 @@ class _NotificationSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(
@@ -370,7 +373,7 @@ class _NotificationSettingsScreenState
     if (_settings == null) return [];
     final s = _settings!;
     return [
-      // Add the 5 items from push notifications to email section
+      
       _NotifRow(
         label: 'New follower',
         hasDevices: NotificationSettings.hasDevices(s.newFollower),
@@ -477,7 +480,7 @@ class _NotificationSettingsScreenState
         showDevice: false,
       ),
       _divider(),
-      // Existing email-only items
+      
       _NotifRow(
         label: 'Updates from Beatza',
         hasDevices: NotificationSettings.hasDevices(s.updatesFromSoundcloud),
@@ -613,7 +616,7 @@ class _NotificationSettingsScreenState
   );
 }
 
-// ─── Row with device and/or email toggles ─────────────────────────────────────
+
 
 class _NotifRow extends StatelessWidget {
   final String label;
@@ -704,7 +707,7 @@ class _ToggleChip extends StatelessWidget {
   }
 }
 
-// ─── New message row with device dropdown ─────────────────────────────────────
+
 
 class _NewMessageRow extends StatelessWidget {
   final String deviceValue;
@@ -774,7 +777,7 @@ class _DeviceDropdown extends StatelessWidget {
   }
 }
 
-// ─── Email-only boolean toggle row ────────────────────────────────────────────
+
 
 class _EmailToggleRow extends StatelessWidget {
   final String label;

@@ -1,9 +1,11 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 
 class RecentlyPlayedScreen extends StatelessWidget {
@@ -13,6 +15,7 @@ class RecentlyPlayedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       bottomNavigationBar: const LibraryBottomArea(),

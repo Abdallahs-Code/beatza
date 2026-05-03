@@ -1,8 +1,8 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 
@@ -131,7 +131,7 @@ class QrCodeLoginDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Title
+            
             Text(
               AppText.qrCodeLoginTitle,
               style: TextStyle(
@@ -142,21 +142,21 @@ class QrCodeLoginDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            /// Description
+            
             Text(
               AppText.qrCodeLoginDesc,
               style: TextStyle(fontSize: 16, color: AppColors.white70),
             ),
             const SizedBox(height: 24),
 
-            /// Steps
+            
             _buildStep('1', AppText.stepInstruction[0]),
             _buildStep('2', AppText.stepInstruction[1]),
             _buildStep('3', AppText.stepInstruction[2]),
 
             const SizedBox(height: 32),
 
-            /// QR Code Container
+            
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -167,7 +167,7 @@ class QrCodeLoginDialog extends StatelessWidget {
               ),
               child: Center(
                 child: isLoading
-                    ? // CONDITIONAL RENDERING
+                    ? 
                       const CircularProgressIndicator(
                         color: AppColors.orangeQrCode,
                       )
@@ -182,17 +182,17 @@ class QrCodeLoginDialog extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            /// Status and Refresh Button
+            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                /// Status Text
+                
                 Text(
                   AppText.qrCodeLoginStatus,
                   style: TextStyle(color: AppColors.white70, fontSize: 14),
                 ),
 
-                /// Refresh Button
+                
                 ElevatedButton.icon(
                   onPressed: onRefresh,
                   icon: const Icon(Icons.refresh, size: 18),

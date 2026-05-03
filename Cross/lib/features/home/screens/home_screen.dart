@@ -14,6 +14,8 @@ import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
 import 'package:cross_team5/features/activity/services/push_notification_service.dart';
 import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
 import 'package:cross_team5/features/activity/screens/activity_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
 import 'package:cross_team5/features/feed_search_discovery/services/feed_search_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
@@ -50,8 +52,8 @@ class _HomeScreenState extends State<HomeScreen>
     _loadQuickPickTracks();
     _loadDisplayName();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // handleInitialFcmMessage must be called from a widget after runApp —
-      // calling getInitialMessage() before runApp returns null on Android.
+      
+      
       await PushNotificationService.shared.handleInitialFcmMessage();
       NotificationNavigationService.shared.executePendingIfAny();
     });
@@ -170,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       key: const Key('test_home_screen'),
       backgroundColor: AppColors.homeBackground,
@@ -826,7 +829,7 @@ class _QuickPickTracksSection extends StatelessWidget {
   }
 }
 
-// ── Trending by genre section ──────────────────────────────────────────────
+
 
 class _TrendingByGenreSection extends StatefulWidget {
   const _TrendingByGenreSection();
@@ -896,7 +899,7 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
       );
     }
 
-    // On error or empty list fall back to the static placeholder
+    
     if (_error != null || _tracks.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -917,7 +920,7 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Genre chips ────────────────────────────────────────────────────
+        
         SizedBox(
           height: 44,
           child: ListView(
@@ -942,7 +945,7 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
           ),
         ),
         const SizedBox(height: 16),
-        // ── Track card ─────────────────────────────────────────────────────
+        
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Container(

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
   final String pendingToken;
 
-  // Optional because your current flow only passes pendingToken.
-  // If you later have the email from backend/callback, pass it here.
+  
+  
   final String? email;
 
   const VerifyCodeScreen({super.key, required this.pendingToken, this.email});
@@ -164,10 +166,11 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final displayedEmail =
-    //     (widget.email != null && widget.email!.trim().isNotEmpty)
-    //         ? widget.email!.trim()
-    //         : "your email";
+    context.watch<ThemeService>();
+    
+    
+    
+    
 
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,

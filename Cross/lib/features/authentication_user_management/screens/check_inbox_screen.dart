@@ -1,13 +1,15 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_link_text.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_title_text.dart';
 
 class CheckInboxScreen extends StatefulWidget {
@@ -65,6 +67,7 @@ class _CheckInboxScreenState extends State<CheckInboxScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       key: const Key('test_check_inbox_screen'),
       backgroundColor: AppColors.chineseBlack,

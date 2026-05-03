@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/models/user.dart'
     as user_model;
@@ -12,6 +12,8 @@ import 'package:cross_team5/features/authentication_user_management/widgets/auth
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_title_text.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/password_input_field.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
 
 class PasswordScreen extends StatefulWidget {
@@ -97,6 +99,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       key: const Key('test_password_screen'),
       backgroundColor: AppColors.chineseBlack,

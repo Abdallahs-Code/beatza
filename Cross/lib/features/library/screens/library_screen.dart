@@ -1,4 +1,4 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
@@ -16,6 +16,8 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../../audio_upload_track_management/screens/your_uploads_screen.dart';
 import '../../premium_subscription/screens/offline_downloads_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../../premium_subscription/services/payment_service.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -308,6 +310,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       key: const Key('test_library_screen'), 
       backgroundColor: AppColors.pureBlack,
@@ -324,7 +327,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   const LibraryHeader(),
                   const SizedBox(height: 20),
 
-                  /// MENU
+                  
                   InkWell(
                     onTap: () {
                       Navigator.pushNamed(context, LibraryRoutes.yourLikes);
@@ -394,7 +397,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
                   const SizedBox(height: 20),
 
-                  /// RECENTLY PLAYED
+                  
                   SectionHeader(
                     title: AppText.recentlyPlayed,
                     actionText: AppText.seeAll,
@@ -405,7 +408,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
                   const SizedBox(height: 28),
 
-                  /// LISTENING HISTORY
+                  
                   SectionHeader(
                     title: AppText.listeningHistory,
                     actionText: AppText.seeAll,
@@ -417,7 +420,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
             ),
 
-            /// Profile Image Overlay
+            
             Positioned(
               top: 8,
               right: 12,
@@ -470,6 +473,7 @@ class _HistoryTrackPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -540,6 +544,7 @@ class _LibraryEmptyStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(

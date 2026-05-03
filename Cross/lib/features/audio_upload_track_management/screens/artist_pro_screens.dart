@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class ProRestrictionsScreen extends StatelessWidget {
@@ -6,6 +8,7 @@ class ProRestrictionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(

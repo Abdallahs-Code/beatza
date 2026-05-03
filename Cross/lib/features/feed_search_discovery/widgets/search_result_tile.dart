@@ -1,15 +1,15 @@
-// Widget: SearchResultTile
-// Single row in the search results list.
-// Covers: tracks, users, playlists, albums.
-//
-// Tap behaviour:
-//   - Track → fetch full track details → play via
-//     PlaybackStreamingEngineService.shared.playTrack(fullTrack)
-//     (handled by parent SearchScreen, which calls onTap callback)
-//   - User → navigate to UserProfileSocialIdentityRoutes.userProfileRoute
-//   - Playlist / Album → TODO when Module 7 playlist screen is available
-//
-// The parent screen owns the tap logic and passes onTap here.
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -41,11 +41,11 @@ class SearchResultTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
-            // ── Thumbnail / Avatar ─────────────────────────────────────────
+            
             _buildThumbnail(),
             const SizedBox(width: 12),
 
-            // ── Title + subtitle ───────────────────────────────────────────
+            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +71,7 @@ class SearchResultTile extends StatelessWidget {
               ),
             ),
 
-            // ── Type badge ─────────────────────────────────────────────────
+            
             if (type == 'user')
               _buildFollowChip()
             else

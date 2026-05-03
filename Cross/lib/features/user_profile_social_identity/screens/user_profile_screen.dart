@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' show Random;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -14,7 +15,9 @@ import 'package:cross_team5/features/followers_social_graph/followers_social_gra
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
-import 'package:cross_team5/features/library/services/library_history_api_service.dart';
+import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart'
+    show showTrackOptionsSheet;
 import '../../audio_upload_track_management/models/track.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
@@ -23,7 +26,73 @@ import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../models/spotlight_models.dart';
 import '../../premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'edit_spotlight_screen.dart';
+
+PlaybackTrackModel _playbackModelFromApiTrack(Track t) {
+  return PlaybackTrackModel(
+    id: t.id,
+    title: t.title,
+    artistName: t.displayArtist,
+    artworkUrl: t.imageUrl,
+    accessState: t.enableAppPlayback
+        ? PlaybackAccessState.playable
+        : PlaybackAccessState.blocked,
+    sourceType: PlaybackSourceType.network,
+    isPrivate: t.isPrivate,
+    numLikes: t.numLikes,
+    numPlays: t.numPlays,
+    numReposts: t.numReposts,
+    numComments: t.numComments,
+    genre: t.genre,
+    tags: t.tags,
+    permalink: t.permalink,
+    enableAppPlayback: t.enableAppPlayback,
+  );
+}
+
+/// Same pipeline as home **Trending** (`PlaybackTrackModel.fromApiJson` → `playTrack`)
+/// and home horizontal picks (`_handleTrackTap`): resolve via GET `/api/public/tracks/v2/{id}`
+/// raw `data`, then playback engine — no manual `PlaybackTrackModel` fields from `Track`.
+Future<void> playProfileTrackLikeHome({
+  required BuildContext context,
+  required TrackApiService trackApi,
+  required String trackId,
+}) async {
+  final result = await trackApi.getTrackDataMapById(trackId: trackId);
+  if (result.$1 != 200) return;
+
+  final track = PlaybackTrackModel.fromApiJson(result.$2 as Map<String, dynamic>);
+
+  if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This track does not have a playable audio source yet.',
+          ),
+        ),
+      );
+    }
+    return;
+  }
+
+  if (track.accessState == PlaybackAccessState.blocked) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            track.blockedReason ?? 'Playback is disabled for this track.',
+          ),
+        ),
+      );
+    }
+    return;
+  }
+
+  await PlaybackStreamingEngineService.shared.playTrack(track);
+}
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -49,9 +118,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final SocialApiService _socialApiService = SocialApiService();
   final TrackApiService _trackApiService = TrackApiService();
   final AuthApiService _authApiService = AuthApiService();
+  final EngagementApiService _engagementApiService = EngagementApiService();
 
   late Future<_ProfileViewState> _profileFuture;
-  late Future<List<PlaybackTrackModel>> _publicTracksFuture;
+  late Future<List<PlaybackTrackModel>> _likedTracksFuture;
   late Future<List<PlaybackTrackModel>> _repostedTracksFuture;
   Future<void>? _initialContextFuture;
 
@@ -70,7 +140,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     _isFollowing = widget.initialIsFollowing;
 
     _profileFuture = _fetchProfileViewState();
-    _publicTracksFuture = _loadLikedTracks();
+    _likedTracksFuture = _loadLikedTracks();
     _repostedTracksFuture = _loadRepostedTracks();
 
     _initialContextFuture = _loadInitialContext();
@@ -94,25 +164,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
     if (result.$1 != 200) return [];
     final tracks = result.$2 as List<Track>;
-    return tracks
-        .map(
-          (t) => PlaybackTrackModel(
-            id: t.id,
-            title: t.title,
-            artistName: t.displayArtist,
-            artworkUrl: t.imageUrl,
-            accessState: PlaybackAccessState.playable,
-            sourceType: PlaybackSourceType.network,
-            isPrivate: t.isPrivate,
-            numLikes: t.numLikes,
-            numPlays: t.numPlays,
-            numReposts: t.numReposts,
-            numComments: t.numComments,
-            genre: t.genre,
-            tags: t.tags,
-          ),
-        )
-        .toList();
+    return tracks.map(_playbackModelFromApiTrack).toList();
   }
 
   @override
@@ -133,45 +185,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _playLikedTrack(PlaybackTrackModel track, int index) async {
-    final result = await _trackApiService.getTrackById(trackId: track.id);
-    if (result.$1 != 200) return;
-    final fullTrack = result.$2 as Track;
-    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) {
-      return;
-    }
-      
-    final playbackTrack = PlaybackTrackModel(
-      id: fullTrack.id,
-      title: fullTrack.title,
-      artistName: fullTrack.displayArtist,
-      audioUrl: fullTrack.audioLink!,
-      artworkUrl: fullTrack.imageUrl,
-      accessState: PlaybackAccessState.playable,
-      sourceType: PlaybackSourceType.network,
-      isPrivate: fullTrack.isPrivate,
-      numLikes: fullTrack.numLikes,
-      numPlays: fullTrack.numPlays,
-      numReposts: fullTrack.numReposts,
-      numComments: fullTrack.numComments,
-      genre: fullTrack.genre,
-      tags: fullTrack.tags,
-    );
-    await PlaybackStreamingEngineService.shared.playTrack(
-      playbackTrack,
-      queue: [playbackTrack],
-      startIndex: 0,
+    await playProfileTrackLikeHome(
+      context: context,
+      trackApi: _trackApiService,
+      trackId: track.id,
     );
   }
 
   Future<List<PlaybackTrackModel>> _loadRepostedTracks() async {
-    try {
-      return await LibraryHistoryApiService().getUserRepostedTracks(
-        widget.userId,
-        widget.token,
-      );
-    } catch (_) {
-      return [];
-    }
+    final result = await _engagementApiService.getTracksRepostedByUser(
+      userId: widget.userId,
+    );
+    if (result.$1 != 200) return [];
+    final tracks = result.$2 as List<Track>;
+    return tracks.map(_playbackModelFromApiTrack).toList();
   }
 
   Future<void> _toggleFollowUser() async {
@@ -942,6 +969,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       key: const Key('test_user_profile_screen'),
       backgroundColor: AppColors.pureBlack,
@@ -996,7 +1024,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               }
 
               return FutureBuilder<List<PlaybackTrackModel>>(
-                future: _publicTracksFuture,
+                future: _likedTracksFuture,
                 builder: (context, tracksSnapshot) {
                   final List<PlaybackTrackModel> likedTracks =
                       tracksSnapshot.data ?? const <PlaybackTrackModel>[];
@@ -1005,7 +1033,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     future: _repostedTracksFuture,
                     builder: (context, repostedSnapshot) {
                       final List<PlaybackTrackModel> repostedTracks =
-                          repostedSnapshot.data ?? const <PlaybackTrackModel>[];
+                          repostedSnapshot.data ??
+                          const <PlaybackTrackModel>[];
 
                       return Stack(
                         children: [
@@ -1016,7 +1045,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             onEdited: () {
                               setState(() {
                                 _profileFuture = _fetchProfileViewState();
-                                _publicTracksFuture = _loadLikedTracks();
+                                _likedTracksFuture = _loadLikedTracks();
+                                _repostedTracksFuture = _loadRepostedTracks();
                               });
                             },
                             onMorePressed: () =>
@@ -1025,7 +1055,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             onTrackTap: _playTrack,
                             onTrackOptionsTap: _showTrackOptions,
                             onLikedTrackTap: _playLikedTrack,
-                            currentlyPlayingTrackId: _currentlyPlayingTrack?.id,
+                            currentlyPlayingTrackId:
+                                _currentlyPlayingTrack?.id,
                             likedTracks: likedTracks,
                             repostedTracks: repostedTracks,
                             isLoadingLikedTracks:
@@ -1033,6 +1064,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 ConnectionState.waiting,
                             likedTracksError: tracksSnapshot.hasError
                                 ? tracksSnapshot.error.toString()
+                                : null,
+                            isLoadingRepostedTracks:
+                                repostedSnapshot.connectionState ==
+                                ConnectionState.waiting,
+                            repostedTracksError: repostedSnapshot.hasError
+                                ? repostedSnapshot.error.toString()
                                 : null,
                             onFollowersTap: () =>
                                 _openFollowersScreen(profile.userId),
@@ -1082,6 +1119,8 @@ class _SoundCloudProfileView extends StatefulWidget {
   final List<PlaybackTrackModel> repostedTracks;
   final bool isLoadingLikedTracks;
   final String? likedTracksError;
+  final bool isLoadingRepostedTracks;
+  final String? repostedTracksError;
   final Future<void> Function() onFollowersTap;
   final Future<void> Function() onFollowingTap;
   final bool isFollowing;
@@ -1103,6 +1142,8 @@ class _SoundCloudProfileView extends StatefulWidget {
     required this.repostedTracks,
     required this.isLoadingLikedTracks,
     this.likedTracksError,
+    required this.isLoadingRepostedTracks,
+    this.repostedTracksError,
     required this.onFollowersTap,
     required this.onFollowingTap,
     required this.isFollowing,
@@ -1120,9 +1161,101 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
   final TrackApiService _trackApiService = TrackApiService();
   List<Track> _serverTracks = [];
   bool _isLoadingTracks = false;
-  String? _fetchingPlaybackId;
+  String? _fetchingServerTrackId;
+  String? _fetchingLikedTrackId;
+  bool _profileLibraryPlaybackLoading = false;
 
   bool get _hasBio => widget.profile.bio.trim().isNotEmpty;
+
+  bool get _hasProfileLibrarySource =>
+      _serverTracks.isNotEmpty ||
+      widget.likedTracks.isNotEmpty ||
+      widget.repostedTracks.isNotEmpty;
+
+  /// Posted tracks, then likes, then reposts — unique by track id.
+  List<String> _orderedProfileSourceTrackIds() {
+    final Set<String> seen = {};
+    final List<String> out = [];
+    void addId(String? raw) {
+      final id = (raw ?? '').trim();
+      if (id.isEmpty || seen.contains(id)) return;
+      seen.add(id);
+      out.add(id);
+    }
+
+    for (final t in _serverTracks) {
+      addId(t.id);
+    }
+    for (final t in widget.likedTracks) {
+      addId(t.id);
+    }
+    for (final t in widget.repostedTracks) {
+      addId(t.id);
+    }
+    return out;
+  }
+
+  Future<List<PlaybackTrackModel>> _resolveTracksForPlayback(
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return [];
+    final results = await Future.wait(
+      ids.map((id) => _trackApiService.getTrackDataMapById(trackId: id)),
+    );
+    final List<PlaybackTrackModel> out = [];
+    for (var i = 0; i < ids.length; i++) {
+      final r = results[i];
+      if (r.$1 != 200) continue;
+      final pt = PlaybackTrackModel.fromApiJson(r.$2 as Map<String, dynamic>);
+      if (pt.accessState == PlaybackAccessState.blocked) continue;
+      if (!pt.hasAnyPlayableSource || pt.playbackUrl.trim().isEmpty) {
+        continue;
+      }
+      out.add(pt);
+    }
+    return out;
+  }
+
+  Future<void> _playProfileLibrary({required bool shuffle}) async {
+    if (!_hasProfileLibrarySource || _profileLibraryPlaybackLoading) return;
+
+    final ids = _orderedProfileSourceTrackIds();
+    if (ids.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No tracks to play on this profile yet.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _profileLibraryPlaybackLoading = true);
+    try {
+      var queue = await _resolveTracksForPlayback(ids);
+      if (shuffle && queue.length > 1) {
+        queue = List<PlaybackTrackModel>.from(queue)..shuffle(Random());
+      }
+      if (queue.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No playable tracks right now.'),
+            ),
+          );
+        }
+        return;
+      }
+      await PlaybackStreamingEngineService.shared.playTrack(
+        queue.first,
+        queue: queue,
+        startIndex: 0,
+      );
+    } finally {
+      if (mounted) setState(() => _profileLibraryPlaybackLoading = false);
+    }
+  }
 
   @override
   void initState() {
@@ -1144,38 +1277,32 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
   }
 
   Future<void> _playServerTrack(Track track) async {
-    if (_fetchingPlaybackId != null) return;
-    setState(() => _fetchingPlaybackId = track.id);
-    final result = await _trackApiService.getTrackById(trackId: track.id);
-    if (!mounted) return;
-    setState(() => _fetchingPlaybackId = null);
-    if (result.$1 != 200) return;
-    final fullTrack = result.$2 as Track;
-    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) {
-      return;
-    }
-      
-    final playbackTrack = PlaybackTrackModel(
-      id: fullTrack.id,
-      title: fullTrack.title,
-      artistName: fullTrack.displayArtist,
-      audioUrl: fullTrack.audioLink!,
-      artworkUrl: fullTrack.imageUrl,
-      accessState: PlaybackAccessState.playable,
-      sourceType: PlaybackSourceType.network,
-      isPrivate: fullTrack.isPrivate,
-      numLikes: fullTrack.numLikes,
-      numPlays: fullTrack.numPlays,
-      numReposts: fullTrack.numReposts,
-      numComments: fullTrack.numComments,
-      genre: fullTrack.genre,
-      tags: fullTrack.tags,
+    if (_fetchingServerTrackId != null) return;
+    setState(() => _fetchingServerTrackId = track.id);
+    await playProfileTrackLikeHome(
+      context: context,
+      trackApi: _trackApiService,
+      trackId: track.id,
     );
-    await PlaybackStreamingEngineService.shared.playTrack(
-      playbackTrack,
-      queue: [playbackTrack],
-      startIndex: 0,
-    );
+    if (mounted) setState(() => _fetchingServerTrackId = null);
+  }
+
+  Future<void> _handleLikedRowTap(
+    PlaybackTrackModel track,
+    int index,
+  ) async {
+    if (_fetchingLikedTrackId != null) return;
+    setState(() => _fetchingLikedTrackId = track.id);
+    await widget.onLikedTrackTap(track, index);
+    if (mounted) setState(() => _fetchingLikedTrackId = null);
+  }
+
+  void _openServerTrackOptions(Track track) {
+    showTrackOptionsSheet(context, _playbackModelFromApiTrack(track));
+  }
+
+  void _openPlaybackTrackOptions(PlaybackTrackModel track) {
+    showTrackOptionsSheet(context, track);
   }
 
   static const String _defaultImageUrl =
@@ -1212,6 +1339,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
         builder: (context) => EditSpotlightScreen(
           initialItems: spotlightItems.whereType<SpotlightItemModel>().toList(),
           artistName: widget.profile.resolvedDisplayName,
+          userId: widget.profile.userId,
         ),
       ),
     );
@@ -1757,10 +1885,18 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                           IconButton(
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
-                            onPressed: () {},
+                            onPressed:
+                                !_hasProfileLibrarySource ||
+                                    _profileLibraryPlaybackLoading
+                                ? null
+                                : () => _playProfileLibrary(shuffle: true),
                             icon: Icon(
                               Icons.shuffle,
-                              color: AppColors.white70,
+                              color:
+                                  !_hasProfileLibrarySource ||
+                                      _profileLibraryPlaybackLoading
+                                  ? AppColors.white24
+                                  : AppColors.white70,
                               size: 22,
                             ),
                           ),
@@ -1769,16 +1905,35 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: AppColors.whiteSmoke,
+                              color:
+                                  !_hasProfileLibrarySource ||
+                                      _profileLibraryPlaybackLoading
+                                  ? AppColors.surfaceMid
+                                  : AppColors.whiteSmoke,
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.play_arrow,
-                                color: AppColors.pureBlack,
-                                size: 34,
-                              ),
+                              onPressed:
+                                  !_hasProfileLibrarySource ||
+                                      _profileLibraryPlaybackLoading
+                                  ? null
+                                  : () => _playProfileLibrary(shuffle: false),
+                              icon: _profileLibraryPlaybackLoading
+                                  ? SizedBox(
+                                      width: 26,
+                                      height: 26,
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.whiteSmoke,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.play_arrow,
+                                      color: !_hasProfileLibrarySource
+                                          ? AppColors.white54
+                                          : AppColors.pureBlack,
+                                      size: 34,
+                                    ),
                             ),
                           ),
                         ],
@@ -1987,7 +2142,7 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         )
                       else
                         ..._serverTracks.map((track) {
-                          final isFetching = _fetchingPlaybackId == track.id;
+                          final isFetching = _fetchingServerTrackId == track.id;
                           return ListTile(
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 14,
@@ -2038,83 +2193,72 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            trailing: isFetching
-                                ? SizedBox(
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isFetching)
+                                  const SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       color: AppColors.primaryOrange,
                                       strokeWidth: 2,
                                     ),
-                                  )
-                                : null,
+                                  ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.more_horiz,
+                                    color: AppColors.white54,
+                                  ),
+                                  onPressed: () => _openServerTrackOptions(track),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 40,
+                                    minHeight: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
                             onTap: () => _playServerTrack(track),
                           );
                         }),
                     ],
                     const SizedBox(height: 28),
-                    const _SectionHeader(title: 'Playlists', actionText: ''),
-                    const SizedBox(height: 14),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _PlaylistCard(
-                              title: 'Untitled playlist',
-                              subtitle: 'ozOo',
-                              imageUrl: '',
-                            ),
-                          ),
-                          SizedBox(width: 14),
-                          Expanded(
-                            child: _PlaylistCard(
-                              title: 'Songs',
-                              subtitle: 'darus 123',
-                              imageUrl:
-                                  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
                     _SectionHeader(
                       title: 'Reposts',
                       actionText: 'See all',
-                      onActionTap: widget.repostedTracks.isEmpty
-                          ? null
-                          : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => _AllRepostsScreen(
-                                  tracks: widget.repostedTracks,
-                                ),
-                              ),
-                            ),
+                      onActionTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => _AllRepostsScreen(
+                            tracks: widget.repostedTracks,
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: _ProfileRepostsTracksSection(
                         tracks: widget.repostedTracks,
-                        isLoading: false,
-                        errorMessage: null,
+                        isLoading: widget.isLoadingRepostedTracks,
+                        errorMessage: widget.repostedTracksError,
+                        fetchingTrackId: _fetchingLikedTrackId,
+                        onTrackTap: _handleLikedRowTap,
+                        onTrackOptionsTap: _openPlaybackTrackOptions,
                       ),
                     ),
                     const SizedBox(height: 26),
                     _SectionHeader(
                       title: 'Likes',
                       actionText: 'See all',
-                      onActionTap: widget.likedTracks.isEmpty
-                          ? null
-                          : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    _AllLikesScreen(tracks: widget.likedTracks),
-                              ),
-                            ),
+                      onActionTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              _AllLikesScreen(tracks: widget.likedTracks),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Padding(
@@ -2123,7 +2267,9 @@ class _SoundCloudProfileViewState extends State<_SoundCloudProfileView> {
                         tracks: widget.likedTracks,
                         isLoading: widget.isLoadingLikedTracks,
                         errorMessage: widget.likedTracksError,
-                        onTrackTap: widget.onLikedTrackTap,
+                        fetchingTrackId: _fetchingLikedTrackId,
+                        onTrackTap: _handleLikedRowTap,
+                        onTrackOptionsTap: _openPlaybackTrackOptions,
                       ),
                     ),
                     const SizedBox(height: 150),
@@ -2331,107 +2477,21 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _PlaylistCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String imageUrl;
-
-  const _PlaylistCard({
-    required this.title,
-    required this.subtitle,
-    required this.imageUrl,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          height: 140,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceMid,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.white10),
-          ),
-          child: imageUrl.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.cloud, color: AppColors.white24, size: 42),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 16,
-                            color: AppColors.white24,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                          ),
-                          Container(
-                            width: 4,
-                            height: 24,
-                            color: AppColors.white24,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                          ),
-                          Container(
-                            width: 4,
-                            height: 16,
-                            color: AppColors.white24,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                          ),
-                          Container(
-                            width: 4,
-                            height: 8,
-                            color: AppColors.white24,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
-                ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: AppColors.whiteSmoke,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          subtitle,
-          style: TextStyle(color: AppColors.greyButton, fontSize: 13),
-        ),
-      ],
-    );
-  }
-}
-
 class _ProfileRepostsTracksSection extends StatelessWidget {
   final List<PlaybackTrackModel> tracks;
   final bool isLoading;
   final String? errorMessage;
+  final String? fetchingTrackId;
+  final Future<void> Function(PlaybackTrackModel track, int index)? onTrackTap;
+  final void Function(PlaybackTrackModel track)? onTrackOptionsTap;
 
   const _ProfileRepostsTracksSection({
     required this.tracks,
     required this.isLoading,
     required this.errorMessage,
+    this.fetchingTrackId,
+    this.onTrackTap,
+    this.onTrackOptionsTap,
   });
 
   @override
@@ -2489,7 +2549,19 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
     return Column(
       children: List.generate(visibleTracks.length, (index) {
         final track = visibleTracks[index];
-        final Widget row = _TrackRow(track: track);
+        final Widget row = _TrackRow(
+          track: track,
+          onRowTap: onTrackTap == null ||
+                  track.accessState == PlaybackAccessState.blocked
+              ? null
+              : () {
+                  onTrackTap!(track, index);
+                },
+          onOptionsTap: onTrackOptionsTap == null
+              ? null
+              : () => onTrackOptionsTap!(track),
+          isFetching: fetchingTrackId == track.id,
+        );
         return Padding(
           padding: EdgeInsets.only(
             bottom: index == visibleTracks.length - 1 ? 0 : 16,
@@ -2501,10 +2573,29 @@ class _ProfileRepostsTracksSection extends StatelessWidget {
   }
 }
 
-class _AllRepostsScreen extends StatelessWidget {
+class _AllRepostsScreen extends StatefulWidget {
   final List<PlaybackTrackModel> tracks;
 
   const _AllRepostsScreen({required this.tracks});
+
+  @override
+  State<_AllRepostsScreen> createState() => _AllRepostsScreenState();
+}
+
+class _AllRepostsScreenState extends State<_AllRepostsScreen> {
+  final TrackApiService _trackApiService = TrackApiService();
+  String? _fetchingId;
+
+  Future<void> _play(PlaybackTrackModel track) async {
+    if (_fetchingId != null) return;
+    setState(() => _fetchingId = track.id);
+    await playProfileTrackLikeHome(
+      context: context,
+      trackApi: _trackApiService,
+      trackId: track.id,
+    );
+    if (mounted) setState(() => _fetchingId = null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2514,12 +2605,12 @@ class _AllRepostsScreen extends StatelessWidget {
         backgroundColor: AppColors.homeBackground,
         foregroundColor: AppColors.whiteSmoke,
         title: Text(
-          '${tracks.length} Reposts',
+          '${widget.tracks.length} Reposts',
           style: TextStyle(color: AppColors.whiteSmoke, fontSize: 17),
         ),
         elevation: 0,
       ),
-      body: tracks.isEmpty
+      body: widget.tracks.isEmpty
           ? Center(
               child: Text(
                 'No reposts yet.',
@@ -2528,9 +2619,19 @@ class _AllRepostsScreen extends StatelessWidget {
             )
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-              itemCount: tracks.length,
+              itemCount: widget.tracks.length,
               separatorBuilder: (_, i) => const SizedBox(height: 16),
-              itemBuilder: (_, index) => _TrackRow(track: tracks[index]),
+              itemBuilder: (_, index) {
+                final track = widget.tracks[index];
+                final blocked =
+                    track.accessState == PlaybackAccessState.blocked;
+                return _TrackRow(
+                  track: track,
+                  onRowTap: blocked ? null : () => _play(track),
+                  onOptionsTap: () => showTrackOptionsSheet(context, track),
+                  isFetching: _fetchingId == track.id,
+                );
+              },
             ),
     );
   }
@@ -2552,36 +2653,12 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
   Future<void> _play(PlaybackTrackModel track) async {
     if (_fetchingId != null) return;
     setState(() => _fetchingId = track.id);
-    final result = await _trackApiService.getTrackById(trackId: track.id);
-    if (!mounted) return;
-    setState(() => _fetchingId = null);
-    if (result.$1 != 200) return;
-    final fullTrack = result.$2 as Track;
-    if (fullTrack.audioLink == null || fullTrack.audioLink!.trim().isEmpty) {
-      return;
-    }
-      
-    final playbackTrack = PlaybackTrackModel(
-      id: fullTrack.id,
-      title: fullTrack.title,
-      artistName: fullTrack.displayArtist,
-      audioUrl: fullTrack.audioLink!,
-      artworkUrl: fullTrack.imageUrl,
-      accessState: PlaybackAccessState.playable,
-      sourceType: PlaybackSourceType.network,
-      isPrivate: fullTrack.isPrivate,
-      numLikes: fullTrack.numLikes,
-      numPlays: fullTrack.numPlays,
-      numReposts: fullTrack.numReposts,
-      numComments: fullTrack.numComments,
-      genre: fullTrack.genre,
-      tags: fullTrack.tags,
+    await playProfileTrackLikeHome(
+      context: context,
+      trackApi: _trackApiService,
+      trackId: track.id,
     );
-    await PlaybackStreamingEngineService.shared.playTrack(
-      playbackTrack,
-      queue: [playbackTrack],
-      startIndex: 0,
-    );
+    if (mounted) setState(() => _fetchingId = null);
   }
 
   @override
@@ -2610,24 +2687,13 @@ class _AllLikesScreenState extends State<_AllLikesScreen> {
               separatorBuilder: (_, _) => const SizedBox(height: 16),
               itemBuilder: (_, index) {
                 final track = widget.tracks[index];
-                final isFetching = _fetchingId == track.id;
-                return GestureDetector(
-                  onTap: () => _play(track),
-                  behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    children: [
-                      Expanded(child: _TrackRow(track: track)),
-                      if (isFetching)
-                        SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            color: AppColors.primaryOrange,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                    ],
-                  ),
+                final blocked =
+                    track.accessState == PlaybackAccessState.blocked;
+                return _TrackRow(
+                  track: track,
+                  onRowTap: blocked ? null : () => _play(track),
+                  onOptionsTap: () => showTrackOptionsSheet(context, track),
+                  isFetching: _fetchingId == track.id,
                 );
               },
             ),
@@ -2639,13 +2705,17 @@ class _ProfileLikesTracksSection extends StatelessWidget {
   final List<PlaybackTrackModel> tracks;
   final bool isLoading;
   final String? errorMessage;
+  final String? fetchingTrackId;
   final Future<void> Function(PlaybackTrackModel track, int index)? onTrackTap;
+  final void Function(PlaybackTrackModel track)? onTrackOptionsTap;
 
   const _ProfileLikesTracksSection({
     required this.tracks,
     required this.isLoading,
     required this.errorMessage,
+    this.fetchingTrackId,
     this.onTrackTap,
+    this.onTrackOptionsTap,
   });
 
   @override
@@ -2703,21 +2773,25 @@ class _ProfileLikesTracksSection extends StatelessWidget {
     return Column(
       children: List.generate(visibleTracks.length, (index) {
         final track = visibleTracks[index];
-        final Widget row = _TrackRow(track: track);
+        final Widget row = _TrackRow(
+          track: track,
+          onRowTap: onTrackTap == null ||
+                  track.accessState == PlaybackAccessState.blocked
+              ? null
+              : () {
+                  onTrackTap!(track, index);
+                },
+          onOptionsTap: onTrackOptionsTap == null
+              ? null
+              : () => onTrackOptionsTap!(track),
+          isFetching: fetchingTrackId == track.id,
+        );
 
         return Padding(
           padding: EdgeInsets.only(
             bottom: index == visibleTracks.length - 1 ? 0 : 16,
           ),
-          child:
-              track.accessState == PlaybackAccessState.blocked ||
-                  onTrackTap == null
-              ? row
-              : GestureDetector(
-                  onTap: () => onTrackTap!(track, index),
-                  behavior: HitTestBehavior.opaque,
-                  child: row,
-                ),
+          child: row,
         );
       }),
     );
@@ -2782,15 +2856,23 @@ class _ProfileLikeTrackPlaceholder extends StatelessWidget {
 
 class _TrackRow extends StatelessWidget {
   final PlaybackTrackModel track;
+  final VoidCallback? onRowTap;
+  final VoidCallback? onOptionsTap;
+  final bool isFetching;
 
-  const _TrackRow({required this.track});
+  const _TrackRow({
+    required this.track,
+    this.onRowTap,
+    this.onOptionsTap,
+    this.isFetching = false,
+  });
 
   bool get _isBlocked => track.accessState == PlaybackAccessState.blocked;
   bool get _isPreview => track.accessState == PlaybackAccessState.preview;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
+    final Widget content = Opacity(
       opacity: _isBlocked ? 0.55 : 1,
       child: Row(
         children: [
@@ -2825,9 +2907,41 @@ class _TrackRow extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.more_horiz, color: AppColors.white54),
         ],
       ),
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: onRowTap == null
+              ? content
+              : GestureDetector(
+                  onTap: onRowTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: content,
+                ),
+        ),
+        if (isFetching)
+          const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              color: AppColors.primaryOrange,
+              strokeWidth: 2,
+            ),
+          )
+        else if (onOptionsTap != null)
+          IconButton(
+            icon: Icon(Icons.more_horiz, color: AppColors.white54),
+            onPressed: onOptionsTap,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          )
+        else
+          Icon(Icons.more_horiz, color: AppColors.white54),
+      ],
     );
   }
 

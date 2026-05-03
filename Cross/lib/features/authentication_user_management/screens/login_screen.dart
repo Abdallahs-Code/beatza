@@ -1,4 +1,4 @@
-// Dart imports
+
 import 'dart:async';
 import 'dart:io' show Platform;
 
@@ -19,6 +19,8 @@ import 'package:cross_team5/features/authentication_user_management/services/aut
 import 'package:cross_team5/features/authentication_user_management/services/qr_polling_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/home/home_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -442,6 +444,7 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     final emailController = TextEditingController();
 
     return Scaffold(

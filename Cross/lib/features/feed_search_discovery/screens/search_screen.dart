@@ -1,30 +1,32 @@
-// Screen: SearchScreen
-// Module 8 — Feed, Search & Discovery
-//
-// States (matches module_8_screens.pdf pages 1-5):
-//   1. IDLE — search bar inactive → shows VibesGrid (genre categories)
-//   2. TYPING — search bar active, query not yet submitted →
-//                shows autocomplete suggestions (from /search/suggestions)
-//                AND "Recently searched" history (from /search/history)
-//   3. RESULTS — query submitted → shows tabs: All | Tracks | Profiles |
-//                Playlists | Albums, each filtered from /search results
-//
-// User flows:
-//   - Tap search bar → state IDLE → TYPING, load history + suggestions
-//   - Type character → debounced call to getSearchSuggestions(q)
-//   - Tap suggestion → fill query → submit search → state RESULTS
-//   - Tap history item → fill query → submit search → state RESULTS
-//   - Tap X on history item → deleteSearchHistoryItem(id)
-//   - Tap Cancel → clear query → state IDLE
-//   - Submit search → globalSearch(q) → state RESULTS
-//   - Tap result:
-//       Track → fetch full details → PlaybackStreamingEngineService.playTrack
-//               + addToSearchHistory(id, 'track')
-//       User → navigate to UserProfileSocialIdentityRoutes.userProfileRoute
-//               + addToSearchHistory(id, 'user')
-//       Playlist/Album → TODO (Module 7) — show snackbar for now
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
 
@@ -52,37 +54,36 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
-  // ── Controllers ────────────────────────────────────────────────────────────
+  
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   late TabController _tabController;
   final FeedSearchApiService _service = FeedSearchApiService();
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  
   _SearchState _state = _SearchState.idle;
 
-  // Suggestions (while typing)
+  
   List<SearchSuggestionModel> _suggestions = [];
   bool _suggestionsLoading = false;
   String? _suggestionsError;
 
-  // History (while typing)
+  
   List<SearchHistoryItemModel> _history = [];
   Map<String, String?> _historyImages = {};
-  bool _historyLoading = false;
 
-  // Results (after submit)
+  
   SearchResultModel? _searchResult;
   Map<String, Map<String, dynamic>> _enrichedResults = {};
   bool _resultsLoading = false;
   String? _resultsError;
   String _activeQuery = '';
 
-  // Permalink result (replaces normal results when a permalink is detected)
+  
   bool _isPermalinkResult = false;
   Map<String, dynamic>? _permalinkTrackData;
 
-  // Result tabs: All | Tracks | Profiles | Playlists | Albums
+  
   static const List<String> _resultTabs = [
     'All',
     'Tracks',
@@ -107,7 +108,7 @@ class _SearchScreenState extends State<SearchScreen>
     super.dispose();
   }
 
-  // ── Focus / state transitions ──────────────────────────────────────────────
+  
 
   void _onFocusChange() {
     if (_focusNode.hasFocus && _state == _SearchState.idle) {
@@ -138,7 +139,7 @@ class _SearchScreenState extends State<SearchScreen>
     });
   }
 
-  // ── Typing / suggestions ───────────────────────────────────────────────────
+  
 
   void _onQueryChanged(String query) {
     if (_state != _SearchState.typing) {
@@ -174,7 +175,7 @@ class _SearchScreenState extends State<SearchScreen>
     }
   }
 
-  // ── History ────────────────────────────────────────────────────────────────
+  
 
   Future<void> _loadHistory() async {
     final (code, data) = await _service.getSearchHistory();
@@ -182,7 +183,7 @@ class _SearchScreenState extends State<SearchScreen>
     if (code == 200 && data is List) {
       final items = SearchHistoryItemModel.listFromJson(data);
 
-      // API stores only id+type; fetch images client-side for items missing one
+      
       final images = <String, String?>{};
       await Future.wait(
         items.map((item) async {
@@ -209,7 +210,6 @@ class _SearchScreenState extends State<SearchScreen>
       setState(() {
         _history = items;
         _historyImages = images;
-        _historyLoading = false;
       });
     }
   }
@@ -218,19 +218,19 @@ class _SearchScreenState extends State<SearchScreen>
     setState(() {
       _history.removeWhere((item) => item.id == historyId);
     });
-    // Fire and forget — revert on failure is optional for UX
+    
     await _service.deleteSearchHistoryItem(historyId);
   }
 
-  // ── Permalink detection ────────────────────────────────────────────────────
+  
 
-  // Returns (profileLink, permalink) if the query looks like a track permalink
-  // URL or path (e.g. "https://…/user-1234/cairo-grid" or "user-1234/cairo-grid").
-  // Returns null if the query should be treated as a normal keyword search.
+  
+  
+  
   (String, String)? _extractPermalink(String query) {
     final q = query.trim();
 
-    // Full URL — extract last two non-empty path segments
+    
     if (q.contains('://')) {
       try {
         final uri = Uri.parse(q);
@@ -243,7 +243,7 @@ class _SearchScreenState extends State<SearchScreen>
       return null;
     }
 
-    // Path style: "/profileLink/permalink" or "profileLink/permalink"
+    
     final normalized = q.startsWith('/') ? q.substring(1) : q;
     final parts = normalized.split('/');
     if (parts.length == 2) {
@@ -258,7 +258,7 @@ class _SearchScreenState extends State<SearchScreen>
     return null;
   }
 
-  // ── Search submission ──────────────────────────────────────────────────────
+  
 
   Future<void> _submitSearch(String query) async {
     final q = query.trim();
@@ -266,7 +266,7 @@ class _SearchScreenState extends State<SearchScreen>
 
     _focusNode.unfocus();
 
-    // Route to permalink search if the query is a track URL / path
+    
     final permalinkParts = _extractPermalink(q);
     if (permalinkParts != null) {
       await _submitPermalinkSearch(permalinkParts.$1, permalinkParts.$2);
@@ -289,7 +289,7 @@ class _SearchScreenState extends State<SearchScreen>
     if (code == 200 && data is Map<String, dynamic>) {
       final parsed = SearchResultModel.fromJson(data);
 
-      // Concurrently fetch display details for each result item
+      
       final enriched = <String, Map<String, dynamic>>{};
       await Future.wait(
         parsed.results.map((item) async {
@@ -336,7 +336,7 @@ class _SearchScreenState extends State<SearchScreen>
     }
   }
 
-  // ── Permalink search ───────────────────────────────────────────────────────
+  
 
   Future<void> _submitPermalinkSearch(
     String profileLink,
@@ -383,14 +383,14 @@ class _SearchScreenState extends State<SearchScreen>
     await PlaybackStreamingEngineService.shared.playTrack(track);
   }
 
-  // ── Result item taps ───────────────────────────────────────────────────────
+  
 
   Future<void> _onResultTap(SearchResultItem item) async {
-    // Add to history (fire and forget)
+    
     _service.addToSearchHistory(id: item.id, type: item.type);
 
     if (item.type == 'track') {
-      // Fetch full details then play
+      
       final (code, trackData) = await _service.getTrackById(item.id);
       if (!mounted) return;
       if (code == 200 && trackData is Map<String, dynamic>) {
@@ -406,7 +406,7 @@ class _SearchScreenState extends State<SearchScreen>
     } else if (item.type == 'user') {
       await ProfileNavigator.push(context, item.id);
     } else {
-      // Playlist / Album — TODO Module 7
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${item.type} detail screen coming soon')),
@@ -415,16 +415,17 @@ class _SearchScreenState extends State<SearchScreen>
     }
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(
         child: Column(
           children: [
-            // ── Search bar ──────────────────────────────────────────────────
+            
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: FeedSearchBar(
@@ -438,7 +439,7 @@ class _SearchScreenState extends State<SearchScreen>
               ),
             ),
 
-            // ── Body depending on state ─────────────────────────────────────
+            
             Expanded(child: _buildBody()),
           ],
         ),
@@ -470,7 +471,7 @@ class _SearchScreenState extends State<SearchScreen>
     }
   }
 
-  // ── Typing state: suggestions + history ───────────────────────────────────
+  
 
   Widget _buildTypingState() {
     final query = _searchController.text.trim();
@@ -479,7 +480,7 @@ class _SearchScreenState extends State<SearchScreen>
 
     return ListView(
       children: [
-        // ── Autocomplete suggestions ──────────────────────────────────────
+        
         if (query.isNotEmpty) ...[
           if (_suggestionsLoading)
             const Padding(
@@ -509,7 +510,7 @@ class _SearchScreenState extends State<SearchScreen>
             ),
         ],
 
-        // ── Recently searched ──────────────────────────────────────────────
+        
         if (hasHistory && query.isEmpty) ...[
           Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -560,7 +561,7 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  // ── Results state ──────────────────────────────────────────────────────────
+  
 
   Widget _buildResultsState() {
     if (_resultsLoading) {
@@ -588,7 +589,7 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    // Permalink result: single track, no tabs
+    
     if (_isPermalinkResult && _permalinkTrackData != null) {
       return _buildPermalinkResult(_permalinkTrackData!);
     }
@@ -603,7 +604,7 @@ class _SearchScreenState extends State<SearchScreen>
 
     return Column(
       children: [
-        // ── Result type tabs ──────────────────────────────────────────────
+        
         TabBar(
           controller: _tabController,
           isScrollable: true,

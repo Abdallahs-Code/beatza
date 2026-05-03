@@ -1,10 +1,10 @@
-// Screen: GenreTracksScreen
-// Shows public tracks filtered by a specific genre, organised into four tabs.
-//
-// All      → GET /api/tracks/v2/ filtered client-side by basicInfo.genre
-// Trending → GET /api/public/feed/v1/trending-tracks/{userId}, each ID hydrated
-//            via GET /api/public/tracks/v1/{id}, then filtered by genre
-// Playlists / Albums → placeholder (not yet implemented)
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -14,6 +14,8 @@ import '../services/feed_search_api_service.dart';
 import '../widgets/search_result_tile.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class GenreTracksScreen extends StatefulWidget {
@@ -35,12 +37,12 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
   late TabController _tabController;
   final FeedSearchApiService _service = FeedSearchApiService();
 
-  // ── All tab ────────────────────────────────────────────────────────────────
+  
   List<Map<String, dynamic>> _allTracks = [];
   bool _allLoading = true;
   String? _allError;
 
-  // ── Trending tab ───────────────────────────────────────────────────────────
+  
   List<Map<String, dynamic>> _trendingTracks = [];
   bool _trendingLoading = false;
   bool _trendingLoaded = false;
@@ -67,7 +69,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
     super.dispose();
   }
 
-  // ── Data loading ───────────────────────────────────────────────────────────
+  
 
   Future<void> _loadAllTracks() async {
     setState(() {
@@ -149,10 +151,11 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
     await PlaybackStreamingEngineService.shared.playTrack(track);
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       appBar: AppBar(
@@ -193,7 +196,7 @@ class _GenreTracksScreenState extends State<GenreTracksScreen>
     );
   }
 
-  // ── Tab bodies ─────────────────────────────────────────────────────────────
+  
 
   Widget _buildAllTab() {
     if (_allLoading) {

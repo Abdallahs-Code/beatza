@@ -1,10 +1,10 @@
-// Model: SearchResultModel
-// Shape from GET /api/public/feed/v1/search
-// Response:
-// {
-//   "counts": { "tracks": 0, "users": 0, "playlists": 0, "albums": 0 },
-//   "results": [ { "id": "string", "type": "track" } ]
-// }
+
+
+
+
+
+
+
 
 class SearchCountsModel {
   final int tracks;
@@ -31,7 +31,7 @@ class SearchCountsModel {
 
 class SearchResultItem {
   final String _id;
-  final String _type; // 'track' | 'user' | 'playlist' | 'album'
+  final String _type; 
 
   SearchResultItem(this._id, this._type);
 

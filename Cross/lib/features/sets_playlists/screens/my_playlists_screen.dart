@@ -1,10 +1,12 @@
-// Screen: MyPlaylistsScreen
-// Shows the current user's playlists (my-playlists API).
-// Search bar filters locally. "Create new" button opens CreatePlaylistSheet.
-// After creation navigates directly to PlaylistDetailScreen.
+
+
+
+
 
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
@@ -134,7 +136,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
             _playlists.insert(0, playlist);
             _filtered.insert(0, playlist);
           });
-          // Navigate directly to the new playlist
+          
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -163,6 +165,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(
@@ -204,17 +207,17 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       color: AppColors.crusta,
       child: CustomScrollView(
         slivers: [
-          // Search bar
+          
           SliverToBoxAdapter(child: _buildSearchBar()),
 
-          // "Create new" button
+          
           SliverToBoxAdapter(child: _buildCreateButton()),
 
-          // Free limit banner
+          
           if (_atFreeLimit)
             SliverToBoxAdapter(child: _buildFreeLimitBanner()),
 
-          // Playlist list
+          
           if (_filtered.isEmpty && _searchController.text.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(

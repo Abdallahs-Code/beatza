@@ -25,9 +25,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   List<PlaybackTrackModel> _uploadedTracks = [];
   bool _loadingUploads = true;
 
-  String? _selectedTrackLink; // permalink of selected track
-  String? _selectedArtistId; // posterId of selected track's uploader
-  bool _attachingTrack = false; // true while fetching profileLink on Done tap
+  String? _selectedTrackLink; 
+  String? _selectedArtistId; 
+  bool _attachingTrack = false; 
 
   @override
   void initState() {
@@ -43,7 +43,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
   }
 
   Future<void> _loadData() async {
-    // ── 1. Get userId from local storage (mimics AuthApiService.getStoredUserId) ──
+    
     debugPrint(
       '[AttachContentSheet._loadData] Reading userId from secure storage (key="user_id")...',
     );
@@ -65,7 +65,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       return;
     }
 
-    // ── 2. Fetch liked + uploaded tracks in parallel ──
+    
     debugPrint(
       '[AttachContentSheet._loadData] Fetching liked + uploaded tracks for userId=$userId',
     );
@@ -108,9 +108,9 @@ class _AttachContentSheetState extends State<AttachContentSheet>
     });
   }
 
-  // Called when the user taps "Done".
-  // Fetches the track owner's profileLink via GET /api/public/profile/v1/{artistId},
-  // then composes: track::permalink:"...",profilelink:"..."
+  
+  
+  
   Future<void> _handleDone() async {
     final permalink = _selectedTrackLink!;
     final artistId = _selectedArtistId ?? '';
@@ -147,7 +147,7 @@ class _AttachContentSheetState extends State<AttachContentSheet>
       );
     }
 
-    // Build payload: track::permalink:"...",profilelink:"..."
+    
     final payload = 'track::permalink:"$permalink",profilelink:"$profileLink"';
     debugPrint('[AttachContentSheet._handleDone] payload="$payload"');
     if (profileLink.isEmpty) {

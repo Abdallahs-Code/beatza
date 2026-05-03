@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/screens/user_info_screen.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_back_button.dart';
@@ -9,6 +9,8 @@ import 'package:cross_team5/features/authentication_user_management/widgets/auth
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_subtitle_text.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/auth_title_text.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/authentication_user_management/widgets/password_input_field.dart';
 
 class CreatePasswordScreen extends StatefulWidget {
@@ -53,6 +55,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       key: const Key('test_create_password_screen'),
       backgroundColor: AppColors.chineseBlack,

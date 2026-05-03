@@ -1,11 +1,13 @@
-// Screen: PlaylistDetailScreen
-// Displays a playlist with its tracks, creator info, and action buttons.
-// Options menu (⋮) opens PlaylistOptionsSheet.
-// Empty playlist shows trending track suggestions.
-// Non-empty playlist shows "Suggested for you" below the track list.
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/add_music_screen.dart';
@@ -36,14 +38,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   List<PlaylistTrack> _tracks = [];
   Map<String, dynamic>? _creatorInfo;
 
-  // Suggestions (trending tracks)
+  
   List<Map<String, dynamic>> _suggestions = [];
   bool _suggestionsLoading = false;
 
   bool _isLoading = true;
   String? _error;
 
-  // Pagination
+  
   int _offset = 0;
   static const int _limit = 20;
   bool _hasMore = true;
@@ -163,7 +165,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     }
   }
 
-  // ── Playlist options ──────────────────────────────────────────────────────
+  
 
   Future<void> _openOptions() async {
     if (_playlist == null) return;
@@ -270,10 +272,11 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     }
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: _buildBody(),
@@ -350,7 +353,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     final mins = totalSecs ~/ 60;
     final trackCount = p.trackCount;
 
-    // Creator info from API
+    
     final creatorName = _creatorInfo?['displayName']?.toString() ??
         'Unknown';
     final creatorImgRaw = _creatorInfo?['profileImage'];
@@ -368,7 +371,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cover art
+          
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -385,7 +388,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Title
+          
           Text(
             p.title,
             style: const TextStyle(
@@ -395,7 +398,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           ),
           const SizedBox(height: 4),
 
-          // Subtitle: Playlist · N tracks · X mins
+          
           Text(
             'Playlist · $trackCount Track${trackCount == 1 ? '' : 's'}${mins > 0 ? ' · ${mins}m' : ''} · $timeAgo',
             style:
@@ -403,7 +406,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Creator row
+          
           Row(
             children: [
               CircleAvatar(
@@ -439,21 +442,21 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Row(
         children: [
-          // Options ⋮
+          
           _iconCircleButton(
             icon: Icons.more_horiz,
             onTap: _openOptions,
           ),
           const Spacer(),
 
-          // Shuffle
+          
           _iconCircleButton(
             icon: Icons.shuffle,
             onTap: () {},
           ),
           const SizedBox(width: 12),
 
-          // Play
+          
           GestureDetector(
             onTap: () {},
             child: Container(

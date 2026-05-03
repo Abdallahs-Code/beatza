@@ -15,14 +15,14 @@ class MessagingNotificationService {
   String? _currentUserId;
   String? _activeChatId;
 
-  // "everyone" | "followed" | "off"  — mirrors the backend setting.
-  // Defaults to "everyone" so notifications always appear until the setting loads.
+  
+  
   String _newMessageDevicesSetting = 'everyone';
 
-  // IDs of users the current user follows — used for the "followed" filter.
+  
   Set<String> _followedUserIds = {};
 
-  /// Call once after login (or on HomeScreen init).
+  
   Future<void> initialize() async {
     _currentUserId = await AuthApiService().getStoredUserId();
     final token = await AuthApiService().getStoredAccessToken() ?? '';
@@ -38,8 +38,8 @@ class MessagingNotificationService {
       return;
     }
 
-    // Load notification preference and following list in parallel.
-    // Failures are silenced — we fall back to showing all notifications.
+    
+    
     await Future.wait([_loadDeviceSetting(token), _loadFollowingList()]);
 
     await MessagingSocketService.shared.connect(token: token);
@@ -72,7 +72,7 @@ class MessagingNotificationService {
     } catch (_) {}
   }
 
-  /// Call on logout so we stop showing notifications.
+  
   void reset() {
     _currentUserId = null;
     _activeChatId = null;
@@ -81,7 +81,7 @@ class MessagingNotificationService {
     MessagingSocketService.shared.onMessageNotifyPush = null;
   }
 
-  /// ChatScreen calls this with its chatId when it opens, and null when it closes.
+  
   void setActiveChatId(String? chatId) {
     _activeChatId = chatId;
     debugPrint('[MessagingNotificationService] activeChatId=$chatId');
@@ -91,13 +91,13 @@ class MessagingNotificationService {
     final lm = chat.lastMessage;
     if (lm == null) return;
 
-    // Don't notify for own messages.
+    
     if (lm.senderId == _currentUserId) return;
 
-    // Don't notify if the user is already looking at this chat.
+    
     if (_activeChatId != null && _activeChatId == chat.id) return;
 
-    // Respect the newMessageDevices setting.
+    
     switch (_newMessageDevicesSetting) {
       case 'off':
         return;

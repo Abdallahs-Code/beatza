@@ -1,10 +1,12 @@
-// Dart imports
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class QrScannerScreen extends StatefulWidget {
@@ -20,10 +22,11 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   );
 
   bool _isProcessing = false;
-  String _status = 'idle'; // idle, approving, success, error
+  String _status = 'idle'; 
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan QR Code'),
@@ -34,24 +37,24 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       ),
       body: Stack(
         children: [
-          // Camera preview
+          
           MobileScanner(
             controller: controller,
             onDetect: (capture) {
-              // Only handle first valid scan
+              
               if (_isProcessing) return;
 
               final barcodes = capture.barcodes;
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
                   _handleScan(barcode.rawValue);
-                  break; // Handle only first code
+                  break; 
                 }
               }
             },
           ),
 
-          // Scanning frame overlay
+          
           Positioned.fill(
             child: IgnorePointer(
               child: Center(
@@ -67,7 +70,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             ),
           ),
 
-          // Processing status overlay
+          
           if (_isProcessing)
             Positioned.fill(
               child: Container(
@@ -76,7 +79,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Status icon
+                      
                       if (_status == 'approving')
                         CircularProgressIndicator(color: AppColors.whiteSmoke)
                       else if (_status == 'success')
@@ -94,7 +97,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Status message
+                      
                       Text(
                         _status == 'approving'
                             ? 'Approving login...'
@@ -109,7 +112,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                         textAlign: TextAlign.center,
                       ),
 
-                      // Subtext for success
+                      
                       if (_status == 'success') ...[
                         const SizedBox(height: 8),
                         Text(
@@ -118,7 +121,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
                         ),
                       ],
 
-                      // Retry button for error
+                      
                       if (_status == 'error') ...[
                         const SizedBox(height: 24),
                         ElevatedButton(
@@ -140,11 +143,11 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     );
   }
 
-  /// Handle QR scan: Mobile just APPROVES, doesn't poll or save tokens
+  
   Future<void> _handleScan(String? qrCode) async {
     if (qrCode == null || qrCode.isEmpty || _isProcessing) return;
 
-    // Stop camera to save resources
+    
     await controller.stop();
 
     setState(() {
@@ -155,17 +158,17 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     try {
       final authApi = AuthApiService();
 
-      // Mobile calls approve endpoint only - no polling
+      
       final bool success = await authApi.approveQrCode(qrCode);
 
       if (success && mounted) {
         setState(() => _status = 'success');
 
-        // Show success briefly, then return
+        
         await Future.delayed(const Duration(seconds: 2));
 
         if (mounted) {
-          Navigator.pop(context); // Return to Library screen
+          Navigator.pop(context); 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Desktop login approved! ✓'),
@@ -196,7 +199,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     }
   }
 
-  /// Reset scanner to allow re-scanning after error
+  
   Future<void> _resetScanner() async {
     setState(() {
       _isProcessing = false;
@@ -207,7 +210,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
   @override
   void dispose() {
-    controller.dispose(); // Clean up camera
+    controller.dispose(); 
     super.dispose();
   }
 }

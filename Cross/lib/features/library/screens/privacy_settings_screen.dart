@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/models/privacy_settings_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/library/services/privacy_settings_api_service.dart';
 
 class PrivacySettingsScreen extends StatefulWidget {
@@ -83,6 +85,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       body: SafeArea(
@@ -284,7 +287,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   }
 }
 
-// ─── Single privacy toggle row ─────────────────────────────────────────────────
+
 
 class _PrivacyRow extends StatelessWidget {
   final IconData icon;

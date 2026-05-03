@@ -1,17 +1,19 @@
-// Screen: TrackManagementScreen
-// Shows all tracks with visibility toggle and delete.
-// Fully independent of Module 5 and Module 6.
-//
-// Data: TrackApiService.getAllTracksPaginated()
-// Visibility toggle: TrackApiService.updateTrack(isPrivate: !current)
-// Delete: TrackApiService.deleteTrack() with confirmation dialog
-// Pagination: Load more button when hasNext == true
-// Pull-to-refresh: RefreshIndicator
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/audio_upload_track_management_routes.dart';
 
 class TrackManagementScreen extends StatefulWidget {
@@ -31,7 +33,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
   int _currentPage = 1;
   bool _hasNext = false;
 
-  // IDs currently being toggled (show spinner instead of switch)
+  
   final Set<String> _togglingIds = {};
 
   @override
@@ -40,9 +42,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     _loadTracks();
   }
 
-  // ─────────────────────────────────────────────
-  // Load page 1
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadTracks() async {
     setState(() {
       _isLoading = true;
@@ -64,9 +66,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Load next page
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadMore() async {
     if (_isLoadingMore || !_hasNext) return;
     setState(() => _isLoadingMore = true);
@@ -87,9 +89,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Toggle visibility — optimistic
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _toggleVisibility(Track track) async {
     if (_togglingIds.contains(track.id)) return;
 
@@ -106,7 +108,34 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
 
     final result = await _apiService.updateTrack(
       trackId: track.id,
+      
+      
+      title: track.title,
+      permalink: track.permalink.isNotEmpty ? track.permalink : null,
+      mainArtists: track.mainArtists.isNotEmpty ? track.mainArtists : null,
+      genre: track.genre.isNotEmpty ? track.genre : null,
+      tags: track.tags.isNotEmpty ? track.tags : null,
+      description: track.description.isNotEmpty ? track.description : null,
+      caption: track.caption.isNotEmpty ? track.caption : null,
       isPrivate: nowPrivate,
+      
+      enableDirectDownload: track.enableDirectDownload,
+      offlineListening: track.offlineListening,
+      includeInRssFeed: track.includeInRssFeed,
+      displayedEmbedCode: track.displayedEmbedCode,
+      enableAppPlayback: track.enableAppPlayback,
+      
+      licensing: track.licenseType == 'creativeCommons' ? 'creative_commons' : 'all_rights',
+      
+      containsExplicit: track.explicitContent,
+      recordLabel: track.recordLabel,
+      publisher: track.publisher,
+      isrc: track.isrc,
+      pLine: track.pLine,
+      
+      availability: track.geoBlockingMode,
+      geoBlockingRegions: track.geoBlockingRegions,
+      geoBlockingCountries: track.geoBlockingCountries,
     );
 
     setState(() => _togglingIds.remove(track.id));
@@ -114,7 +143,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     if (!mounted) return;
 
     if (result.$1 != 200) {
-      // Revert
+      
       setState(() {
         final idx = _tracks.indexWhere((t) => t.id == track.id);
         if (idx != -1) {
@@ -141,7 +170,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     }
   }
 
-  // Rebuild Track with flipped isPrivate (Track fields are final)
+  
   Track _rebuildTrack(Track t, bool isPrivate) => Track(
     t.id,
     t.title,
@@ -160,9 +189,9 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     t.releaseDate,
   );
 
-  // ─────────────────────────────────────────────
-  // Delete — optimistic
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _deleteTrack(Track track) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -191,7 +220,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
 
     if (confirmed != true) return;
 
-    // Optimistic removal
+    
     final removed = track;
     final removedIdx = _tracks.indexWhere((t) => t.id == track.id);
     setState(() => _tracks.removeWhere((t) => t.id == track.id));
@@ -201,7 +230,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     if (!mounted) return;
 
     if (result.$1 != 200) {
-      // Revert
+      
       setState(() {
         if (removedIdx >= 0 && removedIdx <= _tracks.length) {
           _tracks.insert(removedIdx, removed);
@@ -227,11 +256,12 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // BUILD
-  // ─────────────────────────────────────────────
+  
+  
+  
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       appBar: AppBar(
@@ -279,7 +309,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
       itemCount: _tracks.length + (_hasNext ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        // Load more row
+        
         if (index == _tracks.length) {
           return _isLoadingMore
               ? const Center(
@@ -314,7 +344,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
           ),
           child: Row(
             children: [
-              // Thumbnail
+              
               Container(
                 width: 50,
                 height: 50,
@@ -336,7 +366,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
               ),
               const SizedBox(width: 14),
 
-              // Info
+              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,7 +419,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                 ),
               ),
 
-              // Visibility toggle
+              
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -415,7 +445,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
                 ],
               ),
 
-              // More options
+              
               PopupMenuButton<String>(
                 icon: Icon(
                   Icons.more_vert,

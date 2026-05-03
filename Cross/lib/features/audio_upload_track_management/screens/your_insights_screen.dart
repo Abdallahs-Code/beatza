@@ -5,6 +5,8 @@ import '../../premium_subscription/screens/premium_subscription.dart';
 import '../../premium_subscription/services/payment_service.dart';
 import '../services/audio_upload_service.dart';
 import '../models/track_model.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'upload_track_screen.dart';
 
 enum InsightTab { beatza, allPlatforms, fans }
@@ -529,6 +531,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
@@ -1769,6 +1772,7 @@ class TopTracksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(

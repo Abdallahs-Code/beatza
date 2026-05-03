@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'dart:async';
 
-// Package imports
+
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
 class QrPollingService {
@@ -27,7 +27,7 @@ class QrPollingService {
 
     _pollingTimer = Timer.periodic(pollInterval, (timer) async {
       try {
-        // Check timeout
+        
         if (stopwatch.elapsed > timeout) {
           timer.cancel();
           stopwatch.stop();
@@ -35,24 +35,24 @@ class QrPollingService {
           return;
         }
 
-        // Call the auth service to check status
+        
         final response = await _authApi.checkQrStatus(qrData);
         final status = response['status'] as String;
-        // To be completed upon API changes
-        // final message = response['message'] as String;
+        
+        
 
-        // Notify UI of status change
+        
         onStatusUpdate?.call(status);
 
         switch (status) {
           case 'success':
             timer.cancel();
             stopwatch.stop();
-            completer.complete(response); // Contains user data
+            completer.complete(response); 
             break;
 
           case 'waiting':
-            // keep polling
+            
             break;
 
           default:
@@ -62,20 +62,20 @@ class QrPollingService {
             break;
         }
       } catch (e) {
-        // Network error or HTTP error (400, 401, 500)
+        
         onError?.call(e);
 
-        // Check if it's a fatal error (not just network glitch)
+        
         final errorMessage = e.toString().toLowerCase();
         if (errorMessage.contains('session expired') ||
             errorMessage.contains('bad request') ||
             errorMessage.contains('internal server error')) {
-          // Fatal error - stop polling
+          
           timer.cancel();
           stopwatch.stop();
           completer.completeError(e);
         }
-        // Otherwise, continue polling on transient network errors
+        
       }
     });
 

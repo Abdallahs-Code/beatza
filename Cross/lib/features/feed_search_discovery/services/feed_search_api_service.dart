@@ -1,23 +1,23 @@
-// Service: FeedSearchApiService
-// Handles all API calls for Module 8: Feed, Search & Discovery.
-//
-// Endpoints covered:
-//   GET  /api/feed/v1/feed                         → getUserFeed
-//   GET  /api/feed/v1/trending-tracks/{userId}     → getTrendingTracks
-//   GET  /api/public/feed/v1/search                       → globalSearch
-//   GET  /api/public/feed/v1/search/suggestions           → getSearchSuggestions
-//   GET  /api/feed/v1/search/history                      → getSearchHistory
-//   POST /api/feed/v1/search/add-to-history               → addToSearchHistory
-//   DELETE /api/feed/v1/search/history/{historyId}        → deleteSearchHistoryItem
-//   GET  /api/public/tracks/v2/permalink/{profileLink}/{permalink}
-//                                                  → getTrackByPermalink
-//   GET  /api/tracks/v2/permalink/{profileLink}/{permalink}
-//                                                  → getTrackByPermalinkV2
-//   GET  /api/public/tracks/v2/{id}               → getTrackById (for details)
-//
-// Service pattern: constructor injection, returns Future<(int, dynamic)>.
-// Token read from FlutterSecureStorage key 'access_token'.
-// User ID read from FlutterSecureStorage key 'user_id'.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -38,7 +38,7 @@ class FeedSearchApiService {
        _storage = storage ?? const FlutterSecureStorage(),
        _client = client ?? http.Client();
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  
 
   Future<String?> _getToken() async {
     return _storage.read(key: 'access_token');
@@ -54,9 +54,9 @@ class FeedSearchApiService {
     'User-Agent': 'Android',
   };
 
-  // ── GET /api/feed/v1/feed ────────────────────────────────────────────────
-  // Returns: (200, List<dynamic>) | (401, message) | (500, message)
-  // Query params: includeReposts (bool, default true), offset (int), limit (int)
+  
+  
+  
   Future<(int, dynamic)> getUserFeed({
     bool includeReposts = true,
     int offset = 0,
@@ -86,9 +86,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/feed/v1/trending-tracks/{userId} ────────────────────────────
-  // Returns: (200, List<dynamic>) | (401, message) | (500, message)
-  // Query params: offset (int), limit (int)
+  
+  
+  
   Future<(int, dynamic)> getTrendingTracks({
     int offset = 0,
     int limit = 20,
@@ -122,9 +122,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/profile/v1/{userId} ──────────────────────────────────
-  // Fetches public profile details by user ID (display name, avatar, etc.)
-  // Returns: (200, Map<String, dynamic>) | (404, message) | (500, message)
+  
+  
+  
   Future<(int, dynamic)> getUserById(String userId) async {
     try {
       final token = await _getToken();
@@ -139,7 +139,7 @@ class FeedSearchApiService {
 
       if (response.statusCode == 200) {
         if (body is Map<String, dynamic>) {
-          // Try unwrapping common envelope shapes
+          
           if (body['data'] is Map<String, dynamic>) {
             return (200, body['data'] as Map<String, dynamic>);
           }
@@ -155,10 +155,10 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/tracks/v2/{id} ───────────────────────────────────────
-  // Fetches full track details by ID (used to hydrate feed/trending items
-  // before navigating to player or displaying in the feed card).
-  // Returns: (200, Map<String, dynamic>) | (404, message) | (500, message)
+  
+  
+  
+  
   Future<(int, dynamic)> getTrackById(String trackId) async {
     try {
       final token = await _getToken();
@@ -172,7 +172,7 @@ class FeedSearchApiService {
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Response shape: { "data": { ... track fields ... } }
+        
         final data = body['data'] as Map<String, dynamic>?;
         return (200, data ?? body);
       }
@@ -182,9 +182,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/tracks/v2/permalink/{profileLink}/{permalink} ─────────
-  // Returns: (200, Map<String, dynamic> data) | (404, message) | (500, message)
-  // Response data shape documented in module_8_apis_ (permalink endpoint).
+  
+  
+  
   Future<(int, dynamic)> getTrackByPermalink({
     required String profileLink,
     required String permalink,
@@ -201,7 +201,7 @@ class FeedSearchApiService {
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Response: { "message": "...", "data": { trackId, basicInfo, image, audio, ... } }
+        
         final data = body['data'] as Map<String, dynamic>?;
         return (200, data ?? body);
       }
@@ -211,9 +211,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/tracks/v2/permalink/{profileLink}/{permalink} ──────────────────
-  // Authenticated endpoint — returns full track details by permalink.
-  // Returns: (200, Map<String, dynamic> data) | (404, message) | (500, message)
+  
+  
+  
   Future<(int, dynamic)> getTrackByPermalinkV2({
     required String profileLink,
     required String permalink,
@@ -239,14 +239,14 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/feed/v1/search ──────────────────────────────────────────────
-  // Required: q (keyword)
-  // Optional: type (everything|tracks|users|playlists|albums),
-  //           dateRange (hour|day|week|month|year|all),
-  //           duration (lt2|2to10|10to30|gt30|all),
-  //           usage (commercial|modify|share|listen),
-  //           tag, location, offset, limit
-  // Returns: (200, Map<String, dynamic>) | (401, message) | (500, message)
+  
+  
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> globalSearch({
     required String query,
     String? type,
@@ -286,7 +286,7 @@ class FeedSearchApiService {
 
       if (response.statusCode == 200) {
         if (body is Map<String, dynamic>) {
-          // Unwrap {data: {results:[...], counts:{...}}} if present
+          
           if (body['data'] is Map<String, dynamic>) {
             return (200, body['data'] as Map<String, dynamic>);
           }
@@ -301,9 +301,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/public/feed/v1/search/suggestions ──────────────────────────────────
-  // Required: q (partial keyword)
-  // Returns: (200, List<dynamic>) | (400, message) | (401, message) | (500, message)
+  
+  
+  
   Future<(int, dynamic)> getSearchSuggestions(String query) async {
     try {
       final token = await _getToken();
@@ -321,7 +321,7 @@ class FeedSearchApiService {
 
       if (response.statusCode == 200) {
         if (body is List) return (200, body);
-        // Unwrap common envelope shapes: {data:[...]}, {suggestions:[...]}, {results:[...]}
+        
         for (final key in ['data', 'suggestions', 'results', 'items']) {
           if (body[key] is List) return (200, body[key] as List);
         }
@@ -334,8 +334,8 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/feed/v1/search/history ──────────────────────────────────────────
-  // Returns: (200, List<dynamic>) | (401, message) | (500, message)
+  
+  
   Future<(int, dynamic)> getSearchHistory() async {
     try {
       final token = await _getToken();
@@ -357,9 +357,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── POST /api/feed/v1/search/add-to-history ──────────────────────────────────
-  // Body: { "id": "string", "type": "track" }
-  // Returns: (201, null) | (400, message) | (401, message) | (500, message)
+  
+  
+  
   Future<(int, dynamic)> addToSearchHistory({
     required String id,
     required String type,
@@ -387,9 +387,9 @@ class FeedSearchApiService {
     }
   }
 
-  // ── GET /api/tracks/v2/ ──────────────────────────────────────────────────
-  // Returns: (200, Map<String,dynamic> data) with {tracks:[...], paginationInfo:{...}}
-  // Query params: page (int, default 1), limit (int, default 30)
+  
+  
+  
   Future<(int, dynamic)> getPublicTracks({int page = 1, int limit = 30}) async {
     try {
       final token = await _getToken();
@@ -412,8 +412,8 @@ class FeedSearchApiService {
     }
   }
 
-  // ── DELETE /api/feed/v1/search/history/{historyId} ───────────────────────────
-  // Returns: (204, null) | (401, message) | (404, message) | (500, message)
+  
+  
   Future<(int, dynamic)> deleteSearchHistoryItem(String historyId) async {
     try {
       final token = await _getToken();

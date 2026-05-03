@@ -45,7 +45,7 @@ class TrackApiService {
     'User-Agent': 'Android',
   };
 
-  // POST /api/tracks/v2
+  
   Future<(int, dynamic)> uploadTrack({
     required String audioFilePath,
     required String audioFileName,
@@ -58,26 +58,26 @@ class TrackApiService {
     String description = '',
     bool privacy = false,
     String caption = '',
-    // permissions
+    
     bool enableDirectDownload = false,
     bool offlineListening = true,
     bool includeInRssFeed = true,
     bool displayedEmbedCode = true,
     bool enableAppPlayback = true,
-    // license — 'all_rights' | 'creative_commons'
+    
     String licensing = 'all_rights',
-    // advanced
+    
     bool containsExplicit = false,
     String? releaseDate,
     String? recordLabel,
     String? publisher,
     String? isrc,
     String? pLine,
-    // geoBlocking — 'worldwide' | 'exclusive' | 'blocked'
+    
     String availability = 'worldwide',
     List<String> geoBlockingRegions = const [],
     List<String> geoBlockingCountries = const [],
-    // mobileProPreview — optional, defaults to false
+    
     bool mobileProPreview = false,
   }) async {
     try {
@@ -85,7 +85,7 @@ class TrackApiService {
       final accessToken = await _authService.getAccessToken();
       if (accessToken == null) return (401, 'Authorization failed');
 
-      // Send POST request with multipart/form-data
+      
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('${_apiServices.baseUrl}/api/tracks/v2'))
@@ -94,7 +94,7 @@ class TrackApiService {
           'User-Agent': 'Android',
         });
 
-      // Add Audio File
+      
       if (audioFilePath.isNotEmpty) {
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -108,14 +108,14 @@ class TrackApiService {
         return (400, 'Audio file is required');
       }
 
-      // Add Image File
+      
       if (imageFilePath != null && imageFilePath.isNotEmpty) {
         request.files.add(
           await http.MultipartFile.fromPath('image', imageFilePath),
         );
       }
 
-      // basicInfo — core track metadata
+      
       final basicInfoMap = <String, dynamic>{
         'title': title,
         'permalink': permalink,
@@ -128,7 +128,7 @@ class TrackApiService {
       if (caption.isNotEmpty) basicInfoMap['caption'] = caption;
       request.fields['basicInfo'] = jsonEncode(basicInfoMap);
 
-      // permissions — playback and distribution settings
+      
       request.fields['permissions'] = jsonEncode({
         'enableDirectDownload': enableDirectDownload,
         'offlineListening': offlineListening,
@@ -137,7 +137,7 @@ class TrackApiService {
         'enableAppPlayback': enableAppPlayback,
       });
 
-      // license — usage rights
+      
       final licenseType = licensing == 'creative_commons'
           ? 'creativeCommons'
           : 'allRightsReserved';
@@ -149,7 +149,7 @@ class TrackApiService {
         'shareAlike': false,
       });
 
-      // advanced — publishing and distribution metadata
+      
       final advancedMap = <String, dynamic>{
         'explicitContent': containsExplicit,
       };
@@ -160,14 +160,14 @@ class TrackApiService {
       if (pLine != null && pLine.isNotEmpty) advancedMap['pLine'] = pLine;
       request.fields['advanced'] = jsonEncode(advancedMap);
 
-      // geoBlocking — sent as JSON-stringified multipart field
+      
       request.fields['geoBlocking'] = jsonEncode({
         'mode': availability,
         'regions': geoBlockingRegions,
         'countries': geoBlockingCountries,
       });
 
-      // mobileProPreview — sent as JSON-stringified object field
+      
       request.fields['mobileProPreview'] = jsonEncode({
         'mobileProPreview': mobileProPreview,
       });
@@ -202,7 +202,7 @@ class TrackApiService {
     }
   }
 
-  // PATCH /api/tracks/v2/
+  
   Future<(int, dynamic)> updateTrack({
     required String trackId,
     String? imageFilePath,
@@ -214,28 +214,28 @@ class TrackApiService {
     String? description,
     bool? isPrivate,
     String? caption,
-    // permissions
+    
     bool enableDirectDownload = false,
     bool offlineListening = true,
     bool includeInRssFeed = true,
     bool displayedEmbedCode = true,
     bool enableAppPlayback = true,
-    // license — 'all_rights' | 'creative_commons'
+    
     String licensing = 'all_rights',
-    // advanced
+    
     bool containsExplicit = false,
     String? releaseDate,
     String? recordLabel,
     String? publisher,
     String? isrc,
     String? pLine,
-    // geoBlocking — 'worldwide' | 'exclusive' | 'blocked'
+    
     String availability = 'worldwide',
     List<String> geoBlockingRegions = const [],
     List<String> geoBlockingCountries = const [],
   }) async {
     try {
-      final token = await _getToken();
+      final token = await _authService.getAccessToken();
       if (token == null) return (401, 'Unauthorized');
 
       final request = http.MultipartRequest('PATCH', Uri.parse('${_apiServices.baseUrl}/api/tracks/v2/'))
@@ -252,7 +252,7 @@ class TrackApiService {
         );
       }
 
-      // basicInfo — only send if at least one field is being updated
+      
       final hasBasicUpdate =
           title != null ||
           permalink != null ||
@@ -278,7 +278,7 @@ class TrackApiService {
         );
       }
 
-      // permissions — playback and distribution settings
+      
       request.fields['permissions'] = jsonEncode({
         'enableDirectDownload': enableDirectDownload,
         'offlineListening': offlineListening,
@@ -287,7 +287,7 @@ class TrackApiService {
         'enableAppPlayback': enableAppPlayback,
       });
 
-      // license — usage rights
+      
       final licenseType = licensing == 'creative_commons'
           ? 'creativeCommons'
           : 'allRightsReserved';
@@ -299,7 +299,7 @@ class TrackApiService {
         'shareAlike': false,
       });
 
-      // advanced — publishing and distribution metadata
+      
       final advancedMap = <String, dynamic>{
         'explicitContent': containsExplicit,
       };
@@ -310,7 +310,7 @@ class TrackApiService {
       if (pLine != null && pLine.isNotEmpty) advancedMap['pLine'] = pLine;
       request.fields['advanced'] = jsonEncode(advancedMap);
 
-      // geoBlocking — sent as JSON-stringified multipart field
+      
       request.fields['geoBlocking'] = jsonEncode({
         'mode': availability,
         'regions': geoBlockingRegions,
@@ -351,14 +351,14 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Delete a track
-  // DELETE /api/tracks/v1/{id}
-  //
-  // 200: { message: "Track Deleted Sucessfully" }
-  // 403: not owner
-  // 404: not found
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> deleteTrack({required String trackId}) async {
     if (trackId.trim().isEmpty) return (400, 'Invalid track ID');
     try {
@@ -380,12 +380,12 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get all tracks paginated
-  // GET /api/tracks/v2/?page=1&limit=20
-  //
-  // Returns (200, { tracks: List<Track>, hasNext: bool, page: int })
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> getAllTracksPaginated({
     int page = 1,
     int limit = 20,
@@ -427,12 +427,12 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get a single track by ID (full nested shape with audioLink)
-  // GET /api/public/tracks/v2/{id}
-  //
-  // Returns (200, Track)
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> getTrackById({required String trackId}) async {
     if (trackId.trim().isEmpty) return (400, 'Invalid track ID');
     try {
@@ -460,22 +460,42 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get tracks posted by a user (public — no audioLink)
-  // GET /api/public/tracks/v2/posted/{userId}
-  //
-  // Returns (200, List<Track>)
-  // ─────────────────────────────────────────────
+  Future<(int, dynamic)> getTrackDataMapById({required String trackId}) async {
+    if (trackId.trim().isEmpty) return (400, 'Invalid track ID');
+    try {
+      final token = await _getToken();
+      final headers = token != null
+          ? _authHeaders(token)
+          : {'Content-Type': 'application/json', 'User-Agent': 'Android'};
+
+      final response = await _client.get(
+        Uri.parse('$_publicV2Base/$trackId'),
+        headers: headers,
+      );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final trackData = data['data'] as Map<String, dynamic>?;
+        if (trackData != null) {
+          return (200, trackData);
+        }
+        return (404, 'Track not found');
+      }
+      return (response.statusCode, data['message'] ?? 'Failed to fetch track');
+    } catch (err) {
+      return (500, 'Network error: $err');
+    }
+  }
   Future<(int, dynamic)> getUserPostedTracks({required String userId}) async {
     if (userId.trim().isEmpty) return (400, 'Invalid user ID');
     try {
       final token = await _getToken();
       final response = await _client.get(
-        Uri.parse('$_authBase2/posted/$userId'),
+        Uri.parse('$_publicV2Base/posted/$userId'),
         headers: {
           'Content-Type': 'application/json',
           'User-Agent': 'Android',
-          'Authorization': 'Bearer $token',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
       );
       final data = jsonDecode(response.body);
@@ -497,12 +517,12 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get tracks liked by a user (public — no audioLink)
-  // GET /api/public/tracks/v2/liked/{userId}
-  //
-  // Returns (200, List<Track>)
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> getUserLikedTracks({required String userId}) async {
     if (userId.trim().isEmpty) return (400, 'Invalid user ID');
     try {
@@ -524,13 +544,13 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Increment play count — fire-and-forget
-  // PATCH /api/tracks/v2/listen
-  // Body: { trackId, listenedDuration (seconds), sessionIdPlay (UUID v4) }
-  // Server counts a play only when listenedDuration >= 30% of track duration.
-  // sessionIdPlay deduplicates concurrent/duplicate requests via Redis.
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> incrementPlayCount({
     required String trackId,
     required int listenedDuration,
@@ -564,12 +584,12 @@ class TrackApiService {
     }
   }
 
-  // RFC 4122 UUID v4 — uses Random.secure() for cryptographic randomness.
+  
   String _generateUuid() {
     final rng = Random.secure();
     final b = List<int>.generate(16, (_) => rng.nextInt(256));
-    b[6] = (b[6] & 0x0f) | 0x40; // version 4
-    b[8] = (b[8] & 0x3f) | 0x80; // variant 1
+    b[6] = (b[6] & 0x0f) | 0x40; 
+    b[8] = (b[8] & 0x3f) | 0x80; 
     String hex(int v) => v.toRadixString(16).padLeft(2, '0');
     return '${hex(b[0])}${hex(b[1])}${hex(b[2])}${hex(b[3])}-'
         '${hex(b[4])}${hex(b[5])}-'
@@ -578,11 +598,11 @@ class TrackApiService {
         '${hex(b[10])}${hex(b[11])}${hex(b[12])}${hex(b[13])}${hex(b[14])}${hex(b[15])}';
   }
 
-  // ─────────────────────────────────────────────
-  // Add track to listening history — fire-and-forget
-  // POST /api/tracks/v1/played/{id}
-  // Called by Module 5 PlayerController on play start.
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
   Future<(int, dynamic)> addToHistory({required String trackId}) async {
     if (trackId.trim().isEmpty) return (400, 'Invalid track ID');
     try {
@@ -607,12 +627,12 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get listening history (used by Module 5 HistoryScreen)
-  // GET /api/playback/v1/history/tracks
-  //
-  // Returns (200, List<Track>) — full nested shape WITH audioLink
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> getListeningHistory() async {
     try {
       final token = await _getToken();
@@ -636,12 +656,12 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get user feed (used by Module 8 / Home screen later)
-  // GET /api/feed?offset=0&limit=20
-  //
-  // Returns (200, List<Track>) — flat shape, NO audioLink
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> getUserFeed({int offset = 0, int limit = 20}) async {
     try {
       final token = await _getToken();
@@ -666,12 +686,12 @@ class TrackApiService {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Get trending tracks (used by Module 8 / Home screen later)
-  // GET /api/trending?offset=0&limit=20
-  //
-  // Returns (200, List<Track>) — flat shape, NO audioLink
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> getTrendingTracks({
     int offset = 0,
     int limit = 20,
@@ -701,14 +721,14 @@ class TrackApiService {
       return (500, 'Network error: $err');
     }
   }
-  // ─────────────────────────────────────────────
-  // Update Mobile Pro Preview flag
-  // PATCH /api/tracks/v1/mobile-pro-preview/{trackId}
-  //
-  // Request body: { "mobileProPreview": bool }
-  // 200: { message: "Track Mobile Pro Preview Updated Successfully",
-  //        data: { isChanged: bool } }
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
+  
+  
   Future<(int, dynamic)> updateMobileProPreview({
     required String trackId,
     required bool mobileProPreview,

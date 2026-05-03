@@ -1,5 +1,5 @@
-// sets_playlists_routes.dart — Named routes for Module 7
-// Register these in AppRouter.routes alongside other modules.
+
+
 
 import 'package:flutter/material.dart';
 

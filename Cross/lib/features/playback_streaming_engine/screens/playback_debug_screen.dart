@@ -1,6 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 import '../models/playback_state_model.dart';
@@ -393,6 +395,7 @@ class _PlaybackDebugScreenState extends State<PlaybackDebugScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       body: SafeArea(bottom: false, child: _buildBody()),

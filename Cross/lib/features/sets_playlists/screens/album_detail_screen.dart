@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/activity/screens/playlist_options_sheet.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
@@ -236,6 +238,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: _buildAppBar(),
@@ -347,7 +350,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Album art — larger, square, prominent
+          
           Center(
             child: Container(
               width: 240,
@@ -376,7 +379,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Album label chip
+          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -401,7 +404,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Title
+          
           Text(
             a.title,
             style: TextStyle(
@@ -412,7 +415,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           ),
           const SizedBox(height: 6),
 
-          // Meta row
+          
           Row(
             children: [
               Container(
@@ -452,7 +455,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
           const SizedBox(height: 16),
 
-          // Stats row
+          
           Row(
             children: [
               Icon(Icons.favorite_border, color: AppColors.white54, size: 18),

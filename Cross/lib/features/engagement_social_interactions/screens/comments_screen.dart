@@ -1,39 +1,41 @@
-// Screen: CommentsScreen
-// Full-page comments view for a track.
-//
-// Design matches SoundCloud (Image 14):
-//   AppBar:   "28 comments" + filter icon (sort)
-//   Below:    Track thumbnail + title + artist
-//   Row:      emoji reactions (🔥👏😢) + total reaction count + comment count
-//   Body:     ListView of CommentTile widgets
-//   Bottom:   User avatar + "Comment at MM:SS" input + post button
-//
-// Navigation:
-//   Opened from track options bottom sheet "View comments"
-//   or from the player bar comment icon.
-//   Navigator.pushNamed(context, EngagementRoutes.comments,
-//     arguments: {
-//       'trackId': track.id,
-//       'trackTitle': track.title,
-//       'trackArtist': track.artist,
-//       'trackThumbnailUrl': track.thumbnailUrl,
-//       'currentPositionSeconds': 25 * 60 + 6, // 25:06 from player
-//     });
-//
-// Replies:
-//   Tapping "Reply" on a CommentTile sets _replyingTo and focuses input.
-//   Input shows "@username" prefix and posts with parentCommentId.
-//   Tapping a "View X replies" row expands inline replies.
-//
-// Optimistic updates:
-//   - Post comment: prepend to list immediately, remove on failure.
-//   - Like comment: flip isLikedByUser + adjust numLikes locally, revert on failure.
-//   - Delete comment: remove from list immediately, re-insert on failure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/comment.dart';
@@ -49,8 +51,8 @@ class CommentsScreen extends StatefulWidget {
   final String trackTitle;
   final String trackArtist;
   final String? trackThumbnailUrl;
-  final int currentPositionSeconds; // from Module 5 player — defaults to 0
-  final bool syncWithPlayer; // false when opened from feed (stamp fixed at 0:00)
+  final int currentPositionSeconds; 
+  final bool syncWithPlayer; 
 
   const CommentsScreen({
     super.key,
@@ -73,13 +75,13 @@ class _CommentsScreenState extends State<CommentsScreen> {
   final FocusNode _inputFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
-  // @ mention state
+  
   List<MentionUser> _mentionFollowers = [];
   List<MentionUser> _mentionSuggestions = [];
   bool _showMentionSuggestions = false;
   String? _pendingMentionedUserId;
 
-  // ── Local like persistence (shared across screen instances this session) ──
+  
   static const FlutterSecureStorage _likeStorage = FlutterSecureStorage();
   static Set<String> _sessionLikedIds = {};
   static bool _sessionLikedLoaded = false;
@@ -93,7 +95,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   int _totalCommentCount = 0;
   static const int _pageSize = 20;
 
-  // Sort state — maps to API sortBy param
+  
   String _sortBy = 'newest';
   static const Map<String, String> _sortLabels = {
     'newest': 'Newest',
@@ -101,17 +103,17 @@ class _CommentsScreenState extends State<CommentsScreen> {
     'trackTime': 'Track time',
   };
 
-  // Reply state — set when user taps "Reply" on a CommentTile
+  
   Comment? _replyingTo;
 
-  // Expanded replies — commentId → list of reply Comments
+  
   final Map<String, List<Comment>> _expandedReplies = {};
   final Set<String> _loadingReplies = {};
 
-  // Live playback position — updated from player listener
+  
   late int _currentPositionSeconds;
 
-  // Current user identity for avatar and optimistic comments
+  
   String? _currentUserId;
   String _currentUserDisplayName = 'You';
   String? _currentUserAvatarUrl;
@@ -129,7 +131,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     _inputController.addListener(_onMentionTextChanged);
   }
 
-  // ── Load persisted liked comment IDs from secure storage ──
+  
   Future<void> _loadLocalLikedState() async {
     if (_sessionLikedLoaded) return;
     try {
@@ -142,7 +144,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     _sessionLikedLoaded = true;
   }
 
-  // ── Persist a like toggle to secure storage ──
+  
   Future<void> _persistLikedId(String commentId, bool isNowLiked) async {
     if (isNowLiked) {
       _sessionLikedIds.add(commentId);
@@ -157,7 +159,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     } catch (_) {}
   }
 
-  // ── Apply locally persisted liked state to comments list ──
+  
   void _applyLocalLikedState(List<Comment> comments) {
     for (final c in comments) {
       if (!c.isLikedByUser && _sessionLikedIds.contains(c.commentId)) {
@@ -200,7 +202,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
             ? null
             : profile.profileImgLink.trim();
       });
-      // Load mention follower suggestions for @ in comments
+      
       final mentionResult = await _service.getMentionFollowers();
       if (!mounted) return;
       if (mentionResult.$1 == 200 && mentionResult.$2 is List) {
@@ -212,7 +214,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     } catch (_) {}
   }
 
-  // Detects @query in the text field and filters mention followers
+  
   void _onMentionTextChanged() {
     final text = _inputController.text;
     final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
@@ -246,7 +248,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     }
   }
 
-  // Replaces the current @query with @displayName in the input field
+  
   void _insertMention(MentionUser user) {
     final text = _inputController.text;
     final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
@@ -280,9 +282,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     } catch (_) {}
   }
 
-  // ─────────────────────────────────────────────
-  // Load first page of comments
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadComments() async {
     setState(() {
       _isLoading = true;
@@ -308,9 +310,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Load next page (pagination)
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadMore() async {
     if (_isLoadingMore || _comments.length < _pageSize) return;
     setState(() => _isLoadingMore = true);
@@ -331,19 +333,19 @@ class _CommentsScreenState extends State<CommentsScreen> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Post a new comment or reply — optimistic
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _postComment() async {
     final content = _inputController.text.trim();
     if (content.isEmpty || _isPosting) return;
 
     setState(() => _isPosting = true);
 
-    // Replies never carry a timestamp; only top-level comments do.
+    
     final int postTimestamp = _replyingTo != null ? 0 : _currentPositionSeconds;
 
-    // Build optimistic comment with the live player position and real user info.
+    
     final optimistic = Comment(
       'optimistic_${DateTime.now().millisecondsSinceEpoch}',
       _currentUserId ?? '',
@@ -354,14 +356,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
       0,
       0,
       false,
-      true, // isOwnComment = true
+      true, 
       DateTime.now().toIso8601String(),
     );
 
-    // Optimistically prepend.
+    
     setState(() {
       if (_replyingTo != null) {
-        // Add as first reply in expanded list.
+        
         final replies = _expandedReplies[_replyingTo!.commentId] ?? [];
         _expandedReplies[_replyingTo!.commentId] = [optimistic, ...replies];
       } else {
@@ -390,7 +392,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
     if (result.$1 == 201) {
       if (replyingToId != null) {
-        // Reload replies for the parent comment to get fresh server data.
+        
         final repliesResult = await _service.getCommentReplies(
           commentId: replyingToId,
         );
@@ -400,7 +402,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           _applyLocalLikedState(fresh);
           setState(() => _expandedReplies[replyingToId] = fresh);
         } else {
-          // Fallback: just replace optimistic with real.
+          
           final real = result.$2 as Comment;
           final replies = _expandedReplies[replyingToId] ?? [];
           final idx = replies.indexWhere(
@@ -411,12 +413,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
         }
         _fetchTotalCommentCount();
       } else {
-        // Reload full comment list so count and ordering are accurate.
+        
         _loadComments();
         _fetchTotalCommentCount();
       }
     } else {
-      // Rollback optimistic insert.
+      
       setState(() {
         if (replyingToId != null) {
           final replies = _expandedReplies[replyingToId] ?? [];
@@ -430,11 +432,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Toggle like on a comment — optimistic
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _toggleCommentLike(Comment comment) async {
-    // Optimistic update.
+    
     final wasLiked = comment.isLikedByUser;
     setState(() {
       comment.isLikedByUser = !wasLiked;
@@ -448,7 +450,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     if (!mounted) return;
 
     if (result.$1 == 200) {
-      // Sync with server's authoritative count.
+      
       final bool nowLiked = result.$2['liked'] as bool? ?? !wasLiked;
       setState(() {
         comment.isLikedByUser = nowLiked;
@@ -456,7 +458,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       });
       _persistLikedId(comment.commentId, nowLiked);
     } else {
-      // Revert.
+      
       setState(() {
         comment.isLikedByUser = wasLiked;
         comment.numLikes = wasLiked
@@ -467,20 +469,20 @@ class _CommentsScreenState extends State<CommentsScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Delete a comment or reply — optimistic
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _deleteComment(Comment comment) async {
-    // Determine if this is a top-level comment or a reply.
+    
     final int topIdx = _comments.indexOf(comment);
     String? replyParentId;
     int replyIdx = -1;
 
     if (topIdx >= 0) {
-      // Top-level comment — remove from list.
+      
       setState(() => _comments.removeAt(topIdx));
     } else {
-      // Search expanded reply lists.
+      
       for (final entry in _expandedReplies.entries) {
         final int i = entry.value.indexOf(comment);
         if (i >= 0) {
@@ -491,7 +493,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           break;
         }
       }
-      if (replyParentId == null) return; // comment not found anywhere
+      if (replyParentId == null) return; 
     }
 
     final result = await _service.deleteComment(commentId: comment.commentId);
@@ -499,7 +501,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     if (!mounted) return;
 
     if (result.$1 != 200) {
-      // Revert optimistic removal.
+      
       setState(() {
         if (replyParentId != null) {
           final replies = List<Comment>.from(
@@ -523,19 +525,19 @@ class _CommentsScreenState extends State<CommentsScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // Load replies for a comment (expand/collapse)
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _toggleReplies(Comment comment) async {
     final id = comment.commentId;
 
-    // Collapse if already expanded.
+    
     if (_expandedReplies.containsKey(id)) {
       setState(() => _expandedReplies.remove(id));
       return;
     }
 
-    // Fetch replies.
+    
     setState(() => _loadingReplies.add(id));
 
     final result = await _service.getCommentReplies(commentId: id);
@@ -552,9 +554,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Set up reply input
-  // ─────────────────────────────────────────────
+  
+  
+  
   void _startReply(Comment comment) {
     setState(() => _replyingTo = comment);
     _inputFocusNode.requestFocus();
@@ -566,9 +568,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // ─────────────────────────────────────────────
-  // Format live playback position as MM:SS
-  // ─────────────────────────────────────────────
+  
+  
+  
   String get _formattedPosition {
     final m = _currentPositionSeconds ~/ 60;
     final s = _currentPositionSeconds % 60;
@@ -577,6 +579,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(
@@ -598,7 +601,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           ),
         ),
         actions: [
-          // Sort filter icon
+          
           IconButton(
             icon: Icon(Icons.tune, color: AppColors.whiteSmoke, size: 20),
             onPressed: _showSortSheet,
@@ -607,12 +610,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
       ),
       body: Column(
         children: [
-          // ── Track info header ──────────────────
+          
           _buildTrackHeader(),
 
           Divider(color: AppColors.container, height: 1),
 
-          // ── Comments list ──────────────────────
+          
           Expanded(
             child: _isLoading
                 ? Center(
@@ -625,20 +628,20 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 : _buildCommentsList(),
           ),
 
-          // ── Reply-to indicator ─────────────────
+          
           if (_replyingTo != null) _buildReplyIndicator(),
 
-          // ── @ mention suggestions ──────────────
+          
           if (_showMentionSuggestions) _buildMentionSuggestions(),
 
-          // ── Comment input bar ──────────────────
+          
           _buildInputBar(),
         ],
       ),
     );
   }
 
-  // ── Track header (thumbnail + title + artist) ──
+  
   Widget _buildTrackHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -694,9 +697,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
   }
 
-  // ── Comments list with inline replies ──────────
+  
   Widget _buildCommentsList() {
-    // Flatten comments + their inline replies into one list.
+    
     final List<Widget> items = [];
 
     for (final comment in _comments) {
@@ -730,8 +733,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
         ),
       );
 
-      // Show expand/collapse replies button if comment has replies (or
-      // if we've already added replies programmatically, e.g. after posting).
+      
+      
       if (comment.replyCount > 0 ||
           _expandedReplies.containsKey(comment.commentId)) {
         final isExpanded = _expandedReplies.containsKey(comment.commentId);
@@ -766,7 +769,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           ),
         );
 
-        // Render expanded replies inline.
+        
         if (isExpanded) {
           final replies = _expandedReplies[comment.commentId] ?? [];
           for (final reply in replies) {
@@ -775,7 +778,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 comment: reply,
                 isReply: true,
                 onLikeTap: () => _toggleCommentLike(reply),
-                onReplyTap: () => _startReply(comment), // reply to parent
+                onReplyTap: () => _startReply(comment), 
                 onTimestampTap: () {
                   PlaybackStreamingEngineService.shared.seek(
                     Duration(seconds: reply.timestamp),
@@ -806,7 +809,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       items.add(Divider(height: 1, color: AppColors.borderDark));
     }
 
-    // Load more at the bottom.
+    
     if (_comments.length >= _pageSize) {
       items.add(
         Padding(
@@ -871,7 +874,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
   }
 
-  // ── Reply-to indicator bar ──────────────────────
+  
   Widget _buildReplyIndicator() {
     return Container(
       color: AppColors.container,
@@ -892,7 +895,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
   }
 
-  // ── @ mention suggestion panel ─────────────────
+  
   Widget _buildMentionSuggestions() {
     return Container(
       constraints: const BoxConstraints(maxHeight: 160),
@@ -942,7 +945,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
   }
 
-  // ── Comment input bar ──────────────────────────
+  
   Widget _buildInputBar() {
     return Container(
       color: AppColors.backgroundDark,
@@ -954,7 +957,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       ),
       child: Row(
         children: [
-          // Current user avatar
+          
           CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.tileDark,
@@ -976,7 +979,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           ),
           const SizedBox(width: 10),
 
-          // Text input
+          
           Expanded(
             child: TextField(
               controller: _inputController,
@@ -1006,7 +1009,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
           const SizedBox(width: 8),
 
-          // Post button
+          
           GestureDetector(
             onTap: _isPosting ? null : _postComment,
             child: _isPosting
@@ -1025,7 +1028,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
   }
 
-  // ── Sort bottom sheet ──────────────────────────
+  
   void _showSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -1085,7 +1088,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
   }
 
-  // ── Delete confirmation dialog ─────────────────
+  
   void _confirmDelete(Comment comment) {
     showDialog(
       context: context,

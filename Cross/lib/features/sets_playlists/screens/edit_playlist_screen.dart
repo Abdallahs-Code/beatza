@@ -1,13 +1,15 @@
-// Screen: EditPlaylistScreen
-// Two tabs: Tracks (drag-to-reorder, remove) and Details (metadata form).
-// Reordering and removal persist immediately via the API.
-// Save button in AppBar applies only to the Details form fields.
+
+
+
+
 
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
@@ -140,6 +142,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(
@@ -236,7 +239,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Image picker
+          
           Center(
             child: GestureDetector(
               onTap: _pickImage,

@@ -50,22 +50,22 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
   bool _posting = false;
   bool _initialReplySetupDone = false;
 
-  // Expanded replies — commentId → list of reply Comments
+  
   final Map<String, List<Comment>> _expandedReplies = {};
   final Set<String> _loadingReplies = {};
 
-  // Reply state — tracks which comment we are replying to
+  
   Comment? _replyingTo;
 
-  // Live playback position for the timestamp suffix
+  
   int _currentPositionSeconds = 0;
 
-  // Live track stats
+  
   int _numComments = 0;
   int _numReposts = 0;
   PlaybackTrackModel? _trackModel;
 
-  // @ mention state
+  
   String? _currentUserId;
   List<MentionUser> _mentionFollowers = [];
   List<MentionUser> _mentionSuggestions = [];
@@ -86,7 +86,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     _loadComments();
     _loadCurrentUser();
     _loadTrackData();
-    // Sync initial playback position
+    
     _currentPositionSeconds =
         PlaybackStreamingEngineService.shared.state.currentPosition.inSeconds;
     PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
@@ -129,7 +129,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     final userId = await _authApi.getStoredUserId();
     if (!mounted || userId == null) return;
     setState(() => _currentUserId = userId);
-    // Load mention follower suggestions for @ in comments
+    
     final result = await _engagementApi.getMentionFollowers();
     if (!mounted) return;
     if (result.$1 == 200 && result.$2 is List) {
@@ -139,7 +139,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     }
   }
 
-  // Detects @ in the text field and filters mention followers for suggestions
+  
   void _onTextChanged() {
     final text = _inputController.text;
     final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
@@ -173,7 +173,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     }
   }
 
-  // Inserts @displayName into the text field replacing the current @query
+  
   void _insertMention(MentionUser user) {
     final text = _inputController.text;
     final cursor = _inputController.selection.baseOffset.clamp(0, text.length);
@@ -223,7 +223,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
         if (mounted) _startReply(match);
       });
     } else {
-      // Fallback: pre-fill mention and timestamp without a found comment
+      
       final mention = widget.initialMentionDisplayName;
       if (mention != null && mention.isNotEmpty) {
         _inputController.text = '@$mention ';
@@ -244,8 +244,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     }
   }
 
-  // Timestamp used when posting: reply uses parent's track timestamp,
-  // otherwise use live playback position.
+  
+  
   int get _effectiveTimestamp =>
       _replyingTo?.timestamp ?? _currentPositionSeconds;
 
@@ -282,7 +282,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
       DateTime.now().toIso8601String(),
     );
 
-    // Insert optimistic: replies go directly after their parent in the list
+    
     if (replyingTo != null) {
       final parentIdx = _comments.indexWhere(
         (c) => c.commentId == replyingTo.commentId,
@@ -319,7 +319,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     setState(() => _posting = false);
   }
 
-  // Exact same pattern as CommentsScreen._toggleCommentLike
+  
   Future<void> _toggleCommentLike(Comment comment) async {
     final wasLiked = comment.isLikedByUser;
     setState(() {
@@ -455,7 +455,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     );
   }
 
-  // Sets _replyingTo, pre-fills @username, focuses input
+  
   void _startReply(Comment comment) {
     setState(() {
       _replyingTo = comment;
@@ -471,7 +471,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     _focusNode.requestFocus();
   }
 
-  // ─── Build ──────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
@@ -809,7 +809,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
               ],
             ),
           ),
-          // Like heart — exact same pattern as CommentsScreen comment tile
+          
           GestureDetector(
             onTap: () => _toggleCommentLike(comment),
             behavior: HitTestBehavior.opaque,
@@ -840,7 +840,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     );
   }
 
-  // Shows "Replying to @username" bar with a dismiss X
+  
   Widget _buildReplyIndicator() {
     return Container(
       color: AppColors.container,
@@ -867,7 +867,7 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
     );
   }
 
-  // Floating suggestion list shown when user types @query
+  
   Widget _buildMentionSuggestions() {
     return Container(
       constraints: const BoxConstraints(maxHeight: 160),
@@ -983,8 +983,8 @@ class _QuickReplySheetState extends State<QuickReplySheet> {
                 hintText: 'Add a comment at...',
                 hintStyle: TextStyle(color: AppColors.greyDark4, fontSize: 14),
                 border: InputBorder.none,
-                // Dynamic timestamp: uses parent comment's timestamp when
-                // replying, otherwise live playback position.
+                
+                
                 suffixText: _formattedTimestamp,
                 suffixStyle: TextStyle(
                   color: AppColors.greyDark4,
