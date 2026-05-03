@@ -25,6 +25,8 @@
 //       Playlist/Album → TODO (Module 7) — show snackbar for now
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/widgets/common_widgets.dart';
 
@@ -419,6 +421,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,
       body: SafeArea(

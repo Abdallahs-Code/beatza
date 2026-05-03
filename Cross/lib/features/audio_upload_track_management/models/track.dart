@@ -149,6 +149,35 @@ class Track {
   String? get pLine => _pLine;
   bool get mobileProPreview => _mobileProPreview;
 
+  Track copyWith({
+    bool? isPrivate,
+    String? geoBlockingMode,
+    List<String>? geoBlockingRegions,
+    List<String>? geoBlockingCountries,
+  }) =>
+      Track(
+        _id, _title, _permalink, _mainArtists, _genre, _tags, _description,
+        isPrivate ?? _isPrivate,
+        _audioLink, _imageUrl,
+        numLikes, _numPlays, numReposts, _numComments, _releaseDate,
+        caption: _caption,
+        enableDirectDownload: _enableDirectDownload,
+        offlineListening: _offlineListening,
+        includeInRssFeed: _includeInRssFeed,
+        displayedEmbedCode: _displayedEmbedCode,
+        enableAppPlayback: _enableAppPlayback,
+        licenseType: _licenseType,
+        geoBlockingMode: geoBlockingMode ?? _geoBlockingMode,
+        geoBlockingRegions: geoBlockingRegions ?? _geoBlockingRegions,
+        geoBlockingCountries: geoBlockingCountries ?? _geoBlockingCountries,
+        explicitContent: _explicitContent,
+        recordLabel: _recordLabel,
+        publisher: _publisher,
+        isrc: _isrc,
+        pLine: _pLine,
+        mobileProPreview: _mobileProPreview,
+      );
+
   // ─────────────────────────────────────────────
   // Factory: SHAPE B — nested (history, detail, posted, liked)
   // ─────────────────────────────────────────────

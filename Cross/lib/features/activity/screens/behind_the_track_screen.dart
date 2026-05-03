@@ -10,6 +10,8 @@ import 'package:cross_team5/features/activity/models/track_stats_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class BehindTheTrackScreen extends StatefulWidget {
@@ -367,6 +369,7 @@ class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(

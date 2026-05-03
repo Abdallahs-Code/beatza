@@ -6,6 +6,8 @@ import 'package:cross_team5/features/library/services/library_history_api_servic
 import 'package:cross_team5/features/library/widgets/library_widgets.dart';
 import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class YourLikesScreen extends StatefulWidget {
@@ -75,6 +77,7 @@ class _YourLikesScreenState extends State<YourLikesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.pureBlack,
       appBar: AppBar(

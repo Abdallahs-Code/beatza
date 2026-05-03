@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/audio_upload_track_management/models/track.dart';
 import 'package:cross_team5/features/audio_upload_track_management/services/track_api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import 'package:cross_team5/features/audio_upload_track_management/audio_upload_track_management_routes.dart';
 
 class TrackManagementScreen extends StatefulWidget {
@@ -106,7 +108,34 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
 
     final result = await _apiService.updateTrack(
       trackId: track.id,
+      // basicInfo — send all current values so the server accepts the update;
+      // only isPrivate changes, the rest are preserved as-is.
+      title: track.title,
+      permalink: track.permalink.isNotEmpty ? track.permalink : null,
+      mainArtists: track.mainArtists.isNotEmpty ? track.mainArtists : null,
+      genre: track.genre.isNotEmpty ? track.genre : null,
+      tags: track.tags.isNotEmpty ? track.tags : null,
+      description: track.description.isNotEmpty ? track.description : null,
+      caption: track.caption.isNotEmpty ? track.caption : null,
       isPrivate: nowPrivate,
+      // permissions — preserve current values instead of sending defaults
+      enableDirectDownload: track.enableDirectDownload,
+      offlineListening: track.offlineListening,
+      includeInRssFeed: track.includeInRssFeed,
+      displayedEmbedCode: track.displayedEmbedCode,
+      enableAppPlayback: track.enableAppPlayback,
+      // license
+      licensing: track.licenseType == 'creativeCommons' ? 'creative_commons' : 'all_rights',
+      // advanced
+      containsExplicit: track.explicitContent,
+      recordLabel: track.recordLabel,
+      publisher: track.publisher,
+      isrc: track.isrc,
+      pLine: track.pLine,
+      // geoBlocking
+      availability: track.geoBlockingMode,
+      geoBlockingRegions: track.geoBlockingRegions,
+      geoBlockingCountries: track.geoBlockingCountries,
     );
 
     setState(() => _togglingIds.remove(track.id));
@@ -232,6 +261,7 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
   // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       appBar: AppBar(

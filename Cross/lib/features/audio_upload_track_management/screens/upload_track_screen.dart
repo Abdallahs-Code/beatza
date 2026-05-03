@@ -13,6 +13,8 @@ import 'package:cross_team5/features/audio_upload_track_management/widgets/pro_r
 import 'package:cross_team5/features/audio_upload_track_management/screens/artist_pro_screens.dart';
 import 'package:cross_team5/features/audio_upload_track_management/screens/your_uploads_screen.dart';
 import 'package:cross_team5/features/premium_subscription/services/payment_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 
 // ── Geo-blocking data ────────────────────────────────────────────────────────
@@ -456,7 +458,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
-      // Update mobileProPreview via its dedicated endpoint
       await _trackApiService.updateMobileProPreview(
         trackId: track.id,
         mobileProPreview: _mobileProPreview,
@@ -716,7 +717,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
-      // Update mobileProPreview via its dedicated endpoint
       if (track.serverId != null) {
         await _trackApiService.updateMobileProPreview(
           trackId: track.serverId!,
@@ -946,6 +946,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return ValueListenableBuilder<SubscriptionState>(
       valueListenable: PaymentService.subscriptionSuccessNotifier,
       builder: (context, state, _) {

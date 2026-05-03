@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 import '../../premium_subscription/services/payment_service.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
 import '../models/spotlight_models.dart';
 
 class EditSpotlightScreen extends StatefulWidget {
@@ -188,6 +190,7 @@ class _EditSpotlightScreenState extends State<EditSpotlightScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
@@ -435,6 +438,7 @@ class ProRestrictionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.backgroundDark3,
       appBar: AppBar(
@@ -524,6 +528,7 @@ class ArtistTermsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
@@ -625,6 +630,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
       backgroundColor: AppColors.whiteSmoke,
       appBar: AppBar(
