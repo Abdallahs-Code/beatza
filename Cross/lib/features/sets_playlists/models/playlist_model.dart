@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart';
 //
 // API response shape (full — with tracks):
 //   _id, artistId, title, description, genre, listOfTracks[], additionalTags[],
-//   permalink, isPrivate, numOfLikes, numOfReposts, playlistType, playlistLengthInSeconds,
+//   permalink, isPrivate, secretToken (optional — secret share links),
+//   numOfLikes, numOfReposts, playlistType, playlistLengthInSeconds,
 //   likedUser[], isLiked, isReposted, image{imgLink, publicId},
 //   createdAt, updatedAt, totalTracks, totalPages, page, tracks[]
 //
@@ -39,7 +40,10 @@ class PlaylistTrack {
   final bool isLiked;
   final bool isReposted;
 
-  const PlaylistTrack({
+  /// Original track object from the playlist API (full audio + permissions).
+  final Map<String, dynamic>? rawApiJson;
+
+  PlaylistTrack({
     required this.id,
     required this.title,
     required this.permalink,
@@ -51,6 +55,7 @@ class PlaylistTrack {
     required this.numOfLikes,
     required this.isLiked,
     required this.isReposted,
+    this.rawApiJson,
   });
 
   String get displayArtist =>
@@ -89,6 +94,7 @@ class PlaylistTrack {
       numOfLikes: (json['numOfLikes'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       isReposted: json['isReposted'] as bool? ?? false,
+      rawApiJson: Map<String, dynamic>.from(json),
     );
   }
 }
@@ -103,6 +109,9 @@ class PlaylistModel {
   final List<String> additionalTags;
   final String permalink;
   final bool isPrivate;
+
+  /// Present for secret/private playlists — required to open the playlist via share URL.
+  final String? secretToken;
   final int numOfLikes;
   final int numOfReposts;
   final String playlistType; // 'playlist' | 'album'
@@ -130,6 +139,7 @@ class PlaylistModel {
     required this.additionalTags,
     required this.permalink,
     required this.isPrivate,
+    this.secretToken,
     required this.numOfLikes,
     required this.numOfReposts,
     required this.playlistType,
@@ -149,6 +159,54 @@ class PlaylistModel {
   bool get isAlbum => playlistType == 'album';
 
   int get trackCount => totalTracks ?? listOfTracks.length;
+
+  /// Web URL anyone can use to open this playlist while it stays secret (needs token).
+  String? secretShareUrl(
+    String apiBaseUrl, {
+    String? secretOverride,
+  }) {
+    if (!isPrivate) return null;
+    final secret = (secretOverride ?? secretToken)?.trim();
+    if (secret == null || secret.isEmpty) return null;
+    final origin = Uri.parse(apiBaseUrl).origin;
+    final slug =
+        permalink.trim().isNotEmpty ? permalink.trim() : id.trim();
+    if (slug.isEmpty) return null;
+    return '$origin/playlist/$slug'
+        '?secretToken=${Uri.encodeQueryComponent(secret)}';
+  }
+
+  /// Beatza web embed player URL (iframe `src`). Uses permalink when set, else `_id`.
+  /// Secret playlists append `secretToken` like the full-page secret link.
+  String embedIframeSrc(
+    String apiBaseUrl, {
+    String? secretOverride,
+  }) {
+    final origin = Uri.parse(apiBaseUrl).origin;
+    final slug =
+        permalink.trim().isNotEmpty ? permalink.trim() : id.trim();
+    if (slug.isEmpty) return origin;
+    final base =
+        '$origin/embed/playlist/${Uri.encodeComponent(slug)}';
+    if (!isPrivate) return base;
+    final secret = (secretOverride ?? secretToken)?.trim();
+    if (secret == null || secret.isEmpty) return base;
+    return '$base?secretToken=${Uri.encodeQueryComponent(secret)}';
+  }
+
+  /// HTML iframe snippet for blogs / external sites (`width="100%"`, fixed height).
+  String embedIframeSnippet(
+    String apiBaseUrl, {
+    String? secretOverride,
+    int height = 380,
+  }) {
+    final src = embedIframeSrc(apiBaseUrl, secretOverride: secretOverride);
+    final safeSrc = src.replaceAll('&', '&amp;');
+    return '<iframe src="$safeSrc" width="100%" height="$height" '
+        'frameborder="0" scrolling="no" allowfullscreen '
+        'allow="autoplay; clipboard-write; encrypted-media; fullscreen; '
+        'picture-in-picture"></iframe>';
+  }
 
   factory PlaylistModel.fromJson(Map<String, dynamic> json) {
     final imageJson = json['image'] as Map<String, dynamic>?;
@@ -177,6 +235,9 @@ class PlaylistModel {
           .toList(),
       permalink: json['permalink']?.toString() ?? '',
       isPrivate: parseIsPrivate(),
+      secretToken: json['secretToken']?.toString() ??
+          json['secret_token']?.toString() ??
+          json['shareToken']?.toString(),
       numOfLikes: (json['numOfLikes'] as num?)?.toInt() ?? 0,
       numOfReposts: (json['numOfReposts'] as num?)?.toInt() ?? 0,
       playlistType: json['playlistType']?.toString() ?? 'playlist',

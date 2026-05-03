@@ -1,18 +1,21 @@
 // Widget: PlaylistTrackTile
 // Displays a single track inside PlaylistDetailScreen or EditPlaylistScreen.
-// showOptions → ⋮ button opens a sheet with "Add to playlist" / "Remove from playlist".
+// showOptions → ⋮ opens the same [TrackOptionsSheet] as home / mini player.
 // showDragHandle → drag handle for the reorderable list in EditPlaylistScreen.
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet_launcher.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/playlist_playback.dart';
 
 class PlaylistTrackTile extends StatelessWidget {
   final PlaylistTrack track;
   final bool showDragHandle;
   final bool showOptions;
+  /// Playlist/album owner id — fills track uploader id when API omits it on tracks.
+  final String? playlistOwnerArtistId;
   final VoidCallback? onRemove;
-  final VoidCallback? onAddToPlaylist;
   final VoidCallback? onTap;
 
   const PlaylistTrackTile({
@@ -20,8 +23,8 @@ class PlaylistTrackTile extends StatelessWidget {
     required this.track,
     this.showDragHandle = false,
     this.showOptions = false,
+    this.playlistOwnerArtistId,
     this.onRemove,
-    this.onAddToPlaylist,
     this.onTap,
   });
 
@@ -31,114 +34,12 @@ class PlaylistTrackTile extends StatelessWidget {
     return '$m:${s.toString().padLeft(2, '0')}';
   }
 
-  void _showTrackOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surfaceDark,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetCtx) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 12, bottom: 4),
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            // Track header
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: track.imageUrl != null &&
-                            track.imageUrl!.isNotEmpty
-                        ? Image.network(
-                            track.imageUrl!,
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, st) =>
-                                _placeholder(44),
-                          )
-                        : _placeholder(44),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          track.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          track.displayArtist,
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(color: AppColors.borderDark, height: 1),
-            if (onAddToPlaylist != null)
-              ListTile(
-                leading: const Icon(Icons.playlist_add, color: Colors.white),
-                title: const Text(
-                  'Add to playlist',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
-                ),
-                onTap: () {
-                  Navigator.pop(sheetCtx);
-                  onAddToPlaylist!();
-                },
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20),
-                dense: true,
-              ),
-            if (onRemove != null)
-              ListTile(
-                leading: const Icon(Icons.remove_circle_outline,
-                    color: Colors.red),
-                title: const Text(
-                  'Remove from playlist',
-                  style: TextStyle(color: Colors.red, fontSize: 15),
-                ),
-                onTap: () {
-                  Navigator.pop(sheetCtx);
-                  onRemove!();
-                },
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20),
-                dense: true,
-              ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
+  void _openTrackOptionsSheet(BuildContext context) {
+    final playback = playbackModelFromPlaylistTrack(
+      track,
+      playlistArtistId: playlistOwnerArtistId,
     );
+    showTrackOptionsSheet(context, playback);
   }
 
   @override
@@ -211,7 +112,7 @@ class PlaylistTrackTile extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.more_vert,
                     color: Colors.white38, size: 20),
-                onPressed: () => _showTrackOptions(context),
+                onPressed: () => _openTrackOptionsSheet(context),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32),
               )

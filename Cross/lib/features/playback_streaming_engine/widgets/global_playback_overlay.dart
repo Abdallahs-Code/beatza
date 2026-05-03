@@ -29,9 +29,12 @@ import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen
 import 'package:cross_team5/features/messaging_track_sharing/screens/send_to_sheet.dart';
 import 'package:cross_team5/features/messaging_track_sharing/services/messaging_api_service.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
-import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet_launcher.dart';
 import '../services/public_tracks_paging_service.dart';
 import '../mini_player_state.dart';
+
+export 'package:cross_team5/features/activity/screens/track_options_sheet_launcher.dart'
+    show showTrackOptionsSheet;
 
 // Tracks whether the expanded player is currently open so the mini player hides
 final ValueNotifier<bool> _isExpandedPlayerVisible = ValueNotifier<bool>(false);
@@ -639,7 +642,7 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                     child: _ExpandedEngagementBar(
                       track: track,
                       onShareTap: () => _showShareSheet(context, track),
-                      onMoreTap: () => _showTrackOptionsSheet(context, track),
+                      onMoreTap: () => showTrackOptionsSheet(context, track),
                     ),
                   ),
               ],
@@ -1809,60 +1812,6 @@ Future<void> _showShareSheet(
     _isTransientSheetOpening.value = false;
   }
 }
-
-Future<void> _showTrackOptionsSheet(
-  BuildContext context,
-  PlaybackTrackModel track,
-) async {
-  final BuildContext? navigatorContext = appNavigatorKey.currentContext;
-  if (navigatorContext == null) return;
-
-  final currentUserId = await AuthApiService().getStoredUserId();
-  final isOwnTrack =
-      currentUserId != null &&
-      currentUserId.isNotEmpty &&
-      track.artistId != null &&
-      track.artistId == currentUserId;
-
-  // ignore: use_build_context_synchronously
-  final BuildContext? freshContext = appNavigatorKey.currentContext;
-  if (freshContext == null) return;
-
-  await showModalBottomSheet<void>(
-    context: freshContext,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => TrackOptionsSheet(
-      track: track,
-      variant: isOwnTrack
-          ? TrackOptionsVariant.ownTrack
-          : TrackOptionsVariant.normalTrack,
-      onBehindThisTrack: () {
-        final navCtx = appNavigatorKey.currentContext;
-        if (navCtx == null) return;
-        Navigator.of(navCtx, rootNavigator: true).push(
-          MaterialPageRoute<void>(
-            builder: (_) => BehindTheTrackScreen(
-              trackId: track.id,
-              actorName: track.artistName,
-              actorAvatarUrl: track.artworkUrl ?? '',
-              actorUserId: track.artistId ?? '',
-              activityType: 'new_track',
-              trackOwnerId: track.artistId ?? '',
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-/// Public entry point for opening the track options sheet from outside this file.
-Future<void> showTrackOptionsSheet(
-  BuildContext context,
-  PlaybackTrackModel track,
-) => _showTrackOptionsSheet(context, track);
 
 class _TrackOptionsHeaderCard extends StatelessWidget {
   final PlaybackTrackModel track;

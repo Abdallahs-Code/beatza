@@ -1,9 +1,28 @@
 ﻿import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+
+/// `GET .../playlists/v1?limit=&offset=` — server validates `limit` in 1..20.
+const int _kPlaylistCatalogLimitMax = 20;
+
+int _clampPlaylistCatalogLimit(int value) {
+  if (value < 1) return 1;
+  if (value > _kPlaylistCatalogLimitMax) return _kPlaylistCatalogLimitMax;
+  return value;
+}
+
+/// Backend requires `permalink` length >= 1 whenever it is included in the update body.
+String _slugifyPlaylistPermalink(String raw) {
+  var s = raw.toLowerCase().trim();
+  s = s.replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+  s = s.replaceAll(RegExp(r'-{2,}'), '-');
+  s = s.replaceAll(RegExp(r'^-+|-+$'), '');
+  return s.isEmpty ? 'playlist' : s;
+}
 
 class PlaylistApiService {
   final ApiServices _apiServices;
@@ -68,11 +87,19 @@ class PlaylistApiService {
   }
 
   // GET /api/public/playlists/v1/{playlistId}
+  // Optional [secretToken] — grants access to secret playlists via share link.
   Future<(int, PlaylistModel?)> getPublicPlaylistWithTracks({
     required String playlistId,
+    String? secretToken,
   }) async {
     try {
-      final uri = Uri.parse('$_publicBase/$playlistId');
+      var uri = Uri.parse('$_publicBase/$playlistId');
+      final st = secretToken?.trim();
+      if (st != null && st.isNotEmpty) {
+        uri = uri.replace(
+          queryParameters: {...uri.queryParameters, 'secretToken': st},
+        );
+      }
       final response = await _client.get(
         uri,
         headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
@@ -114,11 +141,30 @@ class PlaylistApiService {
   }
 
   // GET /api/playlists/v1?limit=&offset=
-  Future<(int, List<PlaylistModel>)> getPublicPlaylistsAuth() async {
+  /// Paginated catalog of playlists (across users), auth context.
+  Future<(int, List<PlaylistModel>)> getPublicPlaylistsAuth({
+    int? limit,
+    int? offset,
+  }) async {
     try {
       final token = await _getToken();
       if (token == null) return (401, <PlaylistModel>[]);
-      final uri = Uri.parse(_authBase);
+      var uri = Uri.parse(_authBase);
+      final params = <String, String>{};
+      if (limit != null) {
+        final safe = _clampPlaylistCatalogLimit(limit);
+        if (safe != limit) {
+          debugPrint(
+            '[PlaylistApi catalog auth] clamped limit $limit → $safe '
+            '(API max=$_kPlaylistCatalogLimitMax)',
+          );
+        }
+        params['limit'] = safe.toString();
+      }
+      if (offset != null) params['offset'] = offset.toString();
+      if (params.isNotEmpty) {
+        uri = uri.replace(queryParameters: params);
+      }
       final response = await _client.get(
         uri,
         headers: {
@@ -127,32 +173,73 @@ class PlaylistApiService {
           'User-Agent': 'Android',
         },
       );
-      debugPrint('GET $uri -> ${response.statusCode}');
+      debugPrint(
+        '[PlaylistApi catalog auth] GET $uri → ${response.statusCode}',
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return (200, PlaylistModel.listFromResponse(data));
+        final parsed = PlaylistModel.listFromResponse(data);
+        debugPrint(
+          '[PlaylistApi catalog auth] parsed playlists length=${parsed.length}',
+        );
+        return (200, parsed);
       }
+      debugPrint(
+        '[PlaylistApi catalog auth] body (truncated): '
+        '${response.body.length > 600 ? '${response.body.substring(0, 600)}…' : response.body}',
+      );
       return (response.statusCode, <PlaylistModel>[]);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[PlaylistApi catalog auth] EXCEPTION: $e\n$st');
       return (500, <PlaylistModel>[]);
     }
   }
 
   // GET /api/public/playlists/v1?limit=&offset=
-  Future<(int, List<PlaylistModel>)> getPublicPlaylistsGuest() async {
+  /// Paginated catalog of public playlists (across users), no auth.
+  Future<(int, List<PlaylistModel>)> getPublicPlaylistsGuest({
+    int? limit,
+    int? offset,
+  }) async {
     try {
-      final uri = Uri.parse(_publicBase);
+      var uri = Uri.parse(_publicBase);
+      final params = <String, String>{};
+      if (limit != null) {
+        final safe = _clampPlaylistCatalogLimit(limit);
+        if (safe != limit) {
+          debugPrint(
+            '[PlaylistApi catalog guest] clamped limit $limit → $safe '
+            '(API max=$_kPlaylistCatalogLimitMax)',
+          );
+        }
+        params['limit'] = safe.toString();
+      }
+      if (offset != null) params['offset'] = offset.toString();
+      if (params.isNotEmpty) {
+        uri = uri.replace(queryParameters: params);
+      }
       final response = await _client.get(
         uri,
         headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
       );
-      debugPrint('GET $uri -> ${response.statusCode}');
+      debugPrint(
+        '[PlaylistApi catalog guest] GET $uri → ${response.statusCode}',
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return (200, PlaylistModel.listFromResponse(data));
+        final parsed = PlaylistModel.listFromResponse(data);
+        debugPrint(
+          '[PlaylistApi catalog guest] parsed playlists length=${parsed.length}',
+        );
+        return (200, parsed);
       }
+      debugPrint(
+        '[PlaylistApi catalog guest] body (truncated): '
+        '${response.body.length > 600 ? '${response.body.substring(0, 600)}…' : response.body}',
+      );
       return (response.statusCode, <PlaylistModel>[]);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[PlaylistApi catalog guest] EXCEPTION: $e\n$st');
       return (500, <PlaylistModel>[]);
     }
   }
@@ -313,9 +400,16 @@ class PlaylistApiService {
   // GET /api/public/playlists/v1/permalink/{permalink}
   Future<(int, List<PlaylistModel>)> getPlaylistByPermalink({
     required String permalink,
+    String? secretToken,
   }) async {
     try {
-      final uri = Uri.parse('$_publicBase/permalink/$permalink');
+      var uri = Uri.parse('$_publicBase/permalink/$permalink');
+      final st = secretToken?.trim();
+      if (st != null && st.isNotEmpty) {
+        uri = uri.replace(
+          queryParameters: {...uri.queryParameters, 'secretToken': st},
+        );
+      }
       final response = await _client.get(
         uri,
         headers: {'Content-Type': 'application/json', 'User-Agent': 'Android'},
@@ -390,54 +484,8 @@ class PlaylistApiService {
 
   // ── Create ──────────────────────────────────────────────────────────────────
 
-  // POST /api/playlists/v1  (JSON — no image; used for copy-playlist feature)
-  Future<(int, PlaylistModel?)> createPlaylist({
-    required String playlistName,
-    List<String> tracks = const [],
-    bool isPrivate = false,
-  }) async {
-    try {
-      final token = await _getToken();
-      if (token == null) return (401, null);
-      final response = await _client.post(
-        Uri.parse(_authBase),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'User-Agent': 'Android',
-        },
-        body: jsonEncode({
-          'playlistName': playlistName,
-          if (tracks.isNotEmpty) 'tracks': tracks,
-          'isPrivate': isPrivate,
-        }),
-      );
-      debugPrint('POST $_authBase -> ${response.statusCode} | ${response.body}');
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final playlistsRaw = data['data']?['playlists'] as List<dynamic>?;
-        if (playlistsRaw != null && playlistsRaw.isNotEmpty) {
-          return (
-            response.statusCode,
-            PlaylistModel.fromJson(playlistsRaw.first as Map<String, dynamic>),
-          );
-        }
-        final single = data['data']?['playlist'] as Map<String, dynamic>?;
-        if (single != null) {
-          return (response.statusCode, PlaylistModel.fromJson(single));
-        }
-        return (response.statusCode, null);
-      }
-      return (response.statusCode, null);
-    } catch (e) {
-      debugPrint('createPlaylist error: $e');
-      return (500, null);
-    }
-  }
-
-  // POST /api/playlists/v1/with-image
-  // Multipart payload mirrors the front-end: a single "data" field holding a
-  // JSON-stringified body, plus an optional "image" file.
+  // POST /api/playlists/v1/with-image (same as web: multipart `data` JSON +
+  // optional `image` file — see playlists.service createPlaylistWithImage).
   Future<(int, PlaylistModel?)> createPlaylistWithImage({
     required String title,
     String description = '',
@@ -462,9 +510,12 @@ class PlaylistApiService {
         'isPrivate': isPrivate,
         'listOfTracks': listOfTracks,
       };
-      if (buyLink != null) payloadMap['buyLink'] = buyLink;
-      if (recordLabel != null) payloadMap['recordLabel'] = recordLabel;
-
+      if (buyLink != null && buyLink.isNotEmpty) {
+        payloadMap['buyLink'] = buyLink;
+      }
+      if (recordLabel != null && recordLabel.isNotEmpty) {
+        payloadMap['recordLabel'] = recordLabel;
+      }
       final dataPayload = jsonEncode(payloadMap);
 
       debugPrint('[createPlaylistWithImage] POST $url');
@@ -478,8 +529,15 @@ class PlaylistApiService {
         });
 
       request.fields['data'] = dataPayload;
-      if (imagePath != null && imagePath.isNotEmpty) {
-        request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+
+      final img = imagePath?.trim();
+      if (img != null && img.isNotEmpty) {
+        final file = File(img);
+        if (await file.exists()) {
+          request.files.add(await http.MultipartFile.fromPath('image', file.path));
+        } else {
+          debugPrint('[createPlaylistWithImage] image path missing on disk: $img');
+        }
       }
 
       debugPrint('[createPlaylistWithImage] fields: ${request.fields}');
@@ -510,7 +568,6 @@ class PlaylistApiService {
         return (response.statusCode, null);
       }
 
-      // Log server validation errors clearly
       try {
         final errBody = jsonDecode(response.body) as Map<String, dynamic>;
         debugPrint('[createPlaylistWithImage] ERROR message: ${errBody['message']}');
@@ -561,7 +618,13 @@ class PlaylistApiService {
 
       final jsonPayload = <String, dynamic>{};
       if (title != null)            jsonPayload['title']            = title;
-      if (permalink != null)        jsonPayload['permalink']        = permalink;
+      final permalinkTrimmed = permalink?.trim();
+      if (permalinkTrimmed != null && permalinkTrimmed.isNotEmpty) {
+        jsonPayload['permalink'] = permalinkTrimmed;
+      } else if (title != null && title.trim().isNotEmpty) {
+        jsonPayload['permalink'] =
+            _slugifyPlaylistPermalink(title.trim());
+      }
       if (type != null)             jsonPayload['type']             = type;
       if (playlistType != null)     jsonPayload['playlistType']     = playlistType;
       if (releaseDate != null)      jsonPayload['releaseDate']      = releaseDate;
@@ -754,6 +817,71 @@ class PlaylistApiService {
       );
     } catch (e) {
       return (500, 'Network error: $e');
+    }
+  }
+
+  // PATCH /api/playlists/v1/{playlistId}/secret-token
+  // Mirrors web `playlists.service`: playlist sub-resources use the same base as
+  // `reorderPlaylistTracks` (PATCH …/tracks/order) and `updatePlaylistImage`
+  // (PATCH …/image). The pasted front repo had no explicit secret-token call;
+  // POST on this path returned 404 — backend appears to register PATCH here.
+  /// Returns updated playlist when the body includes full `playlist`; otherwise a loose token string.
+  Future<(int, PlaylistModel?, String?)> rotatePlaylistSecretToken({
+    required String playlistId,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return (401, null, null);
+
+      final uri = Uri.parse('$_authBase/$playlistId/secret-token');
+      final headers = <String, String>{
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Android',
+      };
+
+      var response = await _client.patch(
+        uri,
+        headers: headers,
+        body: '{}',
+      );
+      debugPrint('PATCH $uri -> ${response.statusCode}');
+
+      // Fallback if gateway only wires POST under /api/v1/playlists (like history).
+      if (response.statusCode == 404) {
+        final fallback = Uri.parse(
+          '${_apiServices.baseUrl}/api/v1/playlists/$playlistId/secret-token',
+        );
+        response = await _client.post(
+          fallback,
+          headers: headers,
+          body: '{}',
+        );
+        debugPrint('POST $fallback -> ${response.statusCode}');
+      }
+
+      debugPrint('rotatePlaylistSecretToken body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final model = PlaylistModel.singleFromResponse(data);
+        if (model != null) {
+          return (response.statusCode, model, model.secretToken);
+        }
+        final inner = data['data'];
+        if (inner is Map<String, dynamic>) {
+          final st = inner['secretToken']?.toString() ??
+              inner['secret_token']?.toString();
+          if (st != null && st.trim().isNotEmpty) {
+            return (response.statusCode, null, st.trim());
+          }
+        }
+        return (response.statusCode, null, null);
+      }
+      return (response.statusCode, null, null);
+    } catch (e, st) {
+      debugPrint('rotatePlaylistSecretToken error: $e\n$st');
+      return (500, null, null);
     }
   }
 

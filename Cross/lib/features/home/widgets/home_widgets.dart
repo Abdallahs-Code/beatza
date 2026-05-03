@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
+import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import '../../audio_upload_track_management/screens/upload_track_screen.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
@@ -428,100 +429,162 @@ class PosterCard extends StatelessWidget {
   }
 }
 
+/// Horizontal row of real playlists from `GET /api/playlists/v1` or
+/// `GET /api/public/playlists/v1` (catalog across users).
 class HorizontalMixSection extends StatelessWidget {
-  const HorizontalMixSection({super.key});
+  final List<PlaylistModel> playlists;
+  final bool isLoading;
+  final void Function(PlaylistModel playlist) onPlaylistTap;
+
+  const HorizontalMixSection({
+    super.key,
+    required this.playlists,
+    required this.isLoading,
+    required this.onPlaylistTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['MIX 1', 'MIX 2', 'MIX 3'];
-
+    if (isLoading) {
+      return const SizedBox(
+        height: 250,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppColors.crusta,
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+    if (playlists.isEmpty) {
+      return SizedBox(
+        height: 120,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'No playlists to show yet.',
+              style: TextStyle(color: AppColors.white54, fontSize: 14),
+            ),
+          ),
+        ),
+      );
+    }
     return SizedBox(
       height: 250,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
-        itemCount: labels.length,
+        itemCount: playlists.length,
         separatorBuilder: (context, index) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
-          return MixCard(mixLabel: labels[index]);
+          final p = playlists[index];
+          return _HomePlaylistMixCard(
+            playlist: p,
+            onTap: () => onPlaylistTap(p),
+          );
         },
       ),
     );
   }
 }
 
-class MixCard extends StatelessWidget {
-  final String mixLabel;
+class _HomePlaylistMixCard extends StatelessWidget {
+  final PlaylistModel playlist;
+  final VoidCallback onTap;
 
-  const MixCard({super.key, required this.mixLabel});
+  const _HomePlaylistMixCard({
+    required this.playlist,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 170,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 170,
-                height: 170,
-                decoration: BoxDecoration(
-                  color: AppColors.mixBlue,
+    final img = playlist.image?.imgLink ?? '';
+    final trackLine =
+        '${playlist.trackCount} track${playlist.trackCount == 1 ? '' : 's'}';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 170,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.queue_music,
-                    color: AppColors.white54,
-                    size: 42,
+                  child: SizedBox(
+                    width: 170,
+                    height: 170,
+                    child: img.isNotEmpty
+                        ? Image.network(
+                            img,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, st) => _fallbackArt(),
+                          )
+                        : _fallbackArt(),
                   ),
                 ),
-              ),
-              Positioned(
-                left: 0,
-                right: 12,
-                bottom: 10,
-                child: Container(
-                  height: 30,
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.mixLabelBlue,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    mixLabel,
-                    style: TextStyle(
-                      color: AppColors.pureBlack,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                Positioned(
+                  left: 0,
+                  right: 12,
+                  bottom: 10,
+                  child: Container(
+                    height: 28,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.mixLabelBlue,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'PLAYLIST',
+                      style: TextStyle(
+                        color: AppColors.pureBlack,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            AppText.mixPlaceholder,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.whiteSmoke,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              ],
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            AppText.mixGenerated,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: AppColors.white54, fontSize: 13),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              playlist.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppColors.whiteSmoke,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              trackLine,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: AppColors.white54, fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fallbackArt() {
+    return Container(
+      color: AppColors.mixBlue,
+      child: Center(
+        child: Icon(
+          Icons.queue_music,
+          color: AppColors.white54,
+          size: 42,
+        ),
       ),
     );
   }

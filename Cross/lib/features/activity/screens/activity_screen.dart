@@ -4,7 +4,7 @@ import 'package:cross_team5/features/activity/controllers/activity_notifications
 import 'package:cross_team5/features/activity/models/activity_notification_model.dart';
 import 'package:cross_team5/features/activity/screens/behind_the_track_screen.dart';
 import 'package:cross_team5/features/activity/screens/quick_reply_sheet.dart';
-import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet_launcher.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
 import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
@@ -868,28 +868,7 @@ class _NotificationTileState extends State<_NotificationTile> {
   void _openTrackOptions() {
     final track = _track;
     if (track == null) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => TrackOptionsSheet(
-        track: track,
-        onBehindThisTrack: () =>
-            Navigator.of(context, rootNavigator: true).push(
-              MaterialPageRoute<void>(
-                builder: (_) => BehindTheTrackScreen(
-                  trackId: track.id,
-                  actorName: track.artistName,
-                  actorAvatarUrl: track.artworkUrl ?? '',
-                  actorUserId: track.artistId ?? '',
-                  activityType: 'new_track',
-                  trackOwnerId: track.artistId ?? '',
-                ),
-              ),
-            ),
-      ),
-    );
+    showTrackOptionsSheet(context, track);
   }
 
   // ── Tap on the whole tile ──

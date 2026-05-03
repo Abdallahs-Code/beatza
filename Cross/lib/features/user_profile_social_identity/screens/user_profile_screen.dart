@@ -22,6 +22,7 @@ import '../../audio_upload_track_management/services/track_api_service.dart';
 import '../../audio_upload_track_management/screens/your_insights_screen.dart';
 import '../models/spotlight_models.dart';
 import '../../premium_subscription/services/payment_service.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet_launcher.dart';
 import 'package:cross_team5/features/messaging_track_sharing/screens/chat_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:cross_team5/core/services/theme_service.dart';
@@ -128,12 +129,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
   }
 
-  void _closePlayer() {
-    setState(() {
-      _currentlyPlayingTrack = null;
-    });
-  }
-
   Future<void> _playLikedTrack(PlaybackTrackModel track, int index) async {
     final result = await _trackApiService.getTrackById(trackId: track.id);
     if (result.$1 != 200) return;
@@ -210,113 +205,49 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
   }
 
-  void _showTrackOptions(TrackModel track) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.backgroundDark2,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.tileDark,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child:
-                        track.coverImagePath != null &&
-                            track.coverImagePath!.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: Image.file(
-                              File(track.coverImagePath!),
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Icon(Icons.music_note, color: AppColors.white54),
-                  ),
-                  title: Text(
-                    track.title,
-                    style: TextStyle(
-                      color: AppColors.whiteSmoke,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    track.genre.isEmpty ? 'Unknown Genre' : track.genre,
-                    style: TextStyle(color: AppColors.white54),
-                  ),
-                ),
-                Divider(color: AppColors.white10),
-                ListTile(
-                  leading: Icon(Icons.bar_chart, color: AppColors.whiteSmoke),
-                  title: Text(
-                    'Insights',
-                    style: TextStyle(color: AppColors.whiteSmoke),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const YourInsightsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.whiteSmoke,
-                  ),
-                  title: Text(
-                    'Edit Track',
-                    style: TextStyle(color: AppColors.whiteSmoke),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showEditDialog(track);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.redAccent,
-                  ),
-                  title: const Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _deleteTrack(track);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+  bool get _isProfileOwner {
+    final cu = widget.currentUserId;
+    return cu != null && cu.isNotEmpty && cu == widget.userId;
+  }
+
+  /// Same sheet as home / mini player (correct own vs normal + Send to / profile).
+  Future<void> _showTrackOptions(TrackModel track) async {
+    final idForApi =
+        (track.serverId != null && track.serverId!.trim().isNotEmpty)
+            ? track.serverId!
+            : track.id;
+    final result = await _trackApiService.getTrackById(trackId: idForApi);
+    if (!mounted) return;
+    if (result.$1 != 200 || result.$2 is! Track) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not load track')),
+      );
+      return;
+    }
+    final full = result.$2 as Track;
+    final playback = PlaybackTrackModel(
+      id: full.id,
+      title: full.title,
+      artistName: full.displayArtist,
+      audioUrl: full.audioLink ?? '',
+      artworkUrl: full.imageUrl,
+      accessState: PlaybackAccessState.playable,
+      sourceType: PlaybackSourceType.network,
+      isPrivate: full.isPrivate,
+      numLikes: full.numLikes,
+      numPlays: full.numPlays,
+      numReposts: full.numReposts,
+      numComments: full.numComments,
+      genre: full.genre,
+      tags: full.tags,
+      permalink: full.permalink,
+      artistId: widget.userId,
+      mobileProPreview: full.mobileProPreview,
+    );
+    await showTrackOptionsSheet(
+      context,
+      playback,
+      onEditTrack: _isProfileOwner ? () => _showEditDialog(track) : null,
     );
   }
 
@@ -439,26 +370,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
       );
     }
-  }
-
-  void _deleteTrack(TrackModel track) {
-    final currentList = List<TrackModel>.from(
-      AudioUploadService.globalMockTracksNotifier.value,
-    );
-    currentList.removeWhere((t) => t.id == track.id);
-    AudioUploadService.globalMockTracksNotifier.value = currentList;
-
-    if (_currentlyPlayingTrack?.id == track.id) {
-      _closePlayer();
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Track deleted successfully'),
-        backgroundColor: Colors.redAccent,
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   Future<_ProfileViewState> _fetchProfileViewState() async {

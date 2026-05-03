@@ -7,6 +7,7 @@ import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_track_tile.dart';
+import 'package:cross_team5/features/sets_playlists/playlist_playback.dart';
 import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
@@ -117,6 +118,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     } else {
       setState(() => _isFetchingMore = false);
     }
+  }
+
+  Future<void> _playTrackAtIndex(int index) async {
+    if (_tracks.isEmpty) return;
+    await playPlaylistTracksAt(
+      context,
+      _tracks,
+      index,
+      playlistArtistId: _album?.artistId,
+    );
   }
 
   Future<void> _removeTrack(PlaylistTrack track) async {
@@ -485,6 +496,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: PlaylistTrackTile(
             track: _tracks[index],
+            showOptions: true,
+            playlistOwnerArtistId: _album?.artistId,
+            onTap: () => _playTrackAtIndex(index),
             onRemove: widget.isOwner
                 ? () => _removeTrack(_tracks[index])
                 : null,
