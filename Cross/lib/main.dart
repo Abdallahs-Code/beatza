@@ -27,7 +27,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
-  await AuthApiService().logout();
+  // await AuthApiService().logout();
 
   if (Platform.isAndroid || Platform.isIOS) {
     await Firebase.initializeApp();

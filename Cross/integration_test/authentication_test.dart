@@ -1,4 +1,5 @@
 // Cross Tester account should be deleted before doing this script.
+// Automatic log out is needed.
 // run the script with this command: flutter test integration_test/app_test.dart --dart-define=INTEGRATION_TEST=true
 
 import 'package:flutter/material.dart';
