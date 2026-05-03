@@ -235,7 +235,7 @@ class TrackApiService {
     List<String> geoBlockingCountries = const [],
   }) async {
     try {
-      final token = await _getToken();
+      final token = await _authService.getAccessToken();
       if (token == null) return (401, 'Unauthorized');
 
       final request = http.MultipartRequest('PATCH', Uri.parse('${_apiServices.baseUrl}/api/tracks/v2/'))
@@ -471,11 +471,11 @@ class TrackApiService {
     try {
       final token = await _getToken();
       final response = await _client.get(
-        Uri.parse('$_authBase2/posted/$userId'),
+        Uri.parse('$_publicV2Base/posted/$userId'),
         headers: {
           'Content-Type': 'application/json',
           'User-Agent': 'Android',
-          'Authorization': 'Bearer $token',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
       );
       final data = jsonDecode(response.body);

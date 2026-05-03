@@ -37,6 +37,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
   String _searchQuery = '';
   _Sort _sort = _Sort.recentlyAdded;
   _Filter _filter = _Filter.all;
+  String? _editingTrackId;
 
   @override
   void initState() {
@@ -489,7 +490,7 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
                         ],
                       ],
                     ),
-                    trailing: isFetching
+                    trailing: (isFetching || _editingTrackId == t.id)
                         ? SizedBox(
                             width: 20,
                             height: 20,
@@ -585,11 +586,32 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
         track: playbackTrack,
         variant: TrackOptionsVariant.ownTrack,
         onEditTrack: () async {
+          // Fetch fresh track data; getUserPostedTracks has geoBlocking but
+          // getTrackById has the most up-to-date basicInfo/permissions/license.
+          // Merge: take getTrackById result and patch in geoBlocking from the
+          // cached list track (getTrackById does not return geoBlocking).
+          setState(() => _editingTrackId = track.id);
+          final result = await _apiService.getTrackById(trackId: track.id);
+          if (!mounted) return;
+          setState(() => _editingTrackId = null);
+
+          final Track editTrack;
+          if (result.$1 == 200) {
+            final fresh = result.$2 as Track;
+            editTrack = fresh.copyWith(
+              geoBlockingMode: track.geoBlockingMode,
+              geoBlockingRegions: track.geoBlockingRegions,
+              geoBlockingCountries: track.geoBlockingCountries,
+            );
+          } else {
+            editTrack = track;
+          }
+
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => const UploadTrackScreen(),
-              settings: RouteSettings(arguments: track),
+              settings: RouteSettings(arguments: editTrack),
             ),
           );
           if (mounted) _loadServerTracks();

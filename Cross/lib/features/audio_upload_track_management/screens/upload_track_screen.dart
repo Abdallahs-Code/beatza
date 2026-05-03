@@ -456,7 +456,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
-      // Update mobileProPreview via its dedicated endpoint
       await _trackApiService.updateMobileProPreview(
         trackId: track.id,
         mobileProPreview: _mobileProPreview,
@@ -716,7 +715,6 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
     setState(() => _isSaving = false);
 
     if (result.$1 == 200) {
-      // Update mobileProPreview via its dedicated endpoint
       if (track.serverId != null) {
         await _trackApiService.updateMobileProPreview(
           trackId: track.serverId!,

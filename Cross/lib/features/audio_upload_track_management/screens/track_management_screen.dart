@@ -106,7 +106,34 @@ class _TrackManagementScreenState extends State<TrackManagementScreen> {
 
     final result = await _apiService.updateTrack(
       trackId: track.id,
+      // basicInfo — send all current values so the server accepts the update;
+      // only isPrivate changes, the rest are preserved as-is.
+      title: track.title,
+      permalink: track.permalink.isNotEmpty ? track.permalink : null,
+      mainArtists: track.mainArtists.isNotEmpty ? track.mainArtists : null,
+      genre: track.genre.isNotEmpty ? track.genre : null,
+      tags: track.tags.isNotEmpty ? track.tags : null,
+      description: track.description.isNotEmpty ? track.description : null,
+      caption: track.caption.isNotEmpty ? track.caption : null,
       isPrivate: nowPrivate,
+      // permissions — preserve current values instead of sending defaults
+      enableDirectDownload: track.enableDirectDownload,
+      offlineListening: track.offlineListening,
+      includeInRssFeed: track.includeInRssFeed,
+      displayedEmbedCode: track.displayedEmbedCode,
+      enableAppPlayback: track.enableAppPlayback,
+      // license
+      licensing: track.licenseType == 'creativeCommons' ? 'creative_commons' : 'all_rights',
+      // advanced
+      containsExplicit: track.explicitContent,
+      recordLabel: track.recordLabel,
+      publisher: track.publisher,
+      isrc: track.isrc,
+      pLine: track.pLine,
+      // geoBlocking
+      availability: track.geoBlockingMode,
+      geoBlockingRegions: track.geoBlockingRegions,
+      geoBlockingCountries: track.geoBlockingCountries,
     );
 
     setState(() => _togglingIds.remove(track.id));
