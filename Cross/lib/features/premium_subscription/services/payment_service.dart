@@ -122,7 +122,20 @@ class SubscriptionStatusNotifier extends ValueNotifier<SubscriptionState> {
 
 class PaymentService {
   static const String baseUrl = "https://beatza.me";
-  static const _storage = FlutterSecureStorage();
+
+  static final FlutterSecureStorage _defaultStorage =
+      const FlutterSecureStorage();
+
+  
+  @visibleForTesting
+  static FlutterSecureStorage? storageOverride;
+
+  static FlutterSecureStorage get _storage =>
+      storageOverride ?? _defaultStorage;
+
+  
+  @visibleForTesting
+  static http.Client refreshTokenHttpClient = http.Client();
 
   static final SubscriptionStatusNotifier subscriptionSuccessNotifier =
       SubscriptionStatusNotifier();
@@ -256,7 +269,7 @@ class PaymentService {
       throw Exception('Session expired. Please login again.');
     }
 
-    final response = await http.get(
+    final response = await refreshTokenHttpClient.get(
       Uri.parse('$baseUrl/api/auth/v1/refresh-token'),
       headers: {
         'Authorization': 'Bearer $refreshToken',

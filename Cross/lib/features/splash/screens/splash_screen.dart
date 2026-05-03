@@ -1,9 +1,9 @@
-// Flutter imports
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/library/services/account_settings_api_service.dart';
 import 'package:cross_team5/features/authentication_user_management/authentication_user_management_routes.dart';
@@ -11,7 +11,7 @@ import 'package:cross_team5/features/home/home_routes.dart';
 import 'package:cross_team5/core/services/theme_service.dart';
 import '../../premium_subscription/services/payment_service.dart';
 
-// Your connectivity service
+
 import 'package:cross_team5/core/services/connectivity_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkLoginStatus(bool hasInternet) async {
     bool isLoggedIn = false;
 
-    // Get token for API settings fetch
+    
     final accessToken = await _storage.read(key: 'access_token');
     final tokenTime = await _storage.read(key: 'token_time');
 
@@ -74,23 +74,24 @@ class _SplashScreenState extends State<SplashScreen> {
           try {
             await authApiService.refreshToken();
 
-            // ── SYNC THEME FROM API ────────────────────────────────────────
+            
             if (accessToken != null && mounted) {
               try {
-                // Your API returns AccountSettings with a `theme` String property
+                
                 final settings = await accountSettingsApiService.getSettings(
                   accessToken,
                 );
+                if (!mounted) return;
                 await Provider.of<ThemeService>(
                   context,
                   listen: false,
                 ).syncThemeFromApi(settings.theme);
               } catch (e) {
-                // Non-blocking: app continues with locally saved or default theme
+                
                 debugPrint('⚠️ Failed to sync theme from settings API: $e');
               }
             }
-            // ───────────────────────────────────────────────────────────────
+            
           } catch (_) {
             isLoggedIn = false;
             await authApiService.logout();
@@ -115,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final themeService = Provider.of<ThemeService>(context);
     final isDark = themeService.isDarkMode;
 
-    // ── Theme-aware assets and colors ─────────────────────────────────────
+    
     final logoAsset = isDark
         ? "assets/images/whitelogo.png"
         : "assets/images/blacklogo.png";
@@ -128,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen> {
         : AppColors.primaryOrange;
     final retryButtonFg = isDark ? AppColors.pureBlack : AppColors.whiteSmoke;
     final loaderColor = isDark ? AppColors.whiteSmoke : AppColors.primaryOrange;
-    // ─────────────────────────────────────────────────────────────────────
+    
 
     return Scaffold(
       backgroundColor: scaffoldBg,

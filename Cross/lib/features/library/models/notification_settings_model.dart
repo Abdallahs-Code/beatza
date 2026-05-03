@@ -11,7 +11,7 @@ class NotificationSettings {
   final String promotionalPartnershipContent;
   final String soundcloudNewsletter;
   final bool newMessageEmail;
-  final String newMessageDevices; // "everyone" | "followed" | "off"
+  final String newMessageDevices; 
 
   const NotificationSettings({
     required this.newFollower,

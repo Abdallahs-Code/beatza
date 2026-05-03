@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';

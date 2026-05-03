@@ -1,11 +1,11 @@
-// Widget: EngagementUserTile
-// Displays a single user (liker or reposter) in the LikersScreen list.
-//
-// Used by: LikersScreen (both Likers tab and Reposters tab)
-// Tapping the tile navigates to the user's profile (Module 2 integration point).
-//
-// Design: matches SoundCloud's user list style —
-//   circular avatar | display name | follower count | chevron
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
@@ -13,7 +13,7 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 
 class EngagementUserTile extends StatelessWidget {
   final EngagementUser user;
-  final VoidCallback? onTap; // navigates to user profile (Module 2 hook)
+  final VoidCallback? onTap; 
 
   const EngagementUserTile({super.key, required this.user, this.onTap});
 
@@ -23,7 +23,7 @@ class EngagementUserTile extends StatelessWidget {
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
 
-      // ── Avatar ──────────────────────────────
+      
       leading: CircleAvatar(
         radius: 24,
         backgroundColor: AppColors.tileDark,
@@ -44,7 +44,7 @@ class EngagementUserTile extends StatelessWidget {
             : null,
       ),
 
-      // ── Name + follower count ────────────────
+      
       title: Text(
         user.displayName,
         style: TextStyle(
@@ -60,18 +60,18 @@ class EngagementUserTile extends StatelessWidget {
         style: TextStyle(color: AppColors.white54, fontSize: 12),
       ),
 
-      // ── Chevron ──────────────────────────────
+      
       trailing: Icon(Icons.chevron_right, color: AppColors.white54, size: 20),
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Formats follower count the SoundCloud way:
-  //   0       → "0 followers"
-  //   1       → "1 follower"
-  //   1200    → "1.2K followers"
-  //   1500000 → "1.5M followers"
-  // ─────────────────────────────────────────────
+  
+  
+  
+  
+  
+  
+  
   String _formatFollowerCount(int count) {
     if (count >= 1000000) {
       return '${(count / 1000000).toStringAsFixed(1)}M followers';

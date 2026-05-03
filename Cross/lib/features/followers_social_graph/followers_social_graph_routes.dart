@@ -1,7 +1,7 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:cross_team5/features/followers_social_graph/screens/blocked_users_screen.dart'
     as blocked_users_screen;
 import 'package:cross_team5/features/followers_social_graph/screens/followers_screen.dart'

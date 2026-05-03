@@ -33,16 +33,16 @@ import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
 import '../services/public_tracks_paging_service.dart';
 import '../mini_player_state.dart';
 
-// Tracks whether the expanded player is currently open so the mini player hides
+
 final ValueNotifier<bool> _isExpandedPlayerVisible = ValueNotifier<bool>(false);
 final ValueNotifier<bool> _isTransientSheetOpening = ValueNotifier<bool>(false);
 
-// Notifies the engagement bar that a comment was posted from the inline bar.
-// Set to the trackId of the commented track, reset to null after consumption.
+
+
 final ValueNotifier<String?> _trackCommentPosted = ValueNotifier<String?>(null);
 
-// Notifies the engagement bar that the CommentsScreen was closed so it can
-// refresh the displayed comment count.
+
+
 final ValueNotifier<String?> _commentsScreenClosed = ValueNotifier<String?>(
   null,
 );
@@ -58,8 +58,8 @@ class GlobalPlaybackOverlay extends StatefulWidget {
 }
 
 class _GlobalPlaybackOverlayState extends State<GlobalPlaybackOverlay> {
-  // Track the previous ad state so we only open the player on the
-  // false→true transition, not on every countdown tick.
+  
+  
   bool _wasAdPlaying = false;
 
   @override
@@ -177,9 +177,9 @@ Future<void> _openExpandedPlayer(BuildContext context) async {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  MINI PLAYER — matches SoundCloud's compact pill bar
-// ─────────────────────────────────────────────────────────
+
+
+
 class _MiniPlayerCard extends StatelessWidget {
   final PlaybackStateModel state;
   final bool isAdPlaying;
@@ -219,7 +219,7 @@ class _MiniPlayerCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
-                // Left circle — ad icon when ad is playing, blocked icon when unavailable, play/pause otherwise.
+                
                 GestureDetector(
                   onTap: isAdPlaying || isBlocked ? null : onPlayPauseTap,
                   behavior: HitTestBehavior.opaque,
@@ -307,9 +307,9 @@ class _MiniPlayerCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  EXPANDED PLAYER — matches SoundCloud's now-playing screen
-// ─────────────────────────────────────────────────────────
+
+
+
 class _ExpandedPlayerSheet extends StatefulWidget {
   const _ExpandedPlayerSheet();
 
@@ -625,10 +625,10 @@ class _ExpandedPlayerSheetState extends State<_ExpandedPlayerSheet> {
                         bottom: 48,
                         child: _ExpandedVolumeSlider(),
                       ),
-                      // Ad overlay — covers the entire player when an ad is active.
+                      
                       if (_isAdPlaying)
                         const Positioned.fill(child: AdPlayerWidget()),
-                      //const Positioned.fill(child: AdOverlay()),
+                      
                     ],
                   ),
                 ),
@@ -1505,9 +1505,9 @@ class _BottomMetric extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  HELPERS
-// ─────────────────────────────────────────────────────────
+
+
+
 Duration _effectiveTotalDuration(
   PlaybackStateModel state,
   PlaybackTrackModel track,
@@ -1612,7 +1612,7 @@ Future<void> _showShareSheet(
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;
 
-  // Fetch track owner's profileLink so both sender and receiver can load the card.
+  
   final String permalink = track.permalink ?? '';
   final String artistId = track.artistId ?? '';
   String profileLink = '';
@@ -1639,9 +1639,9 @@ Future<void> _showShareSheet(
       ? 'track::permalink:"$permalink",profilelink:"$profileLink"'
       : '';
 
-  // Re-read context after the async gap — the original capture may be stale.
+  
   final BuildContext? freshContext = appNavigatorKey.currentContext;
-  if (freshContext == null) return;
+  if (freshContext == null || !freshContext.mounted) return;
 
   _isTransientSheetOpening.value = true;
   try {
@@ -1824,9 +1824,9 @@ Future<void> _showTrackOptionsSheet(
       track.artistId != null &&
       track.artistId == currentUserId;
 
-  // ignore: use_build_context_synchronously
+  
   final BuildContext? freshContext = appNavigatorKey.currentContext;
-  if (freshContext == null) return;
+  if (freshContext == null || !freshContext.mounted) return;
 
   await showModalBottomSheet<void>(
     context: freshContext,
@@ -1858,7 +1858,7 @@ Future<void> _showTrackOptionsSheet(
   );
 }
 
-/// Public entry point for opening the track options sheet from outside this file.
+
 Future<void> showTrackOptionsSheet(
   BuildContext context,
   PlaybackTrackModel track,
@@ -2027,9 +2027,9 @@ class _VinylPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ─────────────────────────────────────────────────────────
-//  MINI PLAYER LIKE BUTTON (stateful — resets on track change)
-// ─────────────────────────────────────────────────────────
+
+
+
 class _MiniLikeButton extends StatefulWidget {
   final String trackId;
   const _MiniLikeButton({required this.trackId});
@@ -2113,9 +2113,9 @@ class _MiniLikeButtonState extends State<_MiniLikeButton> {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  EXPANDED PLAYER ENGAGEMENT BAR (like + comment + share + more)
-// ─────────────────────────────────────────────────────────
+
+
+
 class _ExpandedEngagementBar extends StatefulWidget {
   final PlaybackTrackModel track;
   final VoidCallback onShareTap;
@@ -2171,7 +2171,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
     } catch (_) {}
   }
 
-  // Increments comment count when the inline bar posts a comment for this track.
+  
   void _onExternalCommentPosted() {
     if (_trackCommentPosted.value == widget.track.id && mounted) {
       setState(() => _commentCount++);
@@ -2206,10 +2206,10 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
         final isLiked = likers.any((u) => u.userId == userId);
         setState(() {
           _isLiked = isLiked;
-          // Guard against stale track model: if the user has liked this track
-          // but numLikes was 0 (e.g. navigated away before server count
-          // propagated), use the actual likers list length so the count is
-          // visible instead of showing a filled heart with no number.
+          
+          
+          
+          
           if (isLiked && _likeCount == 0) {
             _likeCount = likers.isNotEmpty ? likers.length : 1;
           }
@@ -2269,9 +2269,9 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
       ),
     );
     if (!mounted) return;
-    // Refresh comment count after returning from CommentsScreen using the
-    // track API so replies are included in the total (same source as the
-    // comments screen header count).
+    
+    
+    
     try {
       final track = await PlaybackTrackApiService().getSingleTrackById(
         widget.track.id,
@@ -2369,7 +2369,7 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
             if (!mounted) return;
             await _checkLikeStatus();
             if (!mounted) return;
-            // If like state changed in the options sheet, sync the count shown here.
+            
             if (_isLiked != wasLiked) {
               setState(() {
                 _likeCount = _isLiked ? _likeCount + 1 : _likeCount - 1;
@@ -2382,9 +2382,9 @@ class _ExpandedEngagementBarState extends State<_ExpandedEngagementBar> {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  TRACK OPTIONS SHEET CONTENT (stateful — like + repost + comments)
-// ─────────────────────────────────────────────────────────
+
+
+
 class _TrackOptionsSheetContent extends StatefulWidget {
   final PlaybackTrackModel track;
   const _TrackOptionsSheetContent({required this.track});
@@ -2421,7 +2421,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       '[SendTo] track.id="${widget.track.id}" track.title="${widget.track.title}"',
     );
 
-    // Step 1: currentUserId
+    
     debugPrint('[SendTo] STEP 1 — reading currentUserId');
     final currentUserId = await AuthApiService().getStoredUserId();
     debugPrint('[SendTo] STEP 1 result → currentUserId="$currentUserId"');
@@ -2431,7 +2431,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     }
     debugPrint('[SendTo] STEP 1 ✅ OK');
 
-    // Step 2: resolve permalink and artistId
+    
     debugPrint('[SendTo] STEP 2 — resolving permalink and artistId');
     debugPrint(
       '[SendTo] STEP 2   track.permalink="${widget.track.permalink}" track.artistId="${widget.track.artistId}"',
@@ -2440,7 +2440,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
     final artistId = widget.track.artistId ?? '';
     debugPrint('[SendTo] STEP 2 ✅ permalink="$link" artistId="$artistId"');
 
-    // Step 3: fetch track owner's profileLink
+    
     debugPrint(
       '[SendTo] STEP 3 — fetching track owner profileLink for artistId="$artistId"',
     );
@@ -2472,7 +2472,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       return 'track::permalink:"$link",profilelink:"$profileLink"';
     }
 
-    // Step 4: fetch followers
+    
     debugPrint('[SendTo] STEP 3 — calling getFollowers(userId=$currentUserId)');
     debugPrint(
       '[SendTo] STEP 3   URL: [baseUrl]/api/public/social/v1/followers/$currentUserId',
@@ -2494,7 +2494,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       }
       debugPrint('[SendTo] STEP 3 ✅ status 200');
 
-      // Step 4: inspect raw list
+      
       debugPrint('[SendTo] STEP 4 — inspecting raw list');
       final rawList = result.$2;
       debugPrint(
@@ -2514,7 +2514,7 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
         );
       }
 
-      // Step 5: cast to Follower
+      
       debugPrint('[SendTo] STEP 5 — casting via whereType<Follower>()');
       List<Follower> followers = [];
       if (rawList is List) {
@@ -2535,14 +2535,14 @@ class _TrackOptionsSheetContentState extends State<_TrackOptionsSheetContent> {
       }
       debugPrint('[SendTo] STEP 5 ✅ followers.length=${followers.length}');
 
-      // Step 6: filter empty userIds
+      
       debugPrint('[SendTo] STEP 6 — filtering empty userIds');
       final valid = followers.where((f) => f.userId.isNotEmpty).toList();
       debugPrint(
         '[SendTo] STEP 6   before=${followers.length}  after=${valid.length}',
       );
 
-      // Step 7: setState
+      
       debugPrint('[SendTo] STEP 7 — setState. mounted=$mounted');
       if (!mounted) {
         debugPrint('[SendTo] STEP 7 ❌ unmounted — contacts will NOT be set');
@@ -3037,11 +3037,11 @@ class _SendToContactBubble extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  INLINE COMMENT BAR — post a comment directly from the expanded player.
-//  Shows a text field with emoji quick-post buttons when empty, and an
-//  arrow send button once the user starts typing.
-// ─────────────────────────────────────────────────────────
+
+
+
+
+
 class _InlineCommentBar extends StatefulWidget {
   final PlaybackTrackModel track;
   const _InlineCommentBar({required this.track});
@@ -3080,7 +3080,7 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
     _controller.clear();
 
     if (result.$1 == 201) {
-      // Notify the engagement bar to increment its comment count.
+      
       _trackCommentPosted.value = widget.track.id;
       Future.microtask(() => _trackCommentPosted.value = null);
     } else {
@@ -3126,7 +3126,7 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
             valueListenable: _controller,
             builder: (_, value, child) {
               if (value.text.isNotEmpty) {
-                // Show send arrow when user has typed something.
+                
                 return GestureDetector(
                   onTap: () => _postComment(_controller.text),
                   child: _isPosting
@@ -3154,9 +3154,9 @@ class _InlineCommentBarState extends State<_InlineCommentBar> {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  FOLLOW BUTTON — stateful, shown in expanded player header
-// ─────────────────────────────────────────────────────────
+
+
+
 class _ExpandedFollowButton extends StatefulWidget {
   final PlaybackTrackModel track;
   const _ExpandedFollowButton({required this.track});
@@ -3248,9 +3248,9 @@ class _ExpandedFollowButtonState extends State<_ExpandedFollowButton> {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  NEXT UP SHEET — queue viewer with shuffle / repeat / reorder / remove
-// ─────────────────────────────────────────────────────────
+
+
+
 Future<void> _openNextUpSheet(BuildContext context) async {
   final BuildContext? navigatorContext = appNavigatorKey.currentContext;
   if (navigatorContext == null) return;

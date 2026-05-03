@@ -5,12 +5,12 @@ class Follower {
   final int _trackCount;
   final int _followersCount;
 
-  /// Fixed meaning:
-  /// "Does the currently authenticated app user follow this user?"
+  
+  
   bool isFollowing;
 
-  /// Fixed meaning:
-  /// "Has the currently authenticated app user blocked this user?"
+  
+  
   bool isBlocked;
 
   Follower(

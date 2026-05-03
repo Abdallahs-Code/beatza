@@ -1,11 +1,11 @@
-// Widget: FeedSearchBar
-// Reusable search input field for the Search screen.
-// Matches SoundCloud's search bar style from module_8_screens.pdf:
-//   - Dark rounded input with search icon on left
-//   - "Cancel" text button on right when active
-//   - Debounces onChanged by [debounceDuration] (default 500ms) to prevent
-//     flooding the backend with a request on every keystroke
-//   - Calls onSubmitted on keyboard "search" tap (for full search) — no debounce
+
+
+
+
+
+
+
+
 
 import 'dart:async';
 
@@ -82,7 +82,7 @@ class _FeedSearchBarState extends State<FeedSearchBar> {
           ),
         ),
 
-        // Cancel button — only visible when active
+        
         if (widget.isActive)
           GestureDetector(
             onTap: widget.onCancel,

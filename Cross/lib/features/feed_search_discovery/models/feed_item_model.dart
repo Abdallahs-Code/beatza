@@ -1,14 +1,14 @@
-// Model: FeedItemModel
-// Shape returned by GET /api/feed/v1/feed
-// {
-//   "id": "string",
-//   "type": "track",
-//   "isRepost": true,
-//   "createdAt": "2026-04-27T12:41:11.123Z",
-//   "actorId": "string",
-//   "displayName": "string",
-//   "imgLink": "string"
-// }
+
+
+
+
+
+
+
+
+
+
+
 
 class FeedItemModel {
   final String _id;

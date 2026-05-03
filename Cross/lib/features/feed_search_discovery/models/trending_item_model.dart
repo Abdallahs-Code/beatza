@@ -1,9 +1,9 @@
-// Model: TrendingItemModel
-// Shape returned by GET /api/feed/v1/trending-tracks/{userId}
-// Response: [ { "id": "string" } ]
-// Only returns IDs — we use these IDs to fetch full track details
-// via GET /api/public/tracks/v2/{id} (PlaybackTrackApiService or similar)
-// before displaying or playing.
+
+
+
+
+
+
 
 class TrendingItemModel {
   final String _id;

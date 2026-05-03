@@ -1,7 +1,7 @@
-// Widget: CreatePlaylistSheet
-// Bottom sheet for creating a new playlist.
-// Toggle label is "Make public" (public by default).
-// After creation, calls onCreated with the new PlaylistModel.
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -11,7 +11,7 @@ import 'package:cross_team5/features/sets_playlists/services/playlist_api_servic
 class CreatePlaylistSheet extends StatefulWidget {
   final void Function(PlaylistModel playlist)? onCreated;
 
-  // If set, this trackId is added to the playlist immediately after creation.
+  
   final String? initialTrackId;
 
   const CreatePlaylistSheet({super.key, this.onCreated, this.initialTrackId});
@@ -24,7 +24,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
   final PlaylistApiService _service = PlaylistApiService();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController(text: 'Untitled Playlist');
-  bool _isPublic = true; // "Make public" toggle — public by default
+  bool _isPublic = true; 
   bool _isCreating = false;
 
   @override
@@ -89,7 +89,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle bar
+              
               Center(
                 child: Container(
                   width: 40,
@@ -102,7 +102,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Header row: × title Save
+              
               Row(
                 children: [
                   GestureDetector(
@@ -160,7 +160,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Title field
+              
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -201,7 +201,7 @@ class _CreatePlaylistSheetState extends State<CreatePlaylistSheet> {
               ),
               const SizedBox(height: 20),
 
-              // Make public toggle
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

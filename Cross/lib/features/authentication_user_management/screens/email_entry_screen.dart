@@ -1,9 +1,9 @@
-// Dart imports
+
 import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-// Package imports
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cross_team5/core/services/api_services.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -243,7 +243,7 @@ class _EmailEntryScreenState extends State<EmailEntryScreen> {
   }
 }
 
-// ── Robot checkbox ─────────────────────────────────────────────────────────────
+
 
 class _RobotCheckbox extends StatelessWidget {
   final bool checked;
@@ -299,7 +299,7 @@ class _RobotCheckbox extends StatelessWidget {
   }
 }
 
-// ── CAPTCHA section ────────────────────────────────────────────────────────────
+
 
 class _CaptchaSection extends StatelessWidget {
   final String captchaCode;
@@ -429,7 +429,7 @@ class _CaptchaSection extends StatelessWidget {
   }
 }
 
-// ── Animated CAPTCHA canvas ────────────────────────────────────────────────────
+
 
 class _AnimatedCaptchaCanvas extends StatefulWidget {
   final String captchaCode;
@@ -494,7 +494,7 @@ class _AnimatedCaptchaCanvasState extends State<_AnimatedCaptchaCanvas>
     final rng = Random();
     final n = widget.captchaCode.length;
     _hueOffsets = List.generate(n, (_) => rng.nextDouble() * 360);
-    // Random gap between each pair of adjacent characters: 16–36 px.
+    
     double x = 0;
     _charX = [];
     for (int i = 0; i < n; i++) {
@@ -520,7 +520,7 @@ class _AnimatedCaptchaCanvasState extends State<_AnimatedCaptchaCanvas>
   }
 }
 
-// ── CAPTCHA painter ────────────────────────────────────────────────────────────
+
 
 class _CaptchaPainter extends CustomPainter {
   final String code;
@@ -564,12 +564,12 @@ class _CaptchaPainter extends CustomPainter {
 
     if (code.isEmpty || charX.length < code.length) return;
 
-    // Centre the group using the span from first to last char position.
+    
     final double groupWidth = charX.last - charX.first;
     final double startX = (size.width - groupWidth) / 2;
 
     for (int i = 0; i < code.length; i++) {
-      // Each character cycles hue from its own random starting offset.
+      
       final double hue = (hueOffsets[i] + animValue * 360) % 360;
       final color = HSVColor.fromAHSV(1.0, hue, 0.9, 1.0).toColor();
 

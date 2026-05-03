@@ -41,25 +41,25 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   bool _previewLimitReached = false;
   String? _lastHistoryReportedTrackId;
 
-  // ── V2 listen-count tracking ─────────────────────────────────────────────
-  // High-water mark: the furthest position (in seconds) the user has reached
-  // in the current track session. Using max() prevents seek-backward inflation.
+  
+  
+  
   int _maxListenedSeconds = 0;
-  // UUID generated once per track session; sent as sessionIdPlay for server-side
-  // deduplication. Refreshed each time a new track starts.
+  
+  
   String _currentListenSessionId = '';
-  // Prevents double-reporting the same track (e.g. completion then immediate skip).
+  
   String? _lastListenCountReportedTrackId;
 
   int _outputLevelRequestId = 0;
   Future<bool> Function()? _ensureNextTrackAvailable;
 
-  // ── Rapid-skip race-condition guard ──────────────────────────────────────
-  // Each playTrack() call captures the seq at entry. Any awaits that complete
-  // after a newer call has started (seq mismatch) are abandoned.
+  
+  
+  
   int _playSeq = 0;
-  // While true, audio-player state-change and completion events are suppressed.
-  // Cleared once the winning playTrack() confirms playback has started.
+  
+  
   bool _ignorePlayerStateUpdates = false;
 
   bool _isShuffled = false;
@@ -103,13 +103,13 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     Future<bool> Function()? ensureNextTrackAvailable,
     bool countForAd = true,
   }) async {
-    // Never interrupt an ad. When the ad finishes its onAdFinished callback
-    // calls playTrack with countForAd:false, bypassing this guard because
-    // isAdPlaying is already false at that point.
+    
+    
+    
     if (AdService.shared.isAdPlaying) return;
 
-    // Count every track play toward the ad threshold (non-Pro only).
-    // Using countForAd:false for the post-ad resume call avoids double-counting.
+    
+    
     if (countForAd && !PaymentService.subscriptionSuccessNotifier.isPro) {
       final bool adScheduled = AdService.shared.checkAndScheduleAd(
         onAdFinished: () => unawaited(
@@ -137,8 +137,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       }
     }
 
-    // Stamp this invocation. Any older in-flight call will detect the mismatch
-    // after its next await and return without touching state.
+    
+    
     final int seq = ++_playSeq;
     _ignorePlayerStateUpdates = true;
 
@@ -205,12 +205,12 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     }
 
     try {
-      // Finalize listen-count for the track we are leaving before its state
-      // (position, session ID) is reset below.
+      
+      
       final String? previousTrackId = _state.currentTrack?.id;
       if (previousTrackId != null) _finalizeListenCount(previousTrackId);
 
-      // Start a fresh listen session for the incoming track.
+      
       _maxListenedSeconds = 0;
       _currentListenSessionId = _generateUuid();
       _lastListenCountReportedTrackId = null;
@@ -221,7 +221,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       if (_state.hasTrack) {
         await _audioPlayerClient.stop();
       }
-      // A newer skip arrived while we were stopping — hand off to it.
+      
       if (seq != _playSeq) return;
 
       _updateState(
@@ -258,7 +258,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       await _audioPlayerClient.play(trackToPlay);
       if (seq != _playSeq) return;
 
-      // This call won the race — confirm playback and restore event processing.
+      
       _ignorePlayerStateUpdates = false;
       _updateState(
         _state.copyWith(status: PlaybackStatus.playing, clearMessage: true),
@@ -376,9 +376,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
 
   Future<void> stop() async {
     _outputLevelRequestId++;
-    _playSeq++; // cancel any in-progress playTrack
+    _playSeq++; 
     _ignorePlayerStateUpdates =
-        false; // restore so the stopped event is processed
+        false; 
     await _audioPlayerClient.stop();
     _previewLimitReached = false;
     _updateState(
@@ -536,9 +536,9 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     });
   }
 
-  // Re-evaluate gating on the current track and queue whenever the listener's
-  // Pro status flips. Without this, a Pro user who cancels mid-session keeps
-  // playing the full track because the cached models were locked at parse time.
+  
+  
+  
   void _bindSubscriptionListener() {
     PaymentService.subscriptionSuccessNotifier.addListener(
       _onSubscriptionChanged,
@@ -577,7 +577,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     if (identical(updated, currentTrack)) return;
 
     if (updated.accessState == PlaybackAccessState.preview) {
-      // Downgrade: enforce the 30s cap on the in-progress track.
+      
       final Duration limit = updated.effectivePreviewDuration;
       if (_state.currentPosition >= limit) {
         _previewLimitReached = true;
@@ -595,16 +595,16 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
         _updateState(_state.copyWith(currentTrack: updated));
       }
     } else {
-      // Upgrade or unchanged status: clear preview latch so the engine
-      // resumes treating the track as fully playable.
+      
+      
       _previewLimitReached = false;
       _updateState(_state.copyWith(currentTrack: updated));
     }
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {
-    // During a track transition suppress all audio-player events — playTrack()
-    // owns state until it either confirms playback or hands off to a newer call.
+    
+    
     if (_ignorePlayerStateUpdates) return;
 
     final PlaybackStatus nextStatus = switch (playerState) {
@@ -642,7 +642,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
       return;
     }
 
-    // Track furthest listened position for V2 play-count reporting.
+    
     final int posSeconds = position.inSeconds;
     if (posSeconds > _maxListenedSeconds) {
       _maxListenedSeconds = posSeconds;
@@ -662,19 +662,19 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
   }
 
   Future<void> _handlePlaybackCompleted() async {
-    // If an ad is already on screen ignore this event — the ad's onAdFinished
-    // callback handles advancing to the next track.
+    
+    
     if (AdService.shared.isAdPlaying) return;
 
     _outputLevelRequestId++;
     _previewLimitReached = false;
 
-    // Report the completed track's full listen duration before moving on.
+    
     final String? completedId = _state.currentTrack?.id;
     if (completedId != null) _finalizeListenCount(completedId);
 
-    // Ad counting now happens inside playTrack(), so advancing to the next
-    // track here will automatically trigger the ad check when that track starts.
+    
+    
     await _continueAfterTrackCompleted();
   }
 
@@ -687,7 +687,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
           queue: List<PlaybackTrackModel>.from(_activeQueue),
           startIndex: _currentQueueIndex,
           ensureNextTrackAvailable: _ensureNextTrackAvailable,
-          countForAd: false, // repeating the same track — don't count twice
+          countForAd: false, 
         );
       }
       return;
@@ -735,7 +735,7 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     );
   }
 
-  // Records the track in listening history once per track session (on play start).
+  
   void _reportTrackPlayedIfNeeded() {
     final PlaybackTrackModel? currentTrack = _state.currentTrack;
     if (currentTrack == null || currentTrack.id.trim().isEmpty) return;
@@ -745,8 +745,8 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     _sendPlayedHistoryRequest(currentTrack.id);
   }
 
-  // Sends the V2 play-count request for [trackId] using the accumulated
-  // listen duration. Guards against double-reporting the same session.
+  
+  
   void _finalizeListenCount(String trackId) {
     if (trackId.isEmpty) {
       debugPrint('[ListenCount] ⏭️ skip — empty trackId');
@@ -775,11 +775,11 @@ class PlaybackStreamingEngineService extends ChangeNotifier {
     );
   }
 
-  // RFC 4122 UUID v4 using cryptographically secure random bytes.
+  
   String _generateUuid() {
     final b = List<int>.generate(16, (_) => Random.secure().nextInt(256));
-    b[6] = (b[6] & 0x0f) | 0x40; // version 4
-    b[8] = (b[8] & 0x3f) | 0x80; // variant 1
+    b[6] = (b[6] & 0x0f) | 0x40; 
+    b[8] = (b[8] & 0x3f) | 0x80; 
     String hex(int v) => v.toRadixString(16).padLeft(2, '0');
     return '${hex(b[0])}${hex(b[1])}${hex(b[2])}${hex(b[3])}-'
         '${hex(b[4])}${hex(b[5])}-'

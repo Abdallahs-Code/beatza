@@ -30,12 +30,12 @@ class _ActivityScreenState extends State<ActivityScreen>
   bool _didRequestFreshState = false;
   MessageFilter _messageFilter = MessageFilter.all;
 
-  // ── Secondary-data cache keyed by ID so tiles never re-fetch on scroll ──
-  final Map<String, bool> _followCache = {}; // actorUserId → isFollowing
-  final Map<String, bool> _likeCache = {}; // commentId   → isLiked
-  final Map<String, PlaybackTrackModel?> _trackCache = {}; // trackId → track
-  final Map<String, bool> _trackFetchedCache = {}; // trackId → was attempted
-  final Map<String, int?> _timestampCache = {}; // commentId → timestamp
+  
+  final Map<String, bool> _followCache = {}; 
+  final Map<String, bool> _likeCache = {}; 
+  final Map<String, PlaybackTrackModel?> _trackCache = {}; 
+  final Map<String, bool> _trackFetchedCache = {}; 
+  final Map<String, int?> _timestampCache = {}; 
   final Set<String> _readyIds = {};
   bool _initialLoadComplete = false;
 
@@ -144,7 +144,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     });
   }
 
-  // ─── Filter sheet ──────────────────────────────────────────────────────────
+  
 
   Future<void> _openFilterSheet() async {
     if (_tabController.index == 1) {
@@ -266,7 +266,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +349,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // ─── Notifications tab ─────────────────────────────────────────────────────
+  
 
   Widget _buildNotificationsTab() {
     if (_controller.isLoading && _controller.notifications.isEmpty) {
@@ -392,9 +392,9 @@ class _ActivityScreenState extends State<ActivityScreen>
       onTileReady: () => _onTileReady(n.notificationId),
     );
 
-    // SingleChildScrollView + Column builds ALL children eagerly (no lazy
-    // viewport). This is required so every tile's initState fires immediately
-    // and onTileReady callbacks can fill _readyIds.
+    
+    
+    
     final list = RefreshIndicator(
       color: AppColors.primaryOrange,
       backgroundColor: AppColors.surface,
@@ -457,7 +457,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // ─── Empty / error / messages ──────────────────────────────────────────────
+  
 
   Widget _buildErrorState(String message) {
     return Center(
@@ -556,22 +556,22 @@ class _ActivityScreenState extends State<ActivityScreen>
   }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// _NotificationTile — own StatefulWidget so each tile owns its like state
-// ═════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class _NotificationTile extends StatefulWidget {
   final ActivityNotificationModel notification;
   final ActivityNotificationsController controller;
 
-  // Cached values from parent — provided on remount so tile renders immediately.
+  
   final bool? initialIsFollowing;
   final bool? initialIsLiked;
   final PlaybackTrackModel? initialTrack;
   final bool initialTrackFetched;
   final int? initialCommentTimestamp;
 
-  // Called whenever a secondary API returns so parent can cache the result.
+  
   final void Function(
     bool? isFollowing,
     bool? isLiked,
@@ -581,7 +581,7 @@ class _NotificationTile extends StatefulWidget {
   )
   onDataFetched;
 
-  // Called once all secondary API calls for this tile have completed.
+  
   final VoidCallback onTileReady;
 
   const _NotificationTile({
@@ -602,7 +602,7 @@ class _NotificationTile extends StatefulWidget {
 }
 
 class _NotificationTileState extends State<_NotificationTile> {
-  // Exact same service instance pattern as _ExpandedEngagementBarState
+  
   final EngagementApiService _engagementService = EngagementApiService();
 
   bool _isLiked = false;
@@ -613,7 +613,7 @@ class _NotificationTileState extends State<_NotificationTile> {
   PlaybackTrackModel? _track;
   int? _commentTimestamp;
 
-  // Tracks how many secondary API calls are still in-flight.
+  
   int _pendingLoads = 0;
   bool _tileReadyFired = false;
 
@@ -627,7 +627,7 @@ class _NotificationTileState extends State<_NotificationTile> {
   void initState() {
     super.initState();
 
-    // Track data — use cache if available, otherwise fetch.
+    
     final trackId = _resolvedTrackId;
     if (trackId.isEmpty) {
       _trackFetched = true;
@@ -639,7 +639,7 @@ class _NotificationTileState extends State<_NotificationTile> {
       _fetchTrackData();
     }
 
-    // Like / comment status.
+    
     if (_hasActions(n.activityType)) {
       if (widget.initialIsLiked != null) {
         _isLiked = widget.initialIsLiked!;
@@ -650,7 +650,7 @@ class _NotificationTileState extends State<_NotificationTile> {
       }
     }
 
-    // Follow status.
+    
     if (n.activityType == 'user_followed') {
       if (widget.initialIsFollowing != null) {
         _isFollowing = widget.initialIsFollowing!;
@@ -664,7 +664,7 @@ class _NotificationTileState extends State<_NotificationTile> {
       '[TILE_INIT] ${n.notificationId} type=${n.activityType} pending=$_pendingLoads',
     );
 
-    // Nothing to fetch — report ready after first frame.
+    
     if (_pendingLoads == 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_tileReadyFired) {
@@ -676,7 +676,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     }
   }
 
-  // Called by every async method on completion (success or error).
+  
   void _completePending({
     bool? isFollowing,
     bool? isLiked,
@@ -825,7 +825,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     setState(() => _isLikeLoading = false);
   }
 
-  // Opens quick reply without pre-filling (used for tile tap)
+  
   void _openQuickReply() {
     showModalBottomSheet(
       context: context,
@@ -843,7 +843,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     );
   }
 
-  // Opens quick reply pre-filled with the actor's @mention and comment timestamp
+  
   void _openReply() {
     showModalBottomSheet(
       context: context,
@@ -892,7 +892,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     );
   }
 
-  // ── Tap on the whole tile ──
+  
   void _handleTap() {
     if (!n.read) {
       widget.controller.markNotificationAsRead(n.notificationId);
@@ -916,7 +916,7 @@ class _NotificationTileState extends State<_NotificationTile> {
   }
 
   void _navigateToBehindTheTrack() {
-    // For like/repost: n.to = track owner. For new_track: n.actor.userId = uploader.
+    
     final trackOwnerId = n.activityType == 'new_track' ? n.actor.userId : n.to;
     Navigator.push(
       context,
@@ -933,7 +933,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     );
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────────
+  
 
   @override
   Widget build(BuildContext context) {
@@ -1151,8 +1151,8 @@ class _NotificationTileState extends State<_NotificationTile> {
       );
     }
 
-    // Show track thumbnail for track notifications AND comment/mention
-    // notifications (targetType == 'comment' but they reference a track).
+    
+    
     if (n.target.targetType == 'track' ||
         n.activityType == 'track_commented' ||
         n.activityType == 'user_mentioned' ||
@@ -1199,7 +1199,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     return null;
   }
 
-  // Only comments and mentions show action chips
+  
   bool _hasActions(String type) =>
       type == 'track_commented' || type == 'user_mentioned';
 
@@ -1264,7 +1264,7 @@ class _NotificationTileState extends State<_NotificationTile> {
     );
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  
 
   IconData _badgeIcon(String type) {
     switch (type) {

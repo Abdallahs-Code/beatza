@@ -22,12 +22,12 @@ class AdService extends ChangeNotifier {
   bool get canSkipAd => !_hasUsedSkip;
   int get remainingSeconds => _remainingSeconds;
 
-  /// True once enough seconds have elapsed to show the Skip button.
+  
   bool get skipReady =>
       (totalAdSeconds - _remainingSeconds) >= skipAfterSeconds;
 
-  /// Call when a track naturally completes or is skipped (non-Pro users only).
-  /// Returns true if an ad was scheduled.
+  
+  
   bool checkAndScheduleAd({VoidCallback? onAdFinished}) {
     _tracksCompleted++;
     if (_tracksCompleted % tracksPerAd == 0) {
@@ -55,14 +55,14 @@ class AdService extends ChangeNotifier {
     });
   }
 
-  /// Consume the user's one-time skip. No-op if already used.
+  
   void skipAd() {
     if (!canSkipAd) return;
     _hasUsedSkip = true;
     _finishAd();
   }
 
-  /// Call when the ad finishes naturally (timer expires).
+  
   void onAdCompleted() => _finishAd();
 
   void _finishAd() {

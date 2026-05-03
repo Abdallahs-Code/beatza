@@ -1,8 +1,8 @@
-// Widget: VibesGrid
-// Static genre grid shown on the Search screen when the user
-// is not actively typing (idle state). Genres match the app's
-// upload genre list exactly. Tapping a tile navigates to
-// GenreTracksScreen with tracks filtered by that genre.
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -118,7 +118,7 @@ class _VibeCard extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.hardEdge,
           children: [
-            // Decorative tilted block in bottom right (SoundCloud style)
+            
             Positioned(
               right: -10,
               bottom: -10,
@@ -134,7 +134,7 @@ class _VibeCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Genre label
+            
             Padding(
               padding: const EdgeInsets.all(12),
               child: Text(

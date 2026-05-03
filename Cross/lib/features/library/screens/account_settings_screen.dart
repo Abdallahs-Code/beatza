@@ -703,20 +703,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           )
                         : null,
                     onTap: () async {
-                      // Close the bottom sheet immediately
+                      
                       Navigator.pop(context);
 
                       if (!selected && _settings != null) {
-                        // 1. Update local state
+                        
                         setState(() {
                           _settings = _settings!.copyWith(theme: opt);
                         });
 
-                        // 2. Save to API
+                        
                         await _patch(_settings!);
 
-                        // 3. Navigate to Splash Screen to fully reload with new theme
-                        // Note: Replace '/' with your actual splash route name if different
+                        
+                        
                         if (mounted) {
                           Navigator.pushNamedAndRemoveUntil(
                             context,

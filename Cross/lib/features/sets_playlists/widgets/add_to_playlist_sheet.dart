@@ -1,8 +1,8 @@
-// Widget: AddToPlaylistSheet
-// Full-screen modal for adding a track to one or more of the user's playlists.
-// Shows user's playlists with checkboxes (multi-select).
-// "Create playlist" row creates a new playlist and adds the track immediately.
-// Tapping Done calls addTrackToPlaylist for each newly-checked playlist.
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
@@ -15,7 +15,7 @@ class AddToPlaylistSheet extends StatefulWidget {
 
   const AddToPlaylistSheet({super.key, required this.trackId});
 
-  /// Convenience method — shows this sheet as a full-screen modal.
+  
   static Future<void> show(BuildContext context, {required String trackId}) {
     return showModalBottomSheet(
       context: context,
@@ -148,7 +148,7 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
           ),
           child: Column(
             children: [
-              // Handle
+              
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 8),
                 child: Container(
@@ -160,7 +160,7 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                 ),
               ),
 
-              // AppBar row
+              
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -209,7 +209,7 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                 ),
               ),
 
-              // Search bar
+              
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -235,7 +235,7 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                 ),
               ),
 
-              // List
+              
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -243,10 +243,10 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                             color: AppColors.crusta))
                     : ListView.builder(
                         controller: scrollController,
-                        itemCount: _filtered.length + 2, // create row + label
+                        itemCount: _filtered.length + 2, 
                         itemBuilder: (context, index) {
                           if (index == 0) {
-                            // Create playlist row
+                            
                             return ListTile(
                               leading: Container(
                                 width: 52,

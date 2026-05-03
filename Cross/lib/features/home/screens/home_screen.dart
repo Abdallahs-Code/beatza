@@ -52,8 +52,8 @@ class _HomeScreenState extends State<HomeScreen>
     _loadQuickPickTracks();
     _loadDisplayName();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // handleInitialFcmMessage must be called from a widget after runApp —
-      // calling getInitialMessage() before runApp returns null on Android.
+      
+      
       await PushNotificationService.shared.handleInitialFcmMessage();
       NotificationNavigationService.shared.executePendingIfAny();
     });
@@ -828,7 +828,7 @@ class _QuickPickTracksSection extends StatelessWidget {
   }
 }
 
-// ── Trending by genre section ──────────────────────────────────────────────
+
 
 class _TrendingByGenreSection extends StatefulWidget {
   const _TrendingByGenreSection();
@@ -898,7 +898,7 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
       );
     }
 
-    // On error or empty list fall back to the static placeholder
+    
     if (_error != null || _tracks.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,7 +919,7 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Genre chips ────────────────────────────────────────────────────
+        
         SizedBox(
           height: 44,
           child: ListView(
@@ -944,7 +944,7 @@ class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
           ),
         ),
         const SizedBox(height: 16),
-        // ── Track card ─────────────────────────────────────────────────────
+        
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Container(

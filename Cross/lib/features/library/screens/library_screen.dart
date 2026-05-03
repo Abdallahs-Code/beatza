@@ -1,4 +1,4 @@
-// Dart imports
+
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/core/theme/app_text.dart';
@@ -326,7 +326,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   const LibraryHeader(),
                   const SizedBox(height: 20),
 
-                  /// MENU
+                  
                   InkWell(
                     onTap: () {
                       Navigator.pushNamed(context, LibraryRoutes.yourLikes);
@@ -396,7 +396,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
                   const SizedBox(height: 20),
 
-                  /// RECENTLY PLAYED
+                  
                   SectionHeader(
                     title: AppText.recentlyPlayed,
                     actionText: AppText.seeAll,
@@ -407,7 +407,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
                   const SizedBox(height: 28),
 
-                  /// LISTENING HISTORY
+                  
                   SectionHeader(
                     title: AppText.listeningHistory,
                     actionText: AppText.seeAll,
@@ -419,7 +419,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
             ),
 
-            /// Profile Image Overlay
+            
             Positioned(
               top: 8,
               right: 12,

@@ -1,7 +1,7 @@
-// Screen: MyPlaylistsScreen
-// Shows the current user's playlists (my-playlists API).
-// Search bar filters locally. "Create new" button opens CreatePlaylistSheet.
-// After creation navigates directly to PlaylistDetailScreen.
+
+
+
+
 
 import 'package:flutter/material.dart';
 
@@ -136,7 +136,7 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
             _playlists.insert(0, playlist);
             _filtered.insert(0, playlist);
           });
-          // Navigate directly to the new playlist
+          
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -207,17 +207,17 @@ class _MyPlaylistsScreenState extends State<MyPlaylistsScreen> {
       color: AppColors.crusta,
       child: CustomScrollView(
         slivers: [
-          // Search bar
+          
           SliverToBoxAdapter(child: _buildSearchBar()),
 
-          // "Create new" button
+          
           SliverToBoxAdapter(child: _buildCreateButton()),
 
-          // Free limit banner
+          
           if (_atFreeLimit)
             SliverToBoxAdapter(child: _buildFreeLimitBanner()),
 
-          // Playlist list
+          
           if (_filtered.isEmpty && _searchController.text.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(

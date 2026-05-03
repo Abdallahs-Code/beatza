@@ -495,7 +495,7 @@ class _ArtistStudioScreenState extends State<ArtistStudioScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Credits Row
+            
             Row(
               children: [
                 Expanded(

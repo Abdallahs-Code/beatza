@@ -87,7 +87,7 @@ class AudioUploadService {
     updatedList.insert(0, newTrack);
     globalMockTracksNotifier.value = updatedList;
 
-    // Transition to finished after a short delay to simulate server processing
+    
     Future.delayed(const Duration(seconds: 4), () {
       final list = List<TrackModel>.from(globalMockTracksNotifier.value);
       final idx = list.indexWhere((t) => t.id == localId);

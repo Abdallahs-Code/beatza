@@ -61,7 +61,7 @@ class ActivityNotificationsController extends ChangeNotifier {
 
       _currentUserId ??= await AuthApiService().getStoredUserId();
 
-      // Register/refresh FCM token with backend on every launch.
+      
       unawaited(PushNotificationService.shared.registerFcmToken(token));
 
       final shouldDoInitialLoad =
@@ -91,7 +91,7 @@ class ActivityNotificationsController extends ChangeNotifier {
 
       _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      // Use the filtered list count so badge always matches what is visible.
+      
       _unreadCount = _notifications.where((item) => !item.read).length;
     } catch (error) {
       _errorMessage = error.toString();

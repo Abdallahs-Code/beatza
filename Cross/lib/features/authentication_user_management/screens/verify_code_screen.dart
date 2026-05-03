@@ -9,8 +9,8 @@ import 'package:cross_team5/features/home/home_routes.dart';
 class VerifyCodeScreen extends StatefulWidget {
   final String pendingToken;
 
-  // Optional because your current flow only passes pendingToken.
-  // If you later have the email from backend/callback, pass it here.
+  
+  
   final String? email;
 
   const VerifyCodeScreen({super.key, required this.pendingToken, this.email});
@@ -167,10 +167,10 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeService>();
-    // final displayedEmail =
-    //     (widget.email != null && widget.email!.trim().isNotEmpty)
-    //         ? widget.email!.trim()
-    //         : "your email";
+    
+    
+    
+    
 
     return Scaffold(
       backgroundColor: AppColors.chineseBlack,

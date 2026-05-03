@@ -4,27 +4,27 @@ import "package:http/http.dart" as http;
 import "package:cross_team5/core/services/api_services.dart";
 import "package:cross_team5/features/sets_playlists/models/playlist_model.dart";
 
-// All endpoints use _v1Base = {base}/api/playlists/v1
-//
-// Endpoints implemented:
-//   GET    /api/playlists/v1/my-playlists                      → getMyPlaylists
-//   GET    /api/playlists/v1/{id}?limit&offset                 → getPlaylistWithTracks
-//   GET    /api/playlists/v1                                   → getPublicPlaylistsAuth
-//   GET    /api/playlists/v1/playlists/{artistId}              → getArtistPlaylistsAuth
-//   GET    /api/playlists/v1/creator/{creatorId}               → getArtistInfo
-//   GET    /api/playlists/v1/{id}/recommend/{artistId}         → getMorePlaylistsFromArtistAuth
-//   GET    /api/public/playlists/v1/creator/{artistId}/albums  → getArtistAlbums
-//   PUT    /api/playlists/v1/{id}                              → updatePlaylist (multipart)
-//   DELETE /api/playlists/v1/{id}                             → deletePlaylist
-//   PATCH  /api/playlists/v1/{id}/tracks/{trackId}             → addTrackToPlaylist
-//   PATCH  /api/playlists/v1/{id}/tracks                      → reorderTrack
-//   DELETE /api/playlists/v1/{id}/tracks/{trackId}            → removeTrackFromPlaylist
-//   PATCH  /api/playlists/v1/{id}/image                       → updatePlaylistImage
-//   POST   /api/playlists/v1                                   → createPlaylist (JSON)
-//   POST   /api/playlists/v1/with-image                        → createPlaylistWithImage (multipart)
-//   POST   /api/playlists/v1/{id}/history                      → addPlaylistToHistory
-//   GET    /api/public/feed/v1/trending-tracks/{userId}        → getTrendingTrackIds
-//   GET    /api/tracks/v2/                                     → getPublicTracksPaginated
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class PlaylistApiService {
   final ApiServices _apiServices;
@@ -60,7 +60,7 @@ class PlaylistApiService {
         "User-Agent": "Android",
       };
 
-  // ── POST /api/v1/playlists ─────────────────────────────────────────────────
+  
 
   Future<(int, PlaylistModel?)> createPlaylist({
     required String playlistName,
@@ -99,7 +99,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── POST /api/v1/playlists/with-image ─────────────────────────────────────
+  
 
   Future<(int, PlaylistModel?)> createPlaylistWithImage({
     required String title,
@@ -150,7 +150,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── POST /api/v1/playlists/{playlistId}/history ───────────────────────────
+  
 
   Future<void> addPlaylistToHistory({required String playlistId}) async {
     try {
@@ -164,7 +164,7 @@ class PlaylistApiService {
     } catch (_) {}
   }
 
-  // ── GET /api/playlists/v1/my-playlists ────────────────────────────────────
+  
 
   Future<(int, List<PlaylistModel>)> getMyPlaylists() async {
     try {
@@ -187,7 +187,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/playlists/v1/{playlistId}?limit=&offset= ─────────────────────
+  
 
   Future<(int, PlaylistModel?)> getPlaylistWithTracks({
     required String playlistId,
@@ -218,7 +218,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/playlists/v1 ─────────────────────────────────────────────────
+  
 
   Future<(int, List<PlaylistModel>)> getPublicPlaylistsAuth({
     int limit = 20,
@@ -245,7 +245,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/playlists/v1/playlists/{artistId} ────────────────────────────
+  
 
   Future<(int, List<PlaylistModel>)> getArtistPlaylistsAuth({
     required String artistId,
@@ -268,7 +268,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/playlists/v1/creator/{creatorId} ─────────────────────────────
+  
 
   Future<(int, Map<String, dynamic>?)> getArtistInfo({
     required String creatorId,
@@ -295,7 +295,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/playlists/v1/{playlistId}/recommend/{artistId} ───────────────
+  
 
   Future<(int, List<PlaylistModel>)> getMorePlaylistsFromArtistAuth({
     required String playlistId,
@@ -326,7 +326,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/public/playlists/v1/creator/{artistId}/albums ───────────────
+  
 
   Future<(int, List<PlaylistModel>)> getArtistAlbums({
     required String artistId,
@@ -356,7 +356,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── PUT /api/playlists/v1/{playlistId} ────────────────────────────────────
+  
 
   Future<(int, String)> updatePlaylist({
     required String playlistId,
@@ -406,7 +406,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── DELETE /api/playlists/v1/{playlistId} ─────────────────────────────────
+  
 
   Future<(int, bool)> deletePlaylist({required String playlistId}) async {
     try {
@@ -430,7 +430,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── PATCH /api/playlists/v1/{playlistId}/tracks/{trackId} ─────────────────
+  
 
   Future<(int, String)> addTrackToPlaylist({
     required String playlistId,
@@ -455,7 +455,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── PATCH /api/playlists/v1/{playlistId}/tracks ───────────────────────────
+  
 
   Future<(int, String)> reorderTrack({
     required String playlistId,
@@ -487,7 +487,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── DELETE /api/playlists/v1/{playlistId}/tracks/{trackId} ───────────────
+  
 
   Future<(int, String)> removeTrackFromPlaylist({
     required String playlistId,
@@ -514,7 +514,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── PATCH /api/playlists/v1/{playlistId}/image ────────────────────────────
+  
 
   Future<(int, PlaylistModel?)> updatePlaylistImage({
     required String playlistId,
@@ -554,7 +554,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/public/feed/v1/trending-tracks/{userId} ──────────────────────
+  
 
   Future<(int, List<String>)> getTrendingTrackIds() async {
     try {
@@ -588,7 +588,7 @@ class PlaylistApiService {
     }
   }
 
-  // ── GET /api/tracks/v2/?page=N&limit=N ────────────────────────────────────
+  
 
   Future<(int, Map<String, dynamic>)> getPublicTracksPaginated({
     int page = 1,

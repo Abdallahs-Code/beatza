@@ -16,17 +16,17 @@ class TrackOptionsSheet extends StatefulWidget {
   final PlaybackTrackModel track;
   final TrackOptionsVariant variant;
 
-  /// Called when "Edit track" is tapped (ownTrack variant only).
+  
   final VoidCallback? onEditTrack;
 
-  /// Called when "Show me fewer posts like that" is tapped (feedTrack variant only).
+  
   final VoidCallback? onShowFewerPosts;
 
-  /// Called when "Switch to Classic feed" is tapped (feedTrack variant only).
+  
   final VoidCallback? onSwitchToClassicFeed;
 
-  /// Called when "Behind this track" is tapped. Sheet pops itself first,
-  /// then invokes this callback so the caller handles navigation.
+  
+  
   final VoidCallback? onBehindThisTrack;
 
   const TrackOptionsSheet({
@@ -69,9 +69,9 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   void initState() {
     super.initState();
     _repostCount = widget.track.numReposts;
-    // Pre-populate _trackPermalink synchronously before the first build so the
-    // Message button always has a non-empty link even if the user taps it
-    // immediately before the async network calls in _loadSendToData finish.
+    
+    
+    
     final rawPermalink = widget.track.permalink?.trim();
     if (rawPermalink != null && rawPermalink.isNotEmpty) {
       _trackPermalink = 'track::permalink:"$rawPermalink",profilelink:""';
@@ -95,7 +95,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       debugPrint('[SendTo] ⚠️ permalink is null/empty — _trackPermalink stays null, Message will send blank link');
     }
 
-    // ── STEP 1: current user ─────────────────────────────────────────────────
+    
     final currentUserId = await AuthApiService().getStoredUserId();
     debugPrint('[SendTo] S1 currentUserId="$currentUserId"  isNull=${currentUserId == null}  isEmpty=${currentUserId?.isEmpty}');
     if (currentUserId == null || currentUserId.isEmpty) {
@@ -103,7 +103,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       return;
     }
 
-    // ── STEP 2: profileLink (needed for full attach-in-chat format) ──────────
+    
     String profileLink = '';
     if (artistId.isNotEmpty) {
       try {
@@ -117,14 +117,14 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
       debugPrint('[SendTo] S2 ⚠️ artistId empty — skipping profileLink fetch');
     }
 
-    // Update _trackPermalink now that we have the profileLink
+    
     if (permalink != null && permalink.isNotEmpty && mounted) {
       final fullPayload = 'track::permalink:"$permalink",profilelink:"$profileLink"';
       setState(() => _trackPermalink = fullPayload);
       debugPrint('[SendTo] S2 updated _trackPermalink="$fullPayload"');
     }
 
-    // ── STEP 3: fetch followers for Send To quick-access section ─────────────
+    
     debugPrint('[SendTo] S3 calling getFollowers(userId=$currentUserId)');
     try {
       final result = await SocialApiService().getFollowers(userId: currentUserId);
@@ -135,7 +135,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
         return;
       }
 
-      // ── STEP 4: cast list ──────────────────────────────────────────────────
+      
       final rawList = result.$2;
       debugPrint('[SendTo] S4 rawList.runtimeType=${rawList.runtimeType}  isList=${rawList is List}');
       if (rawList is List) {
@@ -158,7 +158,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
         }
       }
 
-      // ── STEP 5: filter & build contacts ───────────────────────────────────
+      
       final validFollowers = followers.where((f) => f.userId.isNotEmpty).toList();
       debugPrint('[SendTo] S5 validFollowers.length=${validFollowers.length}  (before=${followers.length})');
       for (final f in validFollowers.take(3)) {
@@ -359,7 +359,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                 ),
                 const SizedBox(height: 22),
 
-                // ── Send To ──────────────────────────────────────────────────
+                
                 if (_hasSendTo && _recentContacts.isNotEmpty) ...[
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30),
@@ -397,7 +397,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                   const Divider(color: Colors.white12, height: 1),
                 ],
 
-                // ── Share ────────────────────────────────────────────────────
+                
                 const SizedBox(height: 18),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 30),
@@ -449,7 +449,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
 
-                // ── Group 1: playback + management ───────────────────────────
+                
                 _OptionTile(
                   icon: _isLiked
                       ? Icons.favorite_rounded
@@ -490,7 +490,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
 
-                // ── Group 2: social ──────────────────────────────────────────
+                
                 if (_hasGoToProfile)
                   _OptionTile(
                     icon: Icons.person_outline_rounded,
@@ -510,7 +510,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                     onTap: _openRepost,
                   ),
 
-                // ── Feed-specific ────────────────────────────────────────────
+                
                 if (_hasFeedOptions) ...[
                   const SizedBox(height: 10),
                   const Divider(color: Colors.white12, height: 1),
@@ -531,7 +531,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
                 const Divider(color: Colors.white12, height: 1),
                 const SizedBox(height: 10),
 
-                // ── Group 3: discovery + moderation ─────────────────────────
+                
                 if (_hasBehindThisTrack)
                   _OptionTile(
                     icon: Icons.graphic_eq,
@@ -554,7 +554,7 @@ class _TrackOptionsSheetState extends State<TrackOptionsSheet> {
   }
 }
 
-// ── Track header card ────────────────────────────────────────────────────────
+
 
 class _TrackHeaderCard extends StatelessWidget {
   final PlaybackTrackModel track;
@@ -662,7 +662,7 @@ class _TrackHeaderCard extends StatelessWidget {
   }
 }
 
-// ── Share action circle button ───────────────────────────────────────────────
+
 
 class _ShareAction extends StatelessWidget {
   final IconData icon;
@@ -701,7 +701,7 @@ class _ShareAction extends StatelessWidget {
   }
 }
 
-// ── Send-to contact circle ────────────────────────────────────────────────────
+
 
 class _SendToContact extends StatelessWidget {
   final String name;
@@ -765,7 +765,7 @@ class _SendToContact extends StatelessWidget {
   }
 }
 
-// ── Option list tile ─────────────────────────────────────────────────────────
+
 
 class _OptionTile extends StatelessWidget {
   final IconData icon;
@@ -799,7 +799,7 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-// ── Vinyl disc painter (decorative) ─────────────────────────────────────────
+
 
 class _VinylPainter extends CustomPainter {
   @override

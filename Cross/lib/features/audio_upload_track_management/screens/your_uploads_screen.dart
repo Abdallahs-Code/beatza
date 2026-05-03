@@ -589,10 +589,10 @@ class _YourUploadsScreenState extends State<YourUploadsScreen> {
         track: playbackTrack,
         variant: TrackOptionsVariant.ownTrack,
         onEditTrack: () async {
-          // Fetch fresh track data; getUserPostedTracks has geoBlocking but
-          // getTrackById has the most up-to-date basicInfo/permissions/license.
-          // Merge: take getTrackById result and patch in geoBlocking from the
-          // cached list track (getTrackById does not return geoBlocking).
+          
+          
+          
+          
           setState(() => _editingTrackId = track.id);
           final result = await _apiService.getTrackById(trackId: track.id);
           if (!mounted) return;

@@ -17,7 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:cross_team5/core/services/theme_service.dart';
 import '../../premium_subscription/screens/premium_subscription.dart';
 
-// ── Geo-blocking data ────────────────────────────────────────────────────────
+
 
 const _kGeoRegions = [
   'Africa', 'Antarctica', 'Asia', 'Europe',
@@ -122,7 +122,7 @@ String _displayGeoName(String key) =>
     _kGeoDisplayNames[key] ??
     key.replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (_) => ' ');
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 class DashedRectPainter extends CustomPainter {
   final Color color;
@@ -243,7 +243,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _editingServerTrack = args;
         _selectedFileName = args.title;
 
-        // basic info
+        
         _titleController.text = args.title;
         _genreController.text = args.genre;
         _descriptionController.text = args.description;
@@ -252,34 +252,34 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
         _privacy = args.isPrivate ? 'unlisted' : 'public';
         if (args.mainArtists.isNotEmpty) _artists.addAll(args.mainArtists);
 
-        // permissions
+        
         _enableDirectDownloads = args.enableDirectDownload;
         _offlineListening = args.offlineListening;
         _includeInRssFeed = args.includeInRssFeed;
         _displayEmbedCode = args.displayedEmbedCode;
         _enableAppPlayback = args.enableAppPlayback;
 
-        // license
+        
         _licensing = args.licenseType == 'creativeCommons'
             ? 'creative_commons'
             : 'all_rights';
 
-        // geo-blocking
+        
         _availability = args.geoBlockingMode;
         _selectedRegions = List.from(args.geoBlockingRegions);
         _selectedCountries = List.from(args.geoBlockingCountries);
 
-        // advanced
+        
         _containsExplicitContent = args.explicitContent;
         _recordLabelController.text = args.recordLabel ?? '';
         _publisherController.text = args.publisher ?? '';
         _isrcController.text = args.isrc ?? '';
         _pLineController.text = args.pLine ?? '';
 
-        // mobileProPreview
+        
         _mobileProPreview = args.mobileProPreview;
 
-        // release date
+        
         if (args.releaseDate.isNotEmpty) {
           final parsed = DateTime.tryParse(args.releaseDate);
           if (parsed != null) {
@@ -1741,7 +1741,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
           _buildGeoSelector(),
         ],
         const SizedBox(height: 16),
-        // ── Mobile Pro Preview ────────────────────────────────────────────
+        
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -2276,7 +2276,7 @@ class _UploadTrackScreenState extends State<UploadTrackScreen> {
   }
 }
 
-// ── Geo-blocking picker ───────────────────────────────────────────────────────
+
 
 class _GeoItem {
   final String key;

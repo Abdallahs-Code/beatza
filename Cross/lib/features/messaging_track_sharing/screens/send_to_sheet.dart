@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
 class SendToSheet extends StatefulWidget {
-  /// The track permalink (link) to pre-fill in the chat input.
+  
   final String trackLink;
   final String trackTitle;
 
@@ -50,7 +50,7 @@ class _SendToSheetState extends State<SendToSheet> {
   }
 
   void _openChat(ChatModel chat) {
-    Navigator.of(context).pop(); // close sheet
+    Navigator.of(context).pop(); 
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => ChatScreen(

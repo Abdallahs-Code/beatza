@@ -7,8 +7,8 @@ import 'package:cross_team5/features/user_profile_social_identity/user_profile_s
 class ProfileNavigator {
   ProfileNavigator._();
 
-  /// Fetches credentials, following list, and blocked list for the authenticated
-  /// user, then determines [initialIsFollowing] and [initialIsBlocked] for [userId].
+  
+  
   static Future<Map<String, dynamic>> _resolveArgs(String userId) async {
     final token = await AuthApiService().getStoredAccessToken() ?? '';
     final currentUserId = await AuthApiService().getStoredUserId();
@@ -52,10 +52,10 @@ class ProfileNavigator {
     };
   }
 
-  /// Returns true if the authenticated user currently follows [targetUserId].
-  ///
-  /// Uses the same following-list check as [push] / [pushViaState] so all
-  /// follow-state queries stay consistent across the app.
+  
+  
+  
+  
   static Future<bool> checkIsFollowing(String targetUserId) async {
     final normalizedTarget = targetUserId.trim();
     if (normalizedTarget.isEmpty) return false;
@@ -75,11 +75,11 @@ class ProfileNavigator {
     return false;
   }
 
-  /// Navigates to the user profile screen.
-  ///
-  /// Automatically fetches the token, current user ID, and resolves the
-  /// follow/block relationship before pushing the route. Guards against an
-  /// empty [userId] and checks [context.mounted] after the async work.
+  
+  
+  
+  
+  
   static Future<void> push(BuildContext context, String userId) async {
     final normalizedUserId = userId.trim();
     if (normalizedUserId.isEmpty) return;
@@ -95,10 +95,10 @@ class ProfileNavigator {
     );
   }
 
-  /// Navigates to the user profile via a [NavigatorState] directly.
-  ///
-  /// Use this when the caller's [BuildContext] has been invalidated before
-  /// pushing — typically after calling [Navigator.pop] on a bottom sheet.
+  
+  
+  
+  
   static Future<void> pushViaState(
     NavigatorState navigator,
     String userId,

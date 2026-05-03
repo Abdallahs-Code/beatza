@@ -1,16 +1,16 @@
-// Screen: LikersScreen
-// Shows two tabs: users who liked a track + users who reposted it.
-// This is a MODULE 6 ADDITION — real SoundCloud mobile only shows counts,
-// but our clone implements the web feature in the mobile app.
-//
-// Navigation: pushed from any screen that shows a track's like count.
-//   Navigator.pushNamed(context, EngagementRoutes.likers,
-//     arguments: {'trackId': track.id, 'initialTab': 0});
-//
-// initialTab: 0 = Likers (default), 1 = Reposters
-//
-// Pagination: loads first 20 on open. "Load more" button appears at
-// bottom of list when there are more results (offset-based, max 50/page).
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
@@ -23,7 +23,7 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 
 class LikersScreen extends StatefulWidget {
   final String trackId;
-  final int initialTab; // 0 = Likers, 1 = Reposters
+  final int initialTab; 
 
   const LikersScreen({super.key, required this.trackId, this.initialTab = 0});
 
@@ -36,7 +36,7 @@ class _LikersScreenState extends State<LikersScreen>
   final EngagementApiService _service = EngagementApiService();
   late TabController _tabController;
 
-  // ── Likers state ─────────────────────────────
+  
   List<EngagementUser> _likers = [];
   bool _isLoadingLikers = true;
   bool _isLoadingMoreLikers = false;
@@ -44,7 +44,7 @@ class _LikersScreenState extends State<LikersScreen>
   int _likersOffset = 1;
   static const int _pageSize = 20;
 
-  // ── Reposters state ───────────────────────────
+  
   List<EngagementUser> _reposters = [];
   bool _isLoadingReposters = true;
   bool _isLoadingMoreReposters = false;
@@ -59,7 +59,7 @@ class _LikersScreenState extends State<LikersScreen>
       vsync: this,
       initialIndex: widget.initialTab,
     );
-    // Load both lists simultaneously on open.
+    
     _loadLikers();
     _loadReposters();
   }
@@ -74,9 +74,9 @@ class _LikersScreenState extends State<LikersScreen>
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────
-  // Load first page of likers
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadLikers() async {
     setState(() {
       _isLoadingLikers = true;
@@ -94,18 +94,18 @@ class _LikersScreenState extends State<LikersScreen>
       if (result.$1 == 200) {
         _likers = result.$2 as List<EngagementUser>;
         _likersOffset = 1;
-        // Total comes from the raw response — we re-call with raw data
-        // via a workaround: we trust the list length for "load more" logic.
-        // If list length == _pageSize, there might be more.
+        
+        
+        
       } else {
         _likersError = result.$2.toString();
       }
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Load next page of likers (pagination)
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadMoreLikers() async {
     if (_isLoadingMoreLikers) return;
     setState(() => _isLoadingMoreLikers = true);
@@ -127,9 +127,9 @@ class _LikersScreenState extends State<LikersScreen>
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Load first page of reposters
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadReposters() async {
     setState(() {
       _isLoadingReposters = true;
@@ -153,9 +153,9 @@ class _LikersScreenState extends State<LikersScreen>
     });
   }
 
-  // ─────────────────────────────────────────────
-  // Load next page of reposters (pagination)
-  // ─────────────────────────────────────────────
+  
+  
+  
   Future<void> _loadMoreReposters() async {
     if (_isLoadingMoreReposters) return;
     setState(() => _isLoadingMoreReposters = true);
@@ -227,9 +227,9 @@ class _LikersScreenState extends State<LikersScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Reusable list builder for both tabs.
-  // ─────────────────────────────────────────────
+  
+  
+  
   Widget _buildUserList({
     required List<EngagementUser> users,
     required bool isLoading,
@@ -275,11 +275,11 @@ class _LikersScreenState extends State<LikersScreen>
     }
 
     return ListView.separated(
-      itemCount: users.length + 1, // +1 for load more button
+      itemCount: users.length + 1, 
       separatorBuilder: (_, _) => Divider(height: 1, color: AppColors.borderDark),
       itemBuilder: (context, index) {
         if (index == users.length) {
-          // Load more button at the bottom
+          
           if (users.length < _pageSize) return const SizedBox.shrink();
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/ad_service.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';
 
-/// No-op — the ad renders inside the expanded player sheet.
+
 class AdOverlay extends StatelessWidget {
   const AdOverlay({super.key});
 
@@ -11,11 +11,11 @@ class AdOverlay extends StatelessWidget {
   Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
-/// Ad placeholder rendered inside the expanded player.
-/// All countdown state lives in [AdService] so it survives the widget being
-/// disposed when the player is minimised.
+
+
+
+
 class AdPlayerWidget extends StatelessWidget {
   const AdPlayerWidget({super.key});
 
@@ -34,7 +34,7 @@ class AdPlayerWidget extends StatelessWidget {
           color: AppColors.pureBlack,
           child: Stack(
             children: [
-              // ── Centre content ──────────────────────────────────────────
+              
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -75,7 +75,7 @@ class AdPlayerWidget extends StatelessWidget {
                 ),
               ),
 
-              // ── "Ad" badge — top-left ───────────────────────────────────
+              
               Positioned(
                 top: 16,
                 left: 16,
@@ -100,7 +100,7 @@ class AdPlayerWidget extends StatelessWidget {
                 ),
               ),
 
-              // ── Skip / countdown — bottom-right ─────────────────────────
+              
               Positioned(
                 bottom: 16,
                 right: 16,
@@ -124,7 +124,7 @@ class AdPlayerWidget extends StatelessWidget {
     required int remaining,
     required int secsUntilSkip,
   }) {
-    // No skips left — tell the user immediately, no countdown needed.
+    
     if (!canSkip) return _Pill('No skips remaining');
 
     if (!skipReady) {
@@ -163,7 +163,7 @@ class AdPlayerWidget extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 class _Pill extends StatelessWidget {
   final String text;

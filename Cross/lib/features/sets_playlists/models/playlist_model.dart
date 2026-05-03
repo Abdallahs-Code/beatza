@@ -1,14 +1,14 @@
-// Model: PlaylistModel
-// Represents a playlist returned from the backend API.
-//
-// API response shape (full — with tracks):
-//   _id, artistId, title, description, genre, listOfTracks[], additionalTags[],
-//   permalink, isPrivate, numOfLikes, numOfReposts, playlistType, playlistLengthInSeconds,
-//   likedUser[], isLiked, isReposted, image{imgLink, publicId},
-//   createdAt, updatedAt, totalTracks, totalPages, page, tracks[]
-//
-// API response shape (list — without tracks):
-//   same as above but without totalTracks, totalPages, page, tracks
+
+
+
+
+
+
+
+
+
+
+
 
 class PlaylistImage {
   final String imgLink;
@@ -103,7 +103,7 @@ class PlaylistModel {
   final bool isPrivate;
   final int numOfLikes;
   final int numOfReposts;
-  final String playlistType; // 'playlist' | 'album'
+  final String playlistType; 
   final int playlistLengthInSeconds;
   final List<String> likedUser;
   final bool isLiked;
@@ -112,7 +112,7 @@ class PlaylistModel {
   final String createdAt;
   final String updatedAt;
 
-  // Populated only in full response (with tracks)
+  
   final int? totalTracks;
   final int? totalPages;
   final int? page;
@@ -152,8 +152,8 @@ class PlaylistModel {
     final imageJson = json['image'] as Map<String, dynamic>?;
     final tracksRaw = json['tracks'] as List<dynamic>? ?? [];
 
-    // API returns isPrivate: boolean directly.
-    // Some responses may use type: 'private'/'public' as fallback.
+    
+    
     bool parseIsPrivate() {
       final direct = json['isPrivate'];
       if (direct is bool) return direct;
@@ -197,9 +197,9 @@ class PlaylistModel {
     );
   }
 
-  // ── Static list parsers ──────────────────────
+  
 
-  /// Parses list responses: data.playlists[]
+  
   static List<PlaylistModel> listFromResponse(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>? ?? {};
     final List<dynamic> playlists = data['playlists'] ?? [];
@@ -208,7 +208,7 @@ class PlaylistModel {
         .toList();
   }
 
-  /// Parses single full playlist response: data.playlist[]  (array with 1 item)
+  
   static PlaylistModel? singleFromResponse(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>? ?? {};
     final List<dynamic> playlist = data['playlist'] ?? [];

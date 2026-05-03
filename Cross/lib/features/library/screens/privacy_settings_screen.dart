@@ -287,7 +287,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   }
 }
 
-// ─── Single privacy toggle row ─────────────────────────────────────────────────
+
 
 class _PrivacyRow extends StatelessWidget {
   final IconData icon;

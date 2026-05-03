@@ -1,7 +1,7 @@
-// Screen: EditPlaylistScreen
-// Two tabs: Tracks (drag-to-reorder, remove) and Details (metadata form).
-// Reordering and removal persist immediately via the API.
-// Save button in AppBar applies only to the Details form fields.
+
+
+
+
 
 import 'dart:io';
 
@@ -239,7 +239,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Image picker
+          
           Center(
             child: GestureDetector(
               onTap: _pickImage,

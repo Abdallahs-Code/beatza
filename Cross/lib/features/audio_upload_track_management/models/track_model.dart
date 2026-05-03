@@ -1,7 +1,7 @@
-// Model: TrackModel
-// Local upload model — used by UploadTrackScreen, YourUploadsScreen,
-// and AudioUploadService. Completely independent of API Track model.
-// This is the in-memory representation of a locally uploaded track.
+
+
+
+
 
 enum TrackProcessingState { processing, finished }
 

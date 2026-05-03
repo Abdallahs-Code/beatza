@@ -47,7 +47,7 @@ class MessagingApiService {
     }
   }
 
-  // GET /api/messages/v1/chats
+  
   Future<List<ChatModel>> getChats({int limit = 20}) async {
     final token = await _token();
     final uri = Uri.parse(
@@ -69,7 +69,7 @@ class MessagingApiService {
       for (int i = 0; i < list.length; i++) {
         final item = list[i];
         if (item is Map<String, dynamic>) {
-          // Log EVERY key so we can see the full structure
+          
           debugPrint('[getChats] item[$i] ALL KEYS: ${item.keys.toList()}');
           for (final k in item.keys) {
             final v = item[k];
@@ -104,7 +104,7 @@ class MessagingApiService {
     );
   }
 
-  // GET /api/messages/v1/chat/message/{chatId}
+  
   Future<
     ({
       List<MessageModel> messages,
@@ -138,7 +138,7 @@ class MessagingApiService {
         if (k != 'messages') debugPrint('[getChatMessages]   $k = ${inner[k]}');
       }
       final msgList = inner['messages'] as List<dynamic>? ?? [];
-      // Try every field name the backend might use for "you were blocked by them"
+      
       final isBlockedByReceiver =
           inner['isBlockedByReceiver'] == true ||
           inner['isSenderBlocked'] == true ||
@@ -164,9 +164,9 @@ class MessagingApiService {
     );
   }
 
-  // Find an existing chat that includes receiverId in its participants array.
-  // The GET /chats API now returns participants: [userId1, userId2], so we
-  // can find the right chat in a single request with no deep message scanning.
+  
+  
+  
   Future<String?> findOrCreateChat({required String receiverId}) async {
     try {
       final token = await _token();
@@ -192,7 +192,7 @@ class MessagingApiService {
       );
 
       for (final item in list) {
-        // Key is "chat" in current API; fall back to chatId / _id / id
+        
         String chatId = '';
         for (final key in ['chat', 'chatId', '_id', 'id']) {
           final v = item[key]?.toString() ?? '';
@@ -203,7 +203,7 @@ class MessagingApiService {
         }
         if (chatId.isEmpty) continue;
 
-        // Participants are full user objects — extract _id strings
+        
         final participantIds = <String>[];
         final rawP = item['participants'];
         if (rawP is List) {
@@ -238,7 +238,7 @@ class MessagingApiService {
     }
   }
 
-  // POST /api/messages/v1/send
+  
   Future<ChatModel> sendMessage({
     required String receiverId,
     required String content,
@@ -267,7 +267,7 @@ class MessagingApiService {
     throw Exception(errorMsg);
   }
 
-  // PATCH /api/messages/v1/archive
+  
   Future<void> archiveChat({required String chatId}) async {
     final token = await _token();
     final uri = Uri.parse('$_msgBase/archive');
@@ -285,30 +285,30 @@ class MessagingApiService {
     }
   }
 
-  // PATCH /api/messages/v1/chat/read/{chatId}
-  // Future<void> markChatAsRead({required String chatId}) async {
-  //   final token = await _token();
-  //   final uri = Uri.parse('$_msgBase/chat/read/$chatId');
-  //   await _client.patch(
-  //     uri,
-  //     headers: _headers(token),
-  //     body: jsonEncode({'chatId': chatId}),
-  //   );
-  // }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  // PATCH /api/messages/v1/chat/read
-  // PATCH /api/messages/v1/chat/read
+  
+  
   Future<void> markChatAsRead({required String chatId}) async {
     try {
       final token = await _token();
 
-      // ✅ URL is correct now
+      
       final uri = Uri.parse('$_msgBase/chat/read');
 
-      // ✅ FIXED: Backend expects 'id', not 'chatId'
+      
       final requestBody = {'id': chatId};
 
-      // 🔍 DEBUG: Log exact request
+      
       debugPrint('📤 [DEBUG] PATCH $uri');
       debugPrint('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
 
@@ -318,7 +318,7 @@ class MessagingApiService {
         body: jsonEncode(requestBody),
       );
 
-      // 🔍 DEBUG: Log response
+      
       debugPrint('📥 [DEBUG] Status: ${response.statusCode}');
       debugPrint('📥 [DEBUG] Body: ${response.body}');
 
@@ -327,7 +327,7 @@ class MessagingApiService {
         return;
       }
 
-      // Handle errors
+      
       switch (response.statusCode) {
         case 400:
           final data = _decode(response);
@@ -349,21 +349,21 @@ class MessagingApiService {
     }
   }
 
-  // PATCH /api/messages/v1/chat/unread/{chatId}
-  // PATCH /api/messages/v1/chat/unread
-  // PATCH /api/messages/v1/chat/unread
-  // PATCH /api/messages/v1/chat/unread
+  
+  
+  
+  
   Future<void> markChatAsUnread({required String chatId}) async {
     try {
       final token = await _token();
 
-      // ✅ URL construction (same pattern as markChatAsRead)
+      
       final uri = Uri.parse('$_msgBase/chat/unread');
 
-      // ✅ Body: Backend expects 'id' field (same as markChatAsRead)
+      
       final requestBody = {'id': chatId};
 
-      // 🔍 DEBUG: Log outgoing request
+      
       debugPrint('📤 [DEBUG] PATCH $uri');
       debugPrint('📤 [DEBUG] Body: ${jsonEncode(requestBody)}');
       debugPrint('📤 [DEBUG] Headers: ${_headers(token)}');
@@ -374,18 +374,18 @@ class MessagingApiService {
         body: jsonEncode(requestBody),
       );
 
-      // 🔍 DEBUG: Log incoming response
+      
       debugPrint('📥 [DEBUG] Status: ${response.statusCode}');
       debugPrint('📥 [DEBUG] Body: ${response.body}');
       debugPrint('📥 [DEBUG] Headers: ${response.headers}');
 
-      // ✅ Handle success codes
+      
       if (response.statusCode == 200 || response.statusCode == 204) {
         debugPrint('✅ Chat $chatId marked as unread successfully');
         return;
       }
 
-      // ❌ Handle error codes with specific messages
+      
       switch (response.statusCode) {
         case 400:
           final data = _decode(response);
@@ -413,36 +413,36 @@ class MessagingApiService {
     } catch (e, stack) {
       debugPrint('💥 [ERROR] markChatAsUnread failed: $e');
       debugPrint('📍 Stack: $stack');
-      rethrow; // Let UI handle error display
+      rethrow; 
     }
   }
 
-  // GET /api/tracks/v2/liked/{userId}
-  // Future<List<PlaybackTrackModel>> getLikedTracks({
-  //   required String userId,
-  // }) async {
-  //   final token = await _token();
-  //   final uri = Uri.parse('$_tracksV2Base/liked/$userId');
-  //   debugPrint('[MessagingApiService.getLikedTracks] GET $uri');
-  //   final res = await _client.get(uri, headers: _headers(token));
-  //   final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
-  //   debugPrint('[MessagingApiService.getLikedTracks] status=${res.statusCode} bodyPreview=$preview');
-  //   final data = _decode(res);
-  //   if (res.statusCode == 200 && data is Map) {
-  //     final rawData = data['data'];
-  //     debugPrint('[MessagingApiService.getLikedTracks] data["data"] runtimeType=${rawData.runtimeType} value=$rawData');
-  //     final list = _extractTrackList(rawData);
-  //     debugPrint('[MessagingApiService.getLikedTracks] extracted ${list.length} items');
-  //     return list
-  //         .whereType<Map<String, dynamic>>()
-  //         .map(PlaybackTrackModel.fromApiJson)
-  //         .toList();
-  //   }
-  //   debugPrint('[MessagingApiService.getLikedTracks] Non-200 or bad body. status=${res.statusCode}');
-  //   return [];
-  // }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  // GET /api/tracks/v2/liked/{userId}
+  
   Future<List<PlaybackTrackModel>> getLikedTracks({
     required String userId,
   }) async {
@@ -471,7 +471,7 @@ class MessagingApiService {
             .toList();
       }
 
-      // ⚠️ WORKAROUND: Return empty list on 500 (backend bug)
+      
       if (res.statusCode == 500) {
         debugPrint(
           '⚠️ [DEBUG] 500: Backend error on liked tracks — returning empty list',
@@ -482,7 +482,7 @@ class MessagingApiService {
         return [];
       }
 
-      // Handle 404 - user not found
+      
       if (res.statusCode == 404) {
         debugPrint('⚠️ [DEBUG] 404: User $userId not found');
         return [];
@@ -499,32 +499,32 @@ class MessagingApiService {
     }
   }
 
-  // GET /api/tracks/v2/posted/{userId}
-  // Future<List<PlaybackTrackModel>> getUserPostedTracks({
-  //   required String userId,
-  // }) async {
-  //   final token = await _token();
-  //   final uri = Uri.parse('$_tracksV2Base/posted/$userId');
-  //   debugPrint('[MessagingApiService.getUserPostedTracks] GET $uri');
-  //   final res = await _client.get(uri, headers: _headers(token));
-  //   final preview = res.body.length > 400 ? res.body.substring(0, 400) : res.body;
-  //   debugPrint('[MessagingApiService.getUserPostedTracks] status=${res.statusCode} bodyPreview=$preview');
-  //   final data = _decode(res);
-  //   if (res.statusCode == 200 && data is Map) {
-  //     final rawData = data['data'];
-  //     debugPrint('[MessagingApiService.getUserPostedTracks] data["data"] runtimeType=${rawData.runtimeType}');
-  //     final list = _extractTrackList(rawData);
-  //     debugPrint('[MessagingApiService.getUserPostedTracks] extracted ${list.length} items');
-  //     return list
-  //         .whereType<Map<String, dynamic>>()
-  //         .map(PlaybackTrackModel.fromApiJson)
-  //         .toList();
-  //   }
-  //   debugPrint('[MessagingApiService.getUserPostedTracks] Non-200 or bad body. status=${res.statusCode}');
-  //   return [];
-  // }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  // GET /api/tracks/v2/posted/{userId}
+  
   Future<List<PlaybackTrackModel>> getUserPostedTracks({
     required String userId,
   }) async {
@@ -554,12 +554,12 @@ class MessagingApiService {
             .toList();
       }
 
-      // Handle 404 - user not found or has no public tracks
+      
       if (res.statusCode == 404) {
         debugPrint(
           '⚠️ [DEBUG] 404: User $userId not found or has no public tracks',
         );
-        return []; // Return empty list instead of throwing
+        return []; 
       }
 
       throw Exception(
@@ -573,11 +573,11 @@ class MessagingApiService {
     }
   }
 
-  /// Handles the API returning data as:
-  ///   List directly            → [{...}, {...}]
-  ///   Map with "tracks" key    → {"tracks": [...], ...}
-  ///   Map with "data" key      → {"data": [...], ...}
-  ///   Nested paginationInfo    → {"tracks": [...], "paginationInfo": {...}}
+  
+  
+  
+  
+  
   List<dynamic> _extractTrackList(dynamic rawData) {
     if (rawData is List) return rawData;
     if (rawData is Map) {
@@ -600,7 +600,7 @@ class MessagingApiService {
     return [];
   }
 
-  // GET /api/profile/v1/{userId} — returns blockingMe field (private endpoint).
+  
   Future<bool> getProfileBlockingMe({required String userId}) async {
     debugPrint('━━━ [getProfileBlockingMe] ━━━');
     if (userId.isEmpty) {
@@ -632,7 +632,7 @@ class MessagingApiService {
     }
   }
 
-  // GET /api/public/profile/v1/{userId} — returns the user's profileLink slug
+  
   Future<String?> getUserProfileLink({required String userId}) async {
     debugPrint('━━━ [getUserProfileLink] ━━━');
     debugPrint(
@@ -664,10 +664,10 @@ class MessagingApiService {
     return profileLink.isEmpty ? null : profileLink;
   }
 
-  // GET /api/public/tracks/v2/permalink/{profileLink}/{permalink}
-  // Public endpoint — requires the track owner's profile slug AND the track's permalink.
-  // profileLink is fetched once at attach-time via getUserProfileLink and stored in the
-  // message body so both sender and receiver use the same value.
+  
+  
+  
+  
   Future<PlaybackTrackModel?> getTrackByPermalink({
     required String profileLink,
     required String permalink,
@@ -686,7 +686,7 @@ class MessagingApiService {
       debugPrint('[getTrackByPermalink] ❌ permalink is empty — aborting');
       return null;
     }
-    // Public endpoint — no auth header needed, but include it anyway for consistency
+    
     final token = await _token();
     final uri = Uri.parse(
       '${_apiServices.baseUrl}/api/public/tracks/v2/permalink/$profileLink/$permalink',
@@ -740,7 +740,7 @@ class MessagingApiService {
     return track;
   }
 
-  // GET /api/tracks/v2/{trackId} — returns full track model by database ID
+  
   Future<PlaybackTrackModel?> getTrackById({required String trackId}) async {
     debugPrint('━━━ [getTrackById] ━━━');
     debugPrint('[getTrackById] trackId="$trackId" (empty=${trackId.isEmpty})');
@@ -790,7 +790,7 @@ class MessagingApiService {
     return track;
   }
 
-  // GET /api/tracks/v2/{trackId} — returns permalink
+  
   Future<String?> getTrackPermalink({required String trackId}) async {
     final uri = Uri.parse('$_tracksV2Base/$trackId');
     final res = await _client.get(

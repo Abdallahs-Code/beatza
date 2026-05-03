@@ -1,6 +1,6 @@
-// Widget: SearchHistoryTile
-// Single row in the "Recently searched" list.
-// Shows thumbnail, title + metadata, and an X to delete the item.
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cross_team5/core/theme/app_colors.dart';

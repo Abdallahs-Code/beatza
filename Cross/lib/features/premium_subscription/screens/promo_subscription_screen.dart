@@ -98,7 +98,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       final apiPlans = await PaymentService.getPlans();
       List<Map<String, dynamic>> tempPlans = [];
 
-      // التكرار فقط لإضافة الخطط التي تم إرجاعها فعلياً من الـ API
+      
       for (var template in _uiPlanTemplates) {
         if (apiPlans.containsKey(template['id'])) {
           final apiData = apiPlans[template['id']];
@@ -112,7 +112,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
       }
 
       setState(() {
-        _mergedPlans = tempPlans; // ستحتوي فقط على الخطط القادمة من الباك اند
+        _mergedPlans = tempPlans; 
         _isLoadingPlans = false;
       });
     } catch (e) {
@@ -451,7 +451,7 @@ class _PremiumSubscriptionScreenState extends State<PremiumSubscriptionScreen> {
             builder: (context, state, _) {
               final currentPriceId = state.currentPriceId;
 
-              // تحديد مستوى المستخدم (Tier)
+              
               int getTierByPriceId(String? id) {
                 if (id == null || id.isEmpty) return 0;
                 final p = _mergedPlans.firstWhere(
