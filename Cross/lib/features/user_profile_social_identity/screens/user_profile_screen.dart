@@ -16,8 +16,6 @@ import 'package:cross_team5/features/playback_streaming_engine/models/playback_t
 import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/services/mock_playback_access_service.dart';
 import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
-import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart'
-    show showTrackOptionsSheet;
 import '../../audio_upload_track_management/models/track.dart';
 import '../../audio_upload_track_management/models/track_model.dart';
 import '../../audio_upload_track_management/services/audio_upload_service.dart';
