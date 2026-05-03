@@ -14,6 +14,8 @@ import 'package:cross_team5/features/authentication_user_management/widgets/auth
 import 'package:cross_team5/features/authentication_user_management/widgets/login_widgets.dart';
 import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 
+const bool kIsIntegrationTest = bool.fromEnvironment('INTEGRATION_TEST');
+
 class EmailEntryScreen extends StatefulWidget {
   const EmailEntryScreen({super.key});
 
@@ -85,7 +87,7 @@ class _EmailEntryScreenState extends State<EmailEntryScreen> {
     if (checked) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       final rng = Random();
-      final code = String.fromCharCodes(
+      final code = kIsIntegrationTest ? 'AAAAAA' : String.fromCharCodes(
         List.generate(6, (_) => chars.codeUnitAt(rng.nextInt(chars.length))),
       );
       setState(() {
@@ -366,6 +368,7 @@ class _CaptchaSection extends StatelessWidget {
           const SizedBox(height: 12),
 
           TextField(
+            key: const Key('test_captcha_input'),
             controller: controller,
             style: TextStyle(
               color: AppColors.whiteSmoke,

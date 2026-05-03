@@ -1,3 +1,6 @@
+// Cross Tester account should be deleted before doing this script.
+// run the script with this command: flutter test integration_test/app_test.dart --dart-define=INTEGRATION_TEST=true
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -84,6 +87,15 @@ void main() {
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
 
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -99,11 +111,20 @@ void main() {
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
 
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       final continueBtn =
           find.byKey(const Key('test_email_entry_continue_btn'));
       expect(continueBtn, findsOneWidget);
       await tester.tap(continueBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       AuthHelpers.assertSnackBarMessage(
           'Please enter your email address or profile URL');
@@ -118,6 +139,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -137,6 +168,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -163,6 +204,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -188,6 +239,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -218,6 +279,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -261,6 +332,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -304,6 +385,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -350,6 +441,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -387,7 +488,6 @@ void main() {
 
   group('Login — Password Screen', () {
     // Account exists from the last signup test above
-
     testWidgets('Entering a registered email navigates to Password screen',
         (tester) async {
       app.main();
@@ -395,6 +495,15 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
 
       await AuthHelpers.enterEmailAndContinue(
         tester,
@@ -411,6 +520,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -431,6 +550,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -465,6 +594,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -489,6 +628,16 @@ void main() {
 
       await AuthHelpers.goToLogin(tester);
       await AuthHelpers.goToEmailEntry(tester);
+
+      // Complete CAPTCHA before continuing
+      final robotCheckbox = find.byType(Checkbox);
+      expect(robotCheckbox, findsOneWidget);
+      await tester.tap(robotCheckbox);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.enterText(find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+      await tester.pump(const Duration(milliseconds: 500));
+
       await AuthHelpers.enterEmailAndContinue(
         tester,
         email: 'beatzacrosstester@gmail.com',
@@ -499,8 +648,6 @@ void main() {
       final forgotBtn = find.byKey(const Key('test_password_forgot_btn'));
       expect(forgotBtn, findsOneWidget);
 
-      // Call onTap directly — the GestureDetector's child doesn't fill
-      // the hit test area, so tester.tap() misses it
       final gestureDetector = tester.widget<GestureDetector>(forgotBtn);
       gestureDetector.onTap!();
       // Wait for the async forgotPassword API call to complete

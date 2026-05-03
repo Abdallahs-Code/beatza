@@ -9,6 +9,7 @@ import 'package:provider/provider.dart'; // ← NEW
 // Your existing imports
 import 'package:cross_team5/core/navigation/app_navigator.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
 import 'package:cross_team5/features/playback_streaming_engine/widgets/ad_overlay.dart';
 import 'package:cross_team5/routes/app_router.dart';
 import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
@@ -26,7 +27,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
-  // await AuthApiService().logout();
+  await AuthApiService().logout();
 
   if (Platform.isAndroid || Platform.isIOS) {
     await Firebase.initializeApp();

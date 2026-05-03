@@ -3,6 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cross_team5/main.dart' as app;
 
 class AuthHelpers {
+  /// Ticks the "I'm not a robot" checkbox and types the fixed test CAPTCHA.
+  /// Must be called after goToEmailEntry() and before enterEmailAndContinue().
+  /// Uses pump() instead of pumpAndSettle() because the CAPTCHA canvas has
+  /// an infinite animation that would freeze pumpAndSettle forever.
+  static Future<void> completeCaptcha(WidgetTester tester) async {
+    final robotCheckbox = find.byType(Checkbox);
+    expect(robotCheckbox, findsOneWidget);
+    await tester.tap(robotCheckbox);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.enterText(
+        find.byKey(const Key('test_captcha_input')), 'AAAAAA');
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+
   /// Logs in with the given credentials and deletes the account via the UI.
   /// Assumes the account exists — the test will fail if it doesn't.
   /// Ends on the Welcome screen after successful deletion.
@@ -73,12 +88,12 @@ class AuthHelpers {
     final input = find.byKey(const Key('test_email_entry_input'));
     expect(input, findsOneWidget);
     await tester.enterText(input, email);
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     final continueBtn = find.byKey(const Key('test_email_entry_continue_btn'));
     expect(continueBtn, findsOneWidget);
     await tester.tap(continueBtn);
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
   }
 
   static Future<void> enterPasswordAndContinue(
@@ -105,7 +120,8 @@ class AuthHelpers {
     await tester.enterText(input, password);
     await tester.pumpAndSettle();
 
-    final continueBtn = find.byKey(const Key('test_create_password_continue_btn'));
+    final continueBtn =
+        find.byKey(const Key('test_create_password_continue_btn'));
     expect(continueBtn, findsOneWidget);
     await tester.tap(continueBtn);
     await tester.pumpAndSettle();
@@ -116,15 +132,14 @@ class AuthHelpers {
     required String displayName,
     required String gender,
   }) async {
-    final nameInput = find.byKey(const Key('test_user_info_display_name_input'));
+    final nameInput =
+        find.byKey(const Key('test_user_info_display_name_input'));
     expect(nameInput, findsOneWidget);
     await tester.enterText(nameInput, displayName);
     await tester.pumpAndSettle();
 
-    // Find all DropdownButtonFormField widgets inside the DOB row
     final dobRow = find.byKey(const Key('test_user_info_dob_row'));
 
-    // Tap the Month dropdown (first DropdownButtonFormField in the row)
     final monthDropdown = find.descendant(
       of: dobRow,
       matching: find.byType(DropdownButtonFormField<int>),
@@ -134,17 +149,13 @@ class AuthHelpers {
     await tester.tap(find.text('January').last);
     await tester.pumpAndSettle();
 
-    // Tap the Day dropdown (second DropdownButtonFormField in the row)
     await tester.tap(monthDropdown.at(1));
     await tester.pumpAndSettle();
     await tester.tap(find.text('1').last);
     await tester.pumpAndSettle();
 
-    // Tap the Year dropdown (third DropdownButtonFormField in the row)
     await tester.tap(monthDropdown.at(2));
     await tester.pumpAndSettle();
-    // The year list starts from the current year descending.
-    // Use scrollUntilVisible with the dropdown's own Scrollable.
     final dropdownScrollable = find.byType(Scrollable).last;
     await tester.scrollUntilVisible(
       find.text('2000'),
@@ -155,7 +166,6 @@ class AuthHelpers {
     await tester.tap(find.text('2000').last);
     await tester.pumpAndSettle();
 
-    // Tap the Gender dropdown
     final genderDropdown = find.text('Gender (required)');
     if (genderDropdown.evaluate().isNotEmpty) {
       await tester.tap(genderDropdown);
@@ -170,6 +180,7 @@ class AuthHelpers {
     await tester.pumpAndSettle(const Duration(seconds: 3));
   }
 
+  /// Full login flow including CAPTCHA completion.
   static Future<void> loginWith(
     WidgetTester tester, {
     required String email,
@@ -177,6 +188,7 @@ class AuthHelpers {
   }) async {
     await goToLogin(tester);
     await goToEmailEntry(tester);
+    await completeCaptcha(tester);
     await enterEmailAndContinue(tester, email: email);
     await enterPasswordAndContinue(tester, password: password);
   }
