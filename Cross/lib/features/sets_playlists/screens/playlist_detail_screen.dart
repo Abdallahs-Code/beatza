@@ -13,9 +13,10 @@ import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/screens/add_music_screen.dart';
 import 'package:cross_team5/features/sets_playlists/screens/edit_playlist_screen.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
-import 'package:cross_team5/features/sets_playlists/widgets/add_to_playlist_sheet.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_options_sheet.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_track_tile.dart';
+import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/sets_playlists/playlist_playback.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final String playlistId;
@@ -45,19 +46,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   bool _isLoading = true;
   String? _error;
 
-  
-  int _offset = 0;
-  static const int _limit = 20;
-  bool _hasMore = true;
-  bool _isFetchingMore = false;
-
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _load();
-    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -66,27 +60,17 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 300 &&
-        !_isFetchingMore &&
-        _hasMore) {
-      _fetchMore();
-    }
-  }
-
+  // The API is page-based (returns page/totalPages), not offset-based.
+  // Sending offset=0 causes 400. Match the frontend: no pagination params on load.
   Future<void> _load() async {
     setState(() {
       _isLoading = true;
       _error = null;
-      _offset = 0;
       _tracks = [];
     });
 
     final (code, playlist) = await _service.getPlaylistWithTracks(
       playlistId: widget.playlistId,
-      limit: _limit,
-      offset: 0,
     );
 
     if (!mounted) return;
@@ -95,9 +79,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       setState(() {
         _playlist = playlist;
         _tracks = List.from(playlist.tracks);
-        _hasMore = (_tracks.length >= _limit) &&
-            ((playlist.totalPages ?? 1) > 1);
-        _offset = _tracks.length;
         _isLoading = false;
       });
       _loadCreatorInfo(playlist.artistId);
@@ -110,31 +91,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             : 'Failed to load playlist.';
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _fetchMore() async {
-    if (_isFetchingMore || !_hasMore) return;
-    setState(() => _isFetchingMore = true);
-
-    final (code, playlist) = await _service.getPlaylistWithTracks(
-      playlistId: widget.playlistId,
-      limit: _limit,
-      offset: _offset,
-    );
-
-    if (!mounted) return;
-
-    if (code == 200 && playlist != null) {
-      final newTracks = playlist.tracks;
-      setState(() {
-        _tracks.addAll(newTracks);
-        _offset = _tracks.length;
-        _hasMore = newTracks.length >= _limit;
-        _isFetchingMore = false;
-      });
-    } else {
-      setState(() => _isFetchingMore = false);
     }
   }
 
@@ -185,12 +141,17 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     switch (result) {
       case PlaylistOptionResult.edited:
         _navigateToEdit();
+        break;
       case PlaylistOptionResult.deleted:
         Navigator.pop(context, true);
+        break;
       case PlaylistOptionResult.privacyChanged:
+      case PlaylistOptionResult.secretTokenUpdated:
         _load();
+        break;
       case PlaylistOptionResult.musicAdded:
         _navigateToAddMusic();
+        break;
       case PlaylistOptionResult.copied:
         break;
       case null:
@@ -246,6 +207,43 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             backgroundColor: Colors.red),
       );
     }
+  }
+
+  Future<void> _playTrackAtIndex(int index) async {
+    if (_tracks.isEmpty) return;
+    await playPlaylistTracksAt(
+      context,
+      _tracks,
+      index,
+      playlistArtistId: _playlist?.artistId,
+    );
+  }
+
+  Future<void> _playAllFromStart() async {
+    if (_tracks.isEmpty) return;
+    await playPlaylistTracksAt(
+      context,
+      _tracks,
+      0,
+      playlistArtistId: _playlist?.artistId,
+    );
+  }
+
+  Future<void> _playAllShuffled() async {
+    if (_tracks.isEmpty) return;
+    final queue = playbackQueueFromPlaylistTracks(
+      _tracks,
+      playlistArtistId: _playlist?.artistId,
+    )..shuffle();
+    await playPlaybackQueueAt(context, queue: queue, index: 0);
+  }
+
+  List<PlaybackTrackModel> get _suggestionPlaybackQueue =>
+      _suggestions.map(PlaybackTrackModel.fromApiJson).toList();
+
+  Future<void> _playSuggestionAt(int index) async {
+    final queue = _suggestionPlaybackQueue;
+    await playPlaybackQueueAt(context, queue: queue, index: index);
   }
 
   Future<void> _removeTrack(PlaylistTrack track) async {
@@ -310,15 +308,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             SliverToBoxAdapter(child: _buildSuggestionsSection(isNew: true)),
           ] else ...[
             _buildTrackList(),
-            if (_isFetchingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.crusta, strokeWidth: 2)),
-                ),
-              ),
             SliverToBoxAdapter(
                 child: _buildSuggestionsSection(isNew: false)),
           ],
@@ -347,22 +336,59 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     );
   }
 
+  String _creatorDisplayName() {
+    final info = _creatorInfo;
+    if (info == null) return 'Unknown';
+    String? pick(Map<String, dynamic>? m) =>
+        m?['displayName']?.toString().trim();
+    var n = pick(info);
+    if (n != null && n.isNotEmpty) return n;
+    final raw = info['artist'];
+    if (raw is Map<String, dynamic>) {
+      n = pick(raw);
+      if (n != null && n.isNotEmpty) return n;
+    } else if (raw is List && raw.isNotEmpty && raw.first is Map) {
+      n = pick(Map<String, dynamic>.from(raw.first as Map));
+      if (n != null && n.isNotEmpty) return n;
+    }
+    return 'Unknown';
+  }
+
+  String? _creatorImageUrl() {
+    final info = _creatorInfo;
+    if (info == null) return null;
+    dynamic img(dynamic node) {
+      if (node is Map) return node['imgLink']?.toString();
+      return null;
+    }
+
+    final top = info['profileImage'];
+    if (top is Map) {
+      final u = img(top);
+      if (u != null && u.isNotEmpty) return u;
+    } else if (top is String && top.isNotEmpty) {
+      return top;
+    }
+
+    final raw = info['artist'];
+    if (raw is Map) {
+      final u = img(raw['profileImage']);
+      if (u != null && u.isNotEmpty) return u;
+    } else if (raw is List && raw.isNotEmpty && raw.first is Map) {
+      final u = img((raw.first as Map)['profileImage']);
+      if (u != null && u.isNotEmpty) return u;
+    }
+    return null;
+  }
+
   Widget _buildHeader() {
     final p = _playlist!;
     final totalSecs = p.playlistLengthInSeconds;
     final mins = totalSecs ~/ 60;
     final trackCount = p.trackCount;
 
-    
-    final creatorName = _creatorInfo?['displayName']?.toString() ??
-        'Unknown';
-    final creatorImgRaw = _creatorInfo?['profileImage'];
-    String? creatorImg;
-    if (creatorImgRaw is Map) {
-      creatorImg = creatorImgRaw['imgLink']?.toString();
-    } else if (creatorImgRaw is String && creatorImgRaw.isNotEmpty) {
-      creatorImg = creatorImgRaw;
-    }
+    final creatorName = _creatorDisplayName();
+    final creatorImg = _creatorImageUrl();
 
     final timeAgo = _timeAgo(p.createdAt);
 
@@ -400,7 +426,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
 
           
           Text(
-            'Playlist · $trackCount Track${trackCount == 1 ? '' : 's'}${mins > 0 ? ' · ${mins}m' : ''} · $timeAgo',
+            '${p.isPrivate ? 'Secret' : 'Public'} · Playlist · $trackCount Track${trackCount == 1 ? '' : 's'}${mins > 0 ? ' · ${mins}m' : ''} · $timeAgo',
             style:
                 const TextStyle(color: Colors.white54, fontSize: 13),
           ),
@@ -412,10 +438,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               CircleAvatar(
                 radius: 14,
                 backgroundColor: AppColors.cardDark,
-                backgroundImage:
-                    creatorImg != null && creatorImg.isNotEmpty
-                        ? NetworkImage(creatorImg)
-                        : null,
+                backgroundImage: (creatorImg != null && creatorImg.isNotEmpty)
+                    ? NetworkImage(creatorImg)
+                    : null,
                 child: creatorImg == null || creatorImg.isEmpty
                     ? const Icon(Icons.person,
                         color: Colors.white54, size: 16)
@@ -452,13 +477,13 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           
           _iconCircleButton(
             icon: Icons.shuffle,
-            onTap: () {},
+            onTap: _tracks.isEmpty ? () {} : _playAllShuffled,
           ),
           const SizedBox(width: 12),
 
           
           GestureDetector(
-            onTap: () {},
+            onTap: _tracks.isEmpty ? () {} : _playAllFromStart,
             child: Container(
               width: 52,
               height: 52,
@@ -501,10 +526,10 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
             child: PlaylistTrackTile(
               track: track,
-              showOptions: widget.isOwner,
+              showOptions: true,
+              playlistOwnerArtistId: _playlist?.artistId,
+              onTap: () => _playTrackAtIndex(index),
               onRemove: widget.isOwner ? () => _removeTrack(track) : null,
-              onAddToPlaylist: () =>
-                  AddToPlaylistSheet.show(context, trackId: track.id),
             ),
           );
         },
@@ -570,12 +595,14 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               ),
             ),
           ),
-        ..._suggestions.map((track) => _buildSuggestionTile(track)),
+        ..._suggestions.asMap().entries.map(
+              (e) => _buildSuggestionTile(e.key, e.value),
+            ),
       ],
     );
   }
 
-  Widget _buildSuggestionTile(Map<String, dynamic> track) {
+  Widget _buildSuggestionTile(int index, Map<String, dynamic> track) {
     final basicInfo = track['basicInfo'] as Map<String, dynamic>? ?? {};
     final image = track['image'] as Map<String, dynamic>? ?? {};
     final title = basicInfo['title']?.toString() ?? 'Unknown';
@@ -591,6 +618,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     final plays = (track['numPlays'] ?? track['numOfPlays'] ?? 0) as num;
 
     return ListTile(
+      onTap: () => _playSuggestionAt(index),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: ClipRRect(

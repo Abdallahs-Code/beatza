@@ -14,6 +14,7 @@ import 'package:cross_team5/core/theme/app_colors.dart';
 import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
 import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
 import 'package:cross_team5/features/sets_playlists/widgets/playlist_track_tile.dart';
+import 'package:cross_team5/features/sets_playlists/playlist_playback.dart';
 
 class EditPlaylistScreen extends StatefulWidget {
   final PlaylistModel playlist;
@@ -77,7 +78,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    // currentState is null when the Details tab hasn't been rendered yet
+    // (user is on the Tracks tab). Skip validation in that case.
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
@@ -88,6 +91,10 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
       genre: _genreController.text.trim(),
       isPrivate: _isPrivate,
       imagePath: _pickedImage?.path,
+      permalink: widget.playlist.permalink,
+      listOfTracks: _tracks.map((t) => t.id).toList(),
+      additionalTags: widget.playlist.additionalTags,
+      playlistType: widget.playlist.playlistType,
     );
 
     if (!mounted) return;
@@ -103,6 +110,15 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
         SnackBar(content: Text(message), backgroundColor: AppColors.deepRed),
       );
     }
+  }
+
+  Future<void> _playTrackAt(int index) async {
+    await playPlaylistTracksAt(
+      context,
+      _tracks,
+      index,
+      playlistArtistId: widget.playlist.artistId,
+    );
   }
 
   void _onReorder(int oldIndex, int newIndex) {
@@ -220,6 +236,9 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
           child: PlaylistTrackTile(
             track: track,
             showDragHandle: true,
+            showOptions: true,
+            playlistOwnerArtistId: widget.playlist.artistId,
+            onTap: () => _playTrackAt(index),
             onRemove: () => _removeTrack(track),
           ),
         );
@@ -321,16 +340,22 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Private playlist',
-                      style:
-                          TextStyle(color: Colors.white, fontSize: 15)),
-                  SizedBox(height: 2),
-                  Text('Only you can see this playlist',
-                      style: TextStyle(
-                          color: Colors.white54, fontSize: 12)),
+                  Text(
+                    _isPrivate ? 'Secret playlist' : 'Public playlist',
+                    style: const TextStyle(
+                        color: Colors.white, fontSize: 15),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isPrivate
+                        ? 'Shareable only via secret link'
+                        : 'Visible on your profile',
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 12),
+                  ),
                 ],
               ),
               Switch(

@@ -300,7 +300,7 @@ class _PlaylistOptionsSheetState extends State<PlaylistOptionsSheet> {
                         : Icons.lock_outline,
                     label: widget.playlist.isPrivate
                         ? 'Make playlist public'
-                        : 'Make playlist private',
+                        : 'Make playlist secret',
                     onTap: () {
                       Navigator.of(context, rootNavigator: true).pop();
                       widget.onTogglePrivacy?.call();
