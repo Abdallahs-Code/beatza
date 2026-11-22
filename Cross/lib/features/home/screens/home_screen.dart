@@ -1,0 +1,1221 @@
+import 'package:flutter/material.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
+import 'package:cross_team5/core/theme/app_text.dart';
+import 'package:cross_team5/core/widgets/common_widgets.dart';
+import 'package:cross_team5/features/home/widgets/home_widgets.dart';
+import 'package:cross_team5/features/audio_upload_track_management/audio_upload_track_management.dart';
+import 'package:cross_team5/features/library/library_routes.dart';
+import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_paging_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/public_tracks_api_service.dart';
+import 'package:cross_team5/core/navigation/notification_navigation_service.dart';
+import 'package:cross_team5/core/navigation/app_overlay_visibility.dart';
+import 'package:cross_team5/features/activity/services/push_notification_service.dart';
+import 'package:cross_team5/features/activity/controllers/activity_notifications_controller.dart';
+import 'package:cross_team5/features/activity/screens/activity_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
+import 'package:cross_team5/features/messaging_track_sharing/services/messaging_notification_service.dart';
+import 'package:cross_team5/features/feed_search_discovery/services/feed_search_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/widgets/global_playback_overlay.dart';
+import 'package:cross_team5/features/sets_playlists/models/playlist_model.dart';
+import 'package:cross_team5/features/sets_playlists/screens/playlist_detail_screen.dart';
+import 'package:cross_team5/features/sets_playlists/services/playlist_api_service.dart';
+
+import '../../premium_subscription/screens/premium_subscription.dart';
+import '../../premium_subscription/services/payment_service.dart';
+import '../../authentication_user_management/services/auth_api_service.dart';
+import '../../user_profile_social_identity/services/user_profile_service.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, RouteAware {
+  final PublicTracksPagingService _publicTracksPagingService =
+      PublicTracksPagingService.shared;
+  final PublicTracksApiService _quickPicksApiService = PublicTracksApiService();
+  List<PlaybackTrackModel> _quickPickTracks = [];
+  bool _quickPickLoading = true;
+  String? _displayName;
+
+  final PlaylistApiService _playlistCatalogService = PlaylistApiService();
+  List<PlaylistModel> _mixedPlaylists = [];
+  bool _mixedPlaylistsLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ActivityNotificationsController.shared.initialize();
+    ActivityNotificationsController.shared.reconnectIfNeeded();
+    MessagingNotificationService.shared.initialize();
+    _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
+    _loadQuickPickTracks();
+    _loadDisplayName();
+    _loadMixedPlaylists();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      
+      
+      await PushNotificationService.shared.handleInitialFcmMessage();
+      NotificationNavigationService.shared.executePendingIfAny();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ActivityNotificationsController.shared.reconnectIfNeeded();
+    final route = ModalRoute.of(context);
+    if (route != null) appRouteObserver.subscribe(this, route);
+  }
+
+  @override
+  void dispose() {
+    appRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    _quickPicksApiService.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _publicTracksPagingService.loadInitial(limit: 20, forceRefresh: true);
+    _loadMixedPlaylists();
+  }
+
+  Future<void> _loadDisplayName() async {
+    try {
+      final authService = AuthApiService();
+      final userId = await authService.getStoredUserId();
+      final token = await authService.getStoredAccessToken();
+      if (userId == null || token == null) return;
+      final profile = await UserProfileService().getUserProfile(userId, token);
+      if (mounted && profile.displayName.trim().isNotEmpty) {
+        setState(() => _displayName = profile.displayName.trim());
+      }
+    } catch (_) {}
+  }
+
+  /// Global playlist catalog (across users): auth endpoint when signed in,
+  /// otherwise public guest catalog.
+  Future<void> _loadMixedPlaylists() async {
+    const tag = '[Home Mixed]';
+    debugPrint('$tag _loadMixedPlaylists() start');
+    setState(() => _mixedPlaylistsLoading = true);
+    try {
+      final token = await AuthApiService().getStoredAccessToken();
+      final hasToken = token != null && token.trim().isNotEmpty;
+      debugPrint(
+        '$tag stored access token: ${hasToken ? "present (len=${token.trim().length})" : "absent — using guest catalog"}',
+      );
+      // Beatza catalog API: query.limit must be <= 20 (same constraint as web).
+      final (code, list) = hasToken
+          ? await _playlistCatalogService.getPublicPlaylistsAuth(limit: 20)
+          : await _playlistCatalogService.getPublicPlaylistsGuest(limit: 20);
+      if (!mounted) {
+        debugPrint('$tag not mounted after await, abort');
+        return;
+      }
+      debugPrint(
+        '$tag response: statusCode=$code rawCount=${list.length}',
+      );
+      if (code != 200) {
+        debugPrint('$tag non-200 — UI will show empty row');
+        setState(() {
+          _mixedPlaylists = [];
+          _mixedPlaylistsLoading = false;
+        });
+        return;
+      }
+      if (list.isNotEmpty) {
+        final sample = list.take(5).map((p) {
+          return '"${p.title}" id=${p.id} album=${p.isAlbum} '
+              'private=${p.isPrivate} type=${p.playlistType}';
+        }).join(' | ');
+        debugPrint('$tag first rows (up to 5): $sample');
+      }
+      final albumCount = list.where((p) => p.isAlbum).length;
+      final privateCount = list.where((p) => p.isPrivate).length;
+      debugPrint(
+        '$tag filter: raw=${list.length} '
+        'isAlbum=$albumCount isPrivate=$privateCount '
+        '→ keep !album && !private',
+      );
+      final playlists =
+          list.where((p) => !p.isAlbum && !p.isPrivate).toList();
+      debugPrint(
+        '$tag after filter: ${playlists.length} (empty UI if 0)',
+      );
+      setState(() {
+        _mixedPlaylists = playlists;
+        _mixedPlaylistsLoading = false;
+      });
+    } catch (e, st) {
+      debugPrint('$tag EXCEPTION: $e');
+      debugPrint('$tag STACK: $st');
+      if (mounted) {
+        setState(() {
+          _mixedPlaylists = [];
+          _mixedPlaylistsLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openMixedPlaylist(PlaylistModel playlist) async {
+    final userId = await AuthApiService().getStoredUserId();
+    if (!mounted) return;
+    final isOwner = userId != null &&
+        userId.isNotEmpty &&
+        userId == playlist.artistId;
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlaylistDetailScreen(
+          playlistId: playlist.id,
+          isOwner: isOwner,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadQuickPickTracks() async {
+    try {
+      final result = await _quickPicksApiService.fetchPublicTracksPage(
+        page: 2,
+        limit: 3,
+      );
+      if (mounted) {
+        setState(() {
+          _quickPickTracks = result.tracks;
+          _quickPickLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _quickPickLoading = false);
+    }
+  }
+
+  Future<void> _handleQuickPickTap(PlaybackTrackModel track, int index) async {
+    if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This track does not have a playable audio source yet.',
+          ),
+        ),
+      );
+      return;
+    }
+    await PlaybackStreamingEngineService.shared.playTrack(
+      track,
+      queue: _quickPickTracks,
+      startIndex: index,
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ActivityNotificationsController.shared.onAppResumed();
+    }
+  }
+
+  void _handleUpload(BuildContext context) async {
+    final isPro = PaymentService.subscriptionSuccessNotifier.isPro;
+    final int currentUploads =
+        AudioUploadService.globalMockTracksNotifier.value.length;
+
+    if (!isPro && currentUploads >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Free tier limited to 3 uploads. Please upgrade to Pro.',
+          ),
+          backgroundColor: AppColors.primaryOrange,
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PremiumSubscriptionScreen()),
+      );
+      return;
+    }
+
+    final AudioUploadService audioService = AudioUploadService();
+    final file = await audioService.pickAudioFile();
+    if (file != null) {
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const UploadTrackScreen(),
+          settings: RouteSettings(arguments: file),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<ThemeService>();
+    return Scaffold(
+      key: const Key('test_home_screen'),
+      backgroundColor: AppColors.homeBackground,
+      appBar: AppBar(
+        backgroundColor: AppColors.homeBackground,
+        elevation: 0,
+        leadingWidth: 140,
+        title: Text(
+          'Home',
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0, top: 10, bottom: 10),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ArtistStudioScreen(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceMid,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.white24, width: 1),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bar_chart, color: AppColors.whiteSmoke, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Artist Studio',
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.cloud_upload_outlined,
+              color: AppColors.whiteSmoke,
+            ),
+            onPressed: () => _handleUpload(context),
+          ),
+          AnimatedBuilder(
+            animation: ActivityNotificationsController.shared,
+            builder: (context, _) {
+              return IconButton(
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: AppColors.whiteSmoke,
+                    ),
+                    if (ActivityNotificationsController.shared.unreadCount > 0)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryOrange,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            ActivityNotificationsController.shared.unreadCount >
+                                    9
+                                ? '9+'
+                                : ActivityNotificationsController
+                                      .shared
+                                      .unreadCount
+                                      .toString(),
+                            style: TextStyle(
+                              color: AppColors.whiteSmoke,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ActivityScreen()),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      bottomNavigationBar: const CommonBottomNavBar(
+        currentItem: AppNavItem.home,
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 140),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 18),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          LibraryRoutes.yourLikes,
+                        ),
+                        child: const YourLikesCard(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _QuickPickTracksSection(
+                      tracks: _quickPickTracks,
+                      isLoading: _quickPickLoading,
+                      onTap: _handleQuickPickTap,
+                    ),
+                    const SizedBox(height: 28),
+                    const SectionHeader(
+                      title: AppText.moreOfWhatYouLike,
+                      showSeeAll: true,
+                    ),
+                    const SizedBox(height: 14),
+                    AnimatedBuilder(
+                      animation: _publicTracksPagingService,
+                      builder: (context, _) {
+                        return _HomePublicTracksSection(
+                          tracks: _publicTracksPagingService.tracks,
+                          isLoading:
+                              _publicTracksPagingService.isInitialLoading,
+                          errorMessage: _publicTracksPagingService.errorMessage,
+                          ensureNextTrackAvailable: _publicTracksPagingService
+                              .ensureNextTrackAvailableForPlayer,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    const HorizontalPosterSection(
+                      items: [
+                        PosterItemData(
+                          title: AppText.playlistPlaceholder,
+                          subtitle: "Artist one, Artist two",
+                        ),
+                        PosterItemData(
+                          title: AppText.userMixPlaceholder,
+                          subtitle: AppText.generatedBackend,
+                        ),
+                        PosterItemData(
+                          title: AppText.playlistPlaceholder,
+                          subtitle: AppText.anotherRecommendation,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 26),
+                    SectionHeader(title: 'Mixed for ${_displayName ?? 'You'}'),
+                    const SizedBox(height: 14),
+                    HorizontalMixSection(
+                      playlists: _mixedPlaylists,
+                      isLoading: _mixedPlaylistsLoading,
+                      onPlaylistTap: _openMixedPlaylist,
+                    ),
+                    const SizedBox(height: 26),
+                    const SectionHeader(title: AppText.trendingByGenre),
+                    const SizedBox(height: 14),
+                    const _TrendingByGenreSection(),
+                    const SizedBox(height: 26),
+                    const SectionHeader(title: AppText.albumsForYou),
+                    const SizedBox(height: 14),
+                    const HorizontalPosterSection(
+                      items: [
+                        PosterItemData(
+                          title: AppText.albumPlaceholder,
+                          subtitle: AppText.singerName,
+                        ),
+                        PosterItemData(
+                          title: AppText.slowArabic,
+                          subtitle: AppText.artistName,
+                        ),
+                        PosterItemData(
+                          title: AppText.arabicLoveSongs,
+                          subtitle: AppText.anotherArtist,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 26),
+                    const SectionHeader(title: AppText.madeForYou),
+                    const SizedBox(height: 14),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: EditorialCard(
+                              label: AppText.dailyDrops,
+                              description: AppText.dailyDropsDesc,
+                              accentColor: AppColors.dailyDropsBlue,
+                            ),
+                          ),
+                          SizedBox(width: 14),
+                          Expanded(
+                            child: EditorialCard(
+                              label: AppText.weeklyWave,
+                              description: AppText.weeklyWaveDesc,
+                              accentColor: AppColors.papaya,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    const SectionHeader(title: AppText.discoverStations),
+                    const SizedBox(height: 14),
+                    const HorizontalStationSection(),
+                    const SizedBox(height: 26),
+                    const SectionHeader(title: AppText.artistsToWatch),
+                    const SizedBox(height: 14),
+                    const HorizontalBuzzingSection(),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomePublicTracksSection extends StatelessWidget {
+  final List<PlaybackTrackModel> tracks;
+  final bool isLoading;
+  final String? errorMessage;
+  final Future<bool> Function()? ensureNextTrackAvailable;
+
+  const _HomePublicTracksSection({
+    required this.tracks,
+    required this.isLoading,
+    required this.errorMessage,
+    this.ensureNextTrackAvailable,
+  });
+
+  Future<void> _handleTrackTap(
+    BuildContext context,
+    PlaybackTrackModel track,
+    int index,
+  ) async {
+    if (!track.hasAnyPlayableSource || track.playbackUrl.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This track does not have a playable audio source yet.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (track.accessState == PlaybackAccessState.blocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            track.blockedReason ?? 'Playback is disabled for this track.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await PlaybackStreamingEngineService.shared.playTrack(
+      track,
+      queue: tracks,
+      startIndex: index,
+      ensureNextTrackAvailable: ensureNextTrackAvailable,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return SizedBox(
+        height: 255,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemCount: 3,
+          separatorBuilder: (_, _) => const SizedBox(width: 16),
+          itemBuilder: (_, _) => const _HomePublicTrackPosterPlaceholder(),
+        ),
+      );
+    }
+
+    if (errorMessage != null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: _HomeTracksMessageCard(
+          title: 'Could not load tracks right now',
+          subtitle: 'Please try again later.',
+        ),
+      );
+    }
+
+    if (tracks.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: _HomeTracksMessageCard(
+          title: 'No tracks available yet',
+          subtitle: 'Public tracks will appear here when available.',
+        ),
+      );
+    }
+
+    final List<PlaybackTrackModel> visibleTracks = tracks;
+
+    return SizedBox(
+      height: 255,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: visibleTracks.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          return _HomePublicTrackPosterCard(
+            track: visibleTracks[index],
+            onTap: () => _handleTrackTap(context, visibleTracks[index], index),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HomePublicTrackPosterCard extends StatelessWidget {
+  final PlaybackTrackModel track;
+  final VoidCallback? onTap;
+
+  const _HomePublicTrackPosterCard({required this.track, this.onTap});
+
+  bool get _isBlocked => track.accessState == PlaybackAccessState.blocked;
+  bool get _isPreview => track.accessState == PlaybackAccessState.preview;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? accessLabel = _isBlocked
+        ? (track.isAvailableForUser
+            ? 'Not available'
+            : 'Not available in your region')
+        : _isPreview
+        ? (track.mobileProPreview
+            ? 'Pro · ${track.effectivePreviewDuration.inSeconds}s preview'
+            : 'Preview · ${track.effectivePreviewDuration.inSeconds}s')
+        : null;
+
+    return SizedBox(
+      width: 170,
+      child: Opacity(
+        opacity: _isBlocked ? 0.55 : 1,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _isBlocked ? null : onTap,
+            borderRadius: BorderRadius.circular(4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    Container(
+                      width: 170,
+                      height: 170,
+                      decoration: BoxDecoration(
+                        color: AppColors.blueCard,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: (track.artworkUrl ?? '').trim().isEmpty
+                          ? Center(
+                              child: Icon(
+                                Icons.image_outlined,
+                                color: AppColors.white54,
+                                size: 42,
+                              ),
+                            )
+                          : Image.network(
+                              track.artworkUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) {
+                                return Center(
+                                  child: Icon(
+                                    Icons.image_outlined,
+                                    color: AppColors.white54,
+                                    size: 42,
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    if (accessLabel != null)
+                      Positioned(
+                        left: 8,
+                        bottom: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _isBlocked
+                                ? AppColors.pureBlack.withValues(alpha: 0.78)
+                                : AppColors.brilliantOrange.withValues(
+                                    alpha: 0.92,
+                                  ),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            accessLabel,
+                            style: TextStyle(
+                              color: _isBlocked
+                                  ? AppColors.white70
+                                  : AppColors.pureBlack,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  track.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _isBlocked
+                        ? AppColors.white54
+                        : AppColors.whiteSmoke,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _isBlocked
+                      ? (track.blockedReason ?? 'Not available in your region')
+                      : track.artistName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.white54,
+                    fontSize: 13,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomePublicTrackPosterPlaceholder extends StatelessWidget {
+  const _HomePublicTrackPosterPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 170,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 170,
+            height: 170,
+            decoration: BoxDecoration(
+              color: AppColors.blueCard,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 14,
+            width: 140,
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 12,
+            width: 110,
+            decoration: BoxDecoration(
+              color: AppColors.whiteSmoke.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeTracksMessageCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _HomeTracksMessageCard({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderDark),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: AppColors.white60,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickPickTracksSection extends StatelessWidget {
+  final List<PlaybackTrackModel> tracks;
+  final bool isLoading;
+  final Future<void> Function(PlaybackTrackModel, int)? onTap;
+
+  const _QuickPickTracksSection({
+    required this.tracks,
+    required this.isLoading,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final String title0 = tracks.isNotEmpty
+        ? tracks[0].title
+        : AppText.trackTitle;
+    final String sub0 = tracks.isNotEmpty
+        ? tracks[0].artistName
+        : AppText.artistName;
+    final String title1 = tracks.length > 1
+        ? tracks[1].title
+        : AppText.anotherTrack;
+    final String sub1 = tracks.length > 1
+        ? tracks[1].artistName
+        : AppText.anotherArtist;
+    final String title2 = tracks.length > 2
+        ? tracks[2].title
+        : AppText.longTrackTitle;
+    final String sub2 = tracks.length > 2
+        ? tracks[2].artistName
+        : AppText.trackSubtitle;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: tracks.isNotEmpty
+                      ? () => onTap?.call(tracks[0], 0)
+                      : null,
+                  child: MiniTrackCard(
+                    title: title0,
+                    subtitle: sub0,
+                    artworkUrl: tracks.isNotEmpty ? tracks[0].artworkUrl : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: tracks.length > 1
+                      ? () => onTap?.call(tracks[1], 1)
+                      : null,
+                  child: MiniTrackCard(
+                    title: title1,
+                    subtitle: sub1,
+                    artworkUrl: tracks.length > 1 ? tracks[1].artworkUrl : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GestureDetector(
+            onTap: tracks.length > 2 ? () => onTap?.call(tracks[2], 2) : null,
+            child: WideTrackCard(
+              title: title2,
+              subtitle: sub2,
+              artworkUrl: tracks.length > 2 ? tracks[2].artworkUrl : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+
+class _TrendingByGenreSection extends StatefulWidget {
+  const _TrendingByGenreSection();
+
+  @override
+  State<_TrendingByGenreSection> createState() =>
+      _TrendingByGenreSectionState();
+}
+
+class _TrendingByGenreSectionState extends State<_TrendingByGenreSection> {
+  final FeedSearchApiService _service = FeedSearchApiService();
+
+  List<Map<String, dynamic>> _tracks = [];
+  bool _loading = true;
+  String? _error;
+  String? _selectedGenre;
+
+  List<String> get _genres {
+    final seen = <String>{};
+    for (final t in _tracks) {
+      final info = t['basicInfo'];
+      final g = (info is Map ? (info['genre'] ?? '') : '').toString().trim();
+      if (g.isNotEmpty) seen.add(g);
+    }
+    return seen.toList();
+  }
+
+  List<Map<String, dynamic>> get _filteredTracks {
+    if (_selectedGenre == null) return _tracks;
+    return _tracks.where((t) {
+      final info = t['basicInfo'];
+      final g = (info is Map ? (info['genre'] ?? '') : '').toString();
+      return g.toLowerCase() == _selectedGenre!.toLowerCase();
+    }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrending();
+  }
+
+  Future<void> _loadTrending() async {
+    final (code, data) = await _service.getPublicTracks(limit: 100);
+    if (!mounted) return;
+
+    if (code == 200 && data is Map<String, dynamic>) {
+      final rawList = data['tracks'] as List<dynamic>? ?? [];
+      final tracks = rawList.whereType<Map<String, dynamic>>().toList();
+      if (mounted) setState(() { _tracks = tracks; _loading = false; });
+    } else {
+      if (mounted) setState(() { _error = 'Failed to load'; _loading = false; });
+    }
+  }
+
+  Future<void> _onTrackTap(Map<String, dynamic> trackJson) async {
+    final track = PlaybackTrackModel.fromApiJson(trackJson);
+    await PlaybackStreamingEngineService.shared.playTrack(track);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const SizedBox(
+        height: 80,
+        child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+      );
+    }
+
+    
+    if (_error != null || _tracks.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          GenreChipsSection(),
+          SizedBox(height: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: TrendingTracksCard(),
+          ),
+        ],
+      );
+    }
+
+    final genres = _genres;
+    final filtered = _filteredTracks;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        
+        SizedBox(
+          height: 44,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            children: [
+              _GenreChip(
+                label: 'All',
+                selected: _selectedGenre == null,
+                onTap: () => setState(() => _selectedGenre = null),
+              ),
+              for (final g in genres)
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: _GenreChip(
+                    label: g,
+                    selected: _selectedGenre == g,
+                    onTap: () => setState(() => _selectedGenre = g),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.anger.withValues(alpha: 0.28),
+                  AppColors.chineseBlack,
+                ],
+                radius: 1.1,
+              ),
+            ),
+            child: filtered.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'No tracks found for this genre',
+                      style: TextStyle(
+                        color: AppColors.white54,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                : SizedBox(
+                    height: 216,
+                    child: PageView.builder(
+                      key: ValueKey(_selectedGenre ?? 'all'),
+                      itemCount: (filtered.length / 3).ceil(),
+                      itemBuilder: (context, pageIndex) {
+                        final start = pageIndex * 3;
+                        final pageTracks =
+                            filtered.skip(start).take(3).toList();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: pageTracks.map((t) {
+                            final basicInfo =
+                                t['basicInfo'] as Map<String, dynamic>? ?? {};
+                            final image =
+                                t['image'] as Map<String, dynamic>? ?? {};
+                            final artists =
+                                (basicInfo['mainArtists'] as List<dynamic>? ??
+                                        [])
+                                    .map((e) => e.toString())
+                                    .join(', ');
+                            final track = PlaybackTrackModel.fromApiJson(t);
+                            return _TrendingTrackRow(
+                              imageUrl: image['imgLink']?.toString(),
+                              title: basicInfo['title']?.toString() ?? 'Unknown',
+                              subtitle: artists.isNotEmpty
+                                  ? artists
+                                  : 'Unknown Artist',
+                              onTap: () => _onTrackTap(t),
+                              onMoreTap: () =>
+                                  showTrackOptionsSheet(context, track),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GenreChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _GenreChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: selected ? AppColors.chipPink : AppColors.white60,
+          ),
+          color: selected
+              ? AppColors.chipPink.withValues(alpha: 0.12)
+              : Colors.transparent,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppColors.chipPink : AppColors.white70,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrendingTrackRow extends StatelessWidget {
+  final String? imageUrl;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final VoidCallback? onMoreTap;
+
+  const _TrendingTrackRow({
+    required this.imageUrl,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.onMoreTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasImage = (imageUrl ?? '').trim().isNotEmpty;
+    return ListTile(
+      onTap: onTap,
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox(
+          width: 46,
+          height: 46,
+          child: hasImage
+              ? Image.network(
+                  imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _placeholder(),
+                )
+              : _placeholder(),
+        ),
+      ),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: AppColors.whiteSmoke,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: AppColors.white54, fontSize: 13),
+      ),
+      trailing: GestureDetector(
+        onTap: onMoreTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(Icons.more_horiz, color: AppColors.white70),
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: AppColors.tileDark2,
+      child: Icon(Icons.music_note, color: AppColors.white54, size: 20),
+    );
+  }
+}

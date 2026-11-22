@@ -1,0 +1,1226 @@
+import 'package:flutter/material.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
+import 'package:cross_team5/features/activity/screens/track_options_sheet.dart';
+import 'package:cross_team5/features/user_profile_social_identity/services/user_profile_service.dart';
+import 'package:cross_team5/features/authentication_user_management/services/auth_api_service.dart';
+import 'package:cross_team5/features/engagement_social_interactions/engagement_social_interactions.dart';
+import 'package:cross_team5/features/followers_social_graph/followers_social_graph.dart';
+import 'package:cross_team5/features/playback_streaming_engine/models/playback_track_model.dart';
+import 'package:cross_team5/features/activity/models/track_stats_model.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_streaming_engine_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/services/playback_track_api_service.dart';
+import 'package:cross_team5/features/playback_streaming_engine/mini_player_state.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
+
+class BehindTheTrackScreen extends StatefulWidget {
+  final String trackId;
+  final String actorName;
+  final String actorAvatarUrl;
+  final String actorUserId;
+  final String activityType;
+  final String trackOwnerId;
+
+  const BehindTheTrackScreen({
+    super.key,
+    required this.trackId,
+    required this.actorName,
+    required this.actorAvatarUrl,
+    required this.actorUserId,
+    required this.activityType,
+    required this.trackOwnerId,
+  });
+
+  @override
+  State<BehindTheTrackScreen> createState() => _BehindTheTrackScreenState();
+}
+
+class _BehindTheTrackScreenState extends State<BehindTheTrackScreen> {
+  final _trackApi = PlaybackTrackApiService();
+  final _engagementApi = EngagementApiService();
+
+  PlaybackTrackModel? _track;
+  TrackStatsModel? _trackStats;
+  bool _loading = true;
+  String? _error;
+
+  
+  bool _showTopFans = true; 
+
+  
+  bool _isLiked = false;
+  bool _isLikeLoading = false;
+  late int _likeCount = 0;
+  int _commentCount = 0;
+  int _repostCount = 0;
+
+  String? _ownerDisplayName;
+  String? _ownerAvatarUrl;
+  String? _ownerCity;
+  String? _ownerCountry;
+  bool _ownerIsFollowed = false;
+  bool _isOwnerFollowLoading = false;
+
+  bool _isReposted = false;
+  String? _currentUserId;
+
+  
+  EngagementUser? _firstReposter;
+
+  bool get _isCurrentlyPlaying {
+    final svc = PlaybackStreamingEngineService.shared;
+    return svc.state.currentTrack?.id == _track?.id && svc.state.isPlaying;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    PlaybackStreamingEngineService.shared.addListener(_onPlayerUpdate);
+    _loadTrack();
+  }
+
+  void _onPlayerUpdate() => setState(() {});
+
+  @override
+  void dispose() {
+    PlaybackStreamingEngineService.shared.removeListener(_onPlayerUpdate);
+    super.dispose();
+  }
+
+  Future<void> _loadTrack() async {
+    debugPrint('━━━ [_loadTrack] START ━━━');
+    debugPrint('[_loadTrack] Loading track: ${widget.trackId}');
+    
+    try {
+      debugPrint('[_loadTrack] Fetching track data...');
+      final track = await _trackApi.getSingleTrackById(widget.trackId);
+      debugPrint('[_loadTrack] Track loaded: ${track.title}');
+      
+      debugPrint('[_loadTrack] Fetching track stats...');
+      final stats = await _trackApi.getTrackStats(widget.trackId);
+      debugPrint('[_loadTrack] Stats loaded - topFans: ${stats.topFans.length}, firstFans: ${stats.firstFans.length}');
+      
+      if (mounted) {
+        setState(() {
+          _track = track;
+          _trackStats = stats;
+          _likeCount = track.numLikes;
+          _commentCount = track.numComments;
+          _repostCount = track.numReposts;
+          _loading = false;
+        });
+        debugPrint('[_loadTrack] State updated successfully');
+      }
+      
+      _checkLikeStatus();
+      _checkRepostStatus();
+      _fetchFirstReposter();
+      _fetchOwnerProfile();
+      final uid = await AuthApiService().getStoredUserId();
+      if (mounted) {
+        setState(() => _currentUserId = uid);
+        debugPrint('[_loadTrack] Current user ID: $uid');
+      }
+      
+      debugPrint('━━━ [_loadTrack] END ━━━');
+    } catch (e, stackTrace) {
+      debugPrint('━━━ [_loadTrack] ERROR ━━━');
+      debugPrint('[_loadTrack] ❌ Error loading track: $e');
+      debugPrint('[_loadTrack] Stack trace: $stackTrace');
+      debugPrint('━━━ [_loadTrack] END ━━━');
+      
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchOwnerProfile() async {
+    final ownerId = widget.trackOwnerId;
+    if (ownerId.isEmpty) return;
+    try {
+      final token = await AuthApiService().getStoredAccessToken();
+      if (token == null || !mounted) return;
+      final profileFuture = UserProfileService().getUserProfile(ownerId, token);
+      final followFuture = ProfileNavigator.checkIsFollowing(ownerId);
+      final profile = await profileFuture;
+      final isFollowed = await followFuture;
+      if (!mounted) return;
+      setState(() {
+        _ownerDisplayName = profile.displayName.trim().isEmpty
+            ? null
+            : profile.displayName.trim();
+        _ownerAvatarUrl = profile.profileImgLink.trim().isEmpty
+            ? null
+            : profile.profileImgLink.trim();
+        _ownerCity = profile.city.trim().isEmpty ? null : profile.city.trim();
+        _ownerCountry = profile.country.trim().isEmpty
+            ? null
+            : profile.country.trim();
+        _ownerIsFollowed = isFollowed;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _checkLikeStatus() async {
+    try {
+      final result = await _engagementApi.checkTrackLikeStatus(
+        trackId: widget.trackId,
+      );
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
+        final data = result.$2 as Map<String, dynamic>;
+        setState(() => _isLiked = data['liked'] as bool? ?? false);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _checkRepostStatus() async {
+    try {
+      final result = await _engagementApi.getTrackRepostStatus(
+        trackId: widget.trackId,
+      );
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is RepostStatus) {
+        setState(() => _isReposted = (result.$2 as RepostStatus).reposted);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fetchFirstReposter() async {
+    try {
+      final result = await _engagementApi.getTrackReposters(
+        trackId: widget.trackId,
+        limit: 1,
+      );
+      if (!mounted) return;
+      if (result.$1 == 200 && result.$2 is List) {
+        final list = result.$2 as List<EngagementUser>;
+        if (list.isNotEmpty) {
+          setState(() => _firstReposter = list.first);
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _openRepostSheet() async {
+    final track = _track;
+    if (track == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RepostBottomSheet(
+        trackId: track.id,
+        title: track.title,
+        artist: track.artistName,
+        thumbnailUrl: track.artworkUrl,
+        isCurrentlyReposted: _isReposted,
+        currentRepostCount: _repostCount,
+        onRepostToggled: (isNowReposted, newCount) {
+          if (mounted) {
+            setState(() {
+              _isReposted = isNowReposted;
+              _repostCount = newCount;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  
+  Future<void> _toggleLike() async {
+    if (_isLikeLoading) return;
+    final wasLiked = _isLiked;
+    final wasCount = _likeCount;
+    setState(() {
+      _isLiked = !_isLiked;
+      _likeCount = _isLiked ? wasCount + 1 : wasCount - 1;
+      _isLikeLoading = true;
+    });
+
+    final result = await _engagementApi.toggleTrackLike(
+      trackId: widget.trackId,
+    );
+    if (!mounted) return;
+
+    if (result.$1 == 200 && result.$2 is Map<String, dynamic>) {
+      final data = result.$2 as Map<String, dynamic>;
+      setState(() {
+        _isLiked = data['liked'] as bool? ?? _isLiked;
+        _likeCount = data['numOfLikes'] as int? ?? _likeCount;
+      });
+    } else if (result.$1 != 200) {
+      setState(() {
+        _isLiked = wasLiked;
+        _likeCount = wasCount;
+      });
+    }
+    setState(() => _isLikeLoading = false);
+  }
+
+  
+  Future<void> _openComments() async {
+    final track = _track;
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => CommentsScreen(
+          trackId: widget.trackId,
+          trackTitle: track?.title ?? '',
+          trackArtist: track?.artistName ?? '',
+          trackThumbnailUrl: track?.artworkUrl,
+          currentPositionSeconds: 0,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    try {
+      final refreshed = await _trackApi.getSingleTrackById(widget.trackId);
+      if (mounted) {
+        setState(() {
+          _commentCount = refreshed.numComments;
+          _likeCount = refreshed.numLikes;
+          _repostCount = refreshed.numReposts;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _navigateToArtist() async {
+    final ownerId = widget.trackOwnerId;
+    if (ownerId.isEmpty) return;
+    await ProfileNavigator.push(context, ownerId);
+  }
+
+  Future<void> _toggleOwnerFollow() async {
+    if (_isOwnerFollowLoading) return;
+    final wasFollowing = _ownerIsFollowed;
+    setState(() {
+      _ownerIsFollowed = !wasFollowing;
+      _isOwnerFollowLoading = true;
+    });
+    final result = wasFollowing
+        ? await SocialApiService().unfollowUser(
+            targetUserId: widget.trackOwnerId,
+          )
+        : await SocialApiService().followUser(
+            targetUserId: widget.trackOwnerId,
+          );
+    if (!mounted) return;
+    if (result.$1 < 200 || result.$1 >= 300) {
+      setState(() {
+        _ownerIsFollowed = wasFollowing;
+        _isOwnerFollowLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.$2.toString())));
+      return;
+    }
+    setState(() => _isOwnerFollowLoading = false);
+  }
+
+  void _playTrack() {
+    final track = _track;
+    if (track == null) return;
+    final svc = PlaybackStreamingEngineService.shared;
+    if (svc.state.currentTrack?.id == track.id) {
+      if (svc.state.isPlaying) {
+        svc.pause();
+      } else {
+        svc.resume();
+      }
+    } else {
+      svc.playTrack(track);
+    }
+  }
+
+  Future<void> _openTrackOptions() async {
+    final track = _track;
+    if (track == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TrackOptionsSheet(
+        track: track,
+        variant: TrackOptionsVariant.behindTrack,
+      ),
+    );
+    if (!mounted) return;
+    _checkLikeStatus();
+    try {
+      final refreshed = await _trackApi.getSingleTrackById(widget.trackId);
+      if (mounted) {
+        setState(() {
+          _likeCount = refreshed.numLikes;
+          _repostCount = refreshed.numReposts;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<ThemeService>();
+    return Scaffold(
+      backgroundColor: AppColors.backgroundDark,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundDark,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.whiteSmoke,
+            size: 20,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          _track?.title ?? '',
+          style: TextStyle(
+            color: AppColors.whiteSmoke,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primaryOrange,
+                strokeWidth: 2,
+              ),
+            )
+          : _error != null
+          ? _buildError()
+          : _buildBody(),
+      bottomNavigationBar: const MiniPlayerSpacer(),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline_rounded, color: AppColors.white54, size: 42),
+          const SizedBox(height: 16),
+          Text(
+            _error!,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.white54, fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: _loadTrack,
+            child: const Text(
+              'Try again',
+              style: TextStyle(
+                color: AppColors.primaryOrange,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    final track = _track!;
+    return RefreshIndicator(
+      color: AppColors.primaryOrange,
+      onRefresh: () async {
+        debugPrint('[BehindTheTrack] Pull-to-refresh triggered');
+        await _loadTrack();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTrackCard(track),
+            _buildActorRow(),
+            _buildActionRow(),
+            if (track.tags.isNotEmpty) _buildTags(track.tags),
+            Divider(color: AppColors.containerMid, height: 1),
+            const SizedBox(height: 16),
+            _buildArtistCard(track),
+            const SizedBox(height: 24),
+            _buildFanLeaderboard(),
+            const SizedBox(height: 24),
+            _buildInPlaylists(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTags(List<String> tags) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: tags
+            .map(
+              (tag) => Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '# $tag',
+                  style: TextStyle(color: AppColors.white70, fontSize: 13),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildFanLeaderboard() {
+    final stats = _trackStats;
+    if (stats == null) return const SizedBox.shrink();
+
+    if (stats.isStatsPrivate) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Fan leaderboard',
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.white54,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.white54,
+                    size: 28,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'The track owner has disabled the fan leaderboard for this track.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.white70,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final fans = _showTopFans ? stats.topFans : stats.firstFans;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Fan leaderboard',
+                style: TextStyle(
+                  color: AppColors.whiteSmoke,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.white54,
+                size: 16,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            debugPrint('[_buildFanLeaderboard] Toggle tapped: switching to Top');
+                            setState(() => _showTopFans = true);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _showTopFans
+                                  ? AppColors.inputFill
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Top',
+                              style: TextStyle(
+                                color: _showTopFans
+                                    ? AppColors.whiteSmoke
+                                    : AppColors.white54,
+                                fontSize: 14,
+                                fontWeight: _showTopFans
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            debugPrint('[_buildFanLeaderboard] Toggle tapped: switching to First');
+                            setState(() => _showTopFans = false);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: !_showTopFans
+                                  ? AppColors.inputFill
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'First',
+                              style: TextStyle(
+                                color: !_showTopFans
+                                    ? AppColors.whiteSmoke
+                                    : AppColors.white54,
+                                fontSize: 14,
+                                fontWeight: !_showTopFans
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    _showTopFans
+                        ? 'Fans who have played this track the most.'
+                        : 'Fans who played this track in the first week.',
+                    style: TextStyle(color: AppColors.white54, fontSize: 13),
+                  ),
+                ),
+                if (fans.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.people_outline_rounded,
+                          color: AppColors.white54,
+                          size: 28,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _showTopFans ? 'No top fans yet' : 'No early fans yet',
+                          style: TextStyle(color: AppColors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _showTopFans
+                              ? 'Listen to this track to be the first to appear here.'
+                              : 'No one has played this track in its first week yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.white54, fontSize: 12, height: 1.4),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ...fans.asMap().entries.map((e) {
+                    final idx = e.key;
+                    final fan = e.value;
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            child: Text(
+                              '${idx + 1}.',
+                              style:  TextStyle(
+                                color: AppColors.white54,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: ClipOval(
+                              child: fan.profileImg.isNotEmpty
+                                  ? Image.network(
+                                      fan.profileImg,
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, e) => Container(
+                                        width: 36,
+                                        height: 36,
+                                        color: AppColors.tileDark5,
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          fan.displayName.isNotEmpty
+                                              ? fan.displayName[0].toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            color: AppColors.whiteSmoke,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 36,
+                                      height: 36,
+                                      color: AppColors.tileDark5,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        fan.displayName.isNotEmpty
+                                            ? fan.displayName[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          color: AppColors.whiteSmoke,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              fan.displayName,
+                              style: TextStyle(
+                                color: AppColors.whiteSmoke,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${fan.totalNumberOfPlay} plays',
+                            style: TextStyle(
+                              color: AppColors.white54,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInPlaylists() {
+    
+    final playlists = [
+      ('Personal Faves XX !', 'MUSIC AFiCi...'),
+      ('Tracks 🔥🔥', 'Hossam Moh'),
+      ('Saveme', 'User 578913'),
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'In Playlists',
+            style: TextStyle(
+              color: AppColors.whiteSmoke,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 140,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: playlists.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (_, i) {
+                final (name, owner) = playlists[i];
+                return SizedBox(
+                  width: 110,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.queue_music_rounded,
+                          color: AppColors.tileDark5,
+                          size: 36,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        owner,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackCard(PlaybackTrackModel track) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: track.artworkUrl != null && track.artworkUrl!.isNotEmpty
+                ? Image.network(
+                    track.artworkUrl!,
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _artworkPlaceholder(),
+                  )
+                : _artworkPlaceholder(),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  track.title,
+                  style: TextStyle(
+                    color: AppColors.whiteSmoke,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _ownerDisplayName ?? track.artistName,
+                  style: TextStyle(color: AppColors.greyMuted, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                _buildStats(track),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _artworkPlaceholder() {
+    return Container(
+      width: 100,
+      height: 100,
+      color: AppColors.surface,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.graphic_eq_rounded,
+        color: AppColors.tileDark5,
+        size: 36,
+      ),
+    );
+  }
+
+  Widget _buildStats(PlaybackTrackModel track) {
+    final parts = <String>[];
+    parts.add('▶ ${_fmt(track.numPlays)}');
+    if (track.duration != null) parts.add(_fmtDuration(track.duration!));
+    if (track.releaseDate != null) parts.add(_fmtDate(track.releaseDate!));
+    if (parts.isEmpty) return const SizedBox.shrink();
+    return Text(
+      parts.join(' · '),
+      style: TextStyle(color: AppColors.greyMid, fontSize: 12),
+    );
+  }
+
+  Widget _buildActorRow() {
+    final reposter = _firstReposter;
+    if (reposter == null) return const SizedBox.shrink();
+
+    final avatarUrl = reposter.avatarUrl ?? '';
+    return InkWell(
+      onTap: () => ProfileNavigator.push(context, reposter.userId),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.containerMid,
+              backgroundImage:
+                  avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+              child: avatarUrl.isEmpty
+                  ? Text(
+                      reposter.displayName.isNotEmpty
+                          ? reposter.displayName[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            RichText(
+              text: TextSpan(
+                style: TextStyle(color: AppColors.greyIcon, fontSize: 14),
+                children: [
+                  const TextSpan(text: 'Reposted by '),
+                  TextSpan(
+                    text: reposter.displayName,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      child: Row(
+        children: [
+          
+          GestureDetector(
+            onTap: _isLikeLoading ? null : _toggleLike,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                Icon(
+                  _isLiked
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color: _isLiked ? AppColors.primaryOrange : AppColors.white70,
+                  size: 22,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '$_likeCount',
+                  style: TextStyle(
+                    color: _isLiked ? AppColors.primaryOrange : AppColors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          
+          GestureDetector(
+            onTap: _openComments,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: AppColors.white70,
+                  size: 22,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '$_commentCount',
+                  style: TextStyle(color: AppColors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          
+          GestureDetector(
+            onTap: _openRepostSheet,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.repeat_rounded,
+                  color: _isReposted
+                      ? AppColors.primaryOrange
+                      : AppColors.white70,
+                  size: 22,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '$_repostCount',
+                  style: TextStyle(
+                    color: _isReposted
+                        ? AppColors.primaryOrange
+                        : AppColors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          GestureDetector(
+            onTap: _openTrackOptions,
+            behavior: HitTestBehavior.opaque,
+            child: Icon(
+              Icons.more_horiz_rounded,
+              color: AppColors.white70,
+              size: 22,
+            ),
+          ),
+          const Spacer(),
+          
+          GestureDetector(
+            onTap: _playTrack,
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.whiteSmoke,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                _isCurrentlyPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+                color: AppColors.pureBlack,
+                size: 30,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArtistCard(PlaybackTrackModel track) {
+    final displayName = _ownerDisplayName ?? track.artistName;
+    final location = [_ownerCity, _ownerCountry].whereType<String>().join(', ');
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _navigateToArtist,
+            child: CircleAvatar(
+              radius: 26,
+              backgroundColor: AppColors.containerMid,
+              backgroundImage: _ownerAvatarUrl != null
+                  ? NetworkImage(_ownerAvatarUrl!)
+                  : null,
+              child: _ownerAvatarUrl == null
+                  ? Text(
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: AppColors.whiteSmoke,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: _navigateToArtist,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayName,
+                    style: TextStyle(
+                      color: AppColors.whiteSmoke,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (location.isNotEmpty)
+                    Text(
+                      location,
+                      style: TextStyle(color: AppColors.greyMid2, fontSize: 13),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (_currentUserId != widget.trackOwnerId) ...[
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: _isOwnerFollowLoading ? null : _toggleOwnerFollow,
+              child: Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: _ownerIsFollowed
+                      ? AppColors.containerMid
+                      : AppColors.primaryOrange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                alignment: Alignment.center,
+                child: _isOwnerFollowLoading
+                    ? SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          color: AppColors.whiteSmoke,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        _ownerIsFollowed ? 'Following' : 'Follow',
+                        style: TextStyle(
+                          color: AppColors.whiteSmoke,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _fmt(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '$n';
+  }
+
+  String _fmtDuration(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  String _fmtDate(DateTime dt) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+  }
+}

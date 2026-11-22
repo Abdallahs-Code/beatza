@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "59715321541",
+    "project_id": "soft-project-e7a18",
+    "storage_bucket": "soft-project-e7a18.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:59715321541:android:e9b8a68c075f8def843aac",
+        "android_client_info": {
+          "package_name": "beatza.me"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7JahCepYY-hRdLnHiFvNh0a4wVVnN6yA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

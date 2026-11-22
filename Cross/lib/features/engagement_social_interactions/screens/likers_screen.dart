@@ -1,0 +1,310 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'package:cross_team5/features/engagement_social_interactions/models/engagement_user.dart';
+import 'package:cross_team5/features/engagement_social_interactions/services/engagement_api_service.dart';
+import 'package:cross_team5/features/engagement_social_interactions/widgets/engagement_user_tile.dart';
+import 'package:cross_team5/core/navigation/profile_navigator.dart';
+import 'package:provider/provider.dart';
+import 'package:cross_team5/core/services/theme_service.dart';
+import 'package:cross_team5/core/theme/app_colors.dart';
+
+class LikersScreen extends StatefulWidget {
+  final String trackId;
+  final int initialTab; 
+
+  const LikersScreen({super.key, required this.trackId, this.initialTab = 0});
+
+  @override
+  State<LikersScreen> createState() => _LikersScreenState();
+}
+
+class _LikersScreenState extends State<LikersScreen>
+    with SingleTickerProviderStateMixin {
+  final EngagementApiService _service = EngagementApiService();
+  late TabController _tabController;
+
+  
+  List<EngagementUser> _likers = [];
+  bool _isLoadingLikers = true;
+  bool _isLoadingMoreLikers = false;
+  String? _likersError;
+  int _likersOffset = 1;
+  static const int _pageSize = 20;
+
+  
+  List<EngagementUser> _reposters = [];
+  bool _isLoadingReposters = true;
+  bool _isLoadingMoreReposters = false;
+  String? _repostersError;
+  int _repostersOffset = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab,
+    );
+    
+    _loadLikers();
+    _loadReposters();
+  }
+
+  Future<void> _navigateToProfile(String userId) async {
+    await ProfileNavigator.push(context, userId);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  
+  
+  
+  Future<void> _loadLikers() async {
+    setState(() {
+      _isLoadingLikers = true;
+      _likersError = null;
+    });
+
+    final result = await _service.getTrackLikers(
+      trackId: widget.trackId,
+      offset: 1,
+      limit: _pageSize,
+    );
+
+    setState(() {
+      _isLoadingLikers = false;
+      if (result.$1 == 200) {
+        _likers = result.$2 as List<EngagementUser>;
+        _likersOffset = 1;
+        
+        
+        
+      } else {
+        _likersError = result.$2.toString();
+      }
+    });
+  }
+
+  
+  
+  
+  Future<void> _loadMoreLikers() async {
+    if (_isLoadingMoreLikers) return;
+    setState(() => _isLoadingMoreLikers = true);
+
+    final nextOffset = _likersOffset + 1;
+    final result = await _service.getTrackLikers(
+      trackId: widget.trackId,
+      offset: nextOffset,
+      limit: _pageSize,
+    );
+
+    setState(() {
+      _isLoadingMoreLikers = false;
+      if (result.$1 == 200) {
+        final newUsers = result.$2 as List<EngagementUser>;
+        _likers.addAll(newUsers);
+        _likersOffset = nextOffset;
+      }
+    });
+  }
+
+  
+  
+  
+  Future<void> _loadReposters() async {
+    setState(() {
+      _isLoadingReposters = true;
+      _repostersError = null;
+    });
+
+    final result = await _service.getTrackReposters(
+      trackId: widget.trackId,
+      offset: 1,
+      limit: _pageSize,
+    );
+
+    setState(() {
+      _isLoadingReposters = false;
+      if (result.$1 == 200) {
+        _reposters = result.$2 as List<EngagementUser>;
+        _repostersOffset = 1;
+      } else {
+        _repostersError = result.$2.toString();
+      }
+    });
+  }
+
+  
+  
+  
+  Future<void> _loadMoreReposters() async {
+    if (_isLoadingMoreReposters) return;
+    setState(() => _isLoadingMoreReposters = true);
+
+    final nextOffset = _repostersOffset + 1;
+    final result = await _service.getTrackReposters(
+      trackId: widget.trackId,
+      offset: nextOffset,
+      limit: _pageSize,
+    );
+
+    setState(() {
+      _isLoadingMoreReposters = false;
+      if (result.$1 == 200) {
+        final newUsers = result.$2 as List<EngagementUser>;
+        _reposters.addAll(newUsers);
+        _repostersOffset = nextOffset;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<ThemeService>();
+    return Scaffold(
+      backgroundColor: AppColors.pureBlack,
+      appBar: AppBar(
+        backgroundColor: AppColors.pureBlack,
+        foregroundColor: AppColors.whiteSmoke,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primaryOrange,
+          unselectedLabelColor: AppColors.greyMuted,
+          indicatorColor: AppColors.primaryOrange,
+          tabs: const [
+            Tab(text: 'Likes'),
+            Tab(text: 'Reposts'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildUserList(
+            users: _likers,
+            isLoading: _isLoadingLikers,
+            isLoadingMore: _isLoadingMoreLikers,
+            error: _likersError,
+            onRetry: _loadLikers,
+            onLoadMore: _loadMoreLikers,
+            emptyMessage: 'No likes yet.',
+          ),
+          _buildUserList(
+            users: _reposters,
+            isLoading: _isLoadingReposters,
+            isLoadingMore: _isLoadingMoreReposters,
+            error: _repostersError,
+            onRetry: _loadReposters,
+            onLoadMore: _loadMoreReposters,
+            emptyMessage: 'No reposts yet.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  
+  
+  
+  Widget _buildUserList({
+    required List<EngagementUser> users,
+    required bool isLoading,
+    required bool isLoadingMore,
+    required String? error,
+    required VoidCallback onRetry,
+    required VoidCallback onLoadMore,
+    required String emptyMessage,
+  }) {
+    if (isLoading) {
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.primaryOrange),
+      );
+    }
+
+    if (error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(error, style: TextStyle(color: AppColors.white54)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: AppColors.whiteSmoke,
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (users.isEmpty) {
+      return Center(
+        child: Text(
+          emptyMessage,
+          style: TextStyle(color: AppColors.greyMuted, fontSize: 15),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: users.length + 1, 
+      separatorBuilder: (_, _) => Divider(height: 1, color: AppColors.borderDark),
+      itemBuilder: (context, index) {
+        if (index == users.length) {
+          
+          if (users.length < _pageSize) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: isLoadingMore
+                  ? const CircularProgressIndicator(
+                      color: AppColors.primaryOrange,
+                      strokeWidth: 2,
+                    )
+                  : TextButton(
+                      onPressed: onLoadMore,
+                      child: const Text(
+                        'Load more',
+                        style: TextStyle(color: AppColors.primaryOrange),
+                      ),
+                    ),
+            ),
+          );
+        }
+
+        return EngagementUserTile(
+          user: users[index],
+          onTap: () => _navigateToProfile(users[index].userId),
+        );
+      },
+    );
+  }
+}

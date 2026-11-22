@@ -1,0 +1,54 @@
+name: Build Windows Desktop
+
+on:
+  push:
+    branches: [ main, dev ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.5
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Create .env for build
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace('${{ secrets.BASE_URL }}')) {
+            'BASE_URL=' | Out-File -FilePath .env -Encoding utf8 -Force
+          } else {
+            'BASE_URL=${{ secrets.BASE_URL }}' | Out-File -FilePath .env -Encoding utf8 -Force
+          }
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Prepare short SHA
+        id: vars
+        shell: pwsh
+        run: |
+          $shortSha = "${{ github.sha }}".Substring(0, 7)
+          "short_sha=$shortSha" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload desktop artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beatza-windows-${{ github.ref_name }}-${{ steps.vars.outputs.short_sha }}
+          path: build/windows/x64/runner/Release/
+          include-hidden-files: true
+          retention-days: 30
